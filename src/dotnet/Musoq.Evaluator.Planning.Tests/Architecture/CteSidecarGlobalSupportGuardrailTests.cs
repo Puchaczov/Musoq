@@ -129,7 +129,7 @@ public sealed class CteSidecarGlobalSupportGuardrailTests
             repositoryRoot,
             "src",
             "dotnet",
-            "Musoq.Converter.Tests",
+            "Musoq.Converter.Inspection.Tests",
             fileName));
     }
 

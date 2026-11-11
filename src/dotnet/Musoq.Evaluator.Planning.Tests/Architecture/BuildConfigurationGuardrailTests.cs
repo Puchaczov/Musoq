@@ -66,7 +66,7 @@ public sealed class BuildConfigurationGuardrailTests
     public void Workflows_ShouldUseNet10Sdk()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var workflowFiles = Directory.EnumerateFiles(
+        var workflowFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, ".github", "workflows"),
                 "*.yml",
                 SearchOption.TopDirectoryOnly)
@@ -94,7 +94,7 @@ public sealed class BuildConfigurationGuardrailTests
     public void Projects_ShouldTargetNet10()
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
-        var projectFiles = Directory.EnumerateFiles(
+        var projectFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet"),
                 "*.csproj",
                 SearchOption.AllDirectories)
@@ -157,7 +157,7 @@ public sealed class BuildConfigurationGuardrailTests
 
         Assert.AreEqual("true", centralManagement);
 
-        var offenders = Directory.EnumerateFiles(
+        var offenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet"),
                 "*.csproj",
                 SearchOption.AllDirectories)

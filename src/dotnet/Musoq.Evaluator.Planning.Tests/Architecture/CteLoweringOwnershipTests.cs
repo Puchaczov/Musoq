@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,17 +12,15 @@ public sealed class CteLoweringOwnershipTests
     [TestMethod]
     public void CtePlanLowerer_ShouldDependOnCteServiceContract()
     {
-        var parameter = typeof(CtePlanLowerer)
+        var parameter = CompilerContractSymbols.For(typeof(CtePlanLowerer))
             .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             .Single()
             .GetParameters()
             .Single();
 
-        Assert.AreEqual(typeof(ICteLoweringService), parameter.ParameterType);
-        Assert.IsFalse(typeof(CteLoweringService).IsNested);
-        Assert.AreEqual(
-            typeof(ICteLoweringOperations),
-            typeof(CteLoweringService).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .Single().GetParameters().Single().ParameterType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(ICteLoweringService)), parameter.ParameterType));
+        Assert.IsFalse(CompilerContractSymbols.For(typeof(CteLoweringService)).IsNested);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(ICteLoweringOperations)), CompilerContractSymbols.For(typeof(CteLoweringService)).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .Single().GetParameters().Single().ParameterType));
     }
 }

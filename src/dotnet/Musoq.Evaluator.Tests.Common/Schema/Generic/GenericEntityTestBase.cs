@@ -15,11 +15,6 @@ public class GenericEntityTestBase : MSTestContextTestBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 
-    static GenericEntityTestBase()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
-
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     private readonly object _batchedQueryGate = new();

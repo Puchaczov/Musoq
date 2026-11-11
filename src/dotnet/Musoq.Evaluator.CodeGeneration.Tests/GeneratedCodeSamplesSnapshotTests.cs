@@ -24,8 +24,7 @@ public sealed class GeneratedCodeSamplesSnapshotTests
             Directory.Exists(GeneratedCodeSampleArtifacts.SamplesDirectory),
             $"Tracked generated samples directory is missing: {GeneratedCodeSampleArtifacts.SamplesDirectory}");
 
-        var localFiles = Directory
-            .EnumerateFiles(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
+        var localFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .Select(static path => Path.GetFileName(path)!)
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
             .ToArray();
@@ -69,10 +68,8 @@ public sealed class GeneratedCodeSamplesSnapshotTests
                      GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory
                  })
         {
-            if (!Directory.Exists(directory))
-                continue;
 
-            foreach (var path in Directory.EnumerateFiles(directory, "*.cs", SearchOption.TopDirectoryOnly))
+            foreach (var path in global::Musoq.Tests.Common.RequiredSourceInventory.Files(directory, "*.cs", SearchOption.TopDirectoryOnly))
             {
                 var content = File.ReadAllText(path);
                 foreach (var pattern in forbiddenPatterns)

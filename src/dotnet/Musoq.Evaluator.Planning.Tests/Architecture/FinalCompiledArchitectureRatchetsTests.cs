@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -20,10 +21,10 @@ public sealed class FinalCompiledArchitectureRatchetsTests
     [TestMethod]
     public void PhysicalBuilder_ShouldRemainACompatibilityFacade()
     {
-        var builder = typeof(PhysicalToExecutionPlanBuilder);
+        var builder = CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder));
         var buildMethods = builder
             .GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(static method => method.DeclaringType == typeof(PhysicalToExecutionPlanBuilder) && !method.IsSpecialName)
+            .Where(static method => SymbolEqualityComparer.Default.Equals(method.DeclaringType, CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder))) && !method.IsSpecialName)
             .ToArray();
 
         Assert.HasCount(1, buildMethods);
@@ -37,44 +38,44 @@ public sealed class FinalCompiledArchitectureRatchetsTests
     {
         var descriptorTypes = new[]
         {
-            typeof(PhysicalPlanLoweringDescriptor),
-            typeof(PhysicalTableLoweringDescriptor)
+            CompilerContractSymbols.For(typeof(PhysicalPlanLoweringDescriptor)),
+            CompilerContractSymbols.For(typeof(PhysicalTableLoweringDescriptor))
         };
 
         var resultTypes = descriptorTypes
             .SelectMany(static type => type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             .SelectMany(static constructor => constructor.GetParameters())
             .Select(static parameter => parameter.ParameterType)
-            .Where(static type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Func<,>))
+            .Where(static type => type.IsGenericType && SymbolEqualityComparer.Default.Equals(type.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(Func<,>))))
             .Select(static type => type.GetGenericArguments()[1])
             .ToArray();
 
         Assert.IsNotEmpty(resultTypes);
         Assert.IsTrue(resultTypes.All(static type =>
-            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(LoweringAttempt<>)));
+            type.IsGenericType && SymbolEqualityComparer.Default.Equals(type.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(LoweringAttempt<>)))));
 
-        var attemptProperties = typeof(LoweringAttempt<>).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        var attemptProperties = CompilerContractSymbols.For(typeof(LoweringAttempt<>)).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         CollectionAssert.AreEquivalent(
             new[] { nameof(LoweringAttempt<object>.Kind), nameof(LoweringAttempt<object>.Value), nameof(LoweringAttempt<object>.UnsupportedReason), nameof(LoweringAttempt<object>.IsTerminal), nameof(LoweringAttempt<object>.IsBuilt), nameof(LoweringAttempt<object>.IsUnsupported) },
-            attemptProperties.Select(static property => property.Name).ToArray());
+            attemptProperties.Select(static property => property.MetadataName).ToArray());
     }
 
     [TestMethod]
     public void ExecutionNodes_ShouldBeExhaustivelyRegistered()
     {
-        var assembly = typeof(ExecutionNode).Assembly;
+        var assembly = CompilerContractSymbols.For(typeof(ExecutionNode)).Assembly;
         var concreteNodes = assembly
             .GetTypes()
             .Where(static type =>
                 type is { IsClass: true, IsAbstract: false } &&
-                typeof(ExecutionNode).IsAssignableFrom(type))
-            .ToHashSet();
+                CompilerContractSymbols.For(typeof(ExecutionNode)).IsAssignableFrom(type))
+            .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
         var registeredNodes = ExecutionNodeDefinitionCatalog.Definitions
-            .Select(static definition => definition.NodeType)
-            .ToHashSet();
+            .Select(static definition => CompilerContractSymbols.For(definition.NodeType))
+            .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 
-        var missing = concreteNodes.Except(registeredNodes).Select(static type => type.FullName).OrderBy(static name => name).ToArray();
-        var stale = registeredNodes.Except(concreteNodes).Select(static type => type.FullName).OrderBy(static name => name).ToArray();
+        var missing = concreteNodes.Except<ITypeSymbol>(registeredNodes, SymbolEqualityComparer.Default).Select(static type => type.FullName).OrderBy(static name => name).ToArray();
+        var stale = registeredNodes.Except<ITypeSymbol>(concreteNodes, SymbolEqualityComparer.Default).Select(static type => type.FullName).OrderBy(static name => name).ToArray();
 
         Assert.IsEmpty(missing, $"Concrete execution nodes without definitions: {string.Join(", ", missing)}");
         Assert.IsEmpty(stale, $"Node definitions without concrete types: {string.Join(", ", stale)}");
@@ -116,7 +117,7 @@ public sealed class FinalCompiledArchitectureRatchetsTests
     [TestMethod]
     public void PortableDescriptors_ShouldNotCarryClrBindingMembers()
     {
-        foreach (var descriptor in new[] { typeof(ExecutionTypeRef), typeof(ExecutionCallableRef) })
+        foreach (var descriptor in new[] { CompilerContractSymbols.For(typeof(ExecutionTypeRef)), CompilerContractSymbols.For(typeof(ExecutionCallableRef)) })
         {
             var members = descriptor
                 .GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
@@ -133,23 +134,23 @@ public sealed class FinalCompiledArchitectureRatchetsTests
     [TestMethod]
     public void RuntimeContracts_ShouldExposeContextualRunsAndOwnedLifetime()
     {
-        var contextRun = typeof(IContextTableRunnable).GetMethod(nameof(IContextTableRunnable.Run));
-        var asyncContextRun = typeof(IContextAsyncTableRunnable).GetMethod(nameof(IContextAsyncTableRunnable.RunAsync));
+        var contextRun = CompilerContractSymbols.For(typeof(IContextTableRunnable)).GetMethod(nameof(IContextTableRunnable.Run));
+        var asyncContextRun = CompilerContractSymbols.For(typeof(IContextAsyncTableRunnable)).GetMethod(nameof(IContextAsyncTableRunnable.RunAsync));
 
         Assert.IsNotNull(contextRun);
-        Assert.AreEqual(typeof(QueryRunContext), contextRun!.GetParameters().Single().ParameterType);
-        Assert.AreEqual(typeof(Table), contextRun.ReturnType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(QueryRunContext)), contextRun!.GetParameters().Single().ParameterType));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(Table)), contextRun.ReturnType));
         Assert.IsNotNull(asyncContextRun);
-        Assert.AreEqual(typeof(QueryRunContext), asyncContextRun!.GetParameters().Single().ParameterType);
-        Assert.AreEqual(typeof(System.Threading.Tasks.ValueTask<Table>), asyncContextRun.ReturnType);
-        Assert.IsTrue(typeof(IDisposable).IsAssignableFrom(typeof(CompiledQuery)));
-        Assert.IsTrue(typeof(IDisposable).IsAssignableFrom(typeof(EvaluatorRuntimeEnvironment)));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(QueryRunContext)), asyncContextRun!.GetParameters().Single().ParameterType));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(System.Threading.Tasks.ValueTask<>)).Construct(CompilerContractSymbols.For(typeof(Table))), asyncContextRun.ReturnType));
+        Assert.IsTrue(CompilerContractSymbols.For(typeof(IDisposable)).IsAssignableFrom(CompilerContractSymbols.For(typeof(CompiledQuery))));
+        Assert.IsTrue(CompilerContractSymbols.For(typeof(IDisposable)).IsAssignableFrom(CompilerContractSymbols.For(typeof(EvaluatorRuntimeEnvironment))));
     }
 
     [TestMethod]
     public void RuntimeCaches_ShouldNotUseStrongTypeKeysForNamedCaches()
     {
-        var cacheFields = typeof(EvaluationHelper).Assembly
+        var cacheFields = CompilerContractSymbols.For(typeof(EvaluationHelper)).Assembly
             .GetTypes()
             .SelectMany(static type => type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                 .Select(field => (type, field)))
@@ -165,12 +166,12 @@ public sealed class FinalCompiledArchitectureRatchetsTests
         Assert.IsEmpty(typeKeyedStrongCaches, $"Strong type-keyed runtime caches: {string.Join(", ", typeKeyedStrongCaches)}");
     }
 
-    private static bool ContainsStrongTypeKey(Type type)
+    private static bool ContainsStrongTypeKey(ITypeSymbol type)
     {
-        if (type == typeof(Type))
+        if (SymbolEqualityComparer.Default.Equals(type, CompilerContractSymbols.For(typeof(Type))))
             return true;
 
-        if (type.IsArray || type.IsByRef || type.IsPointer)
+        if (type.IsArray || type.IsPointer)
             return ContainsStrongTypeKey(type.GetElementType()!);
 
         return type.IsGenericType && type.GetGenericArguments().Any(ContainsStrongTypeKey);

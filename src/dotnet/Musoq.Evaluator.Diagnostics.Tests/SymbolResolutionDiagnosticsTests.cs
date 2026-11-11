@@ -8,7 +8,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.NegativeTestsBase
 {
     [TestMethod]
@@ -121,7 +121,7 @@ public sealed class SymbolResolutionDiagnosticsTests : Schema.NegativeTests.Nega
     }
 }
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class MultiSchemaSymbolResolutionDiagnosticsTests : Schema.Multi.MultiSchemaTestBase
 {
     [TestMethod]

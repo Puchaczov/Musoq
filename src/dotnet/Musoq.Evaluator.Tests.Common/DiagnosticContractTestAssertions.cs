@@ -18,7 +18,7 @@ internal static class DiagnosticContractTestAssertions
         var diagnostic = diagnostics[0];
         Assert.AreEqual(expectedCode, diagnostic.Code, Format(diagnostics));
         Assert.AreEqual(DiagnosticSeverity.Error, diagnostic.Severity);
-        Assert.AreEqual(DiagnosticPhaseMapping.FromCode(expectedCode), diagnostic.Phase);
+        Assert.AreEqual(ExpectedPhase(expectedCode), diagnostic.Phase);
         Assert.AreEqual(ExpectedSourceKind(expectedCode), diagnostic.SourceKind);
         AssertLocationConsistency(diagnostic, expectedCode, context);
 
@@ -36,7 +36,7 @@ internal static class DiagnosticContractTestAssertions
         Assert.IsTrue(diagnostics.All(item => item.Code == expectedCode),
             $"Expected only {expectedCode} ({context}) but got: {Format(diagnostics)}");
         Assert.IsTrue(diagnostics.All(item => item.Severity == DiagnosticSeverity.Error));
-        Assert.IsTrue(diagnostics.All(item => item.Phase == DiagnosticPhaseMapping.FromCode(expectedCode)));
+        Assert.IsTrue(diagnostics.All(item => item.Phase == ExpectedPhase(expectedCode)));
         Assert.IsTrue(diagnostics.All(item => item.SourceKind == ExpectedSourceKind(expectedCode)));
         foreach (var diagnostic in diagnostics)
             AssertLocationConsistency(diagnostic, expectedCode, context);
@@ -68,6 +68,15 @@ internal static class DiagnosticContractTestAssertions
             _ => DiagnosticSourceKind.Query
         };
     }
+
+    private static DiagnosticPhase ExpectedPhase(DiagnosticCode code) => (int)code switch
+    {
+        >= 1000 and < 3000 => DiagnosticPhase.Parse,
+        >= 3000 and < 4000 => DiagnosticPhase.Bind,
+        >= 4001 and <= 4016 => DiagnosticPhase.Schema,
+        8001 => DiagnosticPhase.CodeGeneration,
+        _ => throw new AssertFailedException($"No independent phase expectation is registered for {code}.")
+    };
 
     private static void AssertLocationConsistency(
         Diagnostic diagnostic,

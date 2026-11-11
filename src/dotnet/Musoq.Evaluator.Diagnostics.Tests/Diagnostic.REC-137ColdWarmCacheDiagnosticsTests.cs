@@ -139,11 +139,13 @@ public sealed class DiagnosticRec137ColdWarmCacheDiagnosticsTests
 
             provider.EnumVersion = 2;
             provider.DriftAtExecution = true;
-            var staleException = Assert.Throws<Exception>(() =>
+            var staleException = Assert.Throws<global::Musoq.Evaluator.Exceptions.QueryExecutionException>(() =>
             {
                 using var table = first.CompiledQuery!.Run();
                 _ = table[0];
             });
+            Assert.AreEqual(DiagnosticCode.MQ7010_DataSourceOpenFailed, staleException.Envelope!.Code);
+            Assert.IsInstanceOfType<InvalidOperationException>(staleException.GetBaseException());
             StringAssert.Contains(staleException.ToString(), "recompile the query", caseId + "/stale");
             first.CompiledQuery!.Dispose();
 

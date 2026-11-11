@@ -77,10 +77,7 @@ public partial class TextInterpretationTests
         var interpreter = CreateAndCompileInterpreter("FixedRecord",
             CreateTextField("Code", TextFieldType.Chars, "4"));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(() => InvokeParse(interpreter, "abc"));
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<ParseException>(wrapper.InnerException);
-        var exception = (ParseException)wrapper.InnerException!;
+        var exception = Assert.ThrowsExactly<ParseException>(() => InvokeParse(interpreter, "abc"));
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
         Assert.AreEqual("Code", exception.FieldName);

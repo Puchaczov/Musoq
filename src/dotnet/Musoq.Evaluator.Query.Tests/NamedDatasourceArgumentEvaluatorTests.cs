@@ -14,6 +14,9 @@ using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
+using Musoq.Parser;
+using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Managers;
@@ -109,16 +112,37 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
     }
 
     [TestMethod]
-    public void NamedArguments_AreCanonicalizedForDescAndDescSettings()
+    public void DescAndDescSettings_PreserveNamedArgumentLabelsWithoutInvokingTheSource()
     {
-        Analyze(
-            "desc #capture.any(second: 4, first: 'value')",
-            new NamedCaptureSchemaProvider(_ => { }));
-
-        Analyze(
-            "desc settings #capture.any(second: 4, first: 'value')",
-            new NamedCaptureSchemaProvider(_ => { }));
+        AssertDescArguments("desc #capture.any(second: 4, first: 'value')");
+        AssertDescArguments("desc settings #capture.any(second: 4, first: 'value')");
     }
+
+    private static void AssertDescArguments(string query)
+    {
+        var invocations = 0;
+        var visitor = Analyze(query, new NamedCaptureSchemaProvider(_ => invocations++));
+        var collector = new SourceArgumentsCollector();
+        visitor.Root.Accept(new SourceArgumentsTraverser(collector));
+        Assert.HasCount(1, collector.Sources);
+        var arguments = collector.Sources.Single().Parameters;
+        Assert.HasCount(2, arguments.Args);
+        CollectionAssert.AreEqual(new[] { "second", "first" },
+            arguments.ArgumentNames.Select(name => name?.Name).ToArray());
+        Assert.AreEqual(4, Assert.IsInstanceOfType<IntegerNode>(arguments.Args[0]).ObjValue);
+        Assert.AreEqual("value", Assert.IsInstanceOfType<ConstantValueNode>(arguments.Args[1]).ObjValue);
+        Assert.AreEqual(typeof(string), arguments.Args[1].ReturnType);
+        Assert.AreEqual(0, invocations);
+    }
+
+    private sealed class SourceArgumentsCollector : NoOpExpressionVisitor
+    {
+        internal List<SchemaFromNode> Sources { get; } = [];
+        public override void Visit(SchemaFromNode node) => Sources.Add(node);
+    }
+
+    private sealed class SourceArgumentsTraverser(SourceArgumentsCollector visitor)
+        : RawTraverseVisitor<SourceArgumentsCollector>(visitor);
 
     [TestMethod]
     public void DescSignatures_ShowUsableReflectedDefaults()
@@ -198,7 +222,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             provider,
             new TestsLoggerResolver());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "first");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "first");
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
@@ -218,7 +242,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             provider,
             new TestsLoggerResolver());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", 7);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", 7);
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
@@ -263,7 +287,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
             provider,
             new TestsLoggerResolver());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "value");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "value");
         var result = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, result.Count);
@@ -288,7 +312,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
                 "any",
                 new SchemaConstructorInfo(
                     typeof(NamedCaptureTable)
-                        .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                        .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
                         .Single(constructor => constructor.GetParameters().Length == 2),
                     false,
                     ("first", typeof(string)),
@@ -370,7 +394,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
                 "any",
                 new SchemaConstructorInfo(
                     typeof(TripleCaptureTable)
-                        .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                        .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
                         .Single(constructor => constructor.GetParameters().Length == 3),
                     false,
                     ("first", typeof(string)),
@@ -380,7 +404,7 @@ public sealed partial class NamedDatasourceArgumentEvaluatorTests
                 "any",
                 new SchemaConstructorInfo(
                     typeof(TripleCaptureIntTable)
-                        .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                        .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
                         .Single(),
                     false,
                     ("first", typeof(string)),

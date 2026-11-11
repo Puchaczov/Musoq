@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using Musoq.Plugins.Attributes;
 using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Schema.Dynamic;
+
+public interface IDynamicFixtureValues
+{
+    IReadOnlyDictionary<string, object?> ReadFixtureValues();
+}
 
 public class DynamicSource(IEnumerable<dynamic> values) : RowSourceBase<IReadOnlyDictionary<string, object?>>
 {
@@ -18,40 +21,15 @@ public class DynamicSource(IEnumerable<dynamic> values) : RowSourceBase<IReadOnl
 
     internal static IReadOnlyDictionary<string, object?> ToDictionary(object value)
     {
+        if (value is IDynamicFixtureValues fixture)
+            return fixture.ReadFixtureValues();
+
         if (value is IReadOnlyDictionary<string, object?> readOnlyDictionary)
             return readOnlyDictionary;
 
         if (value is IDictionary<string, object?> dictionary)
             return dictionary.ToDictionary(pair => pair.Key, pair => pair.Value);
 
-        if (value is DynamicObject dynamicObject)
-        {
-            return value
-                .GetType()
-                .GetCustomAttributes(typeof(DynamicObjectPropertyTypeHintAttribute), inherit: true)
-                .Cast<DynamicObjectPropertyTypeHintAttribute>()
-                .ToDictionary(
-                    hint => hint.Name,
-                    hint => GetDynamicMember(dynamicObject, hint.Name));
-        }
-
-        return value.GetType().GetProperties()
-            .Where(property => property.GetIndexParameters().Length == 0)
-            .ToDictionary(property => property.Name, property => property.GetValue(value));
-    }
-
-    private static object? GetDynamicMember(DynamicObject value, string name)
-    {
-        return value.TryGetMember(new DynamicMemberBinder(name), out var result)
-            ? result
-            : null;
-    }
-
-    private sealed class DynamicMemberBinder(string name) : GetMemberBinder(name, ignoreCase: false)
-    {
-        public override DynamicMetaObject FallbackGetMember(DynamicMetaObject target, DynamicMetaObject? errorSuggestion)
-        {
-            return errorSuggestion ?? throw new NotSupportedException($"Dynamic member '{Name}' could not be resolved.");
-        }
+        throw new NotSupportedException("Unregistered dynamic fixture type: " + value.GetType().FullName);
     }
 }

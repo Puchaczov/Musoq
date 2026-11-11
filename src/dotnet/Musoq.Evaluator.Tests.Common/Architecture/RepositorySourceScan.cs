@@ -28,20 +28,29 @@ internal static class RepositorySourceScan
 
     public static IReadOnlyList<string> ProductionSourceFiles(string repositoryRoot, params string[] projectNames)
     {
-        var separator = Path.DirectorySeparatorChar;
         var roots = projectNames.Length == 0
             ? [Path.Combine(repositoryRoot, "src", "dotnet")]
             : projectNames.Select(name => Path.Combine(repositoryRoot, "src", "dotnet", name)).ToArray();
+        return roots.SelectMany(root =>
+        {
+            if (!Directory.Exists(root))
+                throw new DirectoryNotFoundException("Required production source directory does not exist: " + root);
+            var files = Directory.GetFiles(root, "*.cs", SearchOption.AllDirectories)
+                .Where(file => IsProductionFile(repositoryRoot, file)).ToArray();
+            if (files.Length == 0)
+                throw new InvalidOperationException("The required production source inventory is empty: " + root);
+            return files;
+        }).ToArray();
+    }
 
-        return roots
-            .Where(Directory.Exists)
-            .SelectMany(root => Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
-            .Where(file => !IsGeneratedCodeSample(repositoryRoot, file))
-            .Where(file => !file.Contains($"{separator}bin{separator}", StringComparison.Ordinal))
-            .Where(file => !file.Contains($"{separator}obj{separator}", StringComparison.Ordinal))
-            .Where(file => !file.Contains(".Tests", StringComparison.Ordinal))
-            .Where(file => !file.Contains(".Benchmarks", StringComparison.Ordinal))
-            .ToArray();
+    private static bool IsProductionFile(string repositoryRoot, string file)
+    {
+        var relative = ToRelative(repositoryRoot, file);
+        return !relative.StartsWith("src/dotnet/generated-code-samples/", StringComparison.Ordinal) &&
+               !relative.Contains("/bin/", StringComparison.Ordinal) &&
+               !relative.Contains("/obj/", StringComparison.Ordinal) &&
+               !relative.Contains(".Tests", StringComparison.Ordinal) &&
+               !relative.Contains(".Benchmarks", StringComparison.Ordinal);
     }
 
     public static bool IsGeneratedCodeSample(string repositoryRoot, string file) => ToRelative(repositoryRoot, file)
@@ -50,9 +59,10 @@ internal static class RepositorySourceScan
     public static IReadOnlyList<string> FilesUnder(string repositoryRoot, string relativeDirectory, string searchPattern)
     {
         var directory = Path.Combine(repositoryRoot, relativeDirectory.Replace('/', Path.DirectorySeparatorChar));
-        return Directory.Exists(directory)
-            ? Directory.EnumerateFiles(directory, searchPattern, SearchOption.AllDirectories).ToArray()
-            : [];
+        var files = Directory.GetFiles(directory, searchPattern, SearchOption.AllDirectories);
+        if (files.Length == 0)
+            throw new InvalidOperationException("The required source family is empty: " + directory + "/" + searchPattern);
+        return files;
     }
 
     public static int CountMatchingLines(string filePath, Regex pattern) => File

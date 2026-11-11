@@ -20,7 +20,7 @@ namespace Musoq.Evaluator.Tests;
 ///     All errors should produce readable messages suitable for LSP and LLM agentic tooling.
 ///     Each test verifies the SPECIFIC diagnostic code, not just "any error".
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class CompilationPipelineErrorTests : BasicEntityTestBase
 {
     // ============================================================================
@@ -34,16 +34,14 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Stage5_NoRoslynErrorsForValidQueries()
     {
-        // Arrange - Valid query should never produce Roslyn compilation errors
-        var analyzer = CreateAnalyzer();
+
         var query = "SELECT Name, City, Population FROM #A.Entities() WHERE Population > 50";
 
-        // Act
-        var result = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        // Assert - No errors means code generation and Roslyn compilation succeed
-        Assert.IsTrue(result.IsParsed, "Valid query should parse");
-        AssertNoErrors(result);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice", "Warsaw", 100m]);
     }
 
     #endregion
@@ -85,8 +83,8 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
     {
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Money = 1000.50m }] },
-            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Money = 2000.75m }] }
+            { "#A", [new BasicEntity("Warsaw", "Poland", 100) { Name = "Alice", Money = 1000.50m }] },
+            { "#B", [new BasicEntity("Berlin", "Germany", 200) { Name = "Bob", Money = 2000.75m }] }
         };
         return new BasicSchemaProvider<BasicEntity>(sources);
     }
@@ -126,19 +124,6 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
         }
     }
 
-    private static void DocumentParserBehavior(QueryAnalysisResult result, string expectedBehavior,
-        bool shouldHaveErrors)
-    {
-        Assert.IsNotNull(result, "Result should not be null - analyzer should not crash");
-
-        if (shouldHaveErrors)
-            Assert.IsNotEmpty(result.Errors,
-                $"Expected errors for behavior: {expectedBehavior}. Got IsParsed={result.IsParsed}, HasErrors={result.HasErrors}");
-        else
-            Assert.IsFalse(result.HasErrors,
-                $"Expected no errors for behavior: {expectedBehavior}. " +
-                $"Got: {string.Join("; ", result.Errors.Select(e => $"[{e.Code}] {e.Message}"))}");
-    }
 
     #endregion
 
@@ -152,8 +137,7 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
     [TestMethod]
     public void Stage4_CodeGeneration_ComplexQuery()
     {
-        // Arrange - Complex query that exercises code generation paths
-        var analyzer = CreateAnalyzer();
+
         var query = @"
             WITH cte AS (
                 SELECT Name, City, Population 
@@ -164,30 +148,27 @@ public partial class CompilationPipelineErrorTests : BasicEntityTestBase
             FROM cte 
             ORDER BY Name ASC";
 
-        // Act
-        var result = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        // Assert - Must analyze without errors (code gen would fail at compile time)
-        Assert.IsTrue(result.IsParsed, "Complex CTE query should parse");
-        AssertNoErrors(result);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice", "Warsaw"]);
     }
 
     [TestMethod]
     public void Stage4_CodeGeneration_SetOperator()
     {
-        // Arrange - Set operators exercise complex code paths
-        var analyzer = CreateAnalyzer();
+
         var query = @"
             SELECT Name FROM #A.Entities()
             UNION ALL (Name)
             SELECT Name FROM #B.Entities()";
 
-        // Act
-        var result = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        // Assert - Must succeed
-        Assert.IsTrue(result.IsParsed, "UNION ALL should parse");
-        AssertNoErrors(result);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["Bob"]);
     }
 
     #endregion

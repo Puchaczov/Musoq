@@ -12,7 +12,7 @@ using RuntimeParseException = Musoq.Schema.Interpreters.ParseException;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -193,7 +193,7 @@ public sealed class DiagnosticREC141ExecutableExamplesTests : BasicEntityTestBas
     }
 }
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticREC141TableExamplesTests : BasicEntityTestBase
 {
     [TestMethod]

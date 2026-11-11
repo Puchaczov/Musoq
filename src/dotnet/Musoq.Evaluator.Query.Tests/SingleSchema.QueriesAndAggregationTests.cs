@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Single schema tests: Pagination, columns, aggregation, and schema introspection.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class SingleSchemaQueriesAndAggregationTests : BasicEntityTestBase
 {
     [TestMethod]

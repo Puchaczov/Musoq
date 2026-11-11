@@ -28,13 +28,16 @@ Documentation and test-only changes do not require the full solution suite solel
    dotnet test src/dotnet/Musoq.sln --filter "FullyQualifiedName~Musoq.Evaluator.Tests" --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 
    # Test converter and pipeline orchestration changes
-   dotnet test src/dotnet/Musoq.Converter.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+   dotnet test src/dotnet/Musoq.Converter.Compilation.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+   dotnet test src/dotnet/Musoq.Converter.Inspection.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+   dotnet test src/dotnet/Musoq.Converter.Targets.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 
    # Test schema changes
    dotnet test src/dotnet/Musoq.Schema.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 
    # Test plugins changes
-   dotnet test src/dotnet/Musoq.Plugins.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+   dotnet test src/dotnet/Musoq.Plugins.Conversions.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+   dotnet test src/dotnet/Musoq.Plugins.Functions.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
   ```
 
 ### IR Planner Validation

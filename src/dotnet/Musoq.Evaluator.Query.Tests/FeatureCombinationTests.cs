@@ -4,7 +4,7 @@ using Musoq.Evaluator.Tests.Schema.NegativeTests;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class FeatureCombinationTests : NegativeTestsBase
 {
     #region 7.4 GROUP BY + CASE Expression

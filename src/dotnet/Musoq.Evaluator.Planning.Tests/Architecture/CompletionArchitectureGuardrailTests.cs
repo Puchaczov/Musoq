@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
@@ -14,13 +15,13 @@ public sealed class CompletionArchitectureGuardrailTests
     [TestMethod]
     public void LoweringAssembly_ShouldNotContainLegacyGenericBuildResultsOrSessions()
     {
-        var assembly = typeof(PhysicalToExecutionPlanBuilder).Assembly;
+        var assembly = CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder)).Assembly;
 
         var legacyTypes = assembly
             .GetTypes()
             .Where(static type =>
-                type.Name == "PhysicalToExecutionLoweringSession" ||
-                (type.IsGenericTypeDefinition && type.Name.StartsWith("BuildResult", StringComparison.Ordinal)))
+                type.MetadataName == "PhysicalToExecutionLoweringSession" ||
+                (type.IsGenericTypeDefinition && type.MetadataName.StartsWith("BuildResult", StringComparison.Ordinal)))
             .Select(static type => type.FullName)
             .ToArray();
 
@@ -39,29 +40,20 @@ public sealed class CompletionArchitectureGuardrailTests
 
         Assert.IsEmpty(loweringSourceOffenders);
 
-        var attemptType = typeof(LoweringAttempt<>);
+        var attemptType = CompilerContractSymbols.For(typeof(LoweringAttempt<>));
         Assert.IsNull(attemptType.GetProperty("Supported", BindingFlags.Instance | BindingFlags.Public));
-        Assert.AreEqual(
-            attemptType.GetGenericArguments()[0],
-            attemptType.GetProperty(nameof(LoweringAttempt<object>.Value))!.PropertyType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(attemptType.GetGenericArguments()[0], attemptType.GetProperty(nameof(LoweringAttempt<object>.Value))!.PropertyType));
     }
 
     [TestMethod]
     public void PhysicalLoweringDispatchFacade_ShouldRegisterEachDescriptorExactlyOnce()
     {
-        var facade = new PhysicalLoweringDispatchFacade(CreateNoOpHandlers());
-        var registryField = typeof(PhysicalLoweringDispatchFacade).GetField(
-            "_registry",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        var registry = (PhysicalLoweringRegistry)registryField!.GetValue(facade)!;
-        var names = registry.PlanDescriptors
-            .Select(static descriptor => descriptor.Name)
-            .Concat(registry.TableDescriptors.Select(static descriptor => descriptor.Name))
-            .ToArray();
-
-        Assert.HasCount(
-            PhysicalLoweringDispatchFacade.PlanLoweringDescriptorNames.Count + PhysicalLoweringDispatchFacade.TableLoweringDescriptorNames.Count,
-            names);
+        var trace = new LoweringDispatchTrace();
+        trace.Exercise();
+        CollectionAssert.AreEqual(LoweringDispatchTrace.ExpectedPlanOrder, trace.PlanCalls.ToArray());
+        CollectionAssert.AreEqual(LoweringDispatchTrace.ExpectedTableOrder, trace.TableCalls.ToArray());
+        var names = trace.PlanCalls.Concat(trace.TableCalls).ToArray();
+        Assert.HasCount(12, names);
         Assert.HasCount(names.Length, names.Distinct(StringComparer.Ordinal).ToArray());
     }
 
@@ -113,29 +105,16 @@ public sealed class CompletionArchitectureGuardrailTests
     [TestMethod]
     public void LegacyInterpreterAssemblyLoading_ShouldExposeCollectibleOwnershipAndDisposal()
     {
-        var loadMethod = typeof(IAssemblyLoader).GetMethod(nameof(IAssemblyLoader.Load));
+        var loadMethod = CompilerContractSymbols.For(typeof(IAssemblyLoader)).GetMethod(nameof(IAssemblyLoader.Load));
         Assert.IsNotNull(loadMethod);
-        Assert.AreEqual(typeof(LoadedAssemblyHandle), loadMethod!.ReturnType);
-        Assert.IsTrue(typeof(IDisposable).IsAssignableFrom(typeof(InterpreterCompilationUnit)));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(LoadedAssemblyHandle)), loadMethod!.ReturnType));
+        Assert.IsTrue(CompilerContractSymbols.For(typeof(IDisposable)).IsAssignableFrom(CompilerContractSymbols.For(typeof(InterpreterCompilationUnit))));
 
-        var loadContextField = typeof(LoadedAssemblyHandle).GetField(
+        var loadContextField = CompilerContractSymbols.For(typeof(LoadedAssemblyHandle)).GetField(
             "_loadContext",
             BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.IsNotNull(loadContextField);
-        Assert.AreEqual(typeof(System.Runtime.Loader.AssemblyLoadContext), loadContextField!.FieldType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(System.Runtime.Loader.AssemblyLoadContext)), loadContextField!.FieldType));
     }
 
-    private static PhysicalLoweringHandlers CreateNoOpHandlers() => new(
-        static _ => LoweringAttempt<ExecutionPlan>.NoMatch(),
-        static _ => LoweringAttempt<ExecutionPlan>.NoMatch(),
-        static _ => LoweringAttempt<ExecutionPlan>.NoMatch(),
-        static _ => LoweringAttempt<ExecutionPlan>.NoMatch(),
-        static _ => LoweringAttempt<ExecutionPlan>.NoMatch(),
-        static _ => LoweringAttempt<ExecutionPlan>.NoMatch(),
-        static _ => LoweringAttempt<ExecutionPlan>.NoMatch(),
-        static _ => LoweringAttempt<LoweredTable>.NoMatch(),
-        static _ => LoweringAttempt<LoweredTable>.NoMatch(),
-        static _ => LoweringAttempt<LoweredTable>.NoMatch(),
-        static _ => LoweringAttempt<LoweredTable>.NoMatch(),
-        static _ => LoweringAttempt<LoweredTable>.NoMatch());
 }

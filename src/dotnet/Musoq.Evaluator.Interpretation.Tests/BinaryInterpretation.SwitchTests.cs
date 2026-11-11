@@ -52,7 +52,7 @@ public class BinaryInterpretationSwitchTests : BinaryInterpretationTestBase
         CollectionAssert.AreEqual(new byte[] { 0xAA, 0xBB, 0xCC }, GetPropertyValue<byte[]>(payload, "Raw")!);
     }
 
-    private static object CompilePacketInterpreter()
+    private object CompilePacketInterpreter()
     {
         var registry = new SchemaRegistry();
 

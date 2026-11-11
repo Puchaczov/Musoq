@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Unknown;
@@ -99,9 +98,8 @@ public sealed class DiagnosticBinary045SubstreamTests : BinaryInterpretationTest
             new SubstreamTypeNode(new IdentifierNode("Length"), SubstreamMode.Exact, new SchemaReferenceTypeNode("Body")));
         var interpreter = CompileInterpreter(registry, "Packet");
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [1, 0xAA]));
-        var exception = AssertParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
         Assert.AreEqual("Body", exception.SchemaName);
@@ -118,9 +116,8 @@ public sealed class DiagnosticBinary045SubstreamTests : BinaryInterpretationTest
                 "Payload",
                 new SubstreamTypeNode(new IntegerNode(int.MaxValue), SubstreamMode.Raw, null)));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [0x01]));
-        var exception = AssertParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
         Assert.AreEqual("Packet", exception.SchemaName);
@@ -134,9 +131,8 @@ public sealed class DiagnosticBinary045SubstreamTests : BinaryInterpretationTest
             new SubstreamTypeNode(new IdentifierNode("Length"), SubstreamMode.Exact, new SchemaReferenceTypeNode("Body")));
         var interpreter = CompileInterpreter(registry, "Packet");
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [3, 0xAA, 0xBB, 0xCC]));
-        var exception = AssertParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.ValidationFailed, exception.ErrorCode);
         Assert.AreEqual("Packet", exception.SchemaName);
@@ -206,10 +202,4 @@ public sealed class DiagnosticBinary045SubstreamTests : BinaryInterpretationTest
         return new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable);
     }
 
-    private static BinaryParseException AssertParseException(TargetInvocationException wrapper)
-    {
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<BinaryParseException>(wrapper.InnerException);
-        return (BinaryParseException)wrapper.InnerException!;
-    }
 }

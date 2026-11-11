@@ -71,11 +71,16 @@ jobs:
           dotnet build src/dotnet/Musoq.Schema/Musoq.Schema.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Schema.Tests/Musoq.Schema.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Plugins/Musoq.Plugins.csproj --configuration Release --no-restore --no-dependencies -warnaserror
-          dotnet build src/dotnet/Musoq.Plugins.Tests/Musoq.Plugins.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Plugins.Conversions.Tests/Musoq.Plugins.Conversions.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Plugins.Functions.Tests/Musoq.Plugins.Functions.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Plugins.Tests.Common/Musoq.Plugins.Tests.Common.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Tests.Common/Musoq.Tests.Common.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Evaluator/Musoq.Evaluator.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Converter/Musoq.Converter.csproj --configuration Release --no-restore --no-dependencies -warnaserror
-          dotnet build src/dotnet/Musoq.Converter.Tests/Musoq.Converter.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Converter.Compilation.Tests/Musoq.Converter.Compilation.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Converter.Inspection.Tests/Musoq.Converter.Inspection.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Converter.Targets.Tests/Musoq.Converter.Targets.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
+          dotnet build src/dotnet/Musoq.Converter.Tests.Common/Musoq.Converter.Tests.Common.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Evaluator.Query.Tests/Musoq.Evaluator.Query.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Evaluator.Relational.Tests/Musoq.Evaluator.Relational.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
           dotnet build src/dotnet/Musoq.Evaluator.Planning.Tests/Musoq.Evaluator.Planning.Tests.csproj --configuration Release --no-restore --no-dependencies -warnaserror
@@ -92,7 +97,7 @@ jobs:
       - name: Test
         env:
           VSTEST_CONNECTION_TIMEOUT: '180'
-        run: dotnet test src/dotnet/Musoq.sln --configuration Release --no-build -m:1 --logger "console;verbosity=minimal" --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test src/dotnet/Musoq.sln --configuration Release --no-build --logger "console;verbosity=minimal" --logger "trx;LogFileName=test-results.trx"
 
       - name: Pack release packages
         if: matrix.warning_ratchet == true

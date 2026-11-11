@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests execute complete SQL queries through the entire pipeline
 ///     to exercise code paths in visitors, emitters, and code generation.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
 {
 
@@ -28,11 +28,11 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
             { "#B", [new BasicEntity("B")] },
             { "#C", [new BasicEntity("C")] }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A"], ["D"]);
     }
 
 
@@ -61,11 +61,11 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Big NYC"], ["Big Other"], ["Small"]);
     }
 
 
@@ -204,11 +204,11 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A", "Low"], ["B", "High"]);
     }
 
     [TestMethod]
@@ -232,11 +232,11 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A", "Low"], ["B", "Medium"], ["C", "High"]);
     }
 
     [TestMethod]
@@ -284,11 +284,11 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A", "No Value"], ["B", "High"], ["C", "Low"]);
     }
 
 
@@ -315,11 +315,11 @@ public partial class EndToEndQueryExecutionTests : BasicEntityTestBase
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["NYC", 2L, 300m, 150m, 100m, 200m], ["LA", 1L, 50m, 50m, 50m, 50m]);
     }
 
 }

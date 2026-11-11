@@ -130,7 +130,7 @@ public sealed class CampaignTests
         using var temporary = new TemporaryDirectory();
         var manifest = Manifest();
         var store = new CampaignStore(temporary.Path, manifest);
-        store.Save(new Measurement("case", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, "failed", "synthetic failure"));
+        store.Save(new Measurement("case", new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero), new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero), "failed", "synthetic failure"));
         store.Finish();
         Assert.AreEqual("incomplete", store.Manifest.Status);
         File.WriteAllText(System.IO.Path.Combine(temporary.Path, "measurements.json"), "interrupted aggregate");
@@ -204,12 +204,13 @@ public sealed class CampaignTests
         Assert.Throws<InvalidOperationException>(() => CampaignIntegrity.ValidateSource(temporary.Path, Manifest(provenance: stamp)));
     }
 
-    internal static Measurement Success() => new("case", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, "complete", null,
+    internal static Measurement Success() => new("case", new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero), new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero), "complete", null,
         MeanNanoseconds: 10, MedianNanoseconds: 10, SampleCount: 2);
 
     internal static RunManifest Manifest(string suite = "suite", RunProvenance? provenance = null) => new()
     {
-        SuiteVersion = suite, RunId = "fixture",
+        SuiteVersion = suite,
+        RunId = "fixture",
         Provenance = provenance ?? new(new("commit", "branch", [], false, null), new("profile", "cpu", 2, 4, 4, 1024, "x64", []),
             new("os", "runtime", "sdk", "bdn", true, true, 4, "Local", "Dry", false), new("version", "commit")),
         Cases = [new("case", "B01_Scan", "Expressions", "execution", "Table", "Small", 4, "shared", "core/5", "consume")]

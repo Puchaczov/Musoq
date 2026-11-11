@@ -21,7 +21,7 @@ select scores.Name, scores.Score
 order by scores.Score";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "baseScore", 10);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "baseScore", 10);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
@@ -92,7 +92,7 @@ select scores.Name, scores.Score
 order by scores.Score";
 
         var vm = CreateAndRunVirtualMachine(query, EmptySources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "baseScore", 12);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "baseScore", 12);
         var table = vm.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(

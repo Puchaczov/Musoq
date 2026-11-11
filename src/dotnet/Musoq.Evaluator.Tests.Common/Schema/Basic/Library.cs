@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests.Schema.Basic;
 
 public class Library : LibraryBase
 {
-    private static int _nextValue;
+    private int _nextValue;
 
     private readonly Random _random = new();
 

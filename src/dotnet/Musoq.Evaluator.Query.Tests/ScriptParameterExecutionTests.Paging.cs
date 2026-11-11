@@ -14,12 +14,12 @@ public partial class ScriptParameterExecutionTests
             select Key from #EnvironmentVariables.All() order by Key skip $offset take $limit
             """, CreateEnvironmentVariableSources());
         Assert.AreEqual("KEY_1", query.Run(TestContext.CancellationToken)[0].ReadValue(0));
-        NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 1);
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 1);
         Assert.AreEqual("KEY_2", query.Run(TestContext.CancellationToken)[0].ReadValue(0));
-        NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "limit", 0);
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "limit", 0);
         Assert.AreEqual(0, query.Run(TestContext.CancellationToken).Count);
-        NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 0);
-        NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "limit", 2);
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 0);
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "limit", 2);
         Assert.AreEqual(2, query.Run(TestContext.CancellationToken).Count);
     }
 
@@ -47,7 +47,7 @@ public partial class ScriptParameterExecutionTests
     public void Paging_IntegralParameter_ShouldAcceptTypedCount(string type, object value)
     {
         using var query = CreateAndRunVirtualMachine($"param(count: {type}) select Key from #EnvironmentVariables.All() order by Key skip $count take 1", CreateEnvironmentVariableSources());
-        NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "count", value);
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "count", value);
         Assert.AreEqual("KEY_2", query.Run(TestContext.CancellationToken)[0].ReadValue(0));
     }
 
@@ -59,7 +59,7 @@ public partial class ScriptParameterExecutionTests
     public void Paging_InvalidRuntimeCount_ShouldReportStructuredError(string type, object? value)
     {
         using var query = CreateAndRunVirtualMachine($"param(count: {type}) select Key from #EnvironmentVariables.All() take $count", CreateEnvironmentVariableSources());
-        NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "count", value);
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "count", value);
         var exception = Assert.ThrowsExactly<PagingCountException>(() => _ = query.Run(TestContext.CancellationToken).Count);
         Assert.AreEqual(DiagnosticCode.MQ7019_InvalidRuntimePagingCount, exception.Code);
         StringAssert.Contains(exception.Message, "TAKE count '$count'");

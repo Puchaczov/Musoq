@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Covers silent misinterpretations (S1-S4), wrong diagnostic codes (W3),
 ///     untested production codes (U1-U3), and pipeline independence (B2).
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class NumericLiteralValidationTests : GenericEntityTestBase
 {
     #region S1-S3: Invalid base-prefixed numbers now produce errors

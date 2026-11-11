@@ -146,7 +146,8 @@ public class BinaryInterpretationConditionalTests : BinaryInterpretationTestBase
 
         var data = new byte[] { 0x78, 0x56, 0x34, 0x12 };
 
-        Assert.Throws<System.Exception>(() => InvokeInterpret(interpreter, data));
+        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => InvokeInterpret(interpreter, data));
+        Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.ValidationFailed, failure.ErrorCode);
     }
 
     [TestMethod]

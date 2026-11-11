@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -441,11 +443,11 @@ public sealed class PhysicalPlanningArchitectureCharacterizationTests
 
     private static bool HasConstructorParameter<TDeclaring, TParameter>()
     {
-        return typeof(TDeclaring)
+        return CompilerContractSymbols.For(typeof(TDeclaring))
             .GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             .Any(static constructor => constructor
                 .GetParameters()
-                .Any(static parameter => parameter.ParameterType == typeof(TParameter)));
+                .Any(static parameter => SymbolEqualityComparer.Default.Equals(parameter.ParameterType, CompilerContractSymbols.For(typeof(TParameter)))));
     }
 
     private static PlanProperties CreateEmptyProperties()

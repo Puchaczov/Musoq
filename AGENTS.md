@@ -4,7 +4,7 @@
 
 Musoq is a .NET SQL query engine. The solution is `src/dotnet/Musoq.sln`; production and test projects are siblings under `src/dotnet/`. Core boundaries include `Musoq.Parser` (SQL syntax), `Musoq.Schema` (data-source contracts), `Musoq.Evaluator` (planning and execution), `Musoq.Converter` (compilation), `Musoq.Plugins` (built-in functions), and `Musoq.Targets.*` (execution targets and renderers). Shared test helpers are in `Musoq.Tests.Common`; benchmarks are in `Musoq.Benchmarks`. Documentation, specifications, scripts, release notes, and image assets are in `docs/`, `specs/`, `scripts/`, `release-notes/`, and `images/`.
 
-The query pipeline is SQL text -> typed AST -> logical plan -> planner decisions -> physical plan -> Execution IR -> generated C# -> compiled .NET assembly -> execution. `Musoq.Evaluator.Tests.Common` supplies evaluator-specific fixtures; `Musoq.Tests.Common` supplies lightweight shared helpers.
+The query pipeline is SQL text -> typed AST -> logical plan -> planner decisions -> physical plan -> Execution IR -> generated C# -> compiled .NET assembly -> execution. `Musoq.Evaluator.Tests.Common`, `Musoq.Converter.Tests.Common`, and `Musoq.Plugins.Tests.Common` supply module-specific fixtures without test discovery; `Musoq.Tests.Common` supplies lightweight shared helpers. Converter tests are divided into Compilation, Inspection, and Targets projects; Plugins tests are divided into Conversions and Functions projects. See [test project ownership and preservation](docs/testing/test-project-split.md).
 
 ## Instruction Guides
 

@@ -9,7 +9,7 @@ using Musoq.Evaluator.Tests.Schema.Wildcard;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class QueryProgressIntegrationTests : BasicEntityTestBase
 {
     [TestMethod]

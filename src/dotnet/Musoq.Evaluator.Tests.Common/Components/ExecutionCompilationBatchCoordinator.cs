@@ -314,12 +314,15 @@ internal static class StableTypedExecutionCompilationCoordinator
         string consumerFamily = "stable-typed",
         string batchOrigin = "test-coordinator")
     {
-        return Shared.Submit(
+        using var capture = new global::Musoq.Tests.Common.GeneratedAssemblyCapture();
+        var result = Shared.Submit(
             script,
             schemaProvider,
             loggerResolver,
             compilationOptions,
             consumerFamily,
             batchOrigin);
+        GeneratedExecutionIlInspection.RecordCompilation(result.Result, capture);
+        return result;
     }
 }

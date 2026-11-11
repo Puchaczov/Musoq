@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
@@ -13,15 +14,15 @@ public sealed class PortableExecutionBoundaryTests
     [TestMethod]
     public void ExecutionReferences_ShouldExposeDescriptors_NotClrBindingHelpers()
     {
-        var typeRefMethods = typeof(ExecutionTypeRef)
+        var typeRefMethods = CompilerContractSymbols.For(typeof(ExecutionTypeRef))
             .GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(method => method.DeclaringType == typeof(ExecutionTypeRef))
-            .Select(method => method.Name)
+            .Where(method => SymbolEqualityComparer.Default.Equals(method.DeclaringType, CompilerContractSymbols.For(typeof(ExecutionTypeRef))))
+            .Select(method => method.MetadataName)
             .ToHashSet(StringComparer.Ordinal);
-        var callableRefMethods = typeof(ExecutionCallableRef)
+        var callableRefMethods = CompilerContractSymbols.For(typeof(ExecutionCallableRef))
             .GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(method => method.DeclaringType == typeof(ExecutionCallableRef))
-            .Select(method => method.Name)
+            .Where(method => SymbolEqualityComparer.Default.Equals(method.DeclaringType, CompilerContractSymbols.For(typeof(ExecutionCallableRef))))
+            .Select(method => method.MetadataName)
             .ToHashSet(StringComparer.Ordinal);
 
         CollectionAssert.DoesNotContain(typeRefMethods.ToArray(), "FromClr");
@@ -32,8 +33,8 @@ public sealed class PortableExecutionBoundaryTests
         CollectionAssert.DoesNotContain(callableRefMethods.ToArray(), "FromClr");
         CollectionAssert.DoesNotContain(callableRefMethods.ToArray(), "ResolveClrMethod");
 
-        Assert.IsFalse(typeof(ExecutionTypeRef).GetProperties().Any(property => property.PropertyType == typeof(Type)));
-        Assert.IsFalse(typeof(ExecutionCallableRef).GetProperties().Any(property => property.PropertyType == typeof(MethodInfo)));
+        Assert.IsFalse(CompilerContractSymbols.For(typeof(ExecutionTypeRef)).GetProperties().Any(property => SymbolEqualityComparer.Default.Equals(property.PropertyType, CompilerContractSymbols.For(typeof(Type)))));
+        Assert.IsFalse(CompilerContractSymbols.For(typeof(ExecutionCallableRef)).GetProperties().Any(property => SymbolEqualityComparer.Default.Equals(property.PropertyType, CompilerContractSymbols.For(typeof(MethodInfo)))));
     }
 
     [TestMethod]

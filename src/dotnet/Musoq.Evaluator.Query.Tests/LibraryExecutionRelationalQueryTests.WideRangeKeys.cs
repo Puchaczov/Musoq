@@ -9,7 +9,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionWideRangeKeyQueryTestsFixture
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class LibraryExecutionWideRangeKeyQueryTests : GenericEntityTestBase
 {
     [TestMethod]

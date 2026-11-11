@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -65,7 +65,7 @@ public class ArithmeticForMethodCallAndTypeSpecificOperationTests : BasicEntityT
     [TestMethod]
     public void WhenSByteMethodCallAndByteUsed_ShouldHaveColumnOfThatType()
     {
-        TestMethodTemplate<int>("DoNothing(1b) + 1b", 2);
+        TestMethodTemplate<int>("DoNothing(1b) + 1ub", 2);
     }
 
     [TestMethod]

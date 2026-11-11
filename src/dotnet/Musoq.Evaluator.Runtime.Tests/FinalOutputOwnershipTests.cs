@@ -7,7 +7,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
 {
     private const string SerialSource = "from #schema.first() a where a.Id > 0";
@@ -29,7 +29,7 @@ public sealed class FinalOutputOwnershipTests : GenericEntityTestBase
         TableMaterializationTestHelper.AssertRowsInOrder(first, [1, 11, 2, null]);
         Assert.AreEqual(2, entity.Calls);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 20);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 20);
         using var second = query.Run(TestContext.CancellationToken);
         TableMaterializationTestHelper.AssertRowsInOrder(second, [1, 23, 4, null]);
         TableMaterializationTestHelper.AssertRowsInOrder(first, [1, 11, 2, null]);

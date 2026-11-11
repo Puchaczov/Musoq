@@ -194,7 +194,7 @@ public sealed class CsvDatasourceApiContractTests : CsvExampleTestBase
             "select Name from Rows($path)";
 
         var compiled = Compile(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "path", path);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "path", path);
         var table = compiled.Run();
 
         Assert.AreEqual(0, table.Count);

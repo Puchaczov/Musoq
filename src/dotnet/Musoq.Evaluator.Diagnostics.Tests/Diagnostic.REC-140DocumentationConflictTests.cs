@@ -19,7 +19,7 @@ namespace Musoq.Evaluator.Tests;
 ///     negative boundaries so implementation semantics are not silently broadened.
 /// </summary>
 [TestClass]
-public sealed class DiagnosticREC140DocumentationConflictTests
+public sealed class DiagnosticREC140DocumentationConflictTests : BinaryInterpretationTestBase
 {
     private static readonly CompilationOptions CompilationOptions =
         new(usePrimitiveTypeValidation: false);
@@ -143,7 +143,7 @@ public sealed class DiagnosticREC140DocumentationConflictTests
             "corrected schema reference definition-before-use example");
     }
 
-    private static object CompileTextInterpreter(string schemaText, string schemaName)
+    private object CompileTextInterpreter(string schemaText, string schemaName)
     {
         var schema = new SchemaParser(new Lexer(schemaText, true)).ParseSchema();
         Assert.IsInstanceOfType<TextSchemaNode>(schema);
@@ -152,38 +152,16 @@ public sealed class DiagnosticREC140DocumentationConflictTests
         registry.Register(schemaName, (TextSchemaNode)schema);
 
         var code = new InterpreterCodeGenerator(registry).GenerateAll();
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"REC140_{Guid.NewGuid():N}",
-            code);
-
-        Assert.IsTrue(
-            compilationUnit.Compile(),
-            string.Join(Environment.NewLine, compilationUnit.GetErrorMessages()));
-
-        var interpreterType = compilationUnit.GetInterpreterType(schemaName);
-        Assert.IsNotNull(interpreterType, schemaName);
-        return Activator.CreateInstance(interpreterType)!;
+        return OwnFixture(new CompiledTextFixture(code, schemaName));
     }
 
     private static object InvokeParse(object interpreter, string value)
     {
-        var method = interpreter.GetType().GetMethod("Parse", [typeof(string)]);
-        Assert.IsNotNull(method);
-        return method.Invoke(interpreter, [value])!;
+        return ((ICompiledTextFixture)interpreter).Parse(value);
     }
 
     private static RuntimeParseException AssertParseFailure(object interpreter, string value)
     {
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(() => InvokeParse(interpreter, value));
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<RuntimeParseException>(wrapper.InnerException);
-        return (RuntimeParseException)wrapper.InnerException!;
-    }
-
-    private static T GetPropertyValue<T>(object value, string propertyName)
-    {
-        var property = value.GetType().GetProperty(propertyName);
-        Assert.IsNotNull(property, propertyName);
-        return (T)property.GetValue(value)!;
+        return Assert.ThrowsExactly<RuntimeParseException>(() => InvokeParse(interpreter, value));
     }
 }

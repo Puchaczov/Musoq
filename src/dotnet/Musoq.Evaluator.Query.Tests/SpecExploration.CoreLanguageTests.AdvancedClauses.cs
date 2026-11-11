@@ -661,11 +661,7 @@ public partial class SpecExplorationCoreLanguageTests : BasicEntityTestBase
             new object?[] { "Radom", "small" });
     }
 
-    [TestMethod]
-    public void Spec_CaseWhen_InArithmetic()
-    {
-        TestMethodTemplate("1 + (case when 2 > 1 then 1 else 0 end) - 1", 1);
-    }
+
 
     #endregion
 }

@@ -255,7 +255,7 @@ public partial class BranchCoverageImprovementTests
     [TestMethod]
     public void SafeArrayAccess_TypedIndexedAccess_NullElementType_ShouldReturnNull()
     {
-        var result = Helpers.SafeArrayAccess.GetTypedListElement<string[], string>(null, 0);
+        var result = Helpers.SafeArrayAccess.GetTypedListElement<string?[], string?>([null], 0);
 
         Assert.IsNull(result);
     }

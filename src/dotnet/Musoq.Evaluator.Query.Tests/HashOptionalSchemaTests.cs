@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Tests for hash-optional schema syntax (e.g., "from schema.method()" without the # prefix).
 ///     The parser normalizes schema names by adding # if not present, so both syntaxes work.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class HashOptionalSchemaTests : BasicEntityTestBase
 {
     [TestMethod]

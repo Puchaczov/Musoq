@@ -46,7 +46,7 @@ public sealed class StructuredInputQueryResourceTests
 
             using var compiled = build.CompiledQuery!;
             if (string.Equals(testCase.Host, "patterns", StringComparison.Ordinal))
-                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", CreateHostPatterns());
+                global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", CreateHostPatterns());
 
             using var table = compiled.Run();
             if (testCase.Columns is int expectedColumns)

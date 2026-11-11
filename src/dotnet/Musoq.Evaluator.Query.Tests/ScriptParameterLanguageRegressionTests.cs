@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBase
 {
 
@@ -23,8 +23,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             select Name from filtered where City = $city";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "city", "Warsaw");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "city", "Warsaw");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -43,8 +43,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             where a.Country = $country";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "?");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "?");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -64,8 +64,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             having Count(Name) >= $minCount";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-group");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-group");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -85,9 +85,9 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             having Count(Name) >= $minCount";
 
         var vm = CreateAndRunVirtualMachine(query, CreateValueTupleAggregateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "countrySuffix", "-country");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "citySuffix", "-city");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "countrySuffix", "-country");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "citySuffix", "-city");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -128,8 +128,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
         Assert.Contains("ParallelBlock", inspection.ExecutionPlanText, inspection.PlanningText);
 
         var vm = CreateAndRunVirtualMachine(query, sources, options);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "city", "Warsaw");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "city", "Warsaw");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -155,7 +155,7 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             take 1";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -173,8 +173,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minPopulation", 100m);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "large");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minPopulation", 100m);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "large");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -194,8 +194,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "firstCity", "Warsaw");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "secondCity", "Berlin");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "firstCity", "Warsaw");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "secondCity", "Berlin");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -214,7 +214,7 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new[] { 1, 3 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new[] { 1, 3 });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -232,7 +232,7 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new List<int> { 2, 4 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new List<int> { 2, 4 });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -249,7 +249,7 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             where Id in $ids";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", Array.AsReadOnly(new[] { 3 }));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", Array.AsReadOnly(new[] { 3 }));
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -267,7 +267,7 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "cities", new[] { "Warsaw", "Paris" });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "cities", new[] { "Warsaw", "Paris" });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -285,7 +285,7 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             order by Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSourcesWithIds());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new[] { 1, 3 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "ids", new[] { 1, 3 });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -308,8 +308,8 @@ public partial class ScriptParameterLanguageRegressionTests : BasicEntityTestBas
             where Country in ($country, 'DE')";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-window");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-window");
 
         var table = vm.Run(TestContext.CancellationToken);
 

@@ -152,6 +152,7 @@ public class StandardLibraryCompatibilityTests
             .GroupBy(m => m.Name)
             .ToArray();
 
+        Assert.IsNotEmpty(standardMethods, "The public callable inventory must contain methods.");
         foreach (var methodGroup in standardMethods)
         {
             var methodName = methodGroup.Key;
@@ -192,24 +193,35 @@ public class StandardLibraryCompatibilityTests
     [TestMethod]
     public void StandardLibrary_AllMethodsPreserveOriginalName()
     {
-        var standardMethods = typeof(LibraryBase)
-            .GetMethods(BindingFlags.Public | BindingFlags.Instance)
-            .Where(m => m.IsDefined(typeof(BindableMethodAttribute), true))
-            .Where(m => !HasInjectedParameters(m))
-            .Take(10)
-            .ToArray();
+        var registered = _methodsManager.GetAllFunctions()
+            .Where(function => function.Kind != SqlFunctionKind.Window).ToArray();
+        Assert.IsNotEmpty(registered);
+        foreach (var function in registered)
+            Assert.AreEqual(function.Declaration.Name, function.Name);
 
-        foreach (var method in standardMethods)
+        (string Name, Type[] Arguments)[] bindings =
+        [
+            (nameof(LibraryBase.AggregateValues), [typeof(string), typeof(int)]),
+            (nameof(LibraryBase.AggregateValues), [typeof(string), typeof(string), typeof(int)]),
+            (nameof(LibraryBase.AggregateValues), [typeof(char?), typeof(int)]),
+            (nameof(LibraryBase.AggregateValues), [typeof(char?), typeof(string), typeof(int)]),
+            (nameof(LibraryBase.Avg), [typeof(byte?), typeof(int)]),
+            (nameof(LibraryBase.Avg), [typeof(sbyte?), typeof(int)]),
+            (nameof(LibraryBase.Avg), [typeof(short?), typeof(int)]),
+            (nameof(LibraryBase.Avg), [typeof(ushort?), typeof(int)]),
+            (nameof(LibraryBase.Avg), [typeof(int?), typeof(int)]),
+            (nameof(LibraryBase.Avg), [typeof(uint?), typeof(int)])
+        ];
+        foreach (var binding in bindings)
         {
-            var parameterTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
-            var lowerName = method.Name.ToLowerInvariant();
+            var lowerName = binding.Name.ToLowerInvariant();
 
-            var success = _methodsManager.TryGetMethod(lowerName, parameterTypes, null, out var resolvedMethod);
+            var success = _methodsManager.TryGetMethod(lowerName, binding.Arguments, null, out var resolvedMethod);
 
-            Assert.IsTrue(success, $"Should resolve {method.Name} via lowercase {lowerName}");
+            Assert.IsTrue(success, $"Should resolve {binding.Name} via lowercase {lowerName}");
             resolvedMethod = TestNullabilityGuards.Require(resolvedMethod, $"resolved method {lowerName}");
-            Assert.AreEqual(method.Name, resolvedMethod.Name,
-                $"Should preserve original method name {method.Name}, not return {resolvedMethod.Name}");
+            Assert.AreEqual(binding.Name, resolvedMethod.Name,
+                $"Should preserve original method name {binding.Name}, not return {resolvedMethod.Name}");
         }
     }
 
@@ -248,8 +260,6 @@ public class StandardLibraryCompatibilityTests
 
     private static bool HasInjectedParameters(MethodInfo method)
     {
-        return method.GetParameters()
-            .Any(p => p.GetCustomAttributes()
-                .Any(attr => attr.GetType().Name.Contains("Inject")));
+        return method.GetParameters().Any(parameter => parameter.IsDefined(typeof(InjectTypeAttribute), true));
     }
 }

@@ -142,6 +142,7 @@ public class MethodNameNormalizerTests
         {
             var input = inputs[i % distinctInputs];
             var result = MethodNameNormalizer.Normalize(input);
+            Assert.AreEqual($"method{i % distinctInputs}name", result);
 
             lock (lockObj)
             {

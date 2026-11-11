@@ -19,7 +19,7 @@ public partial class ScriptParameterExecutionTests
         using var query = CreateAndRunVirtualMachine(sql, CreateEnvironmentVariableSources());
         Assert.AreEqual(1, query.Run(TestContext.CancellationToken).Count);
         Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query).Any(GeneratedExecutionIlInspection.ContainsBoxOpcode));
-        var validator = typeof(PagingCountValidator).GetMethod(nameof(PagingCountValidator.Validate))!.MakeGenericMethod(typeof(int));
+        var validator = ((Func<int, string, string, int>)PagingCountValidator.Validate<int>).Method;
         Assert.IsFalse(GeneratedExecutionIlInspection.ContainsBoxOpcode(validator));
     }
 

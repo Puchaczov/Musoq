@@ -6,7 +6,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionMixedKeyQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class LibraryExecutionMixedKeyQueryTests : GenericEntityTestBase
 {
 

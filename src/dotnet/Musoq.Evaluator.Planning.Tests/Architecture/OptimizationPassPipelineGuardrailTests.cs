@@ -107,8 +107,7 @@ public sealed class OptimizationPassPipelineGuardrailTests
             "Musoq.Evaluator",
             "IR",
             "Optimization");
-        var offenders = Directory
-            .EnumerateFiles(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+        var offenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
             .Select(Path.GetFileName)
             .Where(static name => name is not null)
             .Where(static name =>
@@ -136,8 +135,7 @@ public sealed class OptimizationPassPipelineGuardrailTests
             "Musoq.Evaluator",
             "IR",
             "Optimization");
-        var offenders = Directory
-            .EnumerateFiles(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+        var offenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
             .Select(Path.GetFileName)
             .Where(static name => name is not null)
             .Where(static name =>
@@ -301,8 +299,7 @@ public sealed class OptimizationPassPipelineGuardrailTests
             "IR",
             "Optimization");
 
-        return Directory
-            .EnumerateFiles(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
+        return global::Musoq.Tests.Common.RequiredSourceInventory.Files(optimizationRoot, "*.cs", SearchOption.TopDirectoryOnly)
             .Select(Path.GetFileName)
             .Where(static name => name is not null)
             .Select(static name => name!)

@@ -251,7 +251,7 @@ public class BinaryInterpretationCompositionTests : BinaryInterpretationTestBase
         var data = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0xFF, 0xFF };
 
         _ = InvokeInterpret(interpreter, data);
-        var bytesConsumed = GetPropertyValue<int>(interpreter, "BytesConsumed");
+        var bytesConsumed = ((ICompiledBinaryFixture)interpreter).BytesConsumed;
 
         Assert.AreEqual(6, bytesConsumed);
     }

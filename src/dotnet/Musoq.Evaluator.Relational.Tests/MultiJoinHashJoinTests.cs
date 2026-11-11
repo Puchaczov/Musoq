@@ -16,7 +16,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests are designed to expose potential issues where hash join may not be properly applied
 ///     to subsequent joins after the first join in a chain.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class MultiJoinHashJoinTests : BasicEntityTestBase
 {
 

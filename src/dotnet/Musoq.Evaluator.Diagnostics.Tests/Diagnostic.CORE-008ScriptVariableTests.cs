@@ -9,7 +9,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticCore008ScriptVariableTests : EnvironmentVariablesTestBase
 {
     [TestMethod]
@@ -35,7 +35,7 @@ public sealed class DiagnosticCore008ScriptVariableTests : EnvironmentVariablesT
     {
         const string query = "let key: string = 'constant'; select $key from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "override");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "override");
 
         var exception = Assert.Throws<QueryExecutionException>(
             () => _ = vm.Run(TestContext.CancellationToken).Count);

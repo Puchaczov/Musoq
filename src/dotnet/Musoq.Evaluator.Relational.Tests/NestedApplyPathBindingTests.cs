@@ -103,7 +103,7 @@ public sealed class NestedApplyPathBindingTests
         const string sql = "param(batchLabel: string = 'demo') binary LeafSample { Score: int le } binary RootSample { Child: LeafSample } " +
             "select batch.Label, child.Child.Score as Score from #fixture.batches($batchLabel, false) batch cross apply #fixture.samples(batch.Key) sample " +
             "cross apply Interpret<RootSample>(sample.ReadPayload()) child where child.Child.Score = 73";
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(),
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(),
             new ApplyCarrierSchemaProvider(), new TestsLoggerResolver(), new CompilationOptions());
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["batch-alpha", 73]);
@@ -132,7 +132,7 @@ public sealed class NestedApplyPathBindingTests
             "from values { (Dummy: 'x') } d cross apply Interpret<RootSample>(FromHexToBytes('49')) child where child.Child.Score = 73";
         var options = new CompilationOptions(parallelizationMode: parallel ? null : ParallelizationMode.None,
             useCommonSubexpressionElimination: reuse).WithStabilityAwareScalarReuse(reuse).WithLoopInvariantCodeMotion(reuse);
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), new TestSchemaProvider(),
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), new TestSchemaProvider(),
             new TestsLoggerResolver(), options);
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)73]);
@@ -154,7 +154,7 @@ public sealed class NestedApplyPathBindingTests
         Assert.DoesNotContain(".GetValue<object>(", inspection.GeneratedCSharpCode);
     }
 
-    private static CompiledQuery Compile(string sql, bool complex = false) => InstanceCreator.CompileForExecution(sql,
+    private static CompiledQuery Compile(string sql, bool complex = false) => GeneratedExecutionIlInspection.CompileForExecution(sql,
         Guid.NewGuid().ToString(), new TestSchemaProvider(), new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: !complex));
 
 }

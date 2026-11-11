@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests.Architecture;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -94,19 +95,19 @@ public sealed class SemanticPhaseArtifactTests : BasicEntityTestBase
     [TestMethod]
     public void SemanticMetadataSnapshotBuilder_ShouldDependOnTypedInputsOnly()
     {
-        var visitorType = typeof(BuildMetadataAndInferTypesVisitor);
-        var builderType = typeof(SemanticMetadataSnapshotBuilder);
+        var visitorType = CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitor));
+        var builderType = CompilerContractSymbols.For(typeof(SemanticMetadataSnapshotBuilder));
 
         Assert.IsTrue(builderType.GetMethods(System.Reflection.BindingFlags.Instance |
                                              System.Reflection.BindingFlags.Public |
                                              System.Reflection.BindingFlags.NonPublic)
-            .Any(method => method.Name == "Build"));
+            .Any(method => method.MetadataName == "Build"));
         Assert.IsFalse(builderType.GetMethods(System.Reflection.BindingFlags.Instance |
                                               System.Reflection.BindingFlags.Static |
                                               System.Reflection.BindingFlags.Public |
                                               System.Reflection.BindingFlags.NonPublic)
             .SelectMany(method => method.GetParameters())
-            .Any(parameter => parameter.ParameterType == visitorType));
+            .Any(parameter => SymbolEqualityComparer.Default.Equals(parameter.ParameterType, visitorType)));
     }
 
     [TestMethod]

@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class LikeApplyConformanceTests : GenericEntityTestBase
 {
     [TestMethod]

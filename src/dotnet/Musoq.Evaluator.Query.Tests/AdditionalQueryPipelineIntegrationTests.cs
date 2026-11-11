@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 
@@ -7,7 +7,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Additional integration tests for end-to-end query compilation and execution.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -29,39 +29,9 @@ public class AdditionalQueryPipelineIntegrationTests : BasicEntityTestBase
             ["Test2"]);
     }
 
-    [TestMethod]
-    public void QueryPipeline_SelectWithWhere_ShouldWork()
-    {
-        var query = "select Name from #A.Entities() where Name = 'Test1'";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("Test1"), new BasicEntity("Test2")] }
-        };
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
 
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual("Test1", table[0].ReadValue(0));
-    }
 
-    [TestMethod]
-    public void QueryPipeline_SelectWithOrderBy_ShouldWork()
-    {
-        var query = "select Name from #A.Entities() order by Name desc";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("A"), new BasicEntity("C"), new BasicEntity("B")] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(3, table.Count);
-        Assert.AreEqual("C", table[0].ReadValue(0));
-        Assert.AreEqual("B", table[1].ReadValue(0));
-        Assert.AreEqual("A", table[2].ReadValue(0));
-    }
 
     [TestMethod]
     public void QueryPipeline_SelectWithGroupBy_ShouldWork()

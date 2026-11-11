@@ -10,7 +10,7 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class StringExtremaExecutionStrategyTests : BasicEntityTestBase
 {
     [TestMethod]

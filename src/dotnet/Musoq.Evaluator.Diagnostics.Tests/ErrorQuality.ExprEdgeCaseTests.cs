@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Error Message Quality Audit — Phase 2: Complex Expressions, Edge Cases, TAKE/SKIP, DESC, and Formatting.
 ///     Covers: E-CEXPR, E-TAKE, E-EDGE, E-DESC, E-FMT categories.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ErrorQualityExprEdgeCaseTests : BasicEntityTestBase
 {
 

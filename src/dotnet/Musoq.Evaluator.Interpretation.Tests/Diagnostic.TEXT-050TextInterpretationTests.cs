@@ -80,9 +80,8 @@ public partial class TextInterpretationTests
             CreateTextField("Prefix", TextFieldType.Chars, "2"),
             CreateTextField("Digits", TextFieldType.Pattern, @"\d+"));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<ParseException>(
             () => InvokeParse(interpreter, "xxabc"));
-        var exception = GetParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.PatternMismatch, exception.ErrorCode);
         Assert.AreEqual("PatternFailure", exception.SchemaName);
@@ -99,9 +98,8 @@ public partial class TextInterpretationTests
             CreateTextField("Prefix", TextFieldType.Chars, "2"),
             CreateTextField("Marker", TextFieldType.Literal, "OK"));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<ParseException>(
             () => InvokeParse(interpreter, "xxok"));
-        var exception = GetParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.LiteralMismatch, exception.ErrorCode);
         Assert.AreEqual("LiteralFailure", exception.SchemaName);

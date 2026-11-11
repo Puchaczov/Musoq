@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -13,7 +14,7 @@ public sealed class ExecutionTargetPackageExtractionBaselineTests
     [TestMethod]
     public void ExecutionTargetId_ShouldRemainInternal()
     {
-        var TargetId = typeof(ExecutionTargetId);
+        var TargetId = CompilerContractSymbols.For(typeof(ExecutionTargetId));
 
         Assert.AreEqual(
             "Musoq.Targets.Abstractions",
@@ -26,8 +27,8 @@ public sealed class ExecutionTargetPackageExtractionBaselineTests
     [TestMethod]
     public void PublicConverterApi_ShouldNotExposeExecutionTargetSelection()
     {
-        var converterAssembly = typeof(InstanceCreator).Assembly;
-        var TargetId = typeof(ExecutionTargetId);
+        var converterAssembly = CompilerContractSymbols.For(typeof(InstanceCreator)).Assembly;
+        var TargetId = CompilerContractSymbols.For(typeof(ExecutionTargetId));
         var publicTypes = converterAssembly.GetExportedTypes();
 
         var offenders = publicTypes
@@ -254,33 +255,32 @@ public sealed class ExecutionTargetPackageExtractionBaselineTests
         }
     }
 
-    private static MemberInfo[] PublicCallableMembers(Type type)
+    private static ISymbol[] PublicCallableMembers(ITypeSymbol type)
     {
         return type
             .GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Where(member => member.MemberType is MemberTypes.Constructor or MemberTypes.Method or MemberTypes.Property)
+            .Where(member => member is IMethodSymbol or IPropertySymbol)
             .ToArray();
     }
 
-    private static bool ExposesTargetId(MemberInfo member, Type TargetId)
+    private static bool ExposesTargetId(ISymbol member, ITypeSymbol TargetId)
     {
         return member switch
         {
-            MethodInfo method => method.ReturnType == TargetId || method.GetParameters().Any(parameter => parameter.ParameterType == TargetId),
-            ConstructorInfo constructor => constructor.GetParameters().Any(parameter => parameter.ParameterType == TargetId),
-            PropertyInfo property => property.PropertyType == TargetId,
+            IMethodSymbol method => SymbolEqualityComparer.Default.Equals(method.ReturnType, TargetId) || method.GetParameters().Any(parameter => SymbolEqualityComparer.Default.Equals(parameter.ParameterType, TargetId)),
+            IPropertySymbol property => SymbolEqualityComparer.Default.Equals(property.PropertyType, TargetId),
             _ => false
         };
     }
 
-    private static bool HasTargetSelectionParameter(MemberInfo member)
+    private static bool HasTargetSelectionParameter(ISymbol member)
     {
         return member switch
         {
-            MethodBase method => method
+            IMethodSymbol method => method
                 .GetParameters()
-                .Any(parameter => string.Equals(parameter.Name, "executionTarget", StringComparison.OrdinalIgnoreCase) ||
-                                  string.Equals(parameter.Name, "TargetId", StringComparison.OrdinalIgnoreCase)),
+                .Any(parameter => string.Equals(parameter.MetadataName, "executionTarget", StringComparison.OrdinalIgnoreCase) ||
+                                  string.Equals(parameter.MetadataName, "TargetId", StringComparison.OrdinalIgnoreCase)),
             _ => false
         };
     }

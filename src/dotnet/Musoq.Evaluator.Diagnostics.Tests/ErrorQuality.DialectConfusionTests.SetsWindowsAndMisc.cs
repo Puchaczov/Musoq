@@ -194,16 +194,16 @@ SELECT Name FROM #B.Entities()";
     [TestMethod]
     public void P_MISC_01_NotEquals_ExclamationEquals()
     {
-        // Arrange — != instead of <> (many dialects)
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name != 'Warsaw'";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Musoq may or may not support !=. If not, should suggest <>
-        // Document behavior:
-        // Assert  != operator: either supported or should suggest <>
+
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(P_MISC_01_NotEquals_ExclamationEquals));
     }
 
     [TestMethod]
@@ -302,15 +302,15 @@ SELECT Name FROM #B.Entities()";
     [TestMethod]
     public void P_MISC_08_Coalesce()
     {
-        // Arrange — COALESCE (standard SQL, test if supported)
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Coalesce(null, Name) FROM #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Document behavior: Musoq may support Coalesce as a built-in function
-        // Assert  Coalesce: may be supported as built-in function
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(P_MISC_08_Coalesce));
     }
 
     [TestMethod]
@@ -359,57 +359,57 @@ SELECT Name FROM #B.Entities()";
     [TestMethod]
     public void P_MISC_12_BetweenOperator()
     {
-        // Arrange — BETWEEN operator (test if supported)
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Population BETWEEN 50 AND 150";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Document: Musoq may support BETWEEN, if not suggest >= AND <=
-        // Assert  BETWEEN: may be supported; if not, suggest >= AND <=
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(P_MISC_12_BetweenOperator));
     }
 
     [TestMethod]
     public void P_MISC_13_DoubleQuotedIdentifiers()
     {
-        // Arrange — Double-quoted identifiers (ANSI/PostgreSQL)
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT \"Name\" FROM #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Document: Musoq may or may not support double-quoted identifiers
-        // Assert  Double-quoted identifiers: may parse as string or identifier
+
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1001_UnknownToken, nameof(P_MISC_13_DoubleQuotedIdentifiers));
     }
 
     [TestMethod]
     public void P_MISC_14_BacktickIdentifiers_MySqlStyle()
     {
-        // Arrange — Backtick identifiers (MySQL)
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT `Name` FROM #A.Entities()";
 
-        // Act
-        _ = analyzer.ValidateSyntax(query);
+        var result = analyzer.ValidateSyntax(query);
 
-        // Assert — Should error if backticks aren't supported
-        // Assert  Backtick identifiers: either supported or should error
+
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1001_UnknownToken, nameof(P_MISC_14_BacktickIdentifiers_MySqlStyle));
     }
 
     [TestMethod]
     public void P_MISC_15_StringAlias()
     {
-        // Arrange — AS with string alias (some dialects allow this)
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name AS 'MyColumn' FROM #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Document behavior
-        // Assert  String alias: may be supported or should use identifier
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(P_MISC_15_StringAlias));
     }
 
     [TestMethod]

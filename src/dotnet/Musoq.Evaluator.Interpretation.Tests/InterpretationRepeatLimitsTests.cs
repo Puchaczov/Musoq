@@ -12,7 +12,7 @@ using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
 {
     private const string BinaryQuery = "binary Rec { X: byte } binary S { Records: Rec repeat until eof } " +
@@ -145,12 +145,12 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
 
     private static ISchemaProvider Provider(bool text, int records) => text
         ? new TextSchemaProvider(new Dictionary<string, IEnumerable<TextEntity>>
-            { ["#test"] = [new TextEntity { Text = new string('x', records) }] })
+        { ["#test"] = [new TextEntity { Text = new string('x', records) }] })
         : BinaryProvider(Enumerable.Repeat((byte)1, records).ToArray());
 
     private static ISchemaProvider BinaryProvider(byte[] bytes) =>
         new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-            { ["#test"] = [new BinaryEntity { Content = bytes }] });
+        { ["#test"] = [new BinaryEntity { Content = bytes }] });
 
     private static ParseException CaptureParseFailure(CompiledQuery query)
     {

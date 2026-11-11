@@ -8,7 +8,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class StarModifierTests : BasicEntityTestBase
 {
 

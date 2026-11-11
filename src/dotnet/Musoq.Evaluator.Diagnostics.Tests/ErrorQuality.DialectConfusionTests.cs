@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Musoq-specific alternatives.
 ///     Covers: P-LIMIT, P-AGG, P-JOIN, P-SUB, P-SET, P-WIN, P-MISC categories.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ErrorQualityDialectConfusionTests : BasicEntityTestBase
 {
     #region Test Setup

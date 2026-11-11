@@ -7,7 +7,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests.IR;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class AsOfStructSourcePlanTests : BasicEntityTestBase
 {
     [TestMethod]

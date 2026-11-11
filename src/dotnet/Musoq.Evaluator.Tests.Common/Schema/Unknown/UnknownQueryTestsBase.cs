@@ -9,11 +9,6 @@ public class UnknownQueryTestsBase : MSTestContextTestBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 
-    static UnknownQueryTestsBase()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
-
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     protected CompiledQuery CreateAndRunVirtualMachine(

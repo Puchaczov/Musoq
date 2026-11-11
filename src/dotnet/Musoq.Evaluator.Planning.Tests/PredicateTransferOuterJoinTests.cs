@@ -7,7 +7,7 @@ using Musoq.Evaluator.Tests.Schema.SourcePlanning;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class PredicateTransferOuterJoinTests : BasicEntityTestBase
 {
     private sealed record OuterCase(string Id, string Sql, Func<SourcePlanningEntity?, SourcePlanningEntity?, bool?> Evaluate);

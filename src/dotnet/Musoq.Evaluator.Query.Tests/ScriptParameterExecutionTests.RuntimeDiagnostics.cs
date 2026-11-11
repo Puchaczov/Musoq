@@ -33,7 +33,7 @@ public partial class ScriptParameterExecutionTests
         const string query = "param(keys: string[]? = array { 'KEY_1' }) select Key from #Parameterized.Items() where Key in $keys";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         using var compiled = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "keys", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "keys", null);
 
         var exception = Assert.Throws<QueryExecutionException>(() =>
         {
@@ -54,7 +54,7 @@ public partial class ScriptParameterExecutionTests
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<string> { "KEY_2" });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<string> { "KEY_2" });
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -87,7 +87,7 @@ public partial class ScriptParameterExecutionTests
             "param(keys: string[]) select Key, Value from #Parameterized.Items() where Key in $keys";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", null);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -105,7 +105,7 @@ public partial class ScriptParameterExecutionTests
             "param(keys: string[]) select Key, Value from #Parameterized.Items() where Key in $keys";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { 1 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { 1 });
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 

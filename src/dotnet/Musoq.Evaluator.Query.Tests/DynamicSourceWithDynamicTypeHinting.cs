@@ -8,7 +8,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
 {
 
@@ -235,15 +235,19 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
 
     [DynamicObjectPropertyTypeHint("Id", typeof(int))]
     [DynamicObjectPropertyTypeHint("Name", typeof(string))]
-    public sealed class ComplexType(int intValue, string stringValue)
+    public sealed class ComplexType(int intValue, string stringValue) : IDynamicFixtureValues
     {
         public int Id { get; } = intValue;
         public string Name { get; } = stringValue;
+        public IReadOnlyDictionary<string, object?> ReadFixtureValues() =>
+            new Dictionary<string, object?> { [nameof(Id)] = Id, [nameof(Name)] = Name };
     }
 
-    public class ComplexArrayType<TType>(TType[] arrayValue)
+    public class ComplexArrayType<TType>(TType[] arrayValue) : IDynamicFixtureValues
     {
         public TType[] Array { get; } = arrayValue;
+        public IReadOnlyDictionary<string, object?> ReadFixtureValues() =>
+            new Dictionary<string, object?> { [nameof(Array)] = Array };
     }
 
     [DynamicObjectPropertyTypeHint("Array", typeof(short[]))]
@@ -253,14 +257,19 @@ public class DynamicSourceWithDynamicTypeHinting : DynamicQueryTestsBase
     public class ComplexArrayOfComplexTypeType(ComplexType[] arrayValue) : ComplexArrayType<ComplexType>(arrayValue);
 
     [DynamicObjectPropertyTypeHint("Complex", typeof(ComplexType))]
-    public sealed class ComplexExpandoType(ComplexType complexType)
+    public sealed class ComplexExpandoType(ComplexType complexType) : IDynamicFixtureValues
     {
         public ComplexType Complex { get; } = complexType;
+        public IReadOnlyDictionary<string, object?> ReadFixtureValues() =>
+            new Dictionary<string, object?> { [nameof(Complex)] = Complex };
     }
 
     [DynamicObjectPropertyTypeHint("NestedExpando", typeof(DynamicObject))]
-    public class NestedExpandoType(DynamicObject nestedExpandoType) : DynamicObject
+    public class NestedExpandoType(DynamicObject nestedExpandoType) : DynamicObject, IDynamicFixtureValues
     {
+        public IReadOnlyDictionary<string, object?> ReadFixtureValues() =>
+            new Dictionary<string, object?> { ["NestedExpando"] = nestedExpandoType };
+
         public override bool TryGetMember(GetMemberBinder binder, out object? result)
         {
             if (binder.Name == "NestedExpando")

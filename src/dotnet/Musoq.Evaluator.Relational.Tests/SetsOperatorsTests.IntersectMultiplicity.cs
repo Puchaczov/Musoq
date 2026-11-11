@@ -74,7 +74,7 @@ public partial class SetsOperatorsTests
     {
         var query = $"param(value: double) select Id, Value from values {{ (Id: 1, Value: $value), (Id: 1, Value: $value) }} l {operation} select Id, Value from values {{ (Id: 1, Value: $value) }} r";
         using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", double.NaN);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", double.NaN);
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(expectedCount, result.Count);
     }

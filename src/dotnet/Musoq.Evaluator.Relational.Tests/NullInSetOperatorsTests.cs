@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 ///     the NULL is inferred as null-of-the-concrete-type.
 ///     3. Multi-way set operations propagate the concrete type through cached fields.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class NullInSetOperatorsTests : BasicEntityTestBase
 {
 

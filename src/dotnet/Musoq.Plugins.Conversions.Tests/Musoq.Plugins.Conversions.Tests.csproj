@@ -1,0 +1,81 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="coverlet.collector">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="MSTest.TestAdapter" />
+        <PackageReference Include="MSTest.TestFramework" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+        <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Update="FromBytesMethodsTests.CharHalfAndPadding.cs">
+            <DependentUpon>FromBytesMethodsTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="FromBytesMethodsTests.NullAndInsufficientInputs.cs">
+            <DependentUpon>FromBytesMethodsTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="FromBytesMethodsTests.StringsAndRoundTrips.cs">
+            <DependentUpon>FromBytesMethodsTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="LibraryBaseStrictConversionsDecimalTests.ComparisonConversions.cs">
+            <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="LibraryBaseStrictConversionsDecimalTests.ComparisonOperators.cs">
+            <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="LibraryBaseStrictConversionsDecimalTests.NumericOnlyCore.cs">
+            <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="LibraryBaseStrictConversionsDecimalTests.NumericOnlyDecimalDouble.cs">
+            <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="LibraryBaseStrictConversionsDecimalTests.RuntimeOperators.cs">
+            <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="LibraryBaseStrictConversionsDecimalTests.StrictDecimal.cs">
+            <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="LibraryBaseStrictConversionsDecimalTests.StrictIntegers.cs">
+            <DependentUpon>LibraryBaseStrictConversionsDecimalTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="NumericOnlyTypeConverterExtendedTests.Decimal.cs">
+            <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="NumericOnlyTypeConverterExtendedTests.Double.cs">
+            <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="NumericOnlyTypeConverterExtendedTests.EdgeCases.cs">
+            <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="NumericOnlyTypeConverterExtendedTests.Int64.cs">
+            <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="NumericOnlyTypeConverterExtendedTests.OtherTypes.cs">
+            <DependentUpon>NumericOnlyTypeConverterExtendedTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="TypeConversionEdgeCasesTests.Int32Comparison.cs">
+            <DependentUpon>TypeConversionEdgeCasesTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="TypeConversionEdgeCasesTests.Int32NumericOnly.cs">
+            <DependentUpon>TypeConversionEdgeCasesTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="TypeConversionEdgeCasesTests.OtherComparison.cs">
+            <DependentUpon>TypeConversionEdgeCasesTests.cs</DependentUpon>
+        </Compile>
+        <Compile Update="TypeConversionEdgeCasesTests.OtherNumericOnly.cs">
+            <DependentUpon>TypeConversionEdgeCasesTests.cs</DependentUpon>
+        </Compile>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Musoq.Plugins.Tests.Common\Musoq.Plugins.Tests.Common.csproj" />
+    </ItemGroup>
+</Project>

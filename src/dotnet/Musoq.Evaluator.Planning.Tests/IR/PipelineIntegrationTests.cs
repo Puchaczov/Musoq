@@ -9,7 +9,7 @@ using PhysicalPlanPrinter = Musoq.Evaluator.IR.Physical.PhysicalPlanPrinter;
 
 namespace Musoq.Evaluator.Tests.IR;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class PipelineIntegrationTests : BasicEntityTestBase
 {
     private static LogicalNode RequireLogicalPlan(Musoq.Converter.Build.BuildItems buildItems)

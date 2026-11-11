@@ -6,7 +6,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class CompileErrorTests : NegativeTestsBase
 {
     #region 4.5 Misc Compilation Edge Cases

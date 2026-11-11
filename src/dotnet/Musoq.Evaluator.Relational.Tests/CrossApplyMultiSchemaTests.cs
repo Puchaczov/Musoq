@@ -15,13 +15,9 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests verify that cross apply works correctly when combining
 ///     different schema data sources, especially in CTE contexts.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class CrossApplyMultiSchemaTests : MSTestContextTestBase
 {
-    static CrossApplyMultiSchemaTests()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
 
     private ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 

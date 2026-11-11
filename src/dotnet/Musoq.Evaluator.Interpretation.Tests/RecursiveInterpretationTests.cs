@@ -61,13 +61,13 @@ public sealed partial class RecursiveInterpretationTests
         "where o.Off + o.Used < Length(o.Bytes)) select o.Off, o.Used from offs o order by o.Off, o.Used";
 
     private static CompiledQuery Compile(string sql, string? hex = Hex, CompilationOptions? options = null, int copies = 1) =>
-        InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), CreateProvider(hex, copies),
+        GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), CreateProvider(hex, copies),
             new TestsLoggerResolver(), options ?? new CompilationOptions(usePrimitiveTypeValidation: false));
 
     private static ISchemaProvider CreateProvider(string? hex, int copies = 1) =>
         new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
         {
             ["#test"] = Enumerable.Range(0, copies).Select(_ => new BinaryEntity
-                { Content = hex == null ? null! : Convert.FromHexString(hex) }).ToArray()
+            { Content = hex == null ? null! : Convert.FromHexString(hex) }).ToArray()
         });
 }

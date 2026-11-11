@@ -13,7 +13,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtur
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class LibraryExecutionNativeGenericQueryTests : GenericEntityTestBase
 {
     [TestMethod]

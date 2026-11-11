@@ -63,14 +63,14 @@ public sealed class ApplyCarrierRegressionTests
     {
         const string sql = "binary SampleReading { Score: int le } select batch.Label, reading.Score as A, reading.Score as B from #fixture.batches('demo', false) batch " +
             "cross apply #fixture.samples(batch.Key) sample cross apply Interpret<SampleReading>(sample.ReadPayload()) reading";
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(),
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(),
             new ApplyCarrierSchemaProvider(), new TestsLoggerResolver(),
             new CompilationOptions(parallelizationMode: parallel ? null : ParallelizationMode.None));
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["batch-alpha", 73, 73]);
     }
 
-    private static CompiledQuery Compile(string sql) => InstanceCreator.CompileForExecution(sql,
+    private static CompiledQuery Compile(string sql) => GeneratedExecutionIlInspection.CompileForExecution(sql,
         Guid.NewGuid().ToString(), new ApplyCarrierSchemaProvider(), new TestsLoggerResolver(),
         new CompilationOptions(usePrimitiveTypeValidation: false));
 }

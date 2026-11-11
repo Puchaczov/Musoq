@@ -4,7 +4,7 @@ using PhysicalPlanPrinter = Musoq.Evaluator.IR.Physical.PhysicalPlanPrinter;
 
 namespace Musoq.Evaluator.Tests.IR;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class PhysicalPlanTextJoinStrategyTests : BasicEntityTestBase
 {
     [TestMethod]

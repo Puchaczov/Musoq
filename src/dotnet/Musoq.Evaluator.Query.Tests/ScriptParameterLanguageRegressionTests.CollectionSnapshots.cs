@@ -27,7 +27,7 @@ public partial class ScriptParameterLanguageRegressionTests
         using var compiled = InstanceCreator.CompileForExecution(
             query, Guid.NewGuid().ToString(), provider,
             LoggerResolver, TestCompilationOptions, TestContext.CancellationToken);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", CreateCollectionHost(hostKind, values));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", CreateCollectionHost(hostKind, values));
 
         using var first = compiled.Run(TestContext.CancellationToken);
 
@@ -76,7 +76,7 @@ public partial class ScriptParameterLanguageRegressionTests
         Assert.AreEqual(typeof(int), contract.ElementClrType);
         Assert.AreEqual("int", contract.ElementCanonicalTypeName);
         Assert.IsFalse(contract.HasDefaultValue);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", values);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", values);
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(1, result.Count);
         Assert.IsTrue(callbackRan);
@@ -110,7 +110,7 @@ public partial class ScriptParameterLanguageRegressionTests
         Assert.IsTrue(contract.IsCollection);
         Assert.IsFalse(contract.IsStructured);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", hostValues);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", hostValues);
         hostValues[0] = 7;
         hostValues[1] = 9;
 

@@ -7,7 +7,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionWindowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class LibraryExecutionWindowQueryTests : GenericEntityTestBase
 {
     [TestMethod] public void ByteWindows_ShouldKeepConcreteNumericResults() => AssertNumeric<byte, decimal>(1.5m);

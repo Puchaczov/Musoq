@@ -16,11 +16,11 @@ public partial class EndToEndQueryExecutionTests
         {
             { "#A", [new BasicEntity { Name = "A", Population = 100 }] }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [42m]);
     }
 
     [TestMethod]
@@ -54,11 +54,11 @@ public partial class EndToEndQueryExecutionTests
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [5], [-1]);
     }
 
 
@@ -77,11 +77,11 @@ public partial class EndToEndQueryExecutionTests
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["C", "LA"], ["B", "NYC"], ["A", "NYC"]);
     }
 
     [TestMethod]
@@ -98,11 +98,11 @@ public partial class EndToEndQueryExecutionTests
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["B", null], ["C", 5], ["A", 10]);
     }
 
     [TestMethod]
@@ -119,11 +119,11 @@ public partial class EndToEndQueryExecutionTests
                 ]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["C", 50m], ["A", 100m], ["B", 200m]);
     }
 
 
@@ -136,11 +136,11 @@ public partial class EndToEndQueryExecutionTests
         {
             { "#A", [new BasicEntity { Name = "A", Population = 100 }] }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [101.5m]);
     }
 
     [TestMethod]
@@ -237,11 +237,11 @@ public partial class EndToEndQueryExecutionTests
                 [new BasicEntity { Name = "A", Population = 50 }, new BasicEntity { Name = "B", Population = 200 }]
             }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [false], [true]);
     }
 
     [TestMethod]
@@ -261,11 +261,11 @@ public partial class EndToEndQueryExecutionTests
         {
             { "#A", [new BasicEntity { Name = "A", Population = 100 }] }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [false, true, false, true, true, false]);
     }
 
 
@@ -278,11 +278,11 @@ public partial class EndToEndQueryExecutionTests
         {
             { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["C"], ["D"]);
     }
 
     [TestMethod]
@@ -293,11 +293,11 @@ public partial class EndToEndQueryExecutionTests
         {
             { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A"], ["B"]);
     }
 
     [TestMethod]
@@ -323,11 +323,11 @@ public partial class EndToEndQueryExecutionTests
         {
             { "#A", [new BasicEntity("A"), new BasicEntity("B"), new BasicEntity("C"), new BasicEntity("D")] }
         };
+        using
+                var vm = CreateAndRunVirtualMachine(query, sources);
+        using var table = vm.Run();
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run();
-
-        Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["B"], ["C"]);
     }
 
 

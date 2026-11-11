@@ -43,119 +43,104 @@ public partial class CompilationPipelineErrorTests
     [TestMethod]
     public void Stage1_UnterminatedString_DoubleQuote()
     {
-        // Arrange - Missing closing double quote
-        // In Musoq, double quotes are for identifiers - lexer treats this as unterminated
+
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT \"hello world FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Should still be unterminated string (double quotes are still strings in lexer)
-        // The lexer sees " and expects closing " - if not found, it's unterminated
-        DocumentParserBehavior(result,
-            "Double quotes: lexer may treat as identifier syntax, parsing may succeed or fail with MQ1002",
-            result.HasErrors); // Document actual behavior
+
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ1001_UnknownToken, nameof(Stage1_UnterminatedString_DoubleQuote));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("\"", System.StringComparison.Ordinal), 1), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage1_InvalidNumericLiteral_MultipleDecimals()
     {
-        // Arrange - 1.2.3 is parsed as "1.2" followed by ".3" (property access syntax)
-        // The lexer tokenizes "1.2" as decimal, then "." as dot, then "3" as integer
+
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT 1.2.3 FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - This parses but fails semantic analysis (can't access property "3" on decimal)
-        // Lexer doesn't error - it tokenizes correctly. Parser sees: 1.2 . 3
-        DocumentParserBehavior(result,
-            "1.2.3 tokenizes as [1.2] [.] [3] - property access on literal",
-            false); // Parsing succeeds, semantic may fail
+
+        Assert.IsTrue(result.IsParsed);
+        AssertNoErrors(result);
     }
 
     [TestMethod]
     public void Stage1_InvalidHexNumber_InvalidDigits()
     {
-        // Arrange - 0xZZZ: lexer consumes "0x" then stops at 'Z' (invalid hex digit)
-        // Result: "0x" fails as incomplete hex, rest becomes identifier
+
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0xZZZ FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Lexer behavior: may split into 0 + xZZZ or error on incomplete 0x
-        DocumentParserBehavior(result,
-            "0xZZZ: lexer splits to 0 + identifier 'xZZZ' (alias), or errors if 0x is incomplete",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ1006_InvalidHexNumber, nameof(Stage1_InvalidHexNumber_InvalidDigits));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0xZZZ", System.StringComparison.Ordinal), 5), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage1_InvalidBinaryNumber_InvalidDigits()
     {
-        // Arrange - 0b123: '2' and '3' are not valid binary digits
-        // Lexer consumes 0b1, then 23 is separate, or 0 + b123 as identifier
+
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0b123 FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Document lexer's tokenization strategy
-        DocumentParserBehavior(result,
-            "0b123: lexer may parse as [0b1][23] or [0][b123 identifier]",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ1007_InvalidBinaryNumber, nameof(Stage1_InvalidBinaryNumber_InvalidDigits));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0b123", System.StringComparison.Ordinal), 5), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage1_InvalidOctalNumber_InvalidDigits()
     {
-        // Arrange - 0o89: '8' and '9' are not valid octal digits (0-7 only)
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0o89 FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Document lexer's tokenization strategy
-        DocumentParserBehavior(result,
-            "0o89: lexer may parse as [0][o89 identifier] or error on invalid octal",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ1008_InvalidOctalNumber, nameof(Stage1_InvalidOctalNumber_InvalidDigits));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0o89", System.StringComparison.Ordinal), 4), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage1_TrueInvalidHexNumber_NoDigits()
     {
-        // Arrange - "0x " with space after - clearly incomplete hex
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0x FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Document: lexer may produce MQ1006_InvalidHexNumber or split tokens
-        DocumentParserBehavior(result,
-            "0x with space: either MQ1006_InvalidHexNumber or tokenized as 0 + x identifier",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ1006_InvalidHexNumber, nameof(Stage1_TrueInvalidHexNumber_NoDigits));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0x", System.StringComparison.Ordinal), 2), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage1_TrueInvalidBinaryNumber_NoDigits()
     {
-        // Arrange - "0b " with space after - incomplete binary
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT 0b FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Document: lexer may produce MQ1007_InvalidBinaryNumber or split tokens
-        DocumentParserBehavior(result,
-            "0b with space: either MQ1007_InvalidBinaryNumber or tokenized as 0 + b identifier",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ1007_InvalidBinaryNumber, nameof(Stage1_TrueInvalidBinaryNumber_NoDigits));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("0b", System.StringComparison.Ordinal), 2), diagnostic.Span);
     }
 
     [TestMethod]
@@ -176,49 +161,43 @@ public partial class CompilationPipelineErrorTests
     [TestMethod]
     public void Stage1_UnrecognizedCharacter_At()
     {
-        // Arrange - @ in a SELECT context
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT @ FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - @ is not a valid token in Musoq SQL and should produce an error
-        DocumentParserBehavior(result,
-            "@ character: lexer rejects as unknown token",
-            true);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ1001_UnknownToken, nameof(Stage1_UnrecognizedCharacter_At));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("@", System.StringComparison.Ordinal), 1), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage1_UnrecognizedCharacter_Backtick()
     {
-        // Arrange - Backticks might be supported or rejected
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT `Name` FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Document whether backticks are supported
-        DocumentParserBehavior(result,
-            "Backtick identifiers: either supported (parses) or MQ1001_UnknownToken",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ1001_UnknownToken, nameof(Stage1_UnrecognizedCharacter_Backtick));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("`", System.StringComparison.Ordinal), 1), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage1_TrueUnrecognizedCharacter_Caret()
     {
-        // Arrange - ^ might be XOR operator or unknown
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT ^ FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Document caret handling
-        DocumentParserBehavior(result,
-            "Caret: either XOR operator (needs operands) or unknown token",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ2020_MissingOperand, nameof(Stage1_TrueUnrecognizedCharacter_Caret));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("^", System.StringComparison.Ordinal), 1), diagnostic.Span);
     }
 
     [TestMethod]

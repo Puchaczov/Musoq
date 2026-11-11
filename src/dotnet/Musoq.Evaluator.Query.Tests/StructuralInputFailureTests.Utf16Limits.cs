@@ -20,7 +20,7 @@ public sealed partial class StructuralInputFailureTests
     {
         const string query = "param(value: string) select d.Value from #specstressutf16.probe(value: $value) d";
         using var compiled = CompileUtf16Source(query);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", "abc");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", "abc");
 
         var exception = Assert.Throws<QueryExecutionException>(() =>
         {
@@ -38,7 +38,7 @@ public sealed partial class StructuralInputFailureTests
     {
         using var compiled = CompileUtf16Source(
             "param(value: string) select d.Value from #specstressutf16.probe(value: $value) d");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", value);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", value);
 
         using var result = compiled.Run(TestContext.CancellationToken);
 

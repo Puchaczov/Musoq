@@ -18,7 +18,7 @@ namespace Musoq.Evaluator.Tests;
 ///     - UNION/EXCEPT/INTERSECT with string comparisons
 ///     - WHERE clause with string functions and case variations
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class StringComparisonConsistencyTests : BasicEntityTestBase
 {
 

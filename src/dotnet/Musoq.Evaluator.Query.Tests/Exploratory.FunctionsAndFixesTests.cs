@@ -6,7 +6,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Exploratory tests: Functions and fix verifications (Explorations 91-110+).
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ExploratoryFunctionsAndFixesTests
 {
 

@@ -7,7 +7,7 @@ using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class InterpretationProviderIndependentExamplesTests : BasicEntityTestBase
 {
     private const string Header = "binary Header { Magic: int le, Version: short le }; ";

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Musoq.Evaluator.Tests.Architecture;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Plugins;
@@ -136,7 +137,7 @@ public sealed class ExecutionPortableSymbolFactoryTests
         Assert.AreEqual("nullable<primitive:int32>", typeRef.Descriptor.StableName);
         Assert.AreEqual(ExecutionPortableTypeKind.Nullable, typeRef.Descriptor.Kind);
         Assert.AreEqual(ExecutionPortableSymbolPortability.Portable, typeRef.Descriptor.Portability);
-        var clrType = typeof(ExecutionTypeRef).GetProperty(
+        var clrType = CompilerContractSymbols.For(typeof(ExecutionTypeRef)).GetProperty(
             "ClrType",
             BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.IsNull(clrType);

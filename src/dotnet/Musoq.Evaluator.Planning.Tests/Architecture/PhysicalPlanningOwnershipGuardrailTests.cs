@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
@@ -83,13 +84,10 @@ public sealed class PhysicalPlanningOwnershipGuardrailTests
                 repositoryRoot,
                 "src/dotnet/Musoq.Evaluator/IR/Optimization",
                 "*.cs")
-            .Concat(RepositorySourceScan.FilesUnder(
-                repositoryRoot,
-                "src/dotnet/Musoq.Evaluator/IR/Optimization/Facts",
-                "*.cs"))
             .Where(file => !adapterFiles.Contains(Path.GetFileName(file), StringComparer.Ordinal))
             .ToArray();
 
+        Assert.IsNotEmpty(optimizationFiles);
         var offenders = optimizationFiles
             .Where(file => File.ReadAllText(file).Contains("PlanProperties", StringComparison.Ordinal))
             .Select(file => RepositorySourceScan.ToRelative(repositoryRoot, file))
@@ -105,22 +103,22 @@ public sealed class PhysicalPlanningOwnershipGuardrailTests
     [TestMethod]
     public void PhysicalOptimizer_ShouldRequireShapeFacts()
     {
-        var optimizeMethods = typeof(PhysicalOptimizer)
+        var optimizeMethods = CompilerContractSymbols.For(typeof(PhysicalOptimizer))
             .GetMethods()
-            .Where(static method => method.Name == nameof(PhysicalOptimizer.Optimize))
+            .Where(static method => method.MetadataName == nameof(PhysicalOptimizer.Optimize))
             .ToArray();
         var twoArgumentPropertyOverloads = optimizeMethods
             .Where(static method =>
             {
                 var parameters = method.GetParameters();
                 return parameters.Length == 2 &&
-                       typeof(PhysicalNode).IsAssignableFrom(parameters[0].ParameterType) &&
-                       parameters[1].ParameterType == typeof(PlanProperties);
+                       CompilerContractSymbols.For(typeof(PhysicalNode)).IsAssignableFrom(parameters[0].ParameterType) &&
+                       SymbolEqualityComparer.Default.Equals(parameters[1].ParameterType, CompilerContractSymbols.For(typeof(PlanProperties)));
             })
             .ToArray();
         var optionalShapeResolvers = optimizeMethods
             .SelectMany(static method => method.GetParameters())
-            .Where(static parameter => parameter.ParameterType == typeof(IPlanningShapeResolver))
+            .Where(static parameter => SymbolEqualityComparer.Default.Equals(parameter.ParameterType, CompilerContractSymbols.For(typeof(IPlanningShapeResolver))))
             .Where(static parameter => parameter.IsOptional)
             .ToArray();
 

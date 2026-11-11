@@ -81,14 +81,14 @@ order by numbers.IntLong";
     {
         var pairs = new List<(string Column, string LeftLiteral, string RightLiteral, Type ExpectedType)>();
         foreach (var left in NumericLiteralCases())
-        foreach (var right in NumericLiteralCases())
-        {
-            if (!TryResolveExpectedValuesNumericColumnType(left.Type, right.Type, out var expectedType))
-                continue;
+            foreach (var right in NumericLiteralCases())
+            {
+                if (!TryResolveExpectedValuesNumericColumnType(left.Type, right.Type, out var expectedType))
+                    continue;
 
-            pairs.Add(($"{left.Name}_{right.Name}", left.Literal, right.Literal,
-                expectedType ?? throw new AssertFailedException("Expected a numeric promotion type.")));
-        }
+                pairs.Add(($"{left.Name}_{right.Name}", left.Literal, right.Literal,
+                    expectedType ?? throw new AssertFailedException("Expected a numeric promotion type.")));
+            }
 
         var selectList = string.Join(",\n       ", pairs.Select(pair => $"numbers.{pair.Column}"));
         var firstRowFields = string.Join(",\n        ", pairs.Select(pair => $"{pair.Column}: {pair.LeftLiteral}"));
@@ -176,6 +176,7 @@ select numbers.Value";
             .Concat(signedCases.Select(testCase => (Left: ulongCase, Right: testCase)))
             .ToArray();
 
+        Assert.IsNotEmpty(unsafePairs, "The signed/ulong rejection matrix must contain cases.");
         foreach (var pair in unsafePairs)
         {
             var query = $@"
@@ -195,5 +196,4 @@ select numbers.Value";
             MusoqExceptionAssertions.AssertHasGuidance(ex);
         }
     }
-
 }

@@ -8,18 +8,17 @@ public partial class UserMistakesTests
     [TestMethod]
     public void CTE_DuplicateName()
     {
-        // Arrange
+
         var analyzer = CreateAnalyzer();
         var query = @"
             WITH cte AS (SELECT Name FROM #A.Entities()),
                  cte AS (SELECT City FROM #A.Entities())
             SELECT * FROM cte";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - duplicate CTE name should be an error
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3021_DuplicateAlias, nameof(CTE_DuplicateName));
     }
 
     [TestMethod]
@@ -41,15 +40,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void OrderBy_InvalidColumnReference()
     {
-        // Arrange - referencing column not in SELECT
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() ORDER BY NonExistent";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3001_UnknownColumn, nameof(OrderBy_InvalidColumnReference));
     }
 
     [TestMethod]
@@ -69,15 +67,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Skip_NegativeValue()
     {
-        // Arrange - Parser may or may not validate numeric ranges
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() SKIP -5";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Negative might be handled at runtime, accept either
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2038_InvalidSliceCount, nameof(Skip_NegativeValue));
     }
 
     [TestMethod]
@@ -127,15 +124,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Alias_AmbiguousColumnWithoutQualifier()
     {
-        // Arrange - joining two tables with same column name
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() a INNER JOIN #B.Entities() b ON a.Name = b.Name";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - should warn about ambiguous column
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3002_AmbiguousColumn, nameof(Alias_AmbiguousColumnWithoutQualifier));
     }
 
 
@@ -171,15 +167,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Function_TooManyArguments()
     {
-        // Arrange
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Length(Name, City, Country, Population) FROM #A.Entities()";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3087_InvalidCallableArity, nameof(Function_TooManyArguments));
     }
 
     [TestMethod]
@@ -201,15 +196,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void SpecialChars_InColumnName()
     {
-        // Arrange - trying to use special chars without quotes
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name-With-Dashes FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - should handle gracefully
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2001_UnexpectedToken, nameof(SpecialChars_InColumnName));
     }
 
     [TestMethod]
@@ -287,15 +281,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void MultiLineComment_Unclosed()
     {
-        // Arrange - Lexer behavior for unclosed comments varies
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name /* unclosed comment FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Should ideally report error, but lexer may consume rest of input
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ1005_UnterminatedBlockComment, nameof(MultiLineComment_Unclosed));
     }
 
 

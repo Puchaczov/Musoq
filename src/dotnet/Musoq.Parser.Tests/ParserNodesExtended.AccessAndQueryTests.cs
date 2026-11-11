@@ -153,7 +153,8 @@ public class ParserNodesExtendedAccessAndQueryTests
         var node = new InternalQueryNode(select, dual, null, null, null, null, null, refresh);
 
         var str = node.ToString();
-        Assert.IsNotNull(str);
+        Assert.Contains("select", str);
+        Assert.Contains("system.dual() d", str);
     }
 
     [TestMethod]
@@ -280,7 +281,7 @@ public class ParserNodesExtendedAccessAndQueryTests
     {
         var scope = new QueryScope([]);
 
-        _ = scope.ReturnType;
+        Assert.IsNull(scope.ReturnType);
     }
 
     [TestMethod]
@@ -288,7 +289,7 @@ public class ParserNodesExtendedAccessAndQueryTests
     {
         var scope = new QueryScope([]);
 
-        _ = scope.Id;
+        Assert.AreEqual("QueryScope", scope.Id);
     }
 
     [TestMethod]

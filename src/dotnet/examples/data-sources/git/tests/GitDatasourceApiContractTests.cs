@@ -159,7 +159,7 @@ public sealed class GitDatasourceApiContractTests : GitExampleTestBase
             "select ShortSha from #git.commits($repo) order by AuthoredAt";
 
         var compiled = Compile(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "repo", "docs");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "repo", "docs");
         var table = compiled.Run();
 
         Assert.AreEqual(2, table.Count);

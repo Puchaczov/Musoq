@@ -591,9 +591,9 @@ public sealed class PhysicalOptimizerTests
                 new AggregateBinding(
                     "sum_population",
                     "Population",
-                    typeof(PhysicalOptimizerTests).GetMethod(nameof(SetAggregate), BindingFlags.NonPublic | BindingFlags.Static)!,
+                    ((Action<decimal>)SetAggregate).Method,
                     [new ColumnRef("e", "Population", typeof(decimal))],
-                    typeof(PhysicalOptimizerTests).GetMethod(nameof(GetAggregate), BindingFlags.NonPublic | BindingFlags.Static)!,
+                    ((Func<decimal>)GetAggregate).Method,
                     [],
                     typeof(decimal))
             ],

@@ -11,11 +11,6 @@ public class NegativeTestsBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 
-    static NegativeTestsBase()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
-
     protected CancellationTokenSource TokenSource { get; } = new();
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 

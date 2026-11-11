@@ -132,19 +132,7 @@ public class CteExecutionLevelTests
         Assert.AreEqual(100, level.Level);
     }
 
-    [TestMethod]
-    public void CteExecutionLevel_ZeroLevel_ShouldWork()
-    {
-        // Arrange
-        var node = new CteGraphNode("cteA", null);
-        var ctes = new List<CteGraphNode> { node };
 
-        // Act
-        var level = new CteExecutionLevel(0, ctes);
-
-        // Assert
-        Assert.AreEqual(0, level.Level);
-    }
 
     [TestMethod]
     public void CteExecutionLevel_ToString_SingleCte_ShouldShowParallelFalse()

@@ -11,7 +11,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionRelationalQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class LibraryExecutionRelationalQueryTests : GenericEntityTestBase
 {
     [TestMethod]

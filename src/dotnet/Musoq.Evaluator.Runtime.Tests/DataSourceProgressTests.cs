@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class DataSourceProgressTests : BasicEntityTestBase
 {
     [TestMethod]

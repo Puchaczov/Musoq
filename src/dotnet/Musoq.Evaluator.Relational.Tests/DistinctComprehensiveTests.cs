@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests explore DISTINCT usage in CTEs, nested queries, joins, set operations,
 ///     and ensure correct deduplication behavior.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class DistinctComprehensiveTests : BasicEntityTestBase
 {
 

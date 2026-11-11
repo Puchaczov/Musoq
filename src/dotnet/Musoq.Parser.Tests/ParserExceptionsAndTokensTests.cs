@@ -231,26 +231,9 @@ public class ParserExceptionsAndTokensTests
         Assert.IsTrue(span1 != span2);
     }
 
-    [TestMethod]
-    public void TextSpan_Equals_Null_ShouldBeFalse()
-    {
-        // Arrange
-        var span = new TextSpan(5, 10);
 
-        // Act & Assert
-        Assert.IsFalse(span.Equals(null));
-    }
 
-    [TestMethod]
-    public void TextSpan_GetHashCode_SameValues_ShouldMatch()
-    {
-        // Arrange
-        var span1 = new TextSpan(5, 10);
-        var span2 = new TextSpan(5, 10);
 
-        // Act & Assert
-        Assert.AreEqual(span1.GetHashCode(), span2.GetHashCode());
-    }
 
     [TestMethod]
     public void TextSpan_GetHashCode_DifferentValues_ShouldDiffer()

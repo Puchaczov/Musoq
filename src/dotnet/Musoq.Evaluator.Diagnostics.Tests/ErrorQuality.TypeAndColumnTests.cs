@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tests;
 ///     typically live.
 ///     Covers: E-TYPE, E-COL categories.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class ErrorQualityTypeAndColumnTests : BasicEntityTestBase
 {
     #region Test Setup

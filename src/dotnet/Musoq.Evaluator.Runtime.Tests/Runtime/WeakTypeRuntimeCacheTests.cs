@@ -1,7 +1,9 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Runtime;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -28,14 +30,17 @@ public sealed class WeakTypeRuntimeCacheTests
         var cache = new WeakTypeRuntimeCache<string>(8);
         var factoryCalls = 0;
 
-        Parallel.For(0, 32, _ => cache.GetOrAdd(
+        using var contention = new SynchronousContention();
+        var results = contention.Run(() => cache.GetOrAdd(
             typeof(WeakTypeRuntimeCacheTests),
             _ =>
             {
                 Interlocked.Increment(ref factoryCalls);
+                contention.HoldOwner();
                 return "value";
-            }));
+            }), 32);
 
+        CollectionAssert.AreEqual(Enumerable.Repeat("value", 32).ToArray(), results);
         Assert.AreEqual(1, factoryCalls);
         Assert.AreEqual(1, cache.Count);
     }

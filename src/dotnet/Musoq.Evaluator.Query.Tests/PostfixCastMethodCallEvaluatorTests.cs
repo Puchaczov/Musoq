@@ -14,7 +14,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
 {
 
@@ -326,6 +326,10 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
             LoggerResolver);
 
         Assert.IsNotNull(inspection.ExecutionPlan);
+        var casts = ExecutionIrAnalysis.CollectExpressions<ExecutionStrictCast>(inspection.ExecutionPlan.Body).ToArray();
+        Assert.HasCount(1, casts);
+        Assert.AreEqual("Int32", casts[0].TargetTypeName);
+        Assert.AreEqual(ExecutionClrBindingFactory.FromClr(typeof(int?)), casts[0].ReturnType);
     }
 
     [TestMethod]
@@ -354,7 +358,7 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
                 order by Population",
             new Dictionary<string, IEnumerable<BasicEntity>>
             {
-            ["#A"] =
+                ["#A"] =
             [
                     new BasicEntity { Country = "POLAND", City = "WARSAW", Population = 500 },
                     new BasicEntity { Country = "POLAND", City = "KRAKOW", Population = 50 }
@@ -524,18 +528,18 @@ public sealed class PostfixCastMethodCallEvaluatorTests : BasicEntityTestBase
     [TestMethod]
     public void MethodCallPostfixCast_NonDeterministicCalls_ShouldRemainDistinct()
     {
-        var table = CreateAndRunVirtualMachine(
-            "select NextValue()::int as FirstValue, NextValue()::int as SecondValue from #A.entities()",
-            CreateSingleSource(new BasicEntity { Country = "POLAND", Population = 500 })).Run();
+        var fixture = new EvaluationFixture("A");
+        using var compiled = CreateAndRunVirtualMachine(
+            "select NextTestValue()::int as FirstValue, NextTestValue()::int as SecondValue from #A.entities()",
+            schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
         TableMaterializationTestHelper.AssertColumns(
             table,
             ("FirstValue", typeof(int?)),
             ("SecondValue", typeof(int?)));
-        Assert.AreEqual(1, table.Count);
-        var first = Convert.ToInt32(table[0].ReadValue(0));
-        var second = Convert.ToInt32(table[0].ReadValue(1));
-        Assert.AreEqual(first + 1, second);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, 2]);
+        Assert.AreEqual(2, fixture.Calls);
     }
 
     [TestMethod]

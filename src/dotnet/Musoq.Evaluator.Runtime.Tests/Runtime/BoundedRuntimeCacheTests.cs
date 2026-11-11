@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Runtime;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -59,11 +61,15 @@ public sealed class BoundedRuntimeCacheTests
         var cache = new BoundedRuntimeCache<string, int>(8, StringComparer.Ordinal);
         var factoryCalls = 0;
 
-        Parallel.For(0, 32, _ =>
+        using var contention = new SynchronousContention();
+        var results = contention.Run(() => cache.GetOrAdd("shared", _ =>
         {
-            cache.GetOrAdd("shared", _ => Interlocked.Increment(ref factoryCalls));
-        });
+            var value = Interlocked.Increment(ref factoryCalls);
+            contention.HoldOwner();
+            return value;
+        }), 32);
 
+        CollectionAssert.AreEqual(Enumerable.Repeat(1, 32).ToArray(), results);
         Assert.AreEqual(1, factoryCalls);
         Assert.AreEqual(1, cache.Count);
     }
@@ -106,13 +112,17 @@ public sealed class BoundedRuntimeCacheTests
         cache.GetOrAdd("b", static _ => 2);
         var replacementCalls = 0;
 
-        Parallel.For(0, 32, _ =>
-        {
-            cache.GetOrAdd(
+        using var contention = new SynchronousContention();
+        var results = contention.Run(() => cache.GetOrAdd(
                 "a",
-                _ => Interlocked.Increment(ref replacementCalls) + 1,
-                static value => value > 1);
-        });
+                _ =>
+                {
+                    var value = Interlocked.Increment(ref replacementCalls) + 1;
+                    contention.HoldOwner();
+                    return value;
+                },
+                static value => value > 1), 32);
+        CollectionAssert.AreEqual(Enumerable.Repeat(2, 32).ToArray(), results);
         cache.GetOrAdd("c", static _ => 3);
 
         Assert.AreEqual(1, replacementCalls);

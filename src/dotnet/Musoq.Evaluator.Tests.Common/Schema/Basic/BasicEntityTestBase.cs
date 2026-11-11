@@ -20,11 +20,6 @@ public class BasicEntityTestBase : MSTestContextTestBase
     protected static readonly CompilationOptions ValidationEnabledCompilationOptions =
         new(usePrimitiveTypeValidation: true);
 
-    static BasicEntityTestBase()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
-
     protected CancellationTokenSource TokenSource { get; } = new();
 
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
@@ -91,7 +86,7 @@ public class BasicEntityTestBase : MSTestContextTestBase
         CompilationOptions compilationOptions)
         where T : BasicEntity
     {
-        return InstanceCreator.CompileForExecution(
+        return GeneratedExecutionIlInspection.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new BasicSchemaProvider<T>(sources),
@@ -104,7 +99,7 @@ public class BasicEntityTestBase : MSTestContextTestBase
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? SourceRuntimeSettingsBySourceContextId = null,
         ISchemaProvider? schemaProvider = null)
     {
-        return InstanceCreator.CompileForExecution(
+        return GeneratedExecutionIlInspection.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             schemaProvider ?? throw new ArgumentNullException(nameof(schemaProvider)),

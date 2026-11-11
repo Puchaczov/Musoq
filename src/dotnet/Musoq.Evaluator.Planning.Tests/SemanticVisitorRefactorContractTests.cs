@@ -20,7 +20,7 @@ using IrExpressionPrinter = Musoq.Evaluator.IR.Expressions.IrExpressionPrinter;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class SemanticVisitorRefactorContractTests : BasicEntityTestBase
 {
     [TestMethod]

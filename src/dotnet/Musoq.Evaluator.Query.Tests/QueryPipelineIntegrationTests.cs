@@ -8,7 +8,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Integration tests for end-to-end query compilation and execution.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class QueryPipelineIntegrationTests : BasicEntityTestBase
 {
     [TestMethod]

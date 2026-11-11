@@ -1,5 +1,6 @@
 using System;
-using Musoq.Evaluator.Build;
+using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -7,7 +8,23 @@ namespace Musoq.Evaluator.Tests;
 
 public abstract class BinaryInterpretationTestBase
 {
-    protected static object CreateAndCompileInterpreter(string schemaName, params FieldDefinitionNode[] fields)
+    private readonly List<IDisposable> _fixtures = [];
+
+    [TestCleanup]
+    public void DisposeInterpreterFixtures()
+    {
+        foreach (var fixture in _fixtures)
+            fixture.Dispose();
+        _fixtures.Clear();
+    }
+
+    protected T OwnFixture<T>(T fixture) where T : IDisposable
+    {
+        _fixtures.Add(fixture);
+        return fixture;
+    }
+
+    protected object CreateAndCompileInterpreter(string schemaName, params FieldDefinitionNode[] fields)
     {
         var registry = new SchemaRegistry();
         var schema = new BinarySchemaNode(schemaName, [.. fields]);
@@ -16,81 +33,26 @@ public abstract class BinaryInterpretationTestBase
         return CompileInterpreter(registry, schemaName);
     }
 
-    protected static object CompileInterpreter(SchemaRegistry registry, string schemaName)
+    protected object CompileInterpreter(SchemaRegistry registry, string schemaName)
     {
-        var generator = new InterpreterCodeGenerator(registry);
-        var code = generator.GenerateAll();
-
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
-
-        var success = compilationUnit.Compile();
-        if (!success)
-            throw new InvalidOperationException(
-                $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}");
-
-        var type = compilationUnit.GetInterpreterType(schemaName);
-        if (type == null) throw new InvalidOperationException($"Type '{schemaName}' not found in compiled assembly.");
-
-        return Activator.CreateInstance(type)!;
+        return CompileFixture(registry, schemaName, []);
     }
 
-    protected static object CompileInterpreterForGenericInstantiation(SchemaRegistry registry, string genericSchemaName,
-        string[] typeArguments)
+    protected object CompileInterpreterForGenericInstantiation(SchemaRegistry registry, string genericSchemaName,
+        string[] typeArguments) => CompileFixture(registry, genericSchemaName, typeArguments);
+
+    private object CompileFixture(SchemaRegistry registry, string schemaName, string[] typeArguments)
     {
-        var generator = new InterpreterCodeGenerator(registry);
-        var code = generator.GenerateAll();
-
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
-
-        var success = compilationUnit.Compile();
-        if (!success)
-            throw new InvalidOperationException(
-                $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}");
-
-
-        var genericType = compilationUnit.GetInterpreterType(genericSchemaName);
-        if (genericType == null)
-            throw new InvalidOperationException($"Generic type '{genericSchemaName}' not found in compiled assembly.");
-
-
-        var concreteTypes = new Type[typeArguments.Length];
-        for (var i = 0; i < typeArguments.Length; i++)
-        {
-            var argType = compilationUnit.GetInterpreterType(typeArguments[i]);
-            if (argType == null)
-                throw new InvalidOperationException(
-                    $"Type argument '{typeArguments[i]}' not found in compiled assembly.");
-            concreteTypes[i] = argType;
-        }
-
-        var closedType = genericType.MakeGenericType(concreteTypes);
-        return Activator.CreateInstance(closedType)!;
+        var fixture = new CompiledBinaryFixture(new InterpreterCodeGenerator(registry).GenerateAll(), schemaName, typeArguments);
+        _fixtures.Add(fixture);
+        return fixture;
     }
 
-    protected static object InvokeInterpret(object interpreter, byte[] data)
-    {
-        var interpreterType = interpreter.GetType();
+    protected static object InvokeInterpret(object interpreter, byte[] data) =>
+        ((ICompiledBinaryFixture)interpreter).Interpret(data);
 
-        var interpretMethod = interpreterType.GetMethod("Interpret",
-            [typeof(byte[])]);
-
-        if (interpretMethod == null) throw new InvalidOperationException("Interpret(byte[]) method not found");
-
-        return interpretMethod.Invoke(interpreter, [data])!;
-    }
-
-    protected static T GetPropertyValue<T>(object obj, string propertyName)
-    {
-        var prop = obj.GetType().GetProperty(propertyName);
-        if (prop == null)
-            throw new InvalidOperationException($"Property '{propertyName}' not found");
-
-        return (T)prop.GetValue(obj)!;
-    }
+    protected static T GetPropertyValue<T>(object obj, string propertyName) =>
+        (T)((IReadOnlyDictionary<string, object?>)obj)[propertyName]!;
 
     protected static FieldDefinitionNode CreatePrimitiveField(
         string name,
@@ -101,7 +63,7 @@ public abstract class BinaryInterpretationTestBase
         return new FieldDefinitionNode(name, typeNode);
     }
 
-    protected static object CreateAndCompileInterpreterWithSchema(string schemaName, params SchemaFieldNode[] fields)
+    protected object CreateAndCompileInterpreterWithSchema(string schemaName, params SchemaFieldNode[] fields)
     {
         var registry = new SchemaRegistry();
         var schema = new BinarySchemaNode(schemaName, [.. fields]);
@@ -110,25 +72,9 @@ public abstract class BinaryInterpretationTestBase
         return CompileInterpreter(registry, schemaName);
     }
 
-    protected static (bool success, object? result) InvokeTryInterpret(object interpreter, byte[] data)
-    {
-        try
-        {
-            var result = InvokeInterpret(interpreter, data);
-            return (true, result);
-        }
-        catch
-        {
-            return (false, null);
-        }
-    }
+    protected static (bool success, object? result) InvokeTryInterpret(object interpreter, byte[] data) =>
+        ((ICompiledBinaryFixture)interpreter).TryInterpret(data);
 
-    protected static object InvokePartialInterpret(object interpreter, byte[] data)
-    {
-        var method = interpreter.GetType().GetMethod("PartialInterpret", [typeof(byte[])]);
-        if (method == null)
-            throw new InvalidOperationException("PartialInterpret method not found on interpreter");
-
-        return method.Invoke(interpreter, [data])!;
-    }
+    protected static object InvokePartialInterpret(object interpreter, byte[] data) =>
+        ((ICompiledBinaryFixture)interpreter).PartialInterpret(data);
 }

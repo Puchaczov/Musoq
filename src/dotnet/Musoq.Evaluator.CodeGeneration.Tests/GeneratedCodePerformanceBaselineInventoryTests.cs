@@ -22,8 +22,7 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
     [TestMethod]
     public void CurrentCorpus_ContainsExpectedSnapshotsAndNoGeneratedReflection()
     {
-        var files = Directory
-            .EnumerateFiles(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
+        var files = global::Musoq.Tests.Common.RequiredSourceInventory.Files(GeneratedCodeSampleArtifacts.SamplesDirectory, "*.cs")
             .ToArray();
 
         Assert.AreEqual(GeneratedCodeSamplesCatalog.ExpectedSampleCount, files.Length);
@@ -90,7 +89,7 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
             "Musoq.Targets.CSharpClr",
             "Rendering",
             "Execution");
-        var rendererFiles = Directory.EnumerateFiles(rendererDirectory, "*.cs", SearchOption.AllDirectories);
+        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(rendererDirectory, "*.cs", SearchOption.AllDirectories);
         var rendererOffenders = FindTokenOffenders(rendererFiles, ForbiddenGeneratedExecutionTokens[..^1]);
         Assert.IsEmpty(rendererOffenders, FormatOffenders(rendererOffenders));
     }

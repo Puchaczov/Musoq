@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class BranchCoverageImprovementTests : GenericEntityTestBase
 {
     private static object?[] RequireContexts(TestRow row)

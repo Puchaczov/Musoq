@@ -120,19 +120,18 @@ public sealed class RoslynRuntimeSeamTests
         using var directory = new TempDirectory();
         directory.CreateFile("System.Runtime.dll");
         directory.CreateFile("System.Collections.dll");
+        using var contention = new global::Musoq.Tests.Common.SynchronousContention();
         var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
         var cache = new DelegateMetadataReferenceCache(_ =>
         {
-            Thread.Sleep(20);
+            contention.HoldOwner();
             return reference;
         });
         var provider = new RuntimeReferenceProvider(
             cache,
             () => directory.DirectoryPath,
             ["System.Runtime.dll", "System.Collections.dll"]);
-        var results = new ConcurrentBag<MetadataReference[]>();
-
-        Parallel.For(0, 16, _ => results.Add(provider.References));
+        var results = contention.Run(() => provider.References, 16);
 
         var first = results.First();
         Assert.AreEqual(2, first.Length);

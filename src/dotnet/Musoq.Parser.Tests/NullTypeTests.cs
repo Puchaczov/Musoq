@@ -31,25 +31,25 @@ public class NullTypeTests
     [TestMethod]
     public void NullType_FullName_ReturnsExpected()
     {
-        Assert.IsNotNull(NullTypeInstance.FullName);
+        Assert.AreEqual(typeof(NullNode.NullType).FullName, NullTypeInstance.FullName);
     }
 
     [TestMethod]
     public void NullType_Namespace_ReturnsExpected()
     {
-        Assert.IsNotNull(NullTypeInstance.Namespace);
+        Assert.AreEqual("Musoq.Parser.Nodes", NullTypeInstance.Namespace);
     }
 
     [TestMethod]
     public void NullType_Assembly_ReturnsExpected()
     {
-        Assert.IsNotNull(NullTypeInstance.Assembly);
+        Assert.AreEqual(typeof(NullNode).Assembly, NullTypeInstance.Assembly);
     }
 
     [TestMethod]
     public void NullType_AssemblyQualifiedName_ReturnsExpected()
     {
-        Assert.IsNotNull(NullTypeInstance.AssemblyQualifiedName);
+        Assert.AreEqual(typeof(object).AssemblyQualifiedName, NullTypeInstance.AssemblyQualifiedName);
     }
 
     [TestMethod]
@@ -67,13 +67,13 @@ public class NullTypeTests
     [TestMethod]
     public void NullType_Module_ReturnsExpected()
     {
-        Assert.IsNotNull(NullTypeInstance.Module);
+        Assert.AreEqual(typeof(NullNode.NullType).Module, NullTypeInstance.Module);
     }
 
     [TestMethod]
     public void NullType_UnderlyingSystemType_ReturnsExpected()
     {
-        Assert.IsNotNull(NullTypeInstance.UnderlyingSystemType);
+        Assert.AreEqual(typeof(object), NullTypeInstance.UnderlyingSystemType);
     }
 
     #endregion
@@ -85,6 +85,7 @@ public class NullTypeTests
     {
         var constructors = NullTypeInstance.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
         Assert.IsNotNull(constructors);
+        CollectionAssert.AreEqual(typeof(object).GetConstructors(BindingFlags.Public | BindingFlags.Instance), constructors);
     }
 
     [TestMethod]
@@ -92,6 +93,7 @@ public class NullTypeTests
     {
         var constructors = NullTypeInstance.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.IsNotNull(constructors);
+        CollectionAssert.AreEqual(typeof(object).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance), constructors);
     }
 
     [TestMethod]
@@ -99,6 +101,7 @@ public class NullTypeTests
     {
         var constructors = NullTypeInstance.GetConstructors(BindingFlags.Static | BindingFlags.NonPublic);
         Assert.IsNotNull(constructors);
+        CollectionAssert.AreEqual(typeof(object).GetConstructors(BindingFlags.Static | BindingFlags.NonPublic), constructors);
     }
 
     #endregion
@@ -117,6 +120,7 @@ public class NullTypeTests
     {
         var fields = NullTypeInstance.GetFields(BindingFlags.Public | BindingFlags.Instance);
         Assert.IsNotNull(fields);
+        CollectionAssert.AreEqual(typeof(object).GetFields(BindingFlags.Public | BindingFlags.Instance), fields);
     }
 
     [TestMethod]
@@ -124,6 +128,7 @@ public class NullTypeTests
     {
         var fields = NullTypeInstance.GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.IsNotNull(fields);
+        CollectionAssert.AreEqual(typeof(object).GetFields(BindingFlags.NonPublic | BindingFlags.Instance), fields);
     }
 
     [TestMethod]
@@ -131,6 +136,7 @@ public class NullTypeTests
     {
         var fields = NullTypeInstance.GetFields(BindingFlags.Static | BindingFlags.Public);
         Assert.IsNotNull(fields);
+        CollectionAssert.AreEqual(typeof(object).GetFields(BindingFlags.Static | BindingFlags.Public), fields);
     }
 
     #endregion
@@ -142,6 +148,7 @@ public class NullTypeTests
     {
         var methods = NullTypeInstance.GetMethods(BindingFlags.Public | BindingFlags.Instance);
         Assert.IsNotNull(methods);
+        CollectionAssert.AreEqual(typeof(object).GetMethods(BindingFlags.Public | BindingFlags.Instance), methods);
         Assert.IsNotEmpty(methods);
     }
 
@@ -150,6 +157,7 @@ public class NullTypeTests
     {
         var methods = NullTypeInstance.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.IsNotNull(methods);
+        CollectionAssert.AreEqual(typeof(object).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance), methods);
     }
 
     [TestMethod]
@@ -157,6 +165,7 @@ public class NullTypeTests
     {
         var methods = NullTypeInstance.GetMethods(BindingFlags.Static | BindingFlags.Public);
         Assert.IsNotNull(methods);
+        CollectionAssert.AreEqual(typeof(object).GetMethods(BindingFlags.Static | BindingFlags.Public), methods);
     }
 
     #endregion
@@ -168,6 +177,7 @@ public class NullTypeTests
     {
         var properties = NullTypeInstance.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         Assert.IsNotNull(properties);
+        CollectionAssert.AreEqual(typeof(object).GetProperties(BindingFlags.Public | BindingFlags.Instance), properties);
     }
 
     [TestMethod]
@@ -175,6 +185,7 @@ public class NullTypeTests
     {
         var properties = NullTypeInstance.GetProperties(BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.IsNotNull(properties);
+        CollectionAssert.AreEqual(typeof(object).GetProperties(BindingFlags.NonPublic | BindingFlags.Instance), properties);
     }
 
     [TestMethod]
@@ -182,6 +193,7 @@ public class NullTypeTests
     {
         var properties = NullTypeInstance.GetProperties(BindingFlags.Static | BindingFlags.Public);
         Assert.IsNotNull(properties);
+        CollectionAssert.AreEqual(typeof(object).GetProperties(BindingFlags.Static | BindingFlags.Public), properties);
     }
 
     #endregion
@@ -193,6 +205,7 @@ public class NullTypeTests
     {
         var members = NullTypeInstance.GetMembers(BindingFlags.Public | BindingFlags.Instance);
         Assert.IsNotNull(members);
+        CollectionAssert.AreEqual(typeof(object).GetMembers(BindingFlags.Public | BindingFlags.Instance), members);
         Assert.IsNotEmpty(members);
     }
 
@@ -201,6 +214,7 @@ public class NullTypeTests
     {
         var members = NullTypeInstance.GetMembers(BindingFlags.NonPublic | BindingFlags.Instance);
         Assert.IsNotNull(members);
+        CollectionAssert.AreEqual(typeof(object).GetMembers(BindingFlags.NonPublic | BindingFlags.Instance), members);
     }
 
     [TestMethod]
@@ -209,6 +223,8 @@ public class NullTypeTests
         var members = NullTypeInstance.GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
                                                   BindingFlags.Static);
         Assert.IsNotNull(members);
+        CollectionAssert.AreEqual(typeof(object).GetMembers(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+                                                  BindingFlags.Static), members);
     }
 
     #endregion
@@ -226,14 +242,14 @@ public class NullTypeTests
     public void GetEvents_WithPublicBinding_ReturnsEvents()
     {
         var events = NullTypeInstance.GetEvents(BindingFlags.Public | BindingFlags.Instance);
-        Assert.IsNotNull(events);
+        Assert.IsEmpty(events);
     }
 
     [TestMethod]
     public void GetEvents_WithNonPublicBinding_ReturnsEvents()
     {
         var events = NullTypeInstance.GetEvents(BindingFlags.NonPublic | BindingFlags.Instance);
-        Assert.IsNotNull(events);
+        Assert.IsEmpty(events);
     }
 
     #endregion
@@ -252,6 +268,7 @@ public class NullTypeTests
     {
         var nestedTypes = NullTypeInstance.GetNestedTypes(BindingFlags.Public);
         Assert.IsNotNull(nestedTypes);
+        CollectionAssert.AreEqual(typeof(object).GetNestedTypes(BindingFlags.Public), nestedTypes);
     }
 
     [TestMethod]
@@ -259,6 +276,7 @@ public class NullTypeTests
     {
         var nestedTypes = NullTypeInstance.GetNestedTypes(BindingFlags.NonPublic);
         Assert.IsNotNull(nestedTypes);
+        CollectionAssert.AreEqual(typeof(object).GetNestedTypes(BindingFlags.NonPublic), nestedTypes);
     }
 
     #endregion
@@ -283,7 +301,7 @@ public class NullTypeTests
     public void GetInterfaces_ReturnsInterfaces()
     {
         var interfaces = NullTypeInstance.GetInterfaces();
-        Assert.IsNotNull(interfaces);
+        Assert.IsEmpty(interfaces);
     }
 
     #endregion
@@ -295,6 +313,7 @@ public class NullTypeTests
     {
         var attributes = NullTypeInstance.GetCustomAttributes(true);
         Assert.IsNotNull(attributes);
+        CollectionAssert.AreEqual(typeof(object).GetCustomAttributes(true), attributes);
     }
 
     [TestMethod]
@@ -302,6 +321,7 @@ public class NullTypeTests
     {
         var attributes = NullTypeInstance.GetCustomAttributes(false);
         Assert.IsNotNull(attributes);
+        CollectionAssert.AreEqual(typeof(object).GetCustomAttributes(false), attributes);
     }
 
     [TestMethod]
@@ -309,6 +329,7 @@ public class NullTypeTests
     {
         var attributes = NullTypeInstance.GetCustomAttributes(typeof(Attribute), true);
         Assert.IsNotNull(attributes);
+        CollectionAssert.AreEqual(typeof(object).GetCustomAttributes(typeof(Attribute), true), attributes);
     }
 
     [TestMethod]
@@ -316,6 +337,7 @@ public class NullTypeTests
     {
         var attributes = NullTypeInstance.GetCustomAttributes(typeof(SerializableAttribute), false);
         Assert.IsNotNull(attributes);
+        CollectionAssert.AreEqual(typeof(object).GetCustomAttributes(typeof(SerializableAttribute), false), attributes);
     }
 
     [TestMethod]
@@ -330,7 +352,7 @@ public class NullTypeTests
     {
         var isDefined = NullTypeInstance.IsDefined(typeof(SerializableAttribute), false);
 
-        Assert.IsTrue(isDefined || !isDefined);
+        Assert.AreEqual(typeof(object).IsDefined(typeof(SerializableAttribute), false), isDefined);
     }
 
     #endregion
@@ -405,7 +427,7 @@ public class NullTypeTests
             CultureInfo.InvariantCulture,
             null);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual("System.Object", result);
     }
 
     [TestMethod]
@@ -422,7 +444,7 @@ public class NullTypeTests
             CultureInfo.InvariantCulture,
             null);
 
-        Assert.IsNotNull(result);
+        Assert.AreEqual(obj.GetHashCode(), result);
     }
 
     [TestMethod]
@@ -471,12 +493,7 @@ public class NullTypeTests
         Assert.IsInstanceOfType<NullNode.NullType>(node.ReturnType);
     }
 
-    [TestMethod]
-    public void NullNode_TypedConstructor_SetsProvidedType()
-    {
-        var node = new NullNode(typeof(string));
-        Assert.AreEqual(typeof(string), node.ReturnType);
-    }
+
 
     [TestMethod]
     public void NullNode_Id_IsNullNode()

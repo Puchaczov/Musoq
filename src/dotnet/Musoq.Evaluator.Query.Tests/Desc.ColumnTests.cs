@@ -245,7 +245,7 @@ public partial class DescStatementTests
         Assert.AreEqual(1, table.Count, "Should return column info");
 
         var columnIndex = (int)table[0].ReadValue(1);
-        Assert.IsGreaterThanOrEqualTo(0, columnIndex, "Column index should be non-negative");
+        Assert.AreEqual(new BasicEntityTable().GetColumnByName(nameof(BasicEntity.Array))!.ColumnIndex, columnIndex);
     }
 
     [TestMethod]
@@ -358,7 +358,7 @@ public partial class DescStatementTests
         foreach (var row in table)
         {
             Assert.IsNotNull(row.ReadValue(0), "Name should not be null");
-            Assert.IsInstanceOfType<int>(row.ReadValue(1),"Index should be int");
+            Assert.IsInstanceOfType<int>(row.ReadValue(1), "Index should be int");
             Assert.IsNotNull(row.ReadValue(2), "Type should not be null");
         }
     }

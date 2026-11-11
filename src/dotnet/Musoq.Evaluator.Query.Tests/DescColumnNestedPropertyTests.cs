@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Example: desc #git.commits() column Author.Repository.MyCommits
 ///     Where MyCommits is a property of type CommitEntity[] on Repository.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class DescColumnNestedPropertyTests : BasicEntityTestBase
 {
 

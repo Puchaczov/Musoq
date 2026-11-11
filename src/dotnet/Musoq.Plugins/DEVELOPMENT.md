@@ -208,7 +208,8 @@ Musoq.Plugins (leaf project — no dependencies)
 
 ```bash
 # Run plugins tests
-dotnet test src/dotnet/Musoq.Plugins.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+dotnet test src/dotnet/Musoq.Plugins.Conversions.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+dotnet test src/dotnet/Musoq.Plugins.Functions.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 ```
 
 ### Common Modifications
@@ -217,7 +218,7 @@ dotnet test src/dotnet/Musoq.Plugins.Tests --configuration Release --no-build --
 1. Create a new partial class file `LibraryBase{Category}.cs` in `Lib/`
 2. Declare it as `public partial class LibraryBase`
 3. Add methods with `[BindableMethod]` attribute
-4. Add tests in `Musoq.Plugins.Tests`
+4. Add tests in `Musoq.Plugins.Functions.Tests` or `Musoq.Plugins.Conversions.Tests` according to the function family
 
 **Adding a new attribute:**
 1. Create attribute class in `Attributes/`
@@ -227,6 +228,6 @@ dotnet test src/dotnet/Musoq.Plugins.Tests --configuration Release --no-build --
 ### Impact of Changes
 
 Plugin changes affect all SQL queries that use the modified functions:
-- Run plugins tests: `dotnet test src/dotnet/Musoq.Plugins.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"`
+- Run the 2 Plugins test projects listed in the testing section above.
 - If new methods are added, test them via SQL queries in evaluator tests too
 - Method signature changes are breaking — existing queries may fail

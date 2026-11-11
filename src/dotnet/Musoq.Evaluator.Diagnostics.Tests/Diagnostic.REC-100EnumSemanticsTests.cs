@@ -9,7 +9,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticREC100EnumSemanticsTests : GenericEntityTestBase
 {
     private static readonly REC100EnumEntity[] Rows =

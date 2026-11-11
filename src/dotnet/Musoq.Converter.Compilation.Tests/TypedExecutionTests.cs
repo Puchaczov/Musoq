@@ -1,0 +1,255 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Converter.Tests.Components;
+using Musoq.Converter.Tests.Schema;
+using Musoq.Parser.Diagnostics;
+
+namespace Musoq.Converter.Tests;
+
+[global::Musoq.Tests.Common.CultureTestClass]
+public class TypedExecutionTests
+{
+
+    [TestMethod]
+    public void CompileForTypedExecution_WhenOutputHasMatchingConstructor_ShouldReturnTypedRows()
+    {
+        var query = Compile<ConstructorDto>("select d.Dummy as Dummy from #system.dual() d");
+
+        var rows = query.Run(CancellationToken.None).ToArray();
+
+        Assert.AreEqual(1, rows.Length);
+        Assert.AreEqual("single", rows[0].Dummy);
+    }
+
+    [TestMethod]
+    public void CompileForTypedExecution_WhenOutputHasSettableProperty_ShouldReturnTypedRows()
+    {
+        var query = Compile<PropertyDto>("select d.Dummy as Dummy from #system.dual() d");
+
+        var rows = query.Run(CancellationToken.None).ToArray();
+
+        Assert.AreEqual(1, rows.Length);
+        Assert.AreEqual("single", rows[0].Dummy);
+    }
+
+    [TestMethod]
+    public void CompileForTypedExecution_WhenOutputHasPublicField_ShouldReturnTypedRows()
+    {
+        var query = Compile<FieldDto>("select d.Dummy as Dummy from #system.dual() d");
+
+        var rows = query.Run(CancellationToken.None).ToArray();
+
+        Assert.AreEqual(1, rows.Length);
+        Assert.AreEqual("single", rows[0].Dummy);
+    }
+
+    [TestMethod]
+    public void CompileForTypedExecution_WhenQueryHasParameter_ShouldUseExistingParameterBinding()
+    {
+        var query = Compile<PropertyDto>(
+            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "expected", "single");
+
+        var rows = query.Run(CancellationToken.None).ToArray();
+
+        Assert.AreEqual(1, rows.Length);
+        Assert.AreEqual("single", rows[0].Dummy);
+    }
+
+    [TestMethod]
+    public void TypedRun_WithPerRunOptions_WhenParametersChangeAfterRun_ShouldUseSnapshot()
+    {
+        var query = Compile<PropertyDto>(
+            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
+        var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
+
+        var rows = query.Run(new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters)));
+        parameters["expected"] = "missing";
+
+        var materialized = rows.ToArray();
+
+        Assert.AreEqual(1, materialized.Length);
+        Assert.AreEqual("single", materialized[0].Dummy);
+    }
+
+    [TestMethod]
+    public void TypedRun_WithObjectInitializerOptions_WhenParametersChangeAfterRun_ShouldUseSnapshot()
+    {
+        var query = Compile<PropertyDto>(
+            "param(expected: string) select d.Dummy as Dummy from #system.dual() d where d.Dummy = $expected");
+        var parameters = new Dictionary<string, object?> { ["expected"] = "single" };
+
+        var rows = query.Run(new TypedQueryRunOptions { TypedParameters = global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters) });
+        parameters["expected"] = "missing";
+
+        var materialized = rows.ToArray();
+
+        Assert.AreEqual(1, materialized.Length);
+        Assert.AreEqual("single", materialized[0].Dummy);
+    }
+
+    [TestMethod]
+    public void TypedRun_WhenCompatibilityEventsChangeAfterRun_ShouldUseSnapshot()
+    {
+        var query = Compile<PropertyDto>(
+            "select d.Dummy as Dummy from #system.dual() d order by d.Dummy");
+        var firstPhaseCount = 0;
+        var secondPhaseCount = 0;
+        query.PhaseChanged += (_, _) => firstPhaseCount++;
+
+        var rows = query.Run(CancellationToken.None);
+        query.PhaseChanged += (_, _) => secondPhaseCount++;
+
+        Assert.AreEqual(1, rows.ToArray().Length);
+        Assert.IsGreaterThan(0, firstPhaseCount);
+        Assert.AreEqual(0, secondPhaseCount);
+    }
+
+    [TestMethod]
+    public void TypedRun_WithPerRunQueryProgressOptions_ShouldReportFinalSnapshot()
+    {
+        var query = Compile<PropertyDto>("select d.Dummy as Dummy from #system.dual() d");
+        var snapshots = new List<QueryProgressEventArgs>();
+
+        var rows = query.Run(new TypedQueryRunOptions
+        {
+            QueryProgress = (_, args) => snapshots.Add(args),
+            QueryProgressOptions = new QueryProgressOptions
+            {
+                RowsPerUpdate = 1,
+                MinimumInterval = TimeSpan.FromDays(1)
+            }
+        }).ToArray();
+
+        Assert.AreEqual(1, rows.Length);
+        Assert.IsTrue(snapshots.Count > 0);
+        Assert.IsTrue(
+            snapshots[^1].IsFinal,
+            string.Join(", ", snapshots.Select(static snapshot =>
+                $"{snapshot.QueryRowsProcessed}:{snapshot.SourceContextId}:{snapshot.IsFinal}")));
+        Assert.AreEqual(1, snapshots.Count(static snapshot => snapshot.IsFinal));
+        Assert.AreEqual(1, snapshots[^1].QueryRowsProcessed);
+    }
+
+    [TestMethod]
+    public void TypedRun_WhenProjectionFails_ShouldFlushFinalProgress()
+    {
+        var query = Compile<ThrowingConstructorDto>("select d.Dummy as Dummy from #system.dual() d");
+        var snapshots = new List<QueryProgressEventArgs>();
+
+        Assert.Throws<QueryExecutionException>(() => query.Run(new TypedQueryRunOptions
+        {
+            QueryProgress = (_, args) => snapshots.Add(args),
+            QueryProgressOptions = new QueryProgressOptions
+            {
+                RowsPerUpdate = 1,
+                MinimumInterval = TimeSpan.FromDays(1)
+            }
+        }).ToArray());
+
+        Assert.IsTrue(snapshots.Count > 0);
+        Assert.IsTrue(snapshots[^1].IsFinal);
+        Assert.AreEqual(1, snapshots[^1].QueryRowsProcessed);
+    }
+
+    [TestMethod]
+    public void TypedRun_WhenProjectionThrows_ShouldPropagateProjectionException()
+    {
+        var query = Compile<ThrowingConstructorDto>("select d.Dummy as Dummy from #system.dual() d");
+
+        var exception = Assert.Throws<QueryExecutionException>(() =>
+            query.Run(new TypedQueryRunOptions(CancellationToken.None)).ToArray());
+
+        Assert.AreEqual(DiagnosticCode.MQ9002_InternalExecutionError, exception.Envelope!.Code);
+        Assert.AreEqual("Projection failed.", exception.InnerException!.Message);
+    }
+
+    [TestMethod]
+    public void TypedRun_WhenEnumerableIsEnumeratedTwice_ShouldRejectSecondEnumeration()
+    {
+        var query = Compile<PropertyDto>("select d.Dummy as Dummy from #system.dual() d");
+        var rows = query.Run(CancellationToken.None);
+
+        Assert.AreEqual(1, rows.ToArray().Length);
+        Assert.Throws<InvalidOperationException>(() => rows.ToArray());
+    }
+
+    [TestMethod]
+    public void TypedRun_WhenTokenIsAlreadyCancelled_ShouldThrowBeforeStarting()
+    {
+        var query = Compile<PropertyDto>("select d.Dummy as Dummy from #system.dual() d");
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() => query.Run(cancellation.Token).ToArray());
+    }
+
+    [TestMethod]
+    public void CompileForTypedExecution_WhenAliasesAreDuplicated_ShouldRejectAtCompileTime()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            Compile<TwoColumnConstructorDto>("select d.Dummy as Dummy, d.Dummy as Dummy from #system.dual() d"));
+    }
+
+    [TestMethod]
+    public void CompileForTypedExecution_WhenOutputMemberIsMissing_ShouldRejectAtCompileTime()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            Compile<MissingMemberDto>("select d.Dummy as Dummy from #system.dual() d"));
+    }
+
+    [TestMethod]
+    public void CompileForTypedExecution_WhenOutputMemberTypeIsIncompatible_ShouldRejectAtCompileTime()
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            Compile<IncompatibleMemberDto>("select d.Dummy as Dummy from #system.dual() d"));
+    }
+
+    private static CompiledTypedQuery<TOut> Compile<TOut>(string query)
+    {
+        return InstanceCreator.CompileForTypedExecution<TOut>(
+            query,
+            Guid.NewGuid().ToString(),
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+    }
+
+    public sealed record ConstructorDto(string Dummy);
+
+    public sealed record TwoColumnConstructorDto(string Dummy, string Other);
+
+    public sealed class PropertyDto
+    {
+        public string Dummy { get; set; } = string.Empty;
+    }
+
+    public sealed class FieldDto
+    {
+        public string Dummy = string.Empty;
+    }
+
+    public sealed class MissingMemberDto
+    {
+        public string Other { get; set; } = string.Empty;
+    }
+
+    public sealed class IncompatibleMemberDto
+    {
+        public int Dummy { get; set; }
+    }
+
+    public sealed class ThrowingConstructorDto
+    {
+        public ThrowingConstructorDto(string dummy)
+        {
+            throw new InvalidOperationException("Projection failed.");
+        }
+
+        public string Dummy { get; } = string.Empty;
+    }
+}

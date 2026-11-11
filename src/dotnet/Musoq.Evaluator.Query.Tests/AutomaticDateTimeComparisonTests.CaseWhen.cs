@@ -213,15 +213,11 @@ public partial class AutomaticDateTimeComparisonTests
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData));
                 var table = vm.Run(TestContext.CancellationToken);
 
-                Assert.IsNotNull(table, $"Table should not be null for operator {op}");
-                Assert.AreEqual(3, table.Count, $"Should return 3 rows for operator {op}");
-
-                foreach (var row in table)
-                {
-                    var result = row.ReadValues()[1] as string;
-                    Assert.IsTrue(result == "Match" || result == "NoMatch",
-                        $"Result should be either 'Match' or 'NoMatch' for operator {op}, got: {result}");
-                }
+                var expectedMatches = GetExpectedEventsForOperator(op);
+                var expected = new[] { "Earlier Event", "Equal Event", "Later Event" }
+                    .Select(name => (name, expectedMatches.Contains(name) ? "Match" : "NoMatch")).ToArray();
+                var actual = table.Select(row => ((string)row.ReadValues()[0], (string)row.ReadValues()[1])).ToArray();
+                CollectionAssert.AreEquivalent(expected, actual);
             }
             catch (Exception ex)
             {
@@ -281,15 +277,10 @@ public partial class AutomaticDateTimeComparisonTests
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(dateTimeType, fieldName));
                 var table = vm.Run(TestContext.CancellationToken);
 
-                Assert.IsNotNull(table, $"Table should not be null for type {dateTimeType.TypeName}");
-                Assert.AreEqual(3, table.Count, $"Should return 3 rows for type {dateTimeType.TypeName}");
-
-                foreach (var row in table)
-                {
-                    var category = row.ReadValues()[1] as string;
-                    Assert.IsTrue(category == "NotEarliest" || category == "Earliest",
-                        $"Category should be either 'NotEarliest' or 'Earliest' for type {dateTimeType.TypeName}, got: {category}");
-                }
+                TableMaterializationTestHelper.AssertRowsUnordered(table,
+                    ["Earlier Event", "Earliest"],
+                    ["Equal Event", "NotEarliest"],
+                    ["Later Event", "NotEarliest"]);
             }
             catch (Exception ex)
             {

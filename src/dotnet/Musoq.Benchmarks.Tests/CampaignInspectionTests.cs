@@ -83,8 +83,12 @@ public sealed class CampaignInspectionTests
         var original = CampaignTests.Manifest();
         var unsupported = new RunManifest
         {
-            SchemaVersion = "999", SuiteVersion = "unsupported", RunId = "unsupported",
-            Provenance = original.Provenance, Cases = original.Cases, Status = "complete"
+            SchemaVersion = "999",
+            SuiteVersion = "unsupported",
+            RunId = "unsupported",
+            Provenance = original.Provenance,
+            Cases = original.Cases,
+            Status = "complete"
         };
         ArtifactJson.Write(Path.Combine(temporary.Path, "definition.json"), unsupported);
         ArtifactJson.Write(Path.Combine(temporary.Path, "measurements.json"), new[] { CampaignTests.Success() });
@@ -205,13 +209,15 @@ public sealed class CampaignInspectionTests
         var second = Path.Combine(temporary.Path, "a-directory");
         Complete(first, Official("a-run"));
         Complete(second, Official("b-run"));
-        var completed = DateTimeOffset.UtcNow;
+        var completed = new DateTimeOffset(2024, 2, 29, 12, 34, 56, TimeSpan.Zero);
         SetCompletion(first, completed);
         SetCompletion(second, completed);
         var other = Official("other-version");
         other = new RunManifest
         {
-            SuiteVersion = other.SuiteVersion, RunId = other.RunId, Cases = other.Cases,
+            SuiteVersion = other.SuiteVersion,
+            RunId = other.RunId,
+            Cases = other.Cases,
             Provenance = other.Provenance with { Build = other.Provenance.Build with { EngineVersion = "next" } }
         };
         Complete(Path.Combine(temporary.Path, "other"), other);
@@ -247,7 +253,9 @@ public sealed class CampaignInspectionTests
         var fixture = Official("fixture");
         var manifest = new RunManifest
         {
-            SuiteVersion = fixture.SuiteVersion, RunId = fixture.RunId, Provenance = fixture.Provenance,
+            SuiteVersion = fixture.SuiteVersion,
+            RunId = fixture.RunId,
+            Provenance = fixture.Provenance,
             Cases = [fixture.Cases[0], fixture.Cases[0] with { Id = "second" }]
         };
         var store = new CampaignStore(temporary.Path, manifest);
@@ -288,14 +296,19 @@ public sealed class CampaignInspectionTests
         var stamp = MeasuredProcess.Capture();
         return new()
         {
-            SuiteVersion = suite, RunId = commit, Cases = fixture.Cases,
+            SuiteVersion = suite,
+            RunId = commit,
+            Cases = fixture.Cases,
             Provenance = fixture.Provenance with
             {
                 Source = fixture.Provenance.Source with { Commit = commit },
                 Hardware = fixture.Provenance.Hardware with { Profile = machine, EffectiveProcessors = stamp.EffectiveProcessors },
                 Environment = fixture.Provenance.Environment with { Mode = "Official", Job = "Official", Runtime = runtime ?? stamp.Runtime, ServerGc = stamp.ServerGc },
-                Build = fixture.Provenance.Build with {
-                    EngineInformationalVersion = stamp.EngineInformationalVersion, SuiteInformationalVersion = stamp.SuiteInformationalVersion }
+                Build = fixture.Provenance.Build with
+                {
+                    EngineInformationalVersion = stamp.EngineInformationalVersion,
+                    SuiteInformationalVersion = stamp.SuiteInformationalVersion
+                }
             }
         };
     }
@@ -323,8 +336,11 @@ public sealed class CampaignInspectionTests
         File.WriteAllText(native, """{"Benchmarks":[{"Statistics":{"N":2,"Mean":10,"Median":10}}]}""");
         var stamp = MeasuredProcess.Capture() with
         {
-            Source = manifest.Provenance.Source, Runtime = manifest.Provenance.Environment.Runtime,
-            ScenarioId = manifest.Cases[0].ScenarioId, Sql = manifest.Cases[0].Sql, InputCount = manifest.Cases[0].InputCount
+            Source = manifest.Provenance.Source,
+            Runtime = manifest.Provenance.Environment.Runtime,
+            ScenarioId = manifest.Cases[0].ScenarioId,
+            Sql = manifest.Cases[0].Sql,
+            InputCount = manifest.Cases[0].InputCount
         };
         ArtifactJson.Write(metadata, stamp);
         ArtifactJson.Write(Path.Combine(directory, "raw", "preflight", "tests.json"), new CommandResult(0, "passed", ""));

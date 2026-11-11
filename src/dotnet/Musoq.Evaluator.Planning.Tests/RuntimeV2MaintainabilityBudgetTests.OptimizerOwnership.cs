@@ -41,8 +41,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionLoweringDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
-        var lowererFiles = Directory
-            .EnumerateFiles(executionLoweringDirectory, "PhysicalLoweringImplementation*.cs")
+        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionLoweringDirectory, "PhysicalLoweringImplementation*.cs")
             .ToArray();
         string[] hoistingMarkers =
         [
@@ -64,8 +63,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_TransformTree_ShouldNotInvokeRetiredAstOptimizationVisitors()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var transformTreeFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Build"), "TransformTree*.cs")
+        var transformTreeFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Build"), "TransformTree*.cs")
             .ToArray();
         string[] retiredInvocationMarkers =
         [
@@ -86,8 +84,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_Renderer_ShouldNotSynthesizeReusableMethodTargets()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var rendererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "ExecutionCSharpRenderer*.cs")
+        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "ExecutionCSharpRenderer*.cs")
             .ToArray();
         string[] synthesisMarkers =
         [
@@ -117,8 +114,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_CteLowerer_ShouldEmitCandidatesInsteadOfFinalStoreLoadNodes()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalLoweringImplementation*.cs")
+        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalLoweringImplementation*.cs", SearchOption.AllDirectories)
             .ToArray();
         string[] finalNodeMarkers =
         [
@@ -168,8 +164,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_CteLowerer_ShouldNotDisablePlannerSelectedSidecars()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalLoweringImplementation*.cs")
+        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalLoweringImplementation*.cs", SearchOption.AllDirectories)
             .ToArray();
         string[] disabledSidecarMarkers =
         [
@@ -189,8 +184,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_ExecutionLowerer_ShouldNotPlanStrategies()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "*.cs")
+        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "*.cs")
             .ToArray();
         string[] planningMarkers =
         [
@@ -209,8 +203,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_ExecutionLowerer_ShouldNotCreateJoinStrategyFallbacks()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var lowererFiles = Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"), "PhysicalLoweringImplementation*.cs")
+        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"), "PhysicalLoweringImplementation*.cs", SearchOption.AllDirectories)
             .ToArray();
         string[] fallbackMarkers =
         [
@@ -232,8 +225,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionLoweringDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
-        var lowererFiles = Directory
-            .EnumerateFiles(executionLoweringDirectory, "PhysicalLoweringImplementation*.cs")
+        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionLoweringDirectory, "PhysicalLoweringImplementation*.cs")
             .ToArray();
         string[] registryMarkers =
         [
@@ -257,6 +249,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         string[] files,
         string[] markers)
     {
+        Assert.IsNotEmpty(files, "A violation scan requires its intended source inventory.");
         return files
             .Where(file =>
             {

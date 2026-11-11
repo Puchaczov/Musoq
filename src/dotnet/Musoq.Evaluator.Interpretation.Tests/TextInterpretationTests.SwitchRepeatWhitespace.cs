@@ -143,24 +143,6 @@ public partial class TextInterpretationTests
         Assert.AreEqual("payload", GetPropertyValue<string>(result, "Value"));
     }
 
-    private static object CompileFromRegistry(SchemaRegistry registry, string schemaName)
-    {
-        var generator = new InterpreterCodeGenerator(registry);
-        var code = generator.GenerateAll();
-
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
-
-        if (!compilationUnit.Compile())
-        {
-            var errors = string.Join(Environment.NewLine, compilationUnit.GetErrorMessages());
-            Assert.Fail($"Compilation failed: {errors}\n\nGenerated code:\n{code}");
-        }
-
-        var interpreterType = compilationUnit.GetInterpreterType(schemaName);
-        Assert.IsNotNull(interpreterType, $"Interpreter type for '{schemaName}' not found");
-
-        return Activator.CreateInstance(interpreterType)!;
-    }
+    private object CompileFromRegistry(SchemaRegistry registry, string schemaName) =>
+        OwnFixture(new CompiledTextFixture(new InterpreterCodeGenerator(registry).GenerateAll(), schemaName));
 }

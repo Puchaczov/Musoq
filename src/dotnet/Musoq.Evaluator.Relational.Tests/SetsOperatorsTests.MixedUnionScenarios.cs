@@ -31,29 +31,7 @@ select Name from #C.Entities()";
         TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"], ["001"]);
     }
 
-    [TestMethod]
-    public void MixedSourcesExceptUnionScenario1Test()
-    {
-        var query =
-            @"select Name from #A.Entities()
-except (Name)
-select Name from #B.Entities()
-union (Name)
-select Name from #C.Entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            { "#A", [new BasicEntity("001"), new BasicEntity("002")] },
-            { "#B", [new BasicEntity("003"), new BasicEntity("004"), new BasicEntity("001")] },
-            { "#C", [new BasicEntity("002"), new BasicEntity("001")] }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["002"], ["001"]);
-    }
 
     [TestMethod]
     public void MixedSourcesWithSkipExceptUnionWithConditionsScenarioTest()

@@ -8,7 +8,7 @@ using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 [DoNotParallelize]
 public sealed class DiagnosticRework083StarModifierContractTests : BasicEntityTestBase
 {

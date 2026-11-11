@@ -10,7 +10,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticREC104EnumCompositionTests : GenericEntityTestBase
 {
     private static readonly REC104Entity[] Rows =
@@ -73,15 +73,17 @@ public sealed class DiagnosticREC104EnumCompositionTests : GenericEntityTestBase
     [TestMethod]
     public void CompatibleComposition_Control_ShouldRetainNativeIdentityAfterEachRewrite()
     {
-        foreach (var candidate in CreateCandidates().Where(static candidate =>
-                     candidate.Kind is REC104CandidateKind.Compatible or REC104CandidateKind.WarmReplay))
         {
-            using var compiled = CreateAndRunVirtualMachine(candidate.Query, Rows, PeerRows);
-            using var table = compiled.Run(TestContext.CancellationToken);
-            Assert.IsTrue(table.Columns.Any(column => column.EnumType?.DisplayName == typeof(REC104PrimaryStatus).FullName),
-                candidate.CaseId);
-            Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum),
-                candidate.CaseId);
+            var selectedCases = CreateCandidates().Where(static candidate =>
+                     candidate.Kind is REC104CandidateKind.Compatible or REC104CandidateKind.WarmReplay).ToArray(); Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases."); foreach (var candidate in selectedCases)
+            {
+                using var compiled = CreateAndRunVirtualMachine(candidate.Query, Rows, PeerRows);
+                using var table = compiled.Run(TestContext.CancellationToken);
+                Assert.IsTrue(table.Columns.Any(column => column.EnumType?.DisplayName == typeof(REC104PrimaryStatus).FullName),
+                    candidate.CaseId);
+                Assert.IsFalse(table.SelectMany(static row => row.ReadValues()).Any(static value => value is Enum),
+                    candidate.CaseId);
+            }
         }
     }
 

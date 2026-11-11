@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class EnvironmentVariablesTests : EnvironmentVariablesTestBase
 {
 

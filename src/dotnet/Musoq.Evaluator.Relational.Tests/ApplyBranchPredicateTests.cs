@@ -26,7 +26,7 @@ public sealed class ApplyBranchPredicateTests
         var provider = new TestSchemaProvider();
         var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver());
         Assert.AreEqual(2, inspection.PlanningText.Split("-> PreApplyRight (High)").Length - 1, inspection.PlanningText);
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver());
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver());
         using var table = query.Run();
         Assert.AreEqual(expected, string.Join(";", table.Select(row => row.GetValue<byte>(0)).Order()));
         Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query).Any(GeneratedExecutionIlInspection.ContainsBoxOpcode));
@@ -37,7 +37,7 @@ public sealed class ApplyBranchPredicateTests
     {
         var sql = Schema + "with first as (" + Branch("r", "A") + "), second as (" + Branch("r", "B") +
             ") select f.A from first f union all (A) select s.A from second s";
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), new TestSchemaProvider(), new TestsLoggerResolver());
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), new TestSchemaProvider(), new TestsLoggerResolver());
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1], [(byte)2]);
     }
@@ -79,7 +79,7 @@ public sealed class ApplyBranchPredicateTests
     }
 
     private static CompiledQuery CompileCounting(string sql, ApplyTraversalFixture fixture) =>
-        InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), CountingProvider(fixture),
+        GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), CountingProvider(fixture),
             new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
 
     private static ISchemaProvider CountingProvider(ApplyTraversalFixture fixture) =>

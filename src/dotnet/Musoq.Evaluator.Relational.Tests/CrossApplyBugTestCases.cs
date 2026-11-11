@@ -7,7 +7,7 @@ using Musoq.Evaluator.Tests.Schema.Generic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class CrossApplyBugTestCases : GenericEntityTestBase
 {
 
@@ -45,10 +45,11 @@ public class CrossApplyBugTestCases : GenericEntityTestBase
                     Equals(f.FilterKey, filterKey)).ToArray();
             });
 
-        var table = vm.Run(TestContext.CancellationToken);
-
-
-        Assert.IsNotNull(table);
+        using var table = vm.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            ["Valid", "Test1", "Valid", 100m],
+            [null, "Test2", null, 300m],
+            ["Another", "Test3", "Another", 200m]);
     }
 
     [TestMethod]

@@ -74,7 +74,13 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         Type exceptionType,
         string expectedReason)
     {
-        var innerException = (Exception)Activator.CreateInstance(exceptionType)!;
+        var factories = new Dictionary<Type, Func<Exception>>
+        {
+            [typeof(FileNotFoundException)] = static () => new FileNotFoundException(),
+            [typeof(BadImageFormatException)] = static () => new BadImageFormatException(),
+            [typeof(FileLoadException)] = static () => new FileLoadException()
+        };
+        var innerException = factories[exceptionType]();
         var exception = CSharpClrReferenceDiscoveryException.ForMetadataReference(
             typeof(ExternalPayload).Assembly,
             "external payload output",

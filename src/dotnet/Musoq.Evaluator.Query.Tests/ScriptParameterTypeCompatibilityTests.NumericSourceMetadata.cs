@@ -22,7 +22,7 @@ public sealed partial class ScriptParameterTypeCompatibilityTests
         using var compiled = InstanceCreator.CompileForExecution(
             query, Guid.NewGuid().ToString(), CreateNumericStatusProvider(),
             LoggerResolver, TestCompilationOptions, TestContext.CancellationToken);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minimum", 10);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "minimum", 10);
 
         using var result = compiled.Run(TestContext.CancellationToken);
 

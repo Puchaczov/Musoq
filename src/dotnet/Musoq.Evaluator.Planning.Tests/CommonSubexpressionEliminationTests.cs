@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 ///     CSE identifies expressions computed multiple times and caches the result
 ///     from the first computation for subsequent uses.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class CommonSubexpressionEliminationTests : BasicEntityTestBase
 {
     #region CSE Should NOT Cache Non-Deterministic Functions

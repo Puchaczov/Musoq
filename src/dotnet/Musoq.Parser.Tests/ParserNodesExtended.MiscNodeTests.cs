@@ -100,7 +100,7 @@ public class ParserNodesExtendedMiscNodeTests
         var node = new RenameTableNode("source", "dest");
 
         var str = node.ToString();
-        Assert.IsNotNull(str);
+        Assert.AreEqual("rename source as dest", str);
     }
 
     #endregion
@@ -121,7 +121,7 @@ public class ParserNodesExtendedMiscNodeTests
         var node = new PutTrueNode();
 
         var str = node.ToString();
-        Assert.IsNotNull(str);
+        Assert.AreEqual("1 = 1", str);
     }
 
     #endregion
@@ -150,7 +150,8 @@ public class ParserNodesExtendedMiscNodeTests
         var root = new RootNode(query);
 
         var str = root.ToString();
-        Assert.IsNotNull(str);
+        Assert.Contains("select", str);
+        Assert.Contains("system.dual() d", str);
     }
 
     #endregion
@@ -170,11 +171,11 @@ public class ParserNodesExtendedMiscNodeTests
     {
         var node = new RenameTableNode("old", "new");
 
-        Assert.IsNotNull(node.Id);
+        Assert.AreEqual("RenameTableNodeoldnew", node.Id);
     }
 
     [TestMethod]
-    public void RootNode_ReturnType_IsNotNull()
+    public void RootNode_ReturnType_IsNullForScriptContainer()
     {
         var select = new SelectNode([]);
         var dual = new SchemaFromNode("system", "dual", new ArgsListNode([]), "d", typeof(object), 0);
@@ -182,7 +183,7 @@ public class ParserNodesExtendedMiscNodeTests
 
         var root = new RootNode(query);
 
-        _ = root.ReturnType;
+        Assert.IsNull(root.ReturnType);
     }
 
     [TestMethod]
@@ -194,7 +195,7 @@ public class ParserNodesExtendedMiscNodeTests
 
         var root = new RootNode(query);
 
-        Assert.IsNotNull(root.Id);
+        Assert.StartsWith("RootNodeQueryNode", root.Id);
     }
 
     #endregion

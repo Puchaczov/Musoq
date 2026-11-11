@@ -38,8 +38,7 @@ public sealed class GeneratedCodeSampleDurationGuardrailTests
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var snapshotDirectory = GeneratedCodeSampleArtifacts.SamplesDirectory;
-        var snapshotFiles = Directory
-            .EnumerateFiles(snapshotDirectory, "*.cs")
+        var snapshotFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(snapshotDirectory, "*.cs")
             .Select(Path.GetFileName)
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
             .ToArray();

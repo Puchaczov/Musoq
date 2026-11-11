@@ -13,7 +13,7 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class SqlConcatenationEvaluationOrderTests : BasicEntityTestBase
 {
     [TestMethod]

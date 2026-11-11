@@ -21,11 +21,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Substring requires string first argument
-        DocumentTypeHandling(result, "Substring on number",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "Substring on number", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -37,11 +33,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Length requires string argument
-        DocumentTypeHandling(result, "Length on number",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "Length on number", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -53,11 +45,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - ToUpperInvariant requires string argument
-        DocumentTypeHandling(result, "ToUpperInvariant on number",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "ToUpperInvariant on number", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -69,11 +57,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Abs requires numeric argument
-        DocumentTypeHandling(result, "Abs on string",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "Abs on string", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -85,11 +69,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Round requires numeric argument
-        DocumentTypeHandling(result, "Round on string",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "Round on string", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -101,11 +81,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Substring requires more arguments
-        DocumentTypeHandling(result, "Substring with too few arguments",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3087_InvalidCallableArity);
+        AssertTypeHandling(result, "Substring with too few arguments", DiagnosticCode.MQ3087_InvalidCallableArity);
     }
 
     [TestMethod]
@@ -117,11 +93,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Upper takes 1 argument
-        DocumentTypeHandling(result, "Upper with too many arguments",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3087_InvalidCallableArity);
+        AssertTypeHandling(result, "Upper with too many arguments", DiagnosticCode.MQ3086_UnknownCallable);
     }
 
     [TestMethod]
@@ -133,10 +105,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Cast function may or may not exist, or type conversion may fail
-        DocumentTypeHandling(result, "Cast string to int",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "Cast string to int", DiagnosticCode.MQ3086_UnknownCallable);
     }
 
     [TestMethod]
@@ -148,10 +117,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Cast with unknown target type
-        DocumentTypeHandling(result, "Cast to unknown type",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "Cast to unknown type", DiagnosticCode.MQ3086_UnknownCallable);
     }
 
     [TestMethod]
@@ -163,10 +129,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Convert function may not exist or conversion may fail
-        DocumentTypeHandling(result, "Convert int to datetime",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "Convert int to datetime", DiagnosticCode.MQ3086_UnknownCallable);
     }
 
     [TestMethod]
@@ -178,10 +141,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - ToString with NULL may have ambiguous overloads
-        DocumentTypeHandling(result, "ToString with NULL argument",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "ToString with NULL argument", DiagnosticCode.MQ3089_AmbiguousCallableOverload);
     }
 
     [TestMethod]
@@ -193,11 +153,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Concat with mixed argument types
-        DocumentTypeHandling(result, "Concat with mixed argument types",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "Concat with mixed argument types");
     }
 
     [TestMethod]
@@ -209,10 +165,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - RowNumber may not exist or may have resolution issues
-        DocumentTypeHandling(result, "RowNumber function resolution",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "RowNumber function resolution");
     }
 
     [TestMethod]

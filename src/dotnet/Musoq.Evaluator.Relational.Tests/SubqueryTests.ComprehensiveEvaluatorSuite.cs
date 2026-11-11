@@ -75,8 +75,8 @@ public partial class SubqueryTests
             ORDER BY a.Name";
 
         var vm = CreateAndRunVirtualMachine(query, CreateComprehensiveSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "matchCountry", "POLAND");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minScore", 200m);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "matchCountry", "POLAND");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minScore", 200m);
 
         var table = vm.Run(TestContext.CancellationToken);
 

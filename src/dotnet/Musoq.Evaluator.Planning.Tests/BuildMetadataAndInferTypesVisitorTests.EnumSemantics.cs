@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -6,6 +7,7 @@ using Musoq.Evaluator.Visitors;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -70,19 +72,37 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     [TestMethod]
     public void EnumComparison_IsDistinctFrom_ShouldSupportContextualMemberAndNull()
     {
-        Analyze(
+        var contexts = new List<SourceMetadataContext>();
+        var visitor = Analyze(
             EnumSource +
             "select Status from Jobs() where Status is distinct from 'Running' or Status is not distinct from null",
-            new CaptureMetadataContextSchemaProvider(_ => { }));
+            new CaptureMetadataContextSchemaProvider(contexts.Add));
+        var collector = CollectEnumSemantics(visitor);
+
+        Assert.HasCount(2, collector.Comparisons);
+        var member = collector.Comparisons.Single(node => !node.IsNegated);
+        Assert.AreEqual(20, Assert.IsInstanceOfType<IntegerNode>(member.Right).ObjValue);
+        Assert.IsInstanceOfType<NullNode>(collector.Comparisons.Single(node => node.IsNegated).Right);
+        AssertJobStatusColumn(contexts.SelectMany(context => context.AllColumns), "Status");
     }
 
     [TestMethod]
     public void EnumCase_WhenBranchesUseSameIdentityAndContextualMember_ShouldPreserveIdentity()
     {
-        Analyze(
+        var visitor = Analyze(
             EnumSource +
             "select Status from Jobs() where case when true then Status else 'Queued' end = 'Running'",
             new CaptureMetadataContextSchemaProvider(_ => { }));
+        var expression = CollectEnumSemantics(visitor).Cases.Single();
+        Assert.AreEqual(typeof(int), Nullable.GetUnderlyingType(expression.ReturnType) ?? expression.ReturnType);
+        var otherwise = Assert.IsInstanceOfType<ElseNode>(expression.Else);
+        Assert.AreEqual(10, Assert.IsInstanceOfType<IntegerNode>(otherwise.Expression).ObjValue);
+
+        var exported = Analyze(EnumSource +
+            "with selected as (select case when true then Status else 'Queued' end as State from Jobs()) " +
+            "select State from selected where State = 'Running'",
+            new CaptureMetadataContextSchemaProvider(_ => { }));
+        AssertJobStatusColumn(exported.InferredColumnsByAlias.Values.SelectMany(columns => columns), "State");
     }
 
     [TestMethod]
@@ -101,6 +121,10 @@ public partial class BuildMetadataAndInferTypesVisitorTests
         Analyze(
             EnumSource + "select Status from Jobs() union select Status from Jobs()",
             new CaptureMetadataContextSchemaProvider(_ => { }));
+        var exported = Analyze(EnumSource +
+            "with selected as (select Status from Jobs() union select Status from Jobs()) select Status from selected",
+            new CaptureMetadataContextSchemaProvider(_ => { }));
+        AssertJobStatusColumn(exported.InferredColumnsByAlias.Values.SelectMany(columns => columns), "Status");
     }
 
     [TestMethod]
@@ -134,11 +158,57 @@ public partial class BuildMetadataAndInferTypesVisitorTests
     [TestMethod]
     public void EnumWindowPartition_ShouldBindWhenOrderingUsesEnumValue()
     {
-        Analyze(
+        var contexts = new List<SourceMetadataContext>();
+        var visitor = Analyze(
             EnumSource +
             "select RowNumber() over (partition by Status order by EnumValue(Access)) from Jobs()",
-            new CaptureMetadataContextSchemaProvider(_ => { }));
+            new CaptureMetadataContextSchemaProvider(contexts.Add));
+        var window = CollectEnumSemantics(visitor).Windows.Single();
+        Assert.IsNotNull(window.WindowSpecification);
+        Assert.HasCount(1, window.WindowSpecification.PartitionFields);
+        Assert.HasCount(1, window.WindowSpecification.OrderByFields);
+        Assert.AreEqual("Status", Assert.IsInstanceOfType<AccessColumnNode>(window.WindowSpecification.PartitionFields[0].Expression).Name);
+        var order = Assert.IsInstanceOfType<AccessMethodNode>(window.WindowSpecification.OrderByFields[0].Expression);
+        Assert.AreEqual("EnumValueNullable", order.Method!.Name);
+        AssertJobStatusColumn(contexts.SelectMany(context => context.AllColumns), "Status");
     }
+
+    private static void AssertJobStatusColumn(IEnumerable<ISchemaColumn> metadata, string name)
+    {
+        var columns = metadata
+            .Where(column => column.ColumnName == name).ToArray();
+        Assert.IsNotEmpty(columns, $"Expected an identity-bearing column named {name}.");
+        foreach (var column in columns)
+        {
+            Assert.AreEqual(typeof(int), Nullable.GetUnderlyingType(column.ColumnType) ?? column.ColumnType);
+            Assert.IsNotNull(column.EnumType);
+            Assert.AreEqual("JobStatus", column.EnumType.DisplayName);
+            Assert.AreEqual(EnumTypeOrigin.QueryLocal, column.EnumType.Origin);
+            Assert.AreEqual(EnumUnderlyingKind.Int32, column.EnumType.UnderlyingKind);
+            Assert.IsFalse(column.EnumType.IsFlags);
+            CollectionAssert.AreEqual(new[] { "Queued", "Running", "Finished" }, column.EnumType.Members.Select(member => member.Name).ToArray());
+            CollectionAssert.AreEqual(new[] { 10, 20, 30 }, column.EnumType.Members.Select(member => member.Value.AsInt32()).ToArray());
+        }
+    }
+
+    private static EnumSemanticCollector CollectEnumSemantics(BuildMetadataAndInferTypesVisitor visitor)
+    {
+        var collector = new EnumSemanticCollector();
+        visitor.Root.Accept(new EnumSemanticTraverser(collector));
+        return collector;
+    }
+
+    private sealed class EnumSemanticCollector : NoOpExpressionVisitor
+    {
+        public List<IsDistinctFromNode> Comparisons { get; } = [];
+        public List<CaseNode> Cases { get; } = [];
+        public List<WindowFunctionNode> Windows { get; } = [];
+        public override void Visit(IsDistinctFromNode node) => Comparisons.Add(node);
+        public override void Visit(CaseNode node) => Cases.Add(node);
+        public override void Visit(WindowFunctionNode node) => Windows.Add(node);
+    }
+
+    private sealed class EnumSemanticTraverser(EnumSemanticCollector visitor) : RawTraverseVisitor<EnumSemanticCollector>(visitor);
 
     private sealed class EnumMethodCollector : NoOpExpressionVisitor
     {

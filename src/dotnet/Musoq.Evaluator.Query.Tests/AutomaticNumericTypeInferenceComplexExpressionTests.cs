@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Unknown;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class AutomaticNumericTypeInferenceComplexExpressionTests : UnknownQueryTestsBase
 {
     #region Phase 2: Complex Boolean Expressions

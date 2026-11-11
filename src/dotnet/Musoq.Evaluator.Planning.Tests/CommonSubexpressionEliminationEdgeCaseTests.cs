@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests verify that CSE doesn't optimize too aggressively and
 ///     produces correct results for complex and unusual query patterns.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTestBase
 {
     #region Same Expression with Different Semantics
@@ -52,23 +52,16 @@ public partial class CommonSubexpressionEliminationEdgeCaseTests : BasicEntityTe
     public void WhenNonDeterministicFunctionUsedMultipleTimes_ShouldNotCache()
     {
         const string query = @"
-            SELECT RandomNumber() as R1, RandomNumber() as R2, RandomNumber() as R3
+            SELECT NextTestValue() as R1, NextTestValue() as R2, NextTestValue() as R3
             FROM #A.Entities()";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("Test")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
+        var fixture = new EvaluationFixture("Test");
+        var vm = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(3, fixture.Calls);
+        CollectionAssert.AreEquivalent(new[] { 1, 2, 3 }, table[0].ReadValues().Select(Convert.ToInt32).ToArray());
     }
 
     #endregion

@@ -6,7 +6,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class SchemaErrorTests : NegativeTestsBase
 {
     #region 2.4 Property Access Errors

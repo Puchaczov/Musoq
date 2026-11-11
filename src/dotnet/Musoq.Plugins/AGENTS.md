@@ -6,4 +6,4 @@ Read the [repository instructions](../../../AGENTS.md) and the complete [module 
 - Use the established BindableMethod and injection contracts for scalar declarations. Implement aggregate/window execution with the typed static kernel contracts described in DEVELOPMENT.md.
 - Do not reintroduce the deleted object-backed plugin Group state or erased aggregate/window execution adapters. Preserve concrete argument/result types in generated hot paths.
 - Keep non-determinism and injected-context behavior explicit so planning can make correct evaluation-stability decisions.
-- Add behavior-based coverage in Musoq.Plugins.Tests and SQL integration coverage when binding or callable signatures change. Apply the root validation policy for broader qualification.
+- Add behavior-based coverage in Musoq.Plugins.Conversions.Tests or Musoq.Plugins.Functions.Tests and SQL integration coverage when binding or callable signatures change. Shared fixtures belong in the non-test Musoq.Plugins.Tests.Common library. Apply the root validation policy for broader qualification.

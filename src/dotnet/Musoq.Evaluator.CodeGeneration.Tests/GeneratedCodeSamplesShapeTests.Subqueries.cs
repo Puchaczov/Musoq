@@ -61,11 +61,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SubquerySamples_WhenCompiledForExecution_ShouldRunExecutableQueries()
     {
+        Assert.HasCount(8, SubquerySampleFileNames);
         foreach (var fileName in SubquerySampleFileNames)
         {
-            var table = CompileSampleForExecution(fileName).Run();
+            using var query = CompileSampleForExecution(fileName);
+            using var table = query.Run();
 
-            Assert.IsNotNull(table, $"{fileName} should compile and execute.");
+            Assert.AreEqual(0, table.Count, $"{fileName} has no outer fixture rows and must execute successfully.");
         }
     }
 

@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -13,19 +14,19 @@ public sealed class SemanticPhaseCoordinatorOwnershipTests
     [TestMethod]
     public void PhaseCoordinators_ShouldBeTopLevelAndUseImmutableHandoffs()
     {
-        Assert.IsFalse(typeof(SemanticMetadataPhaseCoordinator).IsNested);
-        Assert.IsFalse(typeof(SemanticRewritePhaseCoordinator).IsNested);
+        Assert.IsFalse(CompilerContractSymbols.For(typeof(SemanticMetadataPhaseCoordinator)).IsNested);
+        Assert.IsFalse(CompilerContractSymbols.For(typeof(SemanticRewritePhaseCoordinator)).IsNested);
 
-        var metadataMethod = typeof(SemanticMetadataPhaseCoordinator).GetMethod(nameof(
+        var metadataMethod = CompilerContractSymbols.For(typeof(SemanticMetadataPhaseCoordinator)).GetMethod(nameof(
             SemanticMetadataPhaseCoordinator.Analyze), BindingFlags.Instance | BindingFlags.Public)!;
-        var rewriteMethod = typeof(SemanticRewritePhaseCoordinator).GetMethod(nameof(
+        var rewriteMethod = CompilerContractSymbols.For(typeof(SemanticRewritePhaseCoordinator)).GetMethod(nameof(
             SemanticRewritePhaseCoordinator.Rewrite), BindingFlags.Instance | BindingFlags.Public)!;
 
-        Assert.AreEqual(typeof(SemanticMetadataPhaseResult), metadataMethod.ReturnType);
-        Assert.AreEqual(typeof(RootNode), rewriteMethod.ReturnType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(SemanticMetadataPhaseResult)), metadataMethod.ReturnType));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(RootNode)), rewriteMethod.ReturnType));
         Assert.IsTrue(rewriteMethod.GetParameters().Any(parameter =>
-            parameter.ParameterType == typeof(SemanticScopeArtifact)));
+            SymbolEqualityComparer.Default.Equals(parameter.ParameterType, CompilerContractSymbols.For(typeof(SemanticScopeArtifact)))));
         Assert.IsFalse(rewriteMethod.GetParameters().Any(parameter =>
-            parameter.ParameterType == typeof(Scope) || parameter.ParameterType == typeof(ScopeWalker)));
+            SymbolEqualityComparer.Default.Equals(parameter.ParameterType, CompilerContractSymbols.For(typeof(Scope))) || SymbolEqualityComparer.Default.Equals(parameter.ParameterType, CompilerContractSymbols.For(typeof(ScopeWalker)))));
     }
 }

@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Bug probes for CTE/table/column alias behavior that differs from mainstream SQL engines.
 ///     The comments describe the PostgreSQL / SQL Server behavior these should eventually match.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class AliasCteBugProbeTests : BasicEntityTestBase
 {
 

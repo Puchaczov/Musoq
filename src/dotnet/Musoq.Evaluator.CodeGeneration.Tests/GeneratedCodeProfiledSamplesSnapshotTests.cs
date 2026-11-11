@@ -29,8 +29,7 @@ public sealed class GeneratedCodeProfiledSamplesSnapshotTests
             Directory.Exists(GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory),
             $"Tracked profiled generated samples directory is missing: {GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory}");
 
-        var localFiles = Directory
-            .EnumerateFiles(GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory, "*.cs")
+        var localFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory, "*.cs")
             .Select(static path => Path.GetFileName(path)!)
             .OrderBy(static fileName => fileName, StringComparer.Ordinal)
             .ToArray();

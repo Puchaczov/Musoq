@@ -71,7 +71,7 @@ public sealed class DiagnosticRec136ConcurrentSessionIsolationTests
                     CreateBasicProvider($"REC136-parameter-{index}"),
                     new TestsLoggerResolver(),
                     TestCompilationOptions);
-                global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", expected);
+                global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", expected);
 
                 using var table = compiled.Run();
                 Assert.HasCount(1, table, $"parameter case {index}");

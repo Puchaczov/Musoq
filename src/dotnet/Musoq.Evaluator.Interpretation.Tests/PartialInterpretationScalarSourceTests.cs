@@ -27,7 +27,7 @@ public sealed class PartialInterpretationScalarSourceTests
         Assert.Contains("ScalarForEach [p", inspection.ExecutionPlanText);
         Assert.DoesNotContain("ConvertEnumerableOutputToChunks", inspection.GeneratedCSharpCode);
         Assert.DoesNotContain("WrapScalarForCrossApply", inspection.GeneratedCSharpCode);
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(), options);
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(), options);
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [1]);
         Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query).Any(GeneratedExecutionIlInspection.ContainsBoxOpcode));

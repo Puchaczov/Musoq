@@ -64,7 +64,7 @@ public sealed class StructuredInputCornerCasePopulationTests
 
                     using var compiled = Compile(testCase.Query, $"structured-input-corner-population-{index}", testCase.Options);
                     if (testCase.Host is not null)
-                        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", testCase.Host);
+                        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", testCase.Host);
                     StructuredInputSourceCounters.Reset();
 
                     using var table = compiled.Run();
@@ -142,7 +142,7 @@ public sealed class StructuredInputCornerCasePopulationTests
 
         foreach (var host in hosts)
         {
-            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", host);
+            global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", host);
             StructuredInputSourceCounters.Reset();
             using var table = compiled.Run();
             var actual = table.Rows.Select(static row => $"{row.ReadValue(0)}:{row.ReadValue(1)}").ToArray();

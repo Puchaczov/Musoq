@@ -10,10 +10,6 @@ namespace Musoq.Evaluator.Tests.Schema.EnvironmentVariable;
 
 public class EnvironmentVariablesTestBase : MSTestContextTestBase
 {
-    static EnvironmentVariablesTestBase()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
 
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
@@ -21,7 +17,7 @@ public class EnvironmentVariablesTestBase : MSTestContextTestBase
         string script,
         IDictionary<string, IEnumerable<EnvironmentVariableEntity>> sources)
     {
-        return InstanceCreator.CompileForExecution(
+        return GeneratedExecutionIlInspection.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new EnvironmentVariablesSchemaProvider(),
@@ -61,7 +57,7 @@ public class EnvironmentVariablesTestBase : MSTestContextTestBase
         foreach (var environmentSource in environmentSources)
             schemas.Add(environmentSource.Key, new EnvironmentVariablesSchemaProvider());
 
-        return InstanceCreator.CompileForExecution(
+        return GeneratedExecutionIlInspection.CompileForExecution(
             script,
             Guid.NewGuid().ToString(),
             new MultipleSchemasSchemaProvider(schemas), LoggerResolver, () => new CreateTree(

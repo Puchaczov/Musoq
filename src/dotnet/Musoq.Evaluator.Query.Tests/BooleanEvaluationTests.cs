@@ -4,7 +4,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class BooleanEvaluationTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -88,15 +88,14 @@ public sealed class BooleanEvaluationTests : BasicEntityTestBase
     [DataRow("null or (NextValue() > 0)", true)]
     public void RequiredLogicalOperand_ShouldBeEvaluatedOnce(string expression, bool expected)
     {
-        var baseline = new Library().NextValue();
-        var query = $"select {expression} as Value, NextValue() as Calls from #A.Entities()";
-        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            ["#A"] = [new BasicEntity()]
-        });
+        var fixture = new EvaluationFixture("A");
+        var controlled = expression.Replace("NextValue()", "NextTestValue()", System.StringComparison.Ordinal);
+        var query = $"select {controlled} as Value, NextTestValue() as Calls from #A.Entities()";
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var table = compiled.Run(TestContext.CancellationToken);
 
-        TableMaterializationTestHelper.AssertRowsUnordered(table, [expected, baseline + 2]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [expected, 2]);
+        Assert.AreEqual(2, fixture.Calls);
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> EmptySources() => new();

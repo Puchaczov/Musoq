@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Unknown;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
 {
 
@@ -140,10 +140,8 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
                 var vm = CreateAndRunVirtualMachine(query, CreateTestData(testData, fieldName));
                 var table = vm.Run();
 
-                Assert.IsNotNull(table,
-                    $"Table should not be null for {testData.TypeName} with reversed operator {reversedOp}");
-                Assert.IsGreaterThanOrEqualTo(0, table.Count,
-                    $"Table count should be non-negative for {testData.TypeName} with reversed operator {reversedOp}");
+                CollectionAssert.AreEqual(GetExpectedEventsForOperator(op),
+                    table.Select(row => (string)row.ReadValues()[0]).OrderBy(name => name).ToArray());
             }
             catch (Exception ex)
             {
@@ -186,8 +184,8 @@ public partial class AutomaticDateTimeComparisonTests : UnknownQueryTestsBase
         var table = vm.Run();
 
         Assert.IsGreaterThan(0, table.Count, "Query should return at least one result");
-            return table[0].ReadValues()[0] as string ??
-                   throw new AssertFailedException("Expected comparison result to be a string.");
+        return table[0].ReadValues()[0] as string ??
+               throw new AssertFailedException("Expected comparison result to be a string.");
     }
 
     private List<dynamic> CreateTestData(DateTimeTypeTestData testData, string? fieldName = null)

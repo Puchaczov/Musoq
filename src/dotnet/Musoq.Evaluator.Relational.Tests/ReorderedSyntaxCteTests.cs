@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests verify that the reordered syntax works correctly in various complex scenarios
 ///     including nested CTEs, set operators, joins, and mixed syntax usage.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ReorderedSyntaxCteTests : BasicEntityTestBase
 {
 

@@ -114,6 +114,8 @@ public sealed class ScalarReuseModelTests
     [TestMethod]
     public void BuiltInOptimizationPipelinesHaveEvaluationClassifications()
     {
+        Assert.IsNotEmpty(PhysicalOptimizationGroup.Passes);
+        Assert.IsNotEmpty(ExecutionIrOptimizationGroup.Passes);
         foreach (var pass in PhysicalOptimizationGroup.Passes)
             OptimizerClassificationRegistry.Require(pass);
 
@@ -229,9 +231,7 @@ public sealed class ScalarReuseModelTests
             RecursiveScalarInvariantKind.Volatile,
             RecursiveScalarInvariantFacts.Classify(
                 new MethodCall(
-                    typeof(ScalarReuseModelTests).GetMethod(
-                        nameof(VolatileValue),
-                        BindingFlags.Static | BindingFlags.NonPublic)!,
+                    ((Func<int>)VolatileValue).Method,
                     [],
                     null,
                     typeof(int)),

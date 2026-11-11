@@ -21,11 +21,11 @@ public partial class ExploratoryComplexPatternsTests
 
         var vm = CreateAndRunVirtualMachine(query, source);
         var before = System.DateTimeOffset.Now;
-        var table = vm.Run(TestContext.CancellationToken);
+        using var table = vm.Run(TestContext.CancellationToken);
+        var rows = table.Rows;
         var after = System.DateTimeOffset.Now;
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("CurrentYear", typeof(int?)));
-        var rows = table.Rows;
         Assert.HasCount(1, rows);
         var row = rows[0];
         Assert.AreEqual("John", row.ReadValue(0));

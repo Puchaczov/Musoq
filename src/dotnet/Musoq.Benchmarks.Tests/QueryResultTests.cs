@@ -74,6 +74,7 @@ public static class ResultAssertions
         Assert.HasCount(expected.Columns.Length, columns, scenario.Id);
         for (var index = 0; index < columns.Length; index++)
         {
+            Assert.AreEqual(index, columns[index].ColumnIndex, scenario.Id);
             Assert.AreEqual(expected.Columns[index].Name, columns[index].ColumnName, scenario.Id);
             Assert.AreEqual(expected.Columns[index].Type, columns[index].ColumnType, scenario.Id);
         }
@@ -85,12 +86,23 @@ public static class ResultAssertions
         var values = new object?[row.Count];
         var visitor = new AssertionVisitor(values);
         row.VisitColumns(ref visitor);
+        Assert.AreEqual(values.Length, visitor.VisitedCount, "The row must visit every declared column exactly once.");
         return values;
     }
 
-    private readonly struct AssertionVisitor(object?[] values) : IColumnValueVisitor
+    private struct AssertionVisitor(object?[] values) : IColumnValueVisitor
     {
-        public void Visit<T>(int columnIndex, in T value) => values[columnIndex] = value;
+        private readonly bool[] _visited = new bool[values.Length];
+        public int VisitedCount { get; private set; }
+
+        public void Visit<T>(int columnIndex, in T value)
+        {
+            Assert.IsTrue((uint)columnIndex < (uint)values.Length, "The row visited an undeclared column.");
+            Assert.IsFalse(_visited[columnIndex], "The row visited a column more than once.");
+            values[columnIndex] = value;
+            _visited[columnIndex] = true;
+            VisitedCount++;
+        }
     }
 
     public static void Rows(object?[][] expected, object?[][] actual, bool ordered, string id)

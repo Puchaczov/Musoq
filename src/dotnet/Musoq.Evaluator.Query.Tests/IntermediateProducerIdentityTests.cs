@@ -73,6 +73,6 @@ public sealed class IntermediateProducerIdentityTests
         "ab as (select b.A as A from " + (byteArrayCte ? "c a" : "values { (Dummy: 'x') } a") +
         " cross apply Interpret<R>(" + (byteArrayCte ? "a.Bytes" : "FromHexToBytes('01')") + ") b) select z.A from ab z";
 
-    private static CompiledQuery Compile(string sql, bool complex = false) => InstanceCreator.CompileForExecution(sql,
+    private static CompiledQuery Compile(string sql, bool complex = false) => GeneratedExecutionIlInspection.CompileForExecution(sql,
         Guid.NewGuid().ToString(), new TestSchemaProvider(), new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: !complex));
 }

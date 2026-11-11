@@ -16,7 +16,7 @@ public partial class RewriteQueryVisitorTests
         _visitor.Visit(skipNode);
 
         // Assert
-        Assert.AreEqual(1, GetNodesCount(), "Should have one result node after skip processing");
+        AssertSingleResult<SkipNode>();
     }
 
     [TestMethod]
@@ -30,7 +30,7 @@ public partial class RewriteQueryVisitorTests
         _visitor.Visit(takeNode);
 
         // Assert
-        Assert.AreEqual(1, GetNodesCount(), "Should have one result node after take processing");
+        AssertSingleResult<TakeNode>();
     }
 
 }

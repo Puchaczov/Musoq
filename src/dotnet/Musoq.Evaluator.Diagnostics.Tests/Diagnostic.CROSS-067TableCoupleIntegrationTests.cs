@@ -17,7 +17,7 @@ using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticCross067TableCoupleIntegrationTests : BasicEntityTestBase
 {
     private static readonly CompilationOptions CompilationOptions =

@@ -7,7 +7,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticExceptionTaxonomyTests : Schema.Generic.GenericEntityTestBase
 {
     [TestMethod]

@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests verify that our diagnostic system catches errors gracefully
 ///     and provides helpful error messages.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class UserMistakesTests : BasicEntityTestBase
 {
 
@@ -141,15 +141,14 @@ public partial class UserMistakesTests : BasicEntityTestBase
     [TestMethod]
     public void Missing_ColumnInSelect()
     {
-        // Arrange - "SELECT FROM" might be parsed as SELECT with implicit *
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Some SQL dialects allow this as SELECT *, we accept both behaviors
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2005_InvalidSelectList, nameof(Missing_ColumnInSelect));
     }
 
     [TestMethod]

@@ -6,4 +6,4 @@ Read the [repository instructions](../../../AGENTS.md) and the complete [module 
 - Preserve the build-chain sequence: parsing, interpretation-schema compilation, AST/plan transformations, rendering and finalization. Inspection stops before executable artifact emission.
 - Keep execution-target composition internal. The production public API uses CSharpClr; do not introduce a public target selector or treat test-only portable targets as production targets.
 - Preserve the phase-based target contracts, portable type/callable/constant descriptors, optional inspection and activation phases, and target-aware artifact loading described in DEVELOPMENT.md.
-- Use Musoq.Converter.Tests and the relevant architecture guardrails for affected orchestration contracts. Apply the root validation policy to choose broader checks.
+- Use Musoq.Converter.Compilation.Tests, Musoq.Converter.Inspection.Tests, Musoq.Converter.Targets.Tests, and the relevant architecture guardrails for affected orchestration contracts. Shared fixtures belong in the non-test Musoq.Converter.Tests.Common library. Apply the root validation policy to choose broader checks.

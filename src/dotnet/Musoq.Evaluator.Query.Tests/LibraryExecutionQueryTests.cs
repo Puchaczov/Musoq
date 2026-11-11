@@ -4,7 +4,7 @@ using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class LibraryExecutionQueryTests : GenericEntityTestBase
 {
     [TestMethod]

@@ -1,0 +1,170 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Loader;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Converter.Build;
+using Musoq.Converter.Tests.Components;
+using Musoq.Converter.Tests.Schema;
+using Musoq.Evaluator;
+using Musoq.Tests.Common;
+
+namespace Musoq.Converter.Tests;
+
+[TestClass]
+public sealed class ClrAssemblyExecutableActivatorTests
+{
+    [TestMethod]
+    public void Resolve_WhenTargetIsCSharpClr_ShouldReturnClrAssemblyActivator()
+    {
+        var activator = ExecutionTargetCatalog.ResolveActivator(ExecutionTargetIds.CSharpClr);
+
+        Assert.IsInstanceOfType<ClrAssemblyExecutableActivator>(activator);
+    }
+
+    [TestMethod]
+    public void ActivateTable_WhenArtifactIsNotClrAssembly_ShouldReject()
+    {
+        var activator = new ClrAssemblyExecutableActivator();
+        var artifact = new TestOnlyExecutableQueryArtifact("payload");
+
+        var exception = Assert.Throws<InvalidOperationException>(
+            () => activator.ActivateTable(artifact, CreateBinding()));
+
+        Assert.Contains("CLR executable artifact", exception.Message);
+        Assert.Contains("TestOnlyNonClr", exception.Message);
+    }
+
+    [TestMethod]
+    public void LoadRunnableType_WhenArtifactIsLoadedClrArtifact_ShouldReturnLoadedType()
+    {
+        var activator = new ClrAssemblyExecutableActivator();
+        var artifact = new ClrLoadedExecutableArtifact(typeof(object));
+
+        var type = activator.LoadRunnableType(artifact);
+
+        Assert.AreEqual(typeof(object), type);
+    }
+
+    [TestMethod]
+    public void CreateLoadedExecutableArtifact_ShouldReturnCSharpClrLoadedArtifact()
+    {
+        var activator = new ClrAssemblyExecutableActivator();
+
+        var artifact = activator.CreateLoadedExecutableArtifact(typeof(object));
+
+        Assert.AreEqual(ExecutionTargetIds.CSharpClr, artifact.TargetId);
+        var loadedArtifact = Assert.IsInstanceOfType<ClrLoadedExecutableArtifact>(artifact);
+        Assert.AreEqual(typeof(object), loadedArtifact.RunnableType);
+    }
+
+    [TestMethod]
+    public void CompileForExecutionBatch_WhenQueriesAreCompatible_ShouldShareContextAndKeepBindingsIndependent()
+    {
+        using var capture = new GeneratedAssemblyCapture();
+        var results = CompileEntityBatch(
+            ("first", "alpha"),
+            ("second", "beta"));
+
+        Assert.AreEqual(2, results.Count);
+        Assert.IsTrue(results.All(static result => result.Result.Succeeded));
+
+        var first = results[0].Result.CompiledQuery!;
+        var second = results[1].Result.CompiledQuery!;
+        try
+        {
+            var firstContext = GetGeneratedLoadContext(capture, results[0].Result.BuildItems!);
+            var secondContext = GetGeneratedLoadContext(capture, results[1].Result.BuildItems!);
+
+            Assert.AreSame(firstContext, secondContext);
+            Assert.IsTrue(firstContext.IsCollectible);
+
+            using var firstTable = first.Run();
+            using var secondTable = second.Run();
+            Assert.AreEqual("alpha", firstTable[0].ReadValue(0));
+            Assert.AreEqual("beta", secondTable[0].ReadValue(0));
+        }
+        finally
+        {
+            first.Dispose();
+            second.Dispose();
+        }
+    }
+
+    [TestMethod]
+    public void ActivateTableBatch_WhenOneTypeIsMissing_ShouldKeepSuccessfulSibling()
+    {
+        var build = InstanceCreator.CompileWithDiagnostics(
+            "select d.Dummy as Value from #system.dual() d",
+            $"BatchActivation_{Guid.NewGuid():N}",
+            new SystemSchemaProvider(),
+            new TestsLoggerResolver());
+        Assert.IsTrue(build.Succeeded);
+        try
+        {
+            var items = build.BuildItems!;
+            var activator = new ClrAssemblyExecutableActivator();
+            var requests = new[]
+            {
+                new ClrBatchTableActivationRequest(items.AccessToClassPath, CreateBinding()),
+                new ClrBatchTableActivationRequest("Missing.Batch.Runnable", CreateBinding())
+            };
+
+            var results = activator.ActivateTableBatch(items.ExecutableArtifact!, requests);
+
+            Assert.AreEqual(2, results.Count);
+            Assert.IsTrue(results[0].Succeeded);
+            Assert.IsFalse(results[1].Succeeded);
+            Assert.IsInstanceOfType<InvalidOperationException>(results[1].Exception);
+            (results[0].Runnable as IDisposable)?.Dispose();
+        }
+        finally
+        {
+            build.CompiledQuery!.Dispose();
+        }
+    }
+
+    private static QueryRuntimeBinding CreateBinding()
+    {
+        return new QueryRuntimeBinding(
+            new SystemSchemaProvider(),
+            new Dictionary<string, IReadOnlyDictionary<string, string>>(),
+            new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>(),
+            new Dictionary<string, SourceExecutionPlan>());
+    }
+
+    private static IReadOnlyList<ExecutionBatchCompilationResult> CompileEntityBatch(
+        params (string Key, string Value)[] cases)
+    {
+        const string query = "select e.Name from #data.entities() e";
+        var requests = cases
+            .Select((item, index) => new ExecutionBatchCompilationRequest(
+                item.Key,
+                query,
+                $"BatchContext_{index}_{Guid.NewGuid():N}",
+                new EntitySetSchemaProvider(
+                    new Dictionary<string, IReadOnlyList<EntitySetEntity>>(StringComparer.Ordinal)
+                    {
+                        ["#data"] = [new EntitySetEntity { Name = item.Value }]
+                    }),
+                new TestsLoggerResolver(),
+                new CompilationOptions(),
+                ConsumerFamily: "converter-activator-batch",
+                ConsumerTestName: nameof(CompileEntityBatch),
+                BatchOrigin: "converter-activator-batch"))
+            .ToArray();
+
+        return InstanceCreator.CompileForExecutionBatch(requests);
+    }
+
+    private static AssemblyLoadContext GetGeneratedLoadContext(GeneratedAssemblyCapture capture, BuildItems items)
+    {
+        var type = capture.RequireType(items.AccessToClassPath);
+        return AssemblyLoadContext.GetLoadContext(type.Assembly)
+            ?? throw new AssertFailedException("The generated assembly has no load context.");
+    }
+
+    private sealed record TestOnlyExecutableQueryArtifact(string Payload)
+        : ExecutableQueryArtifact(TestExecutionTargetIds.TestOnlyNonClr);
+}

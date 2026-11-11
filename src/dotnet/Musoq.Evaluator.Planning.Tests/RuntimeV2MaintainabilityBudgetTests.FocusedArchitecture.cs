@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.IO;
 using System.Linq;
@@ -16,8 +18,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution");
-        var rendererFiles = Directory
-            .EnumerateFiles(executionDirectory, "*.cs", SearchOption.AllDirectories)
+        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
             .Where(file =>
                 Path.GetFileName(file).StartsWith("ExecutionCSharpRenderer", StringComparison.Ordinal) ||
                 Path.GetRelativePath(executionDirectory, file)
@@ -86,8 +87,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_RenderingCollaborators_ShouldNotInvokeLoweringOrPlanning()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var rendererFiles = Directory
-            .EnumerateFiles(
+        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Targets.CSharpClr/Rendering/Execution/Rendering"),
                 "*.cs")
             .ToArray();
@@ -115,8 +115,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
-        var lowererFiles = Directory
-            .EnumerateFiles(executionDirectory, "*.cs", SearchOption.AllDirectories)
+        var lowererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
             .Where(file =>
                 Path.GetFileName(file).StartsWith("PhysicalLoweringImplementation", StringComparison.Ordinal) ||
                 Path.GetRelativePath(executionDirectory, file)
@@ -150,8 +149,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var executionDirectory = ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Execution");
-        var files = Directory
-            .EnumerateFiles(executionDirectory, "*.cs", SearchOption.AllDirectories)
+        var files = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs", SearchOption.AllDirectories)
             .ToArray();
         string[] forbiddenMarkers =
         [
@@ -164,10 +162,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         ];
 
         var offenders = FindFilesContainingAny(repositoryRoot, files, forbiddenMarkers);
-        var typeOffenders = typeof(ExecutionNode).Assembly
+        var typeOffenders = CompilerContractSymbols.For(typeof(ExecutionNode)).Assembly
             .GetTypes()
-            .Where(static type => type.Namespace == typeof(ExecutionNode).Namespace)
-            .Where(static type => type.Name.StartsWith("ExecutionChunked", StringComparison.Ordinal))
+            .Where(static type => type.Namespace == CompilerContractSymbols.For(typeof(ExecutionNode)).Namespace)
+            .Where(static type => type.MetadataName.StartsWith("ExecutionChunked", StringComparison.Ordinal))
             .Select(static type => type.FullName)
             .ToArray();
 
@@ -213,7 +211,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_PhysicalToExecutionLowering_ShouldRouteFocusedDomainsThroughCoordinators()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var loweringAssembly = typeof(PhysicalToExecutionPlanBuilder).Assembly;
+        var loweringAssembly = CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder)).Assembly;
         var coordinatorTypes = new[]
         {
             loweringAssembly.GetType("Musoq.Evaluator.IR.Execution.Lowering.Coordinators.AggregatePlanLowerer"),
@@ -261,8 +259,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var planningTypesText = string.Concat(
-            Directory
-                .EnumerateFiles(
+            global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                     ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Planning/Types/Common"),
                     "*.cs")
                 .Select(File.ReadAllText));
@@ -292,8 +289,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_PhysicalPlanBuilder_ShouldNotInvokeStrategyPlanner()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var builderFiles = Directory
-            .EnumerateFiles(
+        var builderFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Evaluator/IR/Physical"),
                 "PhysicalPlanBuilder*.cs",
                 SearchOption.TopDirectoryOnly)
@@ -376,10 +372,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
                 StringComparison.Ordinal))
             .Select(file => Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'))
             .ToArray();
-        var nestedSemanticTypes = typeof(BuildMetadataAndInferTypesVisitor)
+        var nestedSemanticTypes = CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitor))
             .GetNestedTypes(BindingFlags.NonPublic | BindingFlags.Public)
-            .Where(static type => type.Name.StartsWith("Semantic", StringComparison.Ordinal))
-            .Select(static type => type.Name)
+            .Where(static type => type.MetadataName.StartsWith("Semantic", StringComparison.Ordinal))
+            .Select(static type => type.MetadataName)
             .ToArray();
 
         Assert.IsEmpty(
@@ -423,8 +419,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void FocusedArchitecture_ConverterPlanningAndLoweringOrchestration_ShouldStayInTransformTree()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var converterFiles = Directory
-            .EnumerateFiles(
+        var converterFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 ToAbsolutePath(repositoryRoot, "src/dotnet/Musoq.Converter"),
                 "*.cs",
                 SearchOption.AllDirectories)

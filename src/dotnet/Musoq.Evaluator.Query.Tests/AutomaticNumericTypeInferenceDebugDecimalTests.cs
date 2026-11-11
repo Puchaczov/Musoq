@@ -4,7 +4,7 @@ using Musoq.Evaluator.Tests.Schema.Unknown;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class AutomaticNumericTypeInferenceDebugDecimalTests : UnknownQueryTestsBase
 {
 

@@ -89,7 +89,7 @@ public sealed class InterpretedSwitchArrayNullabilityTests
         var sql = Schemas + "select case when i.Value is null then null else ToInt64(i.Value.Score) + ToInt64(i.Value.Score) end as V " + source;
         var options = new CompilationOptions(useCommonSubexpressionElimination: reuse)
             .WithStabilityAwareScalarReuse(reuse).WithLoopInvariantCodeMotion(reuse);
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), new TestSchemaProvider(),
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), new TestSchemaProvider(),
             new TestsLoggerResolver(), options);
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, new object?[] { null });
@@ -121,7 +121,7 @@ public sealed class InterpretedSwitchArrayNullabilityTests
     private static object[] Case(string schemas, string hex, string source, string expression, byte?[] expected) =>
         [schemas + "select " + expression + " " + string.Format(System.Globalization.CultureInfo.InvariantCulture, source, hex), expected];
 
-    private static CompiledQuery Compile(string sql, bool complex = false) => InstanceCreator.CompileForExecution(sql,
+    private static CompiledQuery Compile(string sql, bool complex = false) => GeneratedExecutionIlInspection.CompileForExecution(sql,
         Guid.NewGuid().ToString(), new TestSchemaProvider(), new TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: !complex));
 
 }

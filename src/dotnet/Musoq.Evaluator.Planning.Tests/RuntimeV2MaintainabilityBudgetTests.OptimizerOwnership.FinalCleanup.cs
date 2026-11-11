@@ -13,7 +13,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var files = EnumeratePhysicalBuilderLowererRendererFiles(repositoryRoot)
-            .Concat(Directory.EnumerateFiles(
+            .Concat(global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter", "Build"),
                 "TransformTree*.cs"))
             .ToArray();
@@ -59,8 +59,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_Renderers_ShouldNotOwnRowWidthPruning()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var rendererFiles = Directory
-            .EnumerateFiles(
+        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
                 "ExecutionCSharpRenderer*.cs")
             .ToArray();
@@ -115,8 +114,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_Renderers_ShouldNotOwnHelperExtractionReadability()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var rendererFiles = Directory
-            .EnumerateFiles(
+        var rendererFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
                 Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
                 "ExecutionCSharpRenderer*.cs")
             .ToArray();
@@ -213,11 +211,10 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var samplesDirectory = GeneratedCodeSnapshotText.SamplesDirectory;
-        var sampleFiles = Directory.Exists(samplesDirectory)
-            ? Directory.EnumerateFiles(samplesDirectory, "*.cs", SearchOption.TopDirectoryOnly).ToArray()
-            : [];
+        var sampleFiles = Musoq.Evaluator.Tests.Architecture.RepositorySourceScan.FilesUnder(
+            repositoryRoot, Path.GetRelativePath(repositoryRoot, samplesDirectory), "*.cs");
 
-        var offenders = FindFilesContainingAny(repositoryRoot, sampleFiles, SourceCapabilityDecisionMarkers);
+        var offenders = FindFilesContainingAny(repositoryRoot, sampleFiles.ToArray(), SourceCapabilityDecisionMarkers);
 
         Assert.IsEmpty(
             offenders,
@@ -230,9 +227,8 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     {
         var repositoryRoot = FindRepositoryRoot();
         var samplesDirectory = GeneratedCodeSnapshotText.SamplesDirectory;
-        var sampleFiles = Directory.Exists(samplesDirectory)
-            ? Directory.EnumerateFiles(samplesDirectory, "*.cs", SearchOption.TopDirectoryOnly).ToArray()
-            : [];
+        var sampleFiles = Musoq.Evaluator.Tests.Architecture.RepositorySourceScan.FilesUnder(
+            repositoryRoot, Path.GetRelativePath(repositoryRoot, samplesDirectory), "*.cs");
         string[] markers =
         [
             "ProjectionPruningPhysicalPass",
@@ -244,7 +240,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "HelperExtractionReadabilityPass"
         ];
 
-        var offenders = FindFilesContainingAny(repositoryRoot, sampleFiles, markers);
+        var offenders = FindFilesContainingAny(repositoryRoot, sampleFiles.ToArray(), markers);
 
         Assert.IsEmpty(
             offenders,
@@ -254,33 +250,21 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
 
     private static string[] EnumeratePhysicalBuilderLowererRendererFiles(string repositoryRoot)
     {
-        return Directory
-            .EnumerateFiles(Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR"), "*.cs", SearchOption.AllDirectories)
-            .Where(file =>
-            {
-                var name = Path.GetFileName(file);
-                return name.StartsWith("PhysicalPlanBuilder", StringComparison.Ordinal) ||
-                       name.StartsWith("PhysicalLoweringImplementation", StringComparison.Ordinal) ||
-                       name.StartsWith("ExecutionCSharpRenderer", StringComparison.Ordinal);
-            })
-            .ToArray();
+        var builders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Physical"),
+            "PhysicalPlanBuilder*.cs", SearchOption.AllDirectories);
+        return builders.Concat(EnumerateExecutionLowererAndRendererFiles(repositoryRoot)).ToArray();
     }
 
     private static string[] EnumerateExecutionLowererAndRendererFiles(string repositoryRoot)
     {
-        var executionRoot = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution");
-        return Directory
-            .EnumerateFiles(executionRoot, "*.cs", SearchOption.AllDirectories)
-            .Where(file =>
-            {
-                var relativePath = Path.GetRelativePath(executionRoot, file).Replace(Path.DirectorySeparatorChar, '/');
-                var name = Path.GetFileName(file);
-                return name.StartsWith("ExecutionCSharpRenderer", StringComparison.Ordinal) ||
-                       name.StartsWith("PhysicalLoweringImplementation", StringComparison.Ordinal) ||
-                       relativePath.StartsWith("Lowering/", StringComparison.Ordinal) ||
-                       relativePath.StartsWith("Rendering/", StringComparison.Ordinal);
-            })
-            .ToArray();
+        var lowerers = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Evaluator", "IR", "Execution"),
+            "PhysicalLoweringImplementation*.cs", SearchOption.AllDirectories);
+        var renderers = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+            Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Targets.CSharpClr", "Rendering", "Execution"),
+            "*.cs", SearchOption.AllDirectories);
+        return lowerers.Concat(renderers).ToArray();
     }
 
     private static readonly string[] SourceCapabilityDecisionMarkers =

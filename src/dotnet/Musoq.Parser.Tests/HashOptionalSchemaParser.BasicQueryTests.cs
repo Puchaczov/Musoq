@@ -18,7 +18,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     #endregion
@@ -35,7 +35,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     #endregion
@@ -52,7 +52,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     #endregion
@@ -69,7 +69,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     #endregion
@@ -85,7 +85,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     #endregion
@@ -102,7 +102,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     #endregion
@@ -120,7 +120,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -134,7 +134,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -151,7 +151,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     #endregion
@@ -168,7 +168,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -178,7 +178,7 @@ public class HashOptionalSchemaParserBasicQueryTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     #endregion

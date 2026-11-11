@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests verify that rows are returned in the correct order,
 ///     not just that the correct set of values is returned.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class DistinctOrderByBugTests : BasicEntityTestBase
 {
 

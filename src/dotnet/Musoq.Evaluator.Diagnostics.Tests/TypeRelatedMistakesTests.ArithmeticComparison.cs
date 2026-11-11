@@ -21,10 +21,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - invalid operand types for (String, Int32)
-        DocumentTypeHandling(result, "string + number",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "string + number", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -36,10 +33,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - MQ9999 for no operator defined for (String, String) subtraction
-        DocumentTypeHandling(result, "string - string",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "string - string", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -51,10 +45,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - MQ9999 for no multiply operator for (String, Int32)
-        DocumentTypeHandling(result, "string * number",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "string * number", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -66,10 +57,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - MQ9999 for no divide operator for (String, Int32)
-        DocumentTypeHandling(result, "string / number",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "string / number", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -81,10 +69,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - MQ9999 for no add operator for (Boolean, Decimal)
-        DocumentTypeHandling(result, "boolean + number",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "boolean + number", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -96,10 +81,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - MQ9999 for no modulo operator for (String, Int32)
-        DocumentTypeHandling(result, "string % number",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "string % number", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -111,10 +93,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - SQL often allows implicit conversion, may succeed
-        DocumentTypeHandling(result, "string = number comparison",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "string = number comparison");
     }
 
     [TestMethod]
@@ -126,10 +105,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Type coercion may or may not be allowed
-        DocumentTypeHandling(result, "number = boolean comparison",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "number = boolean comparison", DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -141,10 +117,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - May succeed or fail depending on coercion rules
-        DocumentTypeHandling(result, "string > number comparison",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "string > number comparison");
     }
 
     [TestMethod]
@@ -156,10 +129,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Mixed types in IN list may be coerced or rejected
-        DocumentTypeHandling(result, "mixed types in IN clause",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "mixed types in IN clause", DiagnosticCode.MQ3005_TypeMismatch, DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -171,10 +141,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - BETWEEN type mismatch
-        DocumentTypeHandling(result, "string BETWEEN numbers",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "string BETWEEN numbers", DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -186,10 +153,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - LIKE expects string operand
-        DocumentTypeHandling(result, "number LIKE pattern",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "number LIKE pattern", DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -201,10 +165,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - WHERE requires boolean condition
-        DocumentTypeHandling(result, "string in WHERE (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "string in WHERE (non-boolean)", DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -216,10 +177,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - WHERE requires boolean condition
-        DocumentTypeHandling(result, "number in WHERE (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "number in WHERE (non-boolean)", DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -231,10 +189,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - AND requires boolean operands
-        DocumentTypeHandling(result, "string AND string (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "string AND string (non-boolean)", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -246,10 +201,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - OR requires boolean operands
-        DocumentTypeHandling(result, "boolean OR number (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "boolean OR number (non-boolean)", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -261,10 +213,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - NOT requires boolean operand
-        DocumentTypeHandling(result, "NOT on string (non-boolean)",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "NOT on string (non-boolean)", DiagnosticCode.MQ3007_InvalidOperandTypes, DiagnosticCode.MQ3005_TypeMismatch);
     }
 
 }

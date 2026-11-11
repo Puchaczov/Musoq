@@ -16,7 +16,7 @@ using Musoq.Schema.Exceptions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class Alpha14CorrectnessRegressionTests : BasicEntityTestBase
 {
     [TestMethod]

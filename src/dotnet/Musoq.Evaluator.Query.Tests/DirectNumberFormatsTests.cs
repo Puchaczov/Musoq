@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Musoq.Evaluator.Exceptions;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Parser.Diagnostics;
@@ -6,7 +9,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class DirectNumberFormatsTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -247,13 +250,40 @@ public class DirectNumberFormatsTests : BasicEntityTestBase
     [TestMethod]
     public void DivisionByZero_ShouldHandleCorrectly()
     {
-        try
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            TestMethodTemplate<long?>("0xFF / 0x0", null);
-        }
-        catch
+            ["#A"] = [new BasicEntity("zero")]
+        };
+        var failure = Assert.ThrowsExactly<MusoqQueryException>(() =>
         {
-        }
+            using var query = CreateAndRunVirtualMachine("select 0xFF / 0x0 from #A.Entities()", sources);
+        });
+
+        AssertSingleError(failure, DiagnosticCode.MQ3008_DivisionByZero, DiagnosticPhase.Bind);
+    }
+
+    [TestMethod]
+    public void DivisionByZero_FromSourceValue_ShouldFailDuringExecution()
+    {
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            ["#A"] = [new BasicEntity("zero") { Id = 0 }]
+        };
+        using var query = CreateAndRunVirtualMachine(
+            "select 0xFF / e.Id from #A.Entities() e",
+            sources,
+            new CompilationOptions(parallelizationMode: ParallelizationMode.None));
+
+        var failure = Assert.ThrowsExactly<QueryExecutionException>(() =>
+        {
+            using var result = query.Run(TestContext.CancellationToken);
+            _ = result.Count;
+        });
+
+        Assert.IsNotNull(failure.Envelope);
+        Assert.AreEqual("RowEnumeration", failure.ExecutionPhase);
+        Assert.AreEqual(DiagnosticSeverity.Error, failure.Envelope.Severity);
+        Assert.IsInstanceOfType<DivideByZeroException>(failure.InnerException);
     }
 
 

@@ -10,7 +10,7 @@ using Musoq.Plugins;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class AggregateIdentityRegressionTests : BasicEntityTestBase
 {
     [TestMethod]

@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class SqlConcatenationCompositionTests : Schema.Basic.BasicEntityTestBase
 {
     [TestMethod]

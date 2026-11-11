@@ -260,7 +260,7 @@ public sealed class StructuredInputFoundationTests
         using var compiled = build.CompiledQuery!;
         var definition = compiled.ParameterDefinitions.Single();
         Assert.IsTrue(definition.Contract.IsStructured, definition.Contract.CanonicalTypeName);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
         {
             new(StringComparer.OrdinalIgnoreCase)
             {
@@ -322,7 +322,7 @@ public sealed class StructuredInputFoundationTests
             Assert.Fail(build.CaughtException?.ToString() ?? string.Join(Environment.NewLine, build.Diagnostics.Select(static diagnostic => diagnostic.ToString())));
 
         using var compiled = build.CompiledQuery!;
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
         {
             new(StringComparer.OrdinalIgnoreCase)
             {
@@ -357,7 +357,7 @@ public sealed class StructuredInputFoundationTests
         var hostRecords = new List<Dictionary<string, object?>> { hostRecord };
         var rows = compiled.Run(new TypedQueryRunOptions(
             CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["patterns"] = hostRecords }, compiled.ParameterDefinitions)));
+global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["patterns"] = hostRecords }, compiled.ParameterDefinitions)));
 
         hostRecord["Pattern"] = "MUTATED";
         var materialized = rows.ToArray();

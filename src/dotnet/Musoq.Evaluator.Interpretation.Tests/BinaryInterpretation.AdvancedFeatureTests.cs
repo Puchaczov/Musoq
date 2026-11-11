@@ -142,10 +142,9 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
         var data = new byte[] { 0x78, 0x56, 0x34, 0x12 };
 
         var (success, result) = InvokeTryInterpret(interpreter, data);
-        var value = GetPropertyValue<int>(result!, "Value");
-
         Assert.IsTrue(success);
         Assert.IsNotNull(result);
+        var value = GetPropertyValue<int>(result, "Value");
         Assert.AreEqual(0x12345678, value);
     }
 
@@ -197,7 +196,7 @@ public class BinaryInterpretationAdvancedFeatureTests : BinaryInterpretationTest
         Assert.IsNull(GetPropertyValue<string>(result, "ErrorField"));
         Assert.IsNull(GetPropertyValue<string>(result, "ErrorMessage"));
 
-        var parsedFields = PartialPayloadAssertions.CompletedValues(GetPropertyValue<object>(result, "ParsedFields"));
+        var parsedFields = (System.Collections.Generic.IReadOnlyDictionary<string, object?>)GetPropertyValue<object>(result, "ParsedFields");
         Assert.IsTrue(parsedFields.ContainsKey("Value"));
         Assert.AreEqual(0x12345678, parsedFields["Value"]);
     }

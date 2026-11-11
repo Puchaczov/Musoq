@@ -19,7 +19,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -31,7 +31,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -43,7 +43,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -55,7 +55,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -67,7 +67,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -79,7 +79,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -91,7 +91,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -103,7 +103,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -115,7 +115,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -127,7 +127,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -139,7 +139,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -151,7 +151,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -163,7 +163,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -175,7 +175,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -187,7 +187,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -199,7 +199,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -219,7 +219,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -231,7 +231,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -243,7 +243,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -255,7 +255,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -267,7 +267,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -279,7 +279,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -291,7 +291,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -303,7 +303,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -315,7 +315,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -327,7 +327,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -339,7 +339,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -351,7 +351,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -363,7 +363,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -375,7 +375,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -387,7 +387,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -403,7 +403,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -441,7 +441,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]
@@ -456,7 +456,7 @@ public class ParserSchemaAndClausesTests
         var parser = new Parser(lexer);
         var result = parser.ComposeAll();
 
-        Assert.IsNotNull(result);
+        ParserContractAssertions.AssertCompleteScript(result, lexer);
     }
 
     [TestMethod]

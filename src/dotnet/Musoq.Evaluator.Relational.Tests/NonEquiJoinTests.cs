@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class NonEquiJoinTests : BasicEntityTestBase
 {
 
@@ -230,7 +230,7 @@ select
 from #A.entities() a 
 inner join #B.entities() b on a.Time > b.Time";
 
-        var now = DateTime.Now;
+        var now = new DateTime(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc);
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             {

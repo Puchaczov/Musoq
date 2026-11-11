@@ -292,7 +292,7 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
         var converterRoot = Path.Combine(repositoryRoot, "src", "dotnet", "Musoq.Converter");
         var productionText = string.Join(
             "\n",
-            Directory.EnumerateFiles(converterRoot, "*.cs", SearchOption.AllDirectories)
+            global::Musoq.Tests.Common.RequiredSourceInventory.Files(converterRoot, "*.cs", SearchOption.AllDirectories)
                 .Select(File.ReadAllText));
 
         Assert.IsFalse(
@@ -333,10 +333,12 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
         public ISchemaProvider Provider { get; set; } = new EmptySchemaProvider();
 
         public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>
-            SourceRuntimeSettingsBySourceContextId { get; set; } = new Dictionary<string, IReadOnlyDictionary<string, string>>();
+            SourceRuntimeSettingsBySourceContextId
+        { get; set; } = new Dictionary<string, IReadOnlyDictionary<string, string>>();
 
         public IReadOnlyDictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>
-            SourceRuntimeSettingDescriptionsBySourceContextId { get; set; } = new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
+            SourceRuntimeSettingDescriptionsBySourceContextId
+        { get; set; } = new Dictionary<string, IReadOnlyList<SourceRuntimeSettingDescription>>();
 
         public IReadOnlyDictionary<string, SourceExecutionPlan> SourceExecutionPlans { get; set; } =
             new Dictionary<string, SourceExecutionPlan>();

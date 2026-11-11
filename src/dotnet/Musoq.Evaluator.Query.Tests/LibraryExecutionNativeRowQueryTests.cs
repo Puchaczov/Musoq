@@ -9,7 +9,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionNativeRowQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class LibraryExecutionNativeRowQueryTests : GenericEntityTestBase
 {
     [TestMethod]

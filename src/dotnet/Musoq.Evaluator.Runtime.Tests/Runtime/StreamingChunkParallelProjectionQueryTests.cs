@@ -13,15 +13,10 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class StreamingChunkParallelProjectionQueryTests
 {
     private readonly ILoggerResolver _loggerResolver = new TestsLoggerResolver();
-
-    static StreamingChunkParallelProjectionQueryTests()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
 
     [TestMethod]
     public void StreamingRowSource_WhenParallelized_ShouldProjectChunksConcurrentlyAndKeepOrder()
@@ -32,7 +27,7 @@ public sealed class StreamingChunkParallelProjectionQueryTests
             usePrimitiveTypeValidation: false,
             maxDegreeOfParallelismOverride: 2,
             forceTableResultMaterialization: true);
-        var probe = new ProjectionConcurrencyProbe();
+        using var probe = new ProjectionConcurrencyProbe();
         var rows = Enumerable.Range(0, 4_096).Select(value => new StreamingProjectionEntity(value)).ToArray();
         var rowSource = new StreamingProjectionRowSource(rows, chunkSize: 2_048);
         var schema = new GenericSchema<StreamingProjectionLibrary>(
@@ -60,14 +55,14 @@ public sealed class StreamingChunkParallelProjectionQueryTests
 
         try
         {
-            var vm = InstanceCreator.CompileForExecution(
+            using var vm = InstanceCreator.CompileForExecution(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,
                 _loggerResolver,
                 compilationOptions);
 
-            var table = vm.Run(CancellationToken.None);
+            using var table = vm.Run(CancellationToken.None);
 
             Assert.AreEqual(rows.Length, table.Count);
             CollectionAssert.AreEqual(
@@ -113,7 +108,7 @@ public sealed class StreamingChunkParallelProjectionQueryTests
         }
     }
 
-    public sealed class ProjectionConcurrencyProbe
+    public sealed class ProjectionConcurrencyProbe : IDisposable
     {
         private readonly ManualResetEventSlim _twoCallsStarted = new(false);
         private int _currentCalls;
@@ -135,10 +130,11 @@ public sealed class StreamingChunkParallelProjectionQueryTests
                 if (!_twoCallsStarted.Wait(TimeSpan.FromSeconds(5)))
                     throw new TimeoutException("Expected two chunk workers to run concurrently.");
 
-            Thread.Sleep(10);
             Interlocked.Decrement(ref _currentCalls);
             return value;
         }
+
+        public void Dispose() => _twoCallsStarted.Dispose();
 
         private void UpdateMax(int current)
         {

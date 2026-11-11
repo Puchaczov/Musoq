@@ -90,10 +90,12 @@ public sealed class DiagnosticREC111CompetingFailureTests
     [TestMethod]
     public void ValidControls_ShouldExecuteWithoutChangingResolution()
     {
-        foreach (var candidate in CandidateCases.Where(static candidate => candidate.ExpectedCodes.Length == 0))
         {
-            Assert.IsTrue(Analyze(candidate.SeedQuery).IsSuccess, candidate.CaseId);
-            Assert.IsTrue(Analyze(candidate.ResultQuery).IsSuccess, candidate.CaseId);
+            var selectedCases = CandidateCases.Where(static candidate => candidate.ExpectedCodes.Length == 0).ToArray(); Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases."); foreach (var candidate in selectedCases)
+            {
+                Assert.IsTrue(Analyze(candidate.SeedQuery).IsSuccess, candidate.CaseId);
+                Assert.IsTrue(Analyze(candidate.ResultQuery).IsSuccess, candidate.CaseId);
+            }
         }
     }
 

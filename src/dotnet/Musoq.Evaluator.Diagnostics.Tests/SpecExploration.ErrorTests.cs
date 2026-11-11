@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These assert that the engine produces meaningful errors.
 ///     Every failure here is useful feedback about error quality.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class SpecExplorationErrorTests : BasicEntityTestBase
 {
 

@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>false</IsTestProject>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Moq" />
+        <PackageReference Include="MSTest.TestFramework" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
+        <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
+        <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />
+        <ProjectReference Include="..\Musoq.Plugins\Musoq.Plugins.csproj" />
+        <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj" />
+        <ProjectReference Include="..\Musoq.Targets.Abstractions\Musoq.Targets.Abstractions.csproj" />
+        <ProjectReference Include="..\Musoq.Targets.CSharpClr\Musoq.Targets.CSharpClr.csproj" />
+        <ProjectReference Include="..\Musoq.Targets.Execution.Analysis\Musoq.Targets.Execution.Analysis.csproj" />
+        <ProjectReference Include="..\Musoq.Tests.Common\Musoq.Tests.Common.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="Musoq.Converter.Inspection.Tests" />
+        <InternalsVisibleTo Include="Musoq.Converter.Targets.Tests" />
+        <InternalsVisibleTo Include="Musoq.Converter.Compilation.Tests" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="..\Musoq.Evaluator.Tests.Common\Architecture\CompilerContractSymbols.cs" Link="Architecture\CompilerContractSymbols.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <Compile Include="..\Musoq.Evaluator.Tests.Common\NativeParameterFixture.cs" Link="Fixtures\NativeParameterFixture.cs" />
+    </ItemGroup>
+</Project>

@@ -7,7 +7,7 @@ using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class Core031DescAndFromFirstTests : BasicEntityTestBase
 {
     [TestMethod]

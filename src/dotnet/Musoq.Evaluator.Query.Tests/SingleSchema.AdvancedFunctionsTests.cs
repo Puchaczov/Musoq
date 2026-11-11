@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Single schema tests: Advanced functions, DateTime, CASE/WHEN, and comments.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class SingleSchemaAdvancedFunctionsTests : BasicEntityTestBase
 {
     [TestMethod]

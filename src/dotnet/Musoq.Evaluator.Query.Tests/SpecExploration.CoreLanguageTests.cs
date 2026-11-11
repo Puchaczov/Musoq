@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests verify that queries constructed from the specs work correctly
 ///     and that malformed queries produce meaningful error messages.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class SpecExplorationCoreLanguageTests
 {
 

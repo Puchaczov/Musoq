@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Error Message Quality Audit — Phase 2: GROUP BY, Function Resolution, JOIN/APPLY, and Set Operations.
 ///     Covers: E-GROUP, E-FUNC, E-JOIN, E-SET categories.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class ErrorQualityGroupFuncJoinSetTests : BasicEntityTestBase
 {
     #region Test Setup

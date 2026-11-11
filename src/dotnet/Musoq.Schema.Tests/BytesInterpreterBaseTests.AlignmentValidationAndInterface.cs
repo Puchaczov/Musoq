@@ -100,7 +100,7 @@ public partial class BytesInterpreterBaseTests
     public void Interpret_FromSpan_Works()
     {
         var interpreter = new TestBytesInterpreter();
-        var result = interpreter.Interpret(new byte[] { 0x42 });
+        var result = interpreter.Interpret(new System.ReadOnlySpan<byte>(new byte[] { 0x42 }));
         Assert.AreEqual(0x42, result.Value);
     }
 

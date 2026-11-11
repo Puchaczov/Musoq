@@ -7,7 +7,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class RuntimeErrorTests : NegativeTestsBase
 {
     #region 5.3 Invalid RLIKE Pattern
@@ -16,7 +16,7 @@ public class RuntimeErrorTests : NegativeTestsBase
     public void RE020_InvalidRegexPattern_ShouldFailDuringBinding()
     {
         var ex = Assert.Throws<MusoqQueryException>(() =>
-            CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE '[invalid('") );
+            CompileQuery("SELECT * FROM #test.people() WHERE Name RLIKE '[invalid('"));
 
         AssertSingleError(ex, DiagnosticCode.MQ3094_InvalidConstantRegex, DiagnosticPhase.Bind);
     }
@@ -28,17 +28,19 @@ public class RuntimeErrorTests : NegativeTestsBase
     [TestMethod]
     public void RE001_ToInt32OnNonNumericString_ReturnsNullInsteadOfThrowing()
     {
-        var vm = CompileQuery("SELECT ToInt32('not_a_number') FROM #test.single()");
-        var table = vm.Run(CancellationToken.None);
-        Assert.IsNotNull(table, "ToInt32 on non-numeric string does not throw — returns null or default.");
+        using var vm = CompileQuery("SELECT ToInt32('not_a_number') FROM #test.single()");
+        using var table = vm.Run(CancellationToken.None);
+        Assert.AreEqual(1, table.Count);
+        Assert.IsNull(table[0].ReadValue(0));
     }
 
     [TestMethod]
     public void RE002_ToDecimalOnGarbageString_ReturnsNullInsteadOfThrowing()
     {
-        var vm = CompileQuery("SELECT ToDecimal('abc') FROM #test.single()");
-        var table = vm.Run(CancellationToken.None);
-        Assert.IsNotNull(table, "ToDecimal on garbage string does not throw — returns null or default.");
+        using var vm = CompileQuery("SELECT ToDecimal('abc') FROM #test.single()");
+        using var table = vm.Run(CancellationToken.None);
+        Assert.AreEqual(1, table.Count);
+        Assert.IsNull(table[0].ReadValue(0));
     }
 
     [TestMethod]

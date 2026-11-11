@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tests;
 ///     division-by-zero detection, arithmetic overflow detection,
 ///     tautological/contradictory condition warnings, and passthrough for non-constant operands.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ConstantFoldingTests : GenericEntityTestBase
 {
     private static readonly FoldEntity[] SingleEntitySource =

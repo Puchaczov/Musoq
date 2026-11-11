@@ -16,7 +16,7 @@ public sealed partial class ComputedSourceArgumentTests
     public void NullStringDefault_MetadataShouldMatchLegacyConcatenationAtRuntime(bool folding)
     {
         var provider = new CapturingProvider { RequiresMetadataValue = true };
-        using var query = InstanceCreator.CompileForExecution(
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(
             "param(root: string = null) select e.Path from #args.echo($root + '/file') e",
             Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(),
             new CompilationOptions(parallelizationMode: ParallelizationMode.None, useConstantFolding: folding));

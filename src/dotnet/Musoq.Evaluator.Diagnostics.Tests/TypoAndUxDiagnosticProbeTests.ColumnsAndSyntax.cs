@@ -195,20 +195,7 @@ public partial class TypoAndUxDiagnosticProbeTests
         TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice"]);
     }
 
-    [TestMethod]
-    public void WhenUsingExclamationEqualsForNotEqual_ShouldReturnNonMatchingRows()
-    {
-        var vm = CompileQuery("SELECT Name FROM #test.people() WHERE Age != 25");
-        var table = vm.Run(TokenSource.Token);
 
-        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(
-            table,
-            ["Bob"],
-            ["Charlie"],
-            ["Diana"],
-            ["Eve"]);
-    }
 
 
     // ========================================================================

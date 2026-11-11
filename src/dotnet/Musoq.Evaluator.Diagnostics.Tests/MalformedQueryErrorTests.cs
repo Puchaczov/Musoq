@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     produces a clear, informative error with structured diagnostics
 ///     rather than succeeding silently or producing a cryptic internal exception.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class MalformedQueryErrorTests : NegativeTestsBase
 {
     // ========================================================================

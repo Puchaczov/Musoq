@@ -11,8 +11,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void RuntimeV2ExecutionFiles_ShouldStayUnderLineBudgetOrHaveExplicitJustification()
     {
         var executionDirectory = Path.Combine(FindRepositoryRoot(), "src", "dotnet", "Musoq.Evaluator", "IR", "Execution");
-        var files = Directory
-            .EnumerateFiles(executionDirectory, "*.cs")
+        var files = global::Musoq.Tests.Common.RequiredSourceInventory.Files(executionDirectory, "*.cs")
             .Select(file => new SourceFileBudget(Path.GetFileName(file), CountBudgetedLines(file)))
             .ToArray();
 
@@ -47,8 +46,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void EvaluationHelperDomainFiles_ShouldStayUnderRuntimeV2LineBudget()
     {
         var helperDirectory = Path.Combine(FindRepositoryRoot(), "src", "dotnet", "Musoq.Evaluator", "Helpers");
-        var offenders = Directory
-            .EnumerateFiles(helperDirectory, "EvaluationHelper*.cs")
+        var offenders = global::Musoq.Tests.Common.RequiredSourceInventory.Files(helperDirectory, "EvaluationHelper*.cs")
             .Select(file => new SourceFileBudget(Path.GetFileName(file), CountBudgetedLines(file)))
             .Where(file => file.LineCount > RuntimeV2FileLineBudget)
             .Select(file => $"{file.FileName}: {file.LineCount}/{RuntimeV2FileLineBudget}")

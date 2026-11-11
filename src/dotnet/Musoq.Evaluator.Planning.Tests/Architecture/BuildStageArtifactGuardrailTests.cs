@@ -25,8 +25,7 @@ public class BuildStageArtifactGuardrailTests
             repositoryRoot,
             "src", "dotnet", "Musoq.Converter", "Build");
         var source = string.Concat(
-            Directory
-                .EnumerateFiles(artifactsDirectory, "*BuildArtifacts.cs", SearchOption.AllDirectories)
+            global::Musoq.Tests.Common.RequiredSourceInventory.Files(artifactsDirectory, "*BuildArtifacts.cs", SearchOption.AllDirectories)
                 .Select(File.ReadAllText));
 
         var missing = StageArtifactRecords

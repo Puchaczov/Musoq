@@ -44,7 +44,7 @@ public partial class AdditionalNodesTests
         var node = new StarNode(new IntegerNode(1), new IntegerNode(2));
 
         // Act & Assert
-        Assert.IsNotNull(node.Id);
+        Assert.Contains("StarNode", node.Id);
     }
 
     #endregion

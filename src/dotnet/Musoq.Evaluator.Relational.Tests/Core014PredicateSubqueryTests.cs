@@ -9,7 +9,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -38,7 +38,7 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
     {
         const string query = "param(keys: string[]) select a.City from #A.Entities() a where a.City in $keys";
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new string?[] { "WARSAW", null });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new string?[] { "WARSAW", null });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -51,7 +51,7 @@ public sealed class Core014PredicateSubqueryTests : BasicEntityTestBase
     {
         const string query = "param(keys: string[]) select a.City from #A.Entities() a where a.City not in $keys";
         var vm = CreateAndRunVirtualMachine(query, CreateSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new string?[] { "WARSAW", null });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new string?[] { "WARSAW", null });
 
         var table = vm.Run(TestContext.CancellationToken);
 

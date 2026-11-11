@@ -415,6 +415,7 @@ public partial class DescStatementTests
 
         // Note: BasicSchema only has Library methods, no Schema-specific methods
         var libraryRows = allRows.Where(r => r.Source == "Library").ToList();
+        Assert.IsNotEmpty(libraryRows, "DESC FUNCTIONS must expose library methods before checking their grouping.");
 
 
         var categories = libraryRows.Select(r => r.Category).Distinct().ToList();

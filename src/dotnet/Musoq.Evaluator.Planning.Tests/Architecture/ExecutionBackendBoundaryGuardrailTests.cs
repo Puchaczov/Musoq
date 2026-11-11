@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
@@ -350,7 +351,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             repositoryRoot,
             "src",
             "dotnet",
-            "Musoq.Converter.Tests",
+            "Musoq.Converter.Targets.Tests",
             "NonClrTargetPipelinePressureTests.cs"));
         var fakeInputsStart = fakeTargetTests.IndexOf(
             "private sealed record FakeTargetRenderInputs",
@@ -414,13 +415,13 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
     [TestMethod]
     public void CSharpQueryCodeGeneration_ShouldBeOwnedByCSharpClrTarget()
     {
-        var evaluatorTypes = typeof(PhysicalToExecutionPlanBuilder).Assembly.GetTypes();
+        var evaluatorTypes = CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder)).Assembly.GetTypes();
         var evaluatorCodeGenerationTypes = evaluatorTypes
             .Where(type => type.Namespace?.StartsWith(
                 "Musoq.Evaluator.Visitors.CodeGeneration",
                 StringComparison.Ordinal) == true)
             .ToArray();
-        var targetTypes = typeof(CompiledQueryClassRenderer).Assembly.GetTypes();
+        var targetTypes = CompilerContractSymbols.For(typeof(CompiledQueryClassRenderer)).Assembly.GetTypes();
         var targetCodeGenerationTypes = targetTypes
             .Where(type => type.Namespace?.StartsWith(
                 "Musoq.Targets.CSharpClr.Rendering.CodeGeneration",
@@ -432,8 +433,8 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             "Evaluator must not own C# query-rendering helper types: " +
             string.Join(", ", evaluatorCodeGenerationTypes.Select(type => type.FullName)));
         Assert.IsNotEmpty(targetCodeGenerationTypes);
-        Assert.AreSame(typeof(CompiledQueryClassRenderer).Assembly, typeof(ClassEmitter).Assembly);
-        Assert.AreSame(typeof(CompiledQueryClassRenderer).Assembly, typeof(MethodDeclarationHelper).Assembly);
+        Assert.AreSame(CompilerContractSymbols.For(typeof(CompiledQueryClassRenderer)).Assembly, CompilerContractSymbols.For(typeof(ClassEmitter)).Assembly);
+        Assert.AreSame(CompilerContractSymbols.For(typeof(CompiledQueryClassRenderer)).Assembly, CompilerContractSymbols.For(typeof(MethodDeclarationHelper)).Assembly);
     }
 
     [TestMethod]
@@ -759,12 +760,11 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
         var allowedFiles = new[]
         {
             "src/dotnet/Musoq.Targets.CSharpClr/ClrAssemblyExecutableActivator.cs",
-            "src/dotnet/Musoq.Converter.Tests/ClrAssemblyExecutableActivatorTests.cs"
+            "src/dotnet/Musoq.Converter.Targets.Tests/ClrAssemblyExecutableActivatorTests.cs"
         }.ToHashSet(StringComparer.Ordinal);
         var forbiddenConstruction = "new " + "ClrLoadedExecutableArtifact";
 
-        var violations = Directory
-            .GetFiles(Path.Combine(repositoryRoot, "src", "dotnet"), "*.cs", SearchOption.AllDirectories)
+        var violations = global::Musoq.Tests.Common.RequiredSourceInventory.Files(Path.Combine(repositoryRoot, "src", "dotnet"), "*.cs", SearchOption.AllDirectories)
             .Where(path => !RepositorySourceScan.IsGeneratedCodeSample(repositoryRoot, path))
             .Select(path => (Path: path, RelativePath: RepositorySourceScan.ToRelative(repositoryRoot, path)))
             .Where(item => !allowedFiles.Contains(item.RelativePath))
@@ -907,7 +907,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             repositoryRoot,
             "src",
             "dotnet",
-            "Musoq.Converter.Tests",
+            "Musoq.Converter.Targets.Tests",
             "TargetPipelineEndToEndTests.cs"));
         Assert.IsFalse(
             csharpE2eTests.Contains("TargetArtifactPackagingContext", StringComparison.Ordinal),
@@ -916,7 +916,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             repositoryRoot,
             "src",
             "dotnet",
-            "Musoq.Converter.Tests",
+            "Musoq.Converter.Targets.Tests",
             "NonClrTargetPipelinePressureTests.cs"));
         StringAssert.Contains(fakeTargetTests, "FakeNonClrTarget_WhenQueryCallsPluginMethod_ShouldPackagePluginAbi");
         StringAssert.Contains(fakeTargetTests, "CompileTargetPackageWithDiagnostics");
@@ -1561,7 +1561,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             repositoryRoot,
             "src",
             "dotnet",
-            "Musoq.Converter.Tests",
+            "Musoq.Converter.Targets.Tests",
             "NonClrTargetPipelinePressureTests.cs"));
         StringAssert.Contains(pressureTests, "WhenInspectionPhaseIsAbsent_ShouldStillBuildPackage");
         StringAssert.Contains(pressureTests, "WhenTypedResultIsRequested_ShouldBuildTypedExportPackage");
@@ -1572,7 +1572,7 @@ public sealed class ExecutionBackendBoundaryGuardrailTests
             repositoryRoot,
             "src",
             "dotnet",
-            "Musoq.Converter.Tests",
+            "Musoq.Converter.Targets.Tests",
             "ExecutionTargetCatalogOverrideTests.cs"));
         StringAssert.Contains(overrideTests, "WhenOverridesAreDisposedOutOfOrder_ShouldNotResurrectDisposedDescriptor");
         StringAssert.Contains(overrideTests, "WhenCapturedAsyncContextOutlivesRegistration_ShouldNotResolveDisposedDescriptor");

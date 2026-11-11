@@ -17,7 +17,7 @@ public sealed class CompiledTypedQueryRunIsolationTests
     {
         var query = new CompiledTypedQuery<string>(new ObservedTypedRunnable());
         var parameters = new Dictionary<string, object?> { ["value"] = "first" };
-        var options = new TypedQueryRunOptions { TypedParameters= global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters)};
+        var options = new TypedQueryRunOptions { TypedParameters = global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters) };
 
         var rows = query.Run(options);
         parameters["value"] = "second";
@@ -48,10 +48,10 @@ public sealed class CompiledTypedQueryRunIsolationTests
         var query = new CompiledTypedQuery<string>(runnable);
         var firstRows = query.Run(new TypedQueryRunOptions(
             CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["value"] = "first" })));
+global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["value"] = "first" })));
         var secondRows = query.Run(new TypedQueryRunOptions(
             CancellationToken.None,
-global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(new Dictionary<string, object?> { ["value"] = "second" })));
+global::Musoq.Tests.Common.NativeParameterFixture.Capture(new Dictionary<string, object?> { ["value"] = "second" })));
 
         using var firstEnumerator = firstRows.GetEnumerator();
         Assert.IsTrue(firstEnumerator.MoveNext());
@@ -126,7 +126,7 @@ global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evalu
 
         public IEnumerable<string> Run(CancellationToken token)
         {
-            return Run(new TypedQueryRunOptions(token, global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(Parameters), _phaseChanged, _dataSourceProgress));
+            return Run(new TypedQueryRunOptions(token, global::Musoq.Tests.Common.NativeParameterFixture.Capture(Parameters), _phaseChanged, _dataSourceProgress));
         }
 
         public bool WaitForRunCount(int count, TimeSpan timeout)

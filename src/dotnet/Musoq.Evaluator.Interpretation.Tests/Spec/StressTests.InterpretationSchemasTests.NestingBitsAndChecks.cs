@@ -414,7 +414,7 @@ public partial class StressTestsInterpretationSchemasTests
         var vm = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
             schemaProvider, LoggerResolver, TestCompilationOptions);
 
-        Assert.Throws<Exception>(() => _ = vm.Run(CancellationToken.None).Count);
+        Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => _ = vm.Run(CancellationToken.None).Count);
     }
 
     /// <summary>

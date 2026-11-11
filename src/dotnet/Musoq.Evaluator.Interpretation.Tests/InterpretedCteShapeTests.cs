@@ -128,12 +128,12 @@ public sealed class InterpretedCteShapeTests
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)1, (byte)2]);
     }
 
-    private static CompiledQuery Compile(string sql, bool strict = false, byte[]? bytes = null) => InstanceCreator.CompileForExecution(sql,
+    private static CompiledQuery Compile(string sql, bool strict = false, byte[]? bytes = null) => GeneratedExecutionIlInspection.CompileForExecution(sql,
         Guid.NewGuid().ToString(), CreateProvider(bytes ?? [1, 2]), new TestsLoggerResolver(),
         new CompilationOptions(usePrimitiveTypeValidation: strict));
 
     private static ISchemaProvider CreateProvider(byte[] bytes) => new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-        {
-            ["#test"] = [new BinaryEntity { Content = bytes }]
-        });
+    {
+        ["#test"] = [new BinaryEntity { Content = bytes }]
+    });
 }

@@ -10,7 +10,7 @@ using Musoq.Schema;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class LargeDataJoinTests : MultiSchemaTestBase
 {
 

@@ -13,7 +13,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBase
 {
 
@@ -62,7 +62,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         Assert.AreEqual("key", vm.RequiredParameters[0].Name);
         Assert.AreEqual(typeof(string), vm.ParameterDefinitions[0].ParameterType);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -76,7 +76,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(value: string) select $value from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "Ada");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "value", "Ada");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -90,8 +90,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string, Key: string) select $key, $Key from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "lower");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "upper");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "lower");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "upper");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
@@ -230,7 +230,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(key: string = 'KEY_1') select Key, Value from #EnvironmentVariables.All() where Key = $key";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -274,7 +274,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "KEY_1");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -290,8 +290,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -307,7 +307,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -323,7 +323,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string = 'KEY_1') select Key, Value from #Parameterized.Items() where Key = $key";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "Key", "KEY_2");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -339,7 +339,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "100");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "100");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -355,7 +355,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -371,7 +371,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(limit: int = 10) select Key, Value from #Parameterized.Items()";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "10");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "10");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
         AssertRuntimeEnvelope(
@@ -388,7 +388,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(key: string = 'KEY_2') select Key, Value from #Parameterized.Items($key)";
         var vm = CompileWithProvider(query, new ParameterizedEnvironmentSchemaProvider());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -404,7 +404,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, table.Count);
@@ -437,7 +437,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -455,7 +455,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(limit: int) select Key, Value from #Parameterized.Items($limit)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "42");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", "42");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -473,8 +473,8 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
             "param(key: string) select Key, Value from #Parameterized.Items($key)";
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "extra", "ignored");
 
         var ex = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -493,9 +493,9 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         var provider = new ParameterizedEnvironmentSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
         var first = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var second = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
         Assert.AreEqual("KEY_1", first[0].ReadValue(0));
@@ -527,10 +527,10 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
         const string query = "param(key: string) select Key, Value from #EnvironmentVariables.All() where Key = $key";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_1");
         var firstTable = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
         var secondTable = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
 
         Assert.AreEqual(1, firstTable.Count);
@@ -564,7 +564,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
     {
         const string query = "param(limit: int? = null) select $limit from #EnvironmentVariables.All()";
         var vm = CreateAndRunVirtualMachine(query, CreateEnvironmentVariableSources());
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", 42);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", 42);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -634,7 +634,7 @@ public partial class ScriptParameterExecutionTests : EnvironmentVariablesTestBas
 
     private CompiledQuery CompileWithProvider(string query, ISchemaProvider provider)
     {
-        return InstanceCreator.CompileForExecution(
+        return GeneratedExecutionIlInspection.CompileForExecution(
             query,
             Guid.NewGuid().ToString(),
             provider,

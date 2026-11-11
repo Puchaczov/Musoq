@@ -11,7 +11,7 @@ using static Musoq.Evaluator.Tests.Runtime.EvaluationHelperNestedValueTestsFixtu
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class EvaluationHelperNestedValueTests : GenericEntityTestBase
 {
     [TestMethod]

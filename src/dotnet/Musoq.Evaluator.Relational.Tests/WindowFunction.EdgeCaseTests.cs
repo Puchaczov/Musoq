@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
 {
 
@@ -312,11 +312,12 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
             new BasicEntity("Alice"),
             new BasicEntity("Bob"));
 
-        Assert.Throws<Exception>(() =>
+        var failure = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
         {
             var vm = CreateAndRunVirtualMachine(query, sources);
             vm.Run(TestContext.CancellationToken);
         });
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3101_WindowFunctionInFilter, failure.PrimaryEnvelope.Code);
     }
 
     [TestMethod]
@@ -330,11 +331,12 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
             new BasicEntity("Alice"),
             new BasicEntity("Bob"));
 
-        Assert.Throws<Exception>(() =>
+        var failure = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
         {
             var vm = CreateAndRunVirtualMachine(query, sources);
             vm.Run(TestContext.CancellationToken);
         });
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3100_NestedWindowFunction, failure.PrimaryEnvelope.Code);
     }
 
     [TestMethod]
@@ -346,10 +348,11 @@ public class WindowFunctionEdgeCaseTests : BasicEntityTestBase
             new BasicEntity("Alice"),
             new BasicEntity("Bob"));
 
-        Assert.Throws<Exception>(() =>
+        var failure = Assert.Throws<Musoq.Converter.Exceptions.MusoqQueryException>(() =>
         {
             var vm = CreateAndRunVirtualMachine(query, sources);
             vm.Run(TestContext.CancellationToken);
         });
+        Assert.AreEqual(Musoq.Parser.Diagnostics.DiagnosticCode.MQ3088_NoMatchingCallableOverload, failure.PrimaryEnvelope.Code);
     }
 }

@@ -120,7 +120,7 @@ public class ParserNodesExtendedSchemaAndSetTests
         var node = new GroupSelectNode(fields);
 
         var str = node.ToString();
-        Assert.IsNotNull(str);
+        Assert.AreEqual("select", str.Trim());
     }
 
     #endregion
@@ -149,7 +149,8 @@ public class ParserNodesExtendedSchemaAndSetTests
         var node = new SingleSetNode(query);
 
         var str = node.ToString();
-        Assert.IsNotNull(str);
+        Assert.Contains("select", str);
+        Assert.Contains("system.dual() d", str);
     }
 
     #endregion

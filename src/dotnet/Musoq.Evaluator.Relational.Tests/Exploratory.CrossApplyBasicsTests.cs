@@ -5,5 +5,5 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Exploratory tests: Cross Apply basics (Explorations 1-20).
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ExploratoryCrossApplyBasicsTests : ExploratoryEvaluatorTestsBase;

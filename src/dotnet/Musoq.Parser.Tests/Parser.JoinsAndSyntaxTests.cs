@@ -21,7 +21,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -32,7 +32,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -43,7 +43,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -54,7 +54,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -65,7 +65,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -76,7 +76,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -88,7 +88,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -100,7 +100,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -112,7 +112,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -124,7 +124,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -135,7 +135,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -146,7 +146,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -157,7 +157,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -168,7 +168,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -179,7 +179,7 @@ public class ParserJoinsAndSyntaxTests
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -231,7 +231,7 @@ full outer join #some.b() s2 on s1.col = s2.col";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -253,7 +253,7 @@ full outer join #some.b() s2 on s1.col = s2.col";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -264,7 +264,7 @@ full outer join #some.b() s2 on s1.col = s2.col";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -275,7 +275,7 @@ full outer join #some.b() s2 on s1.col = s2.col";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -287,7 +287,7 @@ full outer join #some.b() s2 on s1.col = s2.col";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]
@@ -391,7 +391,7 @@ full outer join #some.b() s2 on s1.col = s2.col";
         var lexer = new Lexer(query, true);
         var parser = new Parser(lexer);
 
-        parser.ComposeAll();
+        ParserContractAssertions.AssertCompleteScript(parser.ComposeAll(), lexer);
     }
 
     [TestMethod]

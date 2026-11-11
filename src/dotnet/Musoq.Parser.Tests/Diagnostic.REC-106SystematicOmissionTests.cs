@@ -71,15 +71,17 @@ public sealed class DiagnosticREC106SystematicOmissionTests
     [TestMethod]
     public void OptionalTokenControls_ShouldRemainValid()
     {
-        foreach (var candidate in CandidateCases().Where(static candidate => candidate.IsValidationControl))
         {
-            var seed = ParseWithDiagnostics(candidate.SeedQuery);
-            var result = ParseWithDiagnostics(candidate.ResultQuery);
+            var selectedCases = CandidateCases().Where(static candidate => candidate.IsValidationControl).ToArray(); Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases."); foreach (var candidate in selectedCases)
+            {
+                var seed = ParseWithDiagnostics(candidate.SeedQuery);
+                var result = ParseWithDiagnostics(candidate.ResultQuery);
 
-            Assert.IsTrue(seed.Success, $"{candidate.CaseId}: control seed failed. {seed.FormatDiagnostics()}");
-            Assert.IsEmpty(seed.Diagnostics, $"{candidate.CaseId}: control seed produced diagnostics.");
-            Assert.IsTrue(result.Success, $"{candidate.CaseId}: control result failed. {result.FormatDiagnostics()}");
-            Assert.IsEmpty(result.Diagnostics, $"{candidate.CaseId}: control result produced diagnostics.");
+                Assert.IsTrue(seed.Success, $"{candidate.CaseId}: control seed failed. {seed.FormatDiagnostics()}");
+                Assert.IsEmpty(seed.Diagnostics, $"{candidate.CaseId}: control seed produced diagnostics.");
+                Assert.IsTrue(result.Success, $"{candidate.CaseId}: control result failed. {result.FormatDiagnostics()}");
+                Assert.IsEmpty(result.Diagnostics, $"{candidate.CaseId}: control result produced diagnostics.");
+            }
         }
     }
 

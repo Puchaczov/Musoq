@@ -30,8 +30,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void CorrelatedCompositeRangeSample_WhenCompiledForExecution_ShouldRun()
     {
-        var table = CompileSampleForExecution(CorrelatedCompositeRangeMarkSampleFileName).Run();
+        using var query = CompileSampleForExecution(CorrelatedCompositeRangeMarkSampleFileName);
+        using var table = query.Run();
 
-        Assert.IsNotNull(table);
+        Assert.AreEqual(0, table.Count, "The sample fixture has no outer rows; force deferred execution.");
     }
 }

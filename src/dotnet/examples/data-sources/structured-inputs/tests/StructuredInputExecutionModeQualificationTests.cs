@@ -105,7 +105,7 @@ public sealed class StructuredInputExecutionModeQualificationTests
                         }
                     }
                 };
-                return compiled.Run(new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters, compiled.ParameterDefinitions))).ToArray();
+                return compiled.Run(new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters, compiled.ParameterDefinitions))).ToArray();
             })));
 
         foreach (var (result, index) in results.GetAwaiter().GetResult().Select((result, index) => (result, index)))

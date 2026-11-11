@@ -10,7 +10,7 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class GeneratedPredicateTransferTests : BasicEntityTestBase
 {
     private sealed record Expression(int Kind, int Atom, Expression? Left = null, Expression? Right = null)

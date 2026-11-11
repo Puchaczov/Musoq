@@ -6,7 +6,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Exploratory tests: Complex patterns (Explorations 51-90).
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ExploratoryComplexPatternsTests : ExploratoryEvaluatorTestsBase
 {
 

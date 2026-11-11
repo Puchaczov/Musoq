@@ -27,11 +27,8 @@ public partial class TextInterpretationTests
         var interpreter = CreateAndCompileInterpreter("PatternRecord",
             CreateTextField("Number", TextFieldType.Pattern, @"\d+"));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<ParseException>(
             () => InvokeParse(interpreter, "abc"));
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<ParseException>(wrapper.InnerException);
-        var exception = (ParseException)wrapper.InnerException!;
         Assert.AreEqual(ParseErrorCode.PatternMismatch, exception.ErrorCode);
         Assert.AreEqual("Number", exception.FieldName);
         Assert.AreEqual(0, exception.Position);
@@ -56,11 +53,8 @@ public partial class TextInterpretationTests
         var interpreter = CreateAndCompileInterpreter("LiteralRecord",
             CreateTextField("Marker", TextFieldType.Literal, "OK"));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<ParseException>(
             () => InvokeParse(interpreter, "ok"));
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<ParseException>(wrapper.InnerException);
-        var exception = (ParseException)wrapper.InnerException!;
         Assert.AreEqual(ParseErrorCode.LiteralMismatch, exception.ErrorCode);
         Assert.AreEqual("Marker", exception.FieldName);
         Assert.AreEqual(0, exception.Position);

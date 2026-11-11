@@ -10,7 +10,7 @@ using Musoq.Evaluator.Tests.Schema.SourcePlanning;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class SourcePredicateCapabilityE2ETests : BasicEntityTestBase
 {
     [TestMethod]

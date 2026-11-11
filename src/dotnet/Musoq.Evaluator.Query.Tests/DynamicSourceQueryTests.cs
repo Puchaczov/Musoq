@@ -9,7 +9,7 @@ using Musoq.Evaluator.Tests.Schema.Dynamic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class DynamicSourceQueryTests : DynamicQueryTestsBase
 {
     private const string SyntheticFullPath = "example.txt";

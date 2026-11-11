@@ -49,7 +49,8 @@ public class BinaryInterpretationPrimitiveTests : BinaryInterpretationTestBase
         var data = new byte[] { 0x01, 0x02 };
 
 
-        Assert.Throws<Exception>(() => InvokeInterpret(interpreter, data));
+        var failure = Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => InvokeInterpret(interpreter, data));
+        Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.InsufficientData, failure.ErrorCode);
     }
 
     [TestMethod]

@@ -67,34 +67,29 @@ public partial class CompilationPipelineErrorTests
     [TestMethod]
     public void Stage3a_MissingSchemaPrefix()
     {
-        // Arrange - A.Entities() without # prefix
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM A.Entities()";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Query succeeds because parser interprets "A.Entities()" differently
-        // Without #, it's not recognized as a schema reference - may be treated as CTE reference
-        DocumentParserBehavior(result,
-            "A.Entities() without # prefix: may succeed if interpreted as CTE or fail with unknown schema",
-            result.HasErrors);
+
+        Assert.IsTrue(result.IsParsed);
+        AssertNoErrors(result);
     }
 
     [TestMethod]
     public void Stage3a_InvalidSchemaName_EmptyAfterHash()
     {
-        // Arrange - #.Entities() - edge case with just dot after hash
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #.Entities()";
 
-        // Act
-        var result = analyzer.ValidateSyntax(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert - Document lexer behavior for edge case
-        DocumentParserBehavior(result,
-            "#. may be parsed as schema '.' or as syntax error",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ3010_UnknownSchema, nameof(Stage3a_InvalidSchemaName_EmptyAfterHash));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(query.IndexOf("#", System.StringComparison.Ordinal), 1), diagnostic.Span);
     }
 
     [TestMethod]
@@ -145,17 +140,14 @@ public partial class CompilationPipelineErrorTests
     [TestMethod]
     public void Stage3b_TypeMismatch_StringEqualsNumber()
     {
-        // Arrange - WHERE Name = 42 (string vs int comparison)
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name = 42";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - May allow comparison or produce MQ3005_TypeMismatch
-        DocumentParserBehavior(result,
-            "string = int: may succeed (implicit conversion) or MQ3005_TypeMismatch",
-            result.HasErrors);
+        Assert.IsTrue(result.IsParsed);
+        AssertNoErrors(result);
     }
 
     [TestMethod]

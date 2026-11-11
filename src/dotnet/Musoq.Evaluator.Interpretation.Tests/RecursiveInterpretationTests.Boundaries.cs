@@ -15,7 +15,7 @@ public sealed partial class RecursiveInterpretationTests
     {
         var sql = Query(false, Slice).Replace("select f.Content, 0, 0 from #test.files() f",
             "select FromHexToBytes('02491302172B023D41024F53'), 0, 0 from values { (Dummy: 'x') } d", StringComparison.Ordinal);
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), new Components.TestSchemaProvider(),
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), new Components.TestSchemaProvider(),
             new Components.TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [0, 0], [0, 6], [6, 6]);
@@ -54,7 +54,7 @@ public sealed partial class RecursiveInterpretationTests
             ["#test"] = [new() { Name = "a", Content = [8, 0, 0, 0, 42, 0, 0, 0, 8, 0, 0, 0, 43, 0, 0, 0] },
                 new() { Name = "b", Content = [8, 0, 0, 0, 99, 0, 0, 0, 8, 0, 0, 0, 100, 0, 0, 0] }]
         });
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider,
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider,
             new Components.TestsLoggerResolver(), new CompilationOptions(usePrimitiveTypeValidation: false));
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table,
@@ -160,7 +160,7 @@ public sealed partial class RecursiveInterpretationTests
             [new Components.BinaryEntity { Content = [1, 2, 3, 4] }]);
         var options = new CompilationOptions(ParallelizationMode.None, usePrimitiveTypeValidation: false)
             .WithInterpretationLimits(new(maximum));
-        return InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new Components.TestsLoggerResolver(), options);
+        return GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new Components.TestsLoggerResolver(), options);
     }
 
     [TestMethod]

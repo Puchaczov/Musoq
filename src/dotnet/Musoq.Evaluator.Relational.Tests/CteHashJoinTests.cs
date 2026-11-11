@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Issue: JoinInMemoryWithSourceTableFromNode (used for CTE joins) was not using
 ///     hash join or merge sort join, falling back to O(n²) nested loop joins.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class CteHashJoinTests : BasicEntityTestBase
 {
 

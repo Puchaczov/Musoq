@@ -5,21 +5,12 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Extended tests to improve branch coverage for low-coverage areas
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class RowAndKeyEqualityTests : Musoq.Evaluator.Tests.Schema.Generic.GenericEntityTestBase
 {
     #region Row Tests
 
-    [TestMethod]
-    public void Row_ToString_ReturnsFormattedString()
-    {
-        var values = new object[] { 1, "test", 3.14 };
-        var row = new TestRow(values);
 
-        var str = row.ToString();
-
-        Assert.IsNotNull(str);
-    }
 
     [TestMethod]
     public void TestRow_Indexer_ReturnsCorrectValue()

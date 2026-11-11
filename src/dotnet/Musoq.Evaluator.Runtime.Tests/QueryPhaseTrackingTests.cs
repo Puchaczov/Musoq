@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class QueryPhaseTrackingTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -148,7 +148,8 @@ public class QueryPhaseTrackingTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         vm.PhaseChanged += (_, args) => phases.Add(args.Phase);
 
-        Assert.Throws<Exception>(() => _ = vm.Run().Count);
+        var exception = Assert.Throws<global::Musoq.Evaluator.Exceptions.QueryExecutionException>(() => _ = vm.Run().Count);
+        Assert.IsInstanceOfType<global::Musoq.Evaluator.Tests.Exceptions.MethodCallThrownException>(exception.GetBaseException());
 
         Assert.AreEqual(1, phases.Count(phase => phase == QueryPhase.Begin));
         Assert.AreEqual(1, phases.Count(phase => phase == QueryPhase.End));

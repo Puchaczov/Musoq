@@ -8,7 +8,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class InvalidQueryOutputTypeTests : BasicEntityTestBase
 {
     private CompiledQuery CreateAndRunVirtualMachineWithValidation<T>(
@@ -275,7 +275,7 @@ select Self from cte2";
     public void WhenSelectDateTimeType_ShouldSucceed()
     {
         var query = "select Time from #A.Entities()";
-        var now = DateTime.Now;
+        var now = new DateTime(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc);
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
             { "#A", [new BasicEntity(now)] }

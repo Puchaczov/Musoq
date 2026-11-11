@@ -11,7 +11,7 @@ using PlanProperties = Musoq.Evaluator.IR.Planning.PlanProperties;
 
 namespace Musoq.Evaluator.Tests.IR;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class RuleBasedOptimizationTraceCoverageTests : BasicEntityTestBase
 {
     [TestMethod]

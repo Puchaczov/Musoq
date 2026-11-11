@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
+using Musoq.Converter.Build;
 using Musoq.Evaluator.Tests.Components;
 using Musoq.Evaluator.Tests.Schema.LibraryExecution;
 using Musoq.Plugins;
@@ -103,7 +104,11 @@ public sealed class StringPredicateEvaluationTests
     public void ComputedPredicate_ShouldHaveTypedGeneratedExecutionWithoutBoxing()
     {
         const string sql = "select Contains(ToString(1), '1') as P from #schema.first() d";
-        using var query = Compile(sql);
+        var logger = new TestsLoggerResolver();
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql,
+            Guid.NewGuid().ToString(), CreateProvider(), logger,
+            () => new CreateTree(new TransformTree(new TurnQueryIntoRunnableCode(null), logger)),
+            items => items.CompilationOptions = new CompilationOptions());
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [true]);
         Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query)
@@ -143,7 +148,7 @@ public sealed class StringPredicateEvaluationTests
         Assert.DoesNotContain("new object[", inspection.GeneratedCSharpCode);
     }
 
-    private static CompiledQuery Compile(string sql) => InstanceCreator.CompileForExecution(sql,
+    private static CompiledQuery Compile(string sql) => GeneratedExecutionIlInspection.CompileForExecution(sql,
         Guid.NewGuid().ToString(), CreateProvider(), new TestsLoggerResolver(), new CompilationOptions());
 
     private static ISchemaProvider CreateProvider() =>

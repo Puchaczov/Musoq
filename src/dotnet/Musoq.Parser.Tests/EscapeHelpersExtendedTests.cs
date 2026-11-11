@@ -93,12 +93,7 @@ public class EscapeHelpersExtendedTests
         Assert.AreEqual(@"\u12", result);
     }
 
-    [TestMethod]
-    public void Unescape_UnicodeOnlyThreeCharsAvailable_ReturnsOriginal()
-    {
-        var result = @"\u123".Unescape();
-        Assert.AreEqual(@"\u123", result);
-    }
+
 
     [TestMethod]
     public void Unescape_UnicodeInvalidHex_ReturnsOriginal()

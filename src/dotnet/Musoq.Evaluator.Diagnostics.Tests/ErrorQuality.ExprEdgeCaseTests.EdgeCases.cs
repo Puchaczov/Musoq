@@ -170,27 +170,18 @@ public partial class ErrorQualityExprEdgeCaseTests
     [TestMethod]
     public void E_EDGE_16_StringWithEscapedQuotes()
     {
-        // Arrange — Escaped quotes inside string using SQL-standard '' syntax
-        var analyzer = CreateAnalyzer();
-
-        // Musoq's lexer does not support the SQL-standard '' (double-single-quote)
-        // escape mechanism. The lexer treats adjacent quotes as separate string tokens.
-        // For example, 'it''s a test' becomes 'it' + 's a test' (two separate tokens).
-        // Users should use backslash escaping (e.g., 'it\'s a test') for embedded quotes.
-        // The parser's error recovery behavior for these malformed queries is non-deterministic
-        // and may or may not surface visible errors depending on token arrangement.
-        var query1 = "SELECT 'it''s a test' FROM #A.Entities()";
-        var query2 = "SELECT 'double ''quotes'' inside' FROM #A.Entities()";
-
-        // Act — use ValidateSyntax for parse-level validation
-        var result1 = analyzer.ValidateSyntax(query1);
-        var result2 = analyzer.ValidateSyntax(query2);
-
-        // Assert — Both queries use SQL-standard '' escape which Musoq doesn't support.
-        // The parser may or may not produce errors depending on error recovery behavior.
-        // We verify the queries are processed without crashing (result is not null).
-        Assert.IsNotNull(result1, "Analysis result for query1 should not be null");
-        Assert.IsNotNull(result2, "Analysis result for query2 should not be null");
+        const string query1 = @"SELECT 'it\'s a test' AS Value FROM #A.Entities()";
+        const string query2 = @"SELECT 'double \'quotes\' inside' AS Value FROM #A.Entities()";
+        using var first = Musoq.Converter.InstanceCreator.CompileForExecution(query1,
+            System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var firstTable = first.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(firstTable, ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(firstTable, ["it's a test"]);
+        using var second = Musoq.Converter.InstanceCreator.CompileForExecution(query2,
+            System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var secondTable = second.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(secondTable, ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(secondTable, ["double 'quotes' inside"]);
     }
 
     [TestMethod]

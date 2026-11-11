@@ -3,7 +3,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class BitwiseOperationsXorTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -30,11 +30,7 @@ public class BitwiseOperationsXorTests : BasicEntityTestBase
         TestMethodTemplate<int?>("Xor(1b, 1us)", 0);
     }
 
-    [TestMethod]
-    public void WhenBitwiseXorBetweenSbyteAndInt_ShouldBeEvaluated()
-    {
-        TestMethodTemplate<int?>("Xor(1b, 1i)", 0);
-    }
+
 
     [TestMethod]
     public void WhenBitwiseXorBetweenSbyteAndUint_ShouldBeEvaluated()

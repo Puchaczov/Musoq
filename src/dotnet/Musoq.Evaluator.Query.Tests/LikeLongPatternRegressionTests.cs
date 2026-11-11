@@ -4,7 +4,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 [DoNotParallelize]
 public sealed class LikeLongPatternRegressionTests : BasicEntityTestBase
 {

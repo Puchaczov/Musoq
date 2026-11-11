@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -20,21 +21,21 @@ public sealed class StatementLoweringOwnershipTests
     [TestMethod]
     public void DomainServices_ShouldBeTopLevelAndUseTypedOperations()
     {
-        Assert.IsFalse(typeof(PipelineLoweringService).IsNested);
-        Assert.IsFalse(typeof(MultiStatementLoweringService).IsNested);
-        Assert.IsFalse(typeof(DescLoweringService).IsNested);
-        Assert.AreEqual(typeof(IPipelineLoweringOperations), SingleParameter(typeof(PipelineLoweringService)));
-        Assert.AreEqual(typeof(IMultiStatementLoweringOperations), SingleParameter(typeof(MultiStatementLoweringService)));
-        Assert.AreEqual(typeof(IDescLoweringOperations), SingleParameter(typeof(DescLoweringService)));
+        Assert.IsFalse(CompilerContractSymbols.For(typeof(PipelineLoweringService)).IsNested);
+        Assert.IsFalse(CompilerContractSymbols.For(typeof(MultiStatementLoweringService)).IsNested);
+        Assert.IsFalse(CompilerContractSymbols.For(typeof(DescLoweringService)).IsNested);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IPipelineLoweringOperations)), SingleParameter(CompilerContractSymbols.For(typeof(PipelineLoweringService)))));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IMultiStatementLoweringOperations)), SingleParameter(CompilerContractSymbols.For(typeof(MultiStatementLoweringService)))));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(IDescLoweringOperations)), SingleParameter(CompilerContractSymbols.For(typeof(DescLoweringService)))));
     }
 
     private static void AssertServiceParameter<TLowerer, TService>()
     {
-        var parameter = typeof(TLowerer).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+        var parameter = CompilerContractSymbols.For(typeof(TLowerer)).GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
             .Single().GetParameters().Single();
-        Assert.AreEqual(typeof(TService), parameter.ParameterType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(TService)), parameter.ParameterType));
     }
 
-    private static Type SingleParameter(Type type) => type.GetConstructors(
+    private static ITypeSymbol SingleParameter(ITypeSymbol type) => type.GetConstructors(
         BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Single().GetParameters().Single().ParameterType;
 }

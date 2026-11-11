@@ -452,7 +452,7 @@ public sealed class DiagnosticREC112CallableDecisionTreeTests
                 "metadata-less" => [new SchemaMethodInfo("source", SchemaConstructorInfo.Empty())],
                 "mismatched" => [Method(typeof(MismatchedTable), ("value", typeof(string)))],
                 "hidden" => [new SchemaMethodInfo("source", new SchemaConstructorInfo(
-                    typeof(HiddenContextTable).GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(),
+                    typeof(HiddenContextTable).GetConstructors(BindingFlags.Public | BindingFlags.Instance).Single(),
                     false, ("value", typeof(int))))],
                 "optional" => [Method(typeof(OptionalTable), ("value", typeof(int)), ("other", typeof(int)))],
                 "optional-text" => [Method(typeof(OptionalTextTable), ("first", typeof(string)), ("second", typeof(int)))],
@@ -490,7 +490,7 @@ public sealed class DiagnosticREC112CallableDecisionTreeTests
         private static SchemaMethodInfo Method(Type tableType, params (string Name, Type Type)[] arguments)
         {
             var constructor = tableType
-                .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
                 .Single(candidate => candidate.GetParameters().Length == arguments.Length);
             return new SchemaMethodInfo("source", new SchemaConstructorInfo(constructor, false, arguments));
         }

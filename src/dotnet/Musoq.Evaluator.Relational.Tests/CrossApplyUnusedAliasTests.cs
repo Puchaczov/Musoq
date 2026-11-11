@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Tests for reproducing issue where cross apply alias is defined but not used anywhere.
 ///     This can cause a "key not found in dictionary" exception.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class CrossApplyUnusedAliasTests : GenericEntityTestBase
 {
 

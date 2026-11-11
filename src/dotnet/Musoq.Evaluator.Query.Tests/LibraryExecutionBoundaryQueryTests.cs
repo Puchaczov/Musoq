@@ -16,7 +16,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionBoundaryQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class LibraryExecutionBoundaryQueryTests : GenericEntityTestBase
 {
     [TestMethod]

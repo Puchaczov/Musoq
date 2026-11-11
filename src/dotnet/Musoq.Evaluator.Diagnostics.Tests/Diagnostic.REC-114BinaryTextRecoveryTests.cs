@@ -530,7 +530,7 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         Assert.IsFalse(string.IsNullOrWhiteSpace(diagnostic.Message), candidate.Id);
     }
 
-    private static void AssertBinaryRuntimeCandidate(RecoveryCandidate candidate)
+    private void AssertBinaryRuntimeCandidate(RecoveryCandidate candidate)
     {
         var interpreter = CompileBinaryCandidate(candidate);
         _ = InvokeInterpret(interpreter, candidate.SeedBytes!);
@@ -550,14 +550,14 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         Assert.IsFalse(exception.Message.Contains("MQ", StringComparison.Ordinal), candidate.Id);
     }
 
-    private static void AssertTextRuntimeCandidate(RecoveryCandidate candidate)
+    private void AssertTextRuntimeCandidate(RecoveryCandidate candidate)
     {
         var interpreter = CompileTextCandidate(candidate);
-        _ = InvokeParse(interpreter, candidate.SeedText!);
+        InvokeParse(interpreter, candidate.SeedText!);
 
         if (candidate.ExpectedRuntimeCode is null)
         {
-            _ = InvokeParse(interpreter, candidate.Text!);
+            InvokeParse(interpreter, candidate.Text!);
             return;
         }
 
@@ -570,7 +570,7 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         Assert.IsFalse(exception.Message.Contains("MQ", StringComparison.Ordinal), candidate.Id);
     }
 
-    private static object CompileBinaryCandidate(RecoveryCandidate candidate)
+    private object CompileBinaryCandidate(RecoveryCandidate candidate)
     {
         if (!string.IsNullOrEmpty(candidate.FixtureKey))
             return CompileInterpreter(CreateFixtureRegistry(candidate.FixtureKey), candidate.SchemaName);
@@ -582,7 +582,7 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         return CompileInterpreter(registry, candidate.SchemaName);
     }
 
-    private static object CompileTextCandidate(RecoveryCandidate candidate)
+    private object CompileTextCandidate(RecoveryCandidate candidate)
     {
         if (!string.IsNullOrEmpty(candidate.FixtureKey))
             return CompileTextInterpreter(CreateTextFixtureRegistry(candidate.FixtureKey), candidate.SchemaName);
@@ -609,17 +609,10 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
         return registry;
     }
 
-    private static object CompileTextInterpreter(SchemaRegistry registry, string schemaName)
+    private object CompileTextInterpreter(SchemaRegistry registry, string schemaName)
     {
         var code = new InterpreterCodeGenerator(registry).GenerateAll();
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"REC114_{Guid.NewGuid():N}",
-            code);
-
-        Assert.IsTrue(compilationUnit.Compile(), string.Join(Environment.NewLine, compilationUnit.GetErrorMessages()));
-        var interpreterType = compilationUnit.GetInterpreterType(schemaName);
-        Assert.IsNotNull(interpreterType, schemaName);
-        return Activator.CreateInstance(interpreterType)!;
+        return OwnFixture(new CompiledTextFixture(code, schemaName));
     }
 
     private static SchemaRegistry CreateFixtureRegistry(string fixtureKey)
@@ -687,26 +680,16 @@ public sealed class DiagnosticREC114BinaryTextRecoveryTests : BinaryInterpretati
 
     private static RuntimeParseException InvokeBinaryFailure(object interpreter, byte[] data)
     {
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(() => InvokeInterpret(interpreter, data));
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<RuntimeParseException>(wrapper.InnerException);
-        return (RuntimeParseException)wrapper.InnerException!;
+        return Assert.ThrowsExactly<RuntimeParseException>(() => InvokeInterpret(interpreter, data));
     }
 
     private static RuntimeParseException InvokeTextFailure(object interpreter, string data)
     {
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(() => InvokeParse(interpreter, data));
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<RuntimeParseException>(wrapper.InnerException);
-        return (RuntimeParseException)wrapper.InnerException!;
+        return Assert.ThrowsExactly<RuntimeParseException>(() => InvokeParse(interpreter, data));
     }
 
-    private static object InvokeParse(object interpreter, string data)
-    {
-        var method = interpreter.GetType().GetMethod("Parse", [typeof(string)]);
-        Assert.IsNotNull(method);
-        return method.Invoke(interpreter, [data])!;
-    }
+    private static void InvokeParse(object interpreter, string data) =>
+        ((ICompiledTextFixture)interpreter).Parse(data);
 
     private static string ParseErrorName(RuntimeParseException exception)
     {

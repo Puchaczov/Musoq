@@ -7,13 +7,9 @@ using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class TypedParallelRowsTests
 {
-    static TypedParallelRowsTests()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
 
     [TestMethod]
     public void ProjectValuesParallel_ShouldPreserveDeterministicShardOrder()

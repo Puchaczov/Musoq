@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Integration tests that generate text interpreter code and actually parse text data.
 /// </summary>
 [TestClass]
-public partial class TextInterpretationTests
+public partial class TextInterpretationTests : BinaryInterpretationTestBase
 {
     #region Rest Field Tests
 
@@ -414,48 +414,13 @@ public partial class TextInterpretationTests
         registry.Register(schemaName, schema);
 
 
-        var generator = new InterpreterCodeGenerator(registry);
-        var code = generator.GenerateAll();
-
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"TestAssembly_{Guid.NewGuid():N}",
-            code);
-
-        var success = compilationUnit.Compile();
-        if (!success)
-        {
-            var errors = string.Join(Environment.NewLine, compilationUnit.GetErrorMessages());
-            Assert.Fail($"Compilation failed: {errors}");
-        }
-
-
-        var interpreterType = compilationUnit.GetInterpreterType(schemaName);
-        Assert.IsNotNull(interpreterType, $"Interpreter type for '{schemaName}' not found");
-
-        return Activator.CreateInstance(interpreterType)!;
+        return CompileFromRegistry(registry, schemaName);
     }
 
-    private object InvokeParse(object interpreter, string data)
-    {
-        var parseMethod = interpreter.GetType().GetMethod("Parse", [typeof(string)]);
-        if (parseMethod == null) throw new InvalidOperationException("Parse(string) method not found on interpreter");
+    private static object InvokeParse(object interpreter, string data) => ((ICompiledTextFixture)interpreter).Parse(data);
 
-        return parseMethod.Invoke(interpreter, [data])!;
-    }
-
-    private T GetPropertyValue<T>(object obj, string propertyName)
-    {
-        var property = obj.GetType().GetProperty(propertyName);
-        if (property == null) Assert.Fail($"Property '{propertyName}' not found on type {obj.GetType().Name}");
-        return (T)property.GetValue(obj)!;
-    }
-
-    private T? GetNullablePropertyValue<T>(object obj, string propertyName) where T : class
-    {
-        var property = obj.GetType().GetProperty(propertyName);
-        if (property == null) Assert.Fail($"Property '{propertyName}' not found on type {obj.GetType().Name}");
-        return (T?)property.GetValue(obj);
-    }
+    private static T? GetNullablePropertyValue<T>(object obj, string propertyName) where T : class =>
+        (T?)((System.Collections.Generic.IReadOnlyDictionary<string, object?>)obj)[propertyName];
 
     private static TextFieldDefinitionNode CreateTextField(
         string name,

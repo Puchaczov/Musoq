@@ -7,7 +7,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class LibraryExecutionCoverageQueryTests : GenericEntityTestBase
 {
 

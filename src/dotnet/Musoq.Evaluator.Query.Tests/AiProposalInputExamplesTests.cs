@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 /// <summary>Checks implemented SQL inputs used by the AI proposal; no inference is simulated.</summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class AiProposalInputExamplesTests : BasicEntityTestBase
 {
     [TestMethod]

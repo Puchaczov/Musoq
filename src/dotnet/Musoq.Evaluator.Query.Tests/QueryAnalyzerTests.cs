@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Parser.Diagnostics;
@@ -10,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Tests for the QueryAnalyzer class that provides LSP-friendly query analysis.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class QueryAnalyzerTests : BasicEntityTestBase
 {
     #region Setup
@@ -281,14 +282,8 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        if (result.HasErrors)
-        {
-            var errors = result.Errors.ToList();
-
-            Assert.IsTrue(errors.All(e => e.Severity == DiagnosticSeverity.Error),
-                "Errors collection should only contain error-level diagnostics");
-        }
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3001_UnknownColumn, query);
+        Assert.IsFalse(result.IsSuccess);
     }
 
     [TestMethod]
@@ -302,8 +297,8 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        if (result.HasErrors) Assert.IsFalse(result.IsSuccess, "IsSuccess should be false when there are errors");
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3001_UnknownColumn, query);
+        Assert.IsFalse(result.IsSuccess);
     }
 
     [TestMethod]
@@ -319,7 +314,8 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         var result = analyzer.Analyze(query);
 
         // Assert
-        if (!result.HasErrors) Assert.IsTrue(result.IsSuccess, "IsSuccess should be true when there are no errors");
+        Assert.IsFalse(result.HasErrors);
+        Assert.IsTrue(result.IsSuccess);
     }
 
     #endregion
@@ -401,16 +397,9 @@ public class QueryAnalyzerTests : BasicEntityTestBase
     [TestMethod]
     public void QueryAnalyzer_Constructor_ThrowsOnNullSchemaProvider()
     {
-        // Act & Assert
-        try
-        {
-            _ = new QueryAnalyzer(null!);
-            Assert.Fail("Expected ArgumentNullException was not thrown");
-        }
-        catch (ArgumentNullException)
-        {
-            // This is the expected behavior
-        }
+        var failure = Assert.ThrowsExactly<ArgumentNullException>(() => new QueryAnalyzer(null!));
+
+        Assert.AreEqual("schemaProvider", failure.ParamName);
     }
 
     [TestMethod]
@@ -420,21 +409,31 @@ public class QueryAnalyzerTests : BasicEntityTestBase
         var schemaProvider = CreateSchemaProvider();
         var analyzer = new QueryAnalyzer(schemaProvider);
 
-        // Act & Assert - should either throw or return error result
-        try
-        {
-            var result = analyzer.Analyze(null!);
-            // If it doesn't throw, it should report an error
-            Assert.IsNotEmpty(result.Errors, "Null query should result in an error diagnostic");
-        }
-        catch (ArgumentNullException)
-        {
-            // This is also acceptable behavior
-        }
-        catch (NullReferenceException)
-        {
-            // This is also acceptable behavior for null input
-        }
+        var failure = Assert.ThrowsExactly<ArgumentNullException>(() => analyzer.Analyze(null!));
+
+        Assert.AreEqual("query", failure.ParamName);
+    }
+
+    [TestMethod]
+    public void Analyze_NullQueryWithCancellationToken_ThrowsArgumentNullException()
+    {
+        var analyzer = new QueryAnalyzer(CreateSchemaProvider());
+
+        var failure = Assert.ThrowsExactly<ArgumentNullException>(() => analyzer.Analyze(null!, CancellationToken.None));
+
+        Assert.AreEqual("query", failure.ParamName);
+    }
+
+    [TestMethod]
+    public void Analyze_CancelledNullQuery_PreservesCancellationPrecedence()
+    {
+        var analyzer = new QueryAnalyzer(CreateSchemaProvider());
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var failure = Assert.ThrowsExactly<OperationCanceledException>(() => analyzer.Analyze(null!, cancellation.Token));
+
+        Assert.AreEqual(cancellation.Token, failure.CancellationToken);
     }
 
     #endregion

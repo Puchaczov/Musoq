@@ -13,7 +13,7 @@ namespace Musoq.Evaluator.Tests;
 /// The cases keep compile-time impossibility separate from data-dependent
 /// execution failures and assert the public boundary before any repair decision.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class REC129RuntimeClassificationTests : BasicEntityTestBase
 {
     [TestMethod]

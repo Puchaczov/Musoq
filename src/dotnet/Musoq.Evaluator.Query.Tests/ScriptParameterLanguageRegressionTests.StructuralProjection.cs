@@ -73,7 +73,7 @@ public partial class ScriptParameterLanguageRegressionTests
         using var compiled = InstanceCreator.CompileForExecution(
             query, Guid.NewGuid().ToString(), new NativeTableCarrierSchemaProvider(),
             LoggerResolver, TestCompilationOptions, TestContext.CancellationToken);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "item", StructuralValue.FromRecord(
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "item", StructuralValue.FromRecord(
             [new KeyValuePair<string, StructuralValue>("Id", StructuralValue.FromScalar(41))]));
 
         using var result = compiled.Run(TestContext.CancellationToken);
@@ -153,7 +153,7 @@ public partial class ScriptParameterLanguageRegressionTests
         Assert.AreEqual("Id", contract.StructuralType.Fields[0].Name);
         Assert.AreEqual("int", contract.StructuralType.Fields[0].Type.ToCanonicalSql());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "item", Musoq.Schema.StructuralInputs.StructuralValue.FromRecord(
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "item", Musoq.Schema.StructuralInputs.StructuralValue.FromRecord(
             new[]
             {
                 new System.Collections.Generic.KeyValuePair<string, Musoq.Schema.StructuralInputs.StructuralValue>(

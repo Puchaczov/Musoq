@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests;
 ///     expression/operator parse errors, and schema reference parse errors.
 ///     Covers: P-STRUCT, P-CTE, P-TC, P-EXPR, P-SCHEMA categories.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ErrorQualityStructuralSyntaxTests : BasicEntityTestBase
 {
     #region Test Setup

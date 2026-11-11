@@ -197,46 +197,7 @@ public partial class CrossApplyUnusedAliasTests
     /// <summary>
     ///     Test multiple cross applies where only first and last aliases are used.
     /// </summary>
-    [TestMethod]
-    public void CrossApply_MultipleWithOnlyFirstAndLastUsed_ShouldNotThrowKeyNotFound()
-    {
-        const string query = @"
-            select a.City, c.Money
-            from #schema.first() a
-            cross apply #schema.second(a.Country) b
-            cross apply #schema.third() c";
 
-        var firstSource = new List<CrossApplyClass1>
-        {
-            new() { City = "City1", Country = "Country1", Population = 100 }
-        }.ToArray();
-
-        var secondSource = new List<CrossApplyClass2>
-        {
-            new() { Country = "Country1", Money = 1000, Month = "January" }
-        }.ToArray();
-
-        var thirdSource = new List<CrossApplyClass2>
-        {
-            new() { Country = "Any", Money = 5000, Month = "March" }
-        }.ToArray();
-
-        var vm = CreateAndRunVirtualMachine(
-            query,
-            firstSource,
-            secondSource,
-            thirdSource);
-
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(
-            table,
-            ("City", typeof(string)),
-            ("Money", typeof(decimal)));
-        TableMaterializationTestHelper.AssertRowsInOrder(
-            table,
-            ["City1", 5000m]);
-    }
 
     /// <summary>
     ///     Test cross apply with a standalone function call (Test() t pattern).

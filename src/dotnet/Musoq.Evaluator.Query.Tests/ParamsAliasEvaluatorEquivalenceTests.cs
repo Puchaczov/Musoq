@@ -16,7 +16,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -32,8 +32,8 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var pair = CompilePair(script, CreateSources());
 
         AssertParameterMetadataEqual(pair.Canonical, pair.Alias);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
 
         AssertTablesEqual(
             pair.Canonical.Run(CancellationToken.None),
@@ -52,12 +52,12 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             """;
         var pair = CompilePair(script, CreateSources());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "ids", new[] { 1, 3 });
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "lower", "lower");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "Upper", "upper");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "ids", new[] { 1, 3 });
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "lower", "lower");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "Upper", "upper");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "ids", new[] { 1, 3 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "lower", "lower");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "Upper", "upper");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "ids", new[] { 1, 3 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "lower", "lower");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "Upper", "upper");
 
         AssertTablesEqual(
             pair.Canonical.Run(CancellationToken.None),
@@ -78,10 +78,10 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             """;
         var pair = CompilePair(script, CreateSources());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "minimum", 2);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "minimum", 2);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "minimum", 2);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "minimum", 2);
 
         AssertTablesEqual(
             pair.Canonical.Run(CancellationToken.None),
@@ -113,12 +113,12 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             """;
         var pair = CompilePair(script, CreateSources());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "city", "Warsaw");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "suffix", "-cte");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "city", "Warsaw");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "suffix", "-cte");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "city", "Warsaw");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "suffix", "-cte");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "city", "Warsaw");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "suffix", "-cte");
 
         AssertTablesEqual(
             pair.Canonical.Run(CancellationToken.None),
@@ -137,14 +137,14 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
             """;
         var pair = CompilePair(script, CreateSources());
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "PL");
         AssertTablesEqual(
             pair.Canonical.Run(CancellationToken.None),
             pair.Alias.Run(CancellationToken.None));
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "DE");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "DE");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Canonical.TypedParameters, pair.Canonical.ParameterDefinitions, "country", "DE");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(pair.Alias.TypedParameters, pair.Alias.ParameterDefinitions, "country", "DE");
         AssertTablesEqual(
             pair.Canonical.Run(CancellationToken.None),
             pair.Alias.Run(CancellationToken.None));
@@ -163,8 +163,8 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var canonical = CompileWithProvider("param" + script, canonicalProvider);
         var alias = CompileWithProvider("params" + script, aliasProvider);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
 
         AssertParameterMetadataEqual(canonical, alias);
         AssertTablesEqual(
@@ -187,8 +187,8 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var canonical = CompileWithProvider("param" + script, canonicalProvider);
         var alias = CompileWithProvider("params" + script, aliasProvider);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
 
         AssertParameterMetadataEqual(canonical, alias);
         AssertTablesEqual(
@@ -310,8 +310,8 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var aliasProvider = new ParameterizedSchemaProvider();
         var canonical = CompileWithProvider("param" + script, canonicalProvider);
         var alias = CompileWithProvider("params" + script, aliasProvider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "limit", "10");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(alias.TypedParameters, alias.ParameterDefinitions, "limit", "10");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "limit", "10");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "limit", "10");
 
         AssertRuntimeExceptionsEqual(RunFailure(canonical), RunFailure(alias));
         Assert.AreEqual(0, canonicalProvider.OpenCount);
@@ -329,10 +329,10 @@ public sealed class ParamsAliasEvaluatorEquivalenceTests : BasicEntityTestBase
         var aliasProvider = new ParameterizedSchemaProvider();
         var canonical = CompileWithProvider("param" + script, canonicalProvider);
         var alias = CompileWithProvider("params" + script, aliasProvider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "extra", "ignored");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(alias.TypedParameters, alias.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "key", "KEY_1");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(canonical.TypedParameters, canonical.ParameterDefinitions, "extra", "ignored");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(alias.TypedParameters, alias.ParameterDefinitions, "extra", "ignored");
 
         AssertRuntimeExceptionsEqual(RunFailure(canonical), RunFailure(alias));
         Assert.AreEqual(0, canonicalProvider.OpenCount);

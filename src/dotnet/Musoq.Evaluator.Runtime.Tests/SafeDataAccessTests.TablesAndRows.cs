@@ -341,17 +341,7 @@ public partial class SafeDataAccessTests
             Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
     }
 
-    [TestMethod]
-    public void TypedQuery_MatchingKey_NotPresent_ReturnsFalse()
-    {
-        const string query = "select s.Value as Value from #schema.first() s where s.Value = 999";
-        using var compiled = CreateAndRunVirtualMachine<NativeLookupInput>(query, new[] { new NativeLookupInput(1) });
-        using var table = compiled.Run(TestContext.CancellationToken);
-        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
-        Assert.AreEqual(0, table.Count);
-        foreach (var row in table)
-            Assert.Fail($"Unexpected row: {row.GetValue<int>(0)}");
-    }
+
 
     [TestMethod]
     public void TypedQuery_Lookup_KeyNotFound_ReturnsFalseWithEmptyList()

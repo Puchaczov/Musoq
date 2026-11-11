@@ -27,7 +27,7 @@ public sealed partial class StructuralInputFailureTests
             query, Guid.NewGuid().ToString(), new NestedDepthSchemaProvider(), new TestsLoggerResolver(),
             new CompilationOptions(usePrimitiveTypeValidation: false), TestContext.CancellationToken);
         Assert.AreEqual(0, NestedDepthSource.ConstructionCount);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", new int[][][][][][][][] { [[[[[[[1]]]]]]] });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "values", new int[][][][][][][][] { [[[[[[[1]]]]]]] });
 
         var exception = Assert.Throws<QueryExecutionException>(() =>
         {

@@ -37,10 +37,19 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         return RequireSourceFamilyFiles(directory, searchPattern, declarations);
     }
 
+    private static bool IsSplitLibraryTestFamily(string directory)
+    {
+        var sourceRoot = Path.Combine(Musoq.Evaluator.Tests.Architecture.RepositorySourceScan.RepositoryRoot(), "src", "dotnet");
+        var relative = Path.GetRelativePath(sourceRoot, directory);
+        var project = relative.Split(Path.DirectorySeparatorChar)[0];
+        return project.StartsWith("Musoq.Converter.", StringComparison.Ordinal) ||
+               project.StartsWith("Musoq.Plugins.", StringComparison.Ordinal);
+    }
+
     private static string[] RequireSourceFamilyFiles(string directory, string searchPattern, string[] files)
     {
-        if (files.Length == 0 && EvaluatorTestSources.IsEvaluatorFamily(directory))
-            throw new InvalidOperationException($"Migrated evaluator source family is empty: {directory}/{searchPattern}");
+        if (files.Length == 0 && (EvaluatorTestSources.IsEvaluatorFamily(directory) || IsSplitLibraryTestFamily(directory)))
+            throw new InvalidOperationException($"Migrated test source family is empty: {directory}/{searchPattern}");
 
         return files;
     }

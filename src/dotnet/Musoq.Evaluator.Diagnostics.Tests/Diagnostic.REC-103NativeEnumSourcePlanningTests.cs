@@ -14,7 +14,7 @@ using SchemaConstructorInfo = Musoq.Schema.Reflection.ConstructorInfo;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class DiagnosticREC103NativeEnumSourcePlanningTests : GenericEntityTestBase
 {
     private const string NativeStatusTypeName =

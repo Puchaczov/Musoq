@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -134,7 +133,7 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
 
     private async Task AssertPartialExecutionCancellation(string caseId)
     {
-        var session = new ControlledSession();
+        using var session = new ControlledSession();
         var provider = new ControlledProvider(session);
         using var compiled = CompileGeneratedQuery(
             $"select r.Id from #rec133.items() r /* {caseId}-fault */",
@@ -144,58 +143,60 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             TestCompilationOptions);
         using var cancellation = new CancellationTokenSource();
 
-        var run = Task.Run(() => compiled.Run(cancellation.Token).Count);
-        Assert.IsTrue(session.ProducerStarted.Wait(HarnessBudget),
-            $"HARNESS_TIMEOUT producer did not start for {caseId}.");
-
-        cancellation.Cancel();
-
+        var run = Task.Run(() => ObserveCancellation(compiled, cancellation.Token));
+        OperationCanceledException? observed = null;
         try
         {
-            await run.WaitAsync(HarnessBudget);
-            Assert.Fail($"{caseId} completed normally after cancellation.");
-        }
-        catch (OperationCanceledException exception)
-        {
-            Assert.IsTrue(exception.CancellationToken.IsCancellationRequested, caseId);
+            Assert.IsTrue(session.ProducerStarted.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT producer did not start for {caseId}.");
+            cancellation.Cancel();
+            Assert.IsTrue(session.CancellationObserved.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT producer did not observe cancellation for {caseId}.");
+            observed = await run.WaitAsync(HarnessBudget);
         }
         finally
         {
+            cancellation.Cancel();
             session.ReleaseProducer.Set();
+            await run.WaitAsync(HarnessBudget);
+            Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}.");
         }
 
-        Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
-            $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}.");
+        Assert.IsNotNull(observed, $"{caseId} completed normally after cancellation.");
+        Assert.IsTrue(observed.CancellationToken.IsCancellationRequested, caseId);
+        Assert.IsTrue(session.CancellationObserved.IsSet, caseId);
     }
 
-    private async Task AssertZeroProgressIsBounded(string caseId)
+    private static OperationCanceledException? ObserveCancellation(CompiledQuery compiled, CancellationToken token)
     {
-        var interpreter = CreateZeroProgressInterpreter(caseId, out var data);
-        var invocation = Task.Run(() => InvokeInterpret(interpreter, data));
-
         try
         {
-            await invocation.WaitAsync(HarnessBudget);
-            Assert.Fail($"{caseId} unexpectedly completed a zero-progress repetition.");
+            using var result = compiled.Run(token);
+            _ = result.Count;
+            return null;
         }
-        catch (TargetInvocationException wrapper)
+        catch (OperationCanceledException exception)
         {
-            Assert.IsInstanceOfType<BinaryParseException>(wrapper.InnerException, caseId);
-            var exception = (BinaryParseException)wrapper.InnerException!;
-            Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode, caseId);
-            Assert.AreEqual("ISE0009", exception.FormattedErrorCode, caseId);
-            StringAssert.Contains(exception.Details, caseId is "ZP-01" or "ZP-02" or "ZP-03" or "ZP-04" or
+            return exception;
+        }
+    }
+
+    private Task AssertZeroProgressIsBounded(string caseId)
+    {
+        var fixture = CreateZeroProgressInterpreter(caseId);
+        using var interpreter = fixture.Interpreter;
+        var exception = Assert.ThrowsExactly<BinaryParseException>(() => interpreter.Interpret(fixture.Data), caseId);
+        Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode, caseId);
+        Assert.AreEqual("ISE0009", exception.FormattedErrorCode, caseId);
+        StringAssert.Contains(exception.Details, caseId is "ZP-01" or "ZP-02" or "ZP-03" or "ZP-04" or
                 "ZP-05" or "ZP-06" or "ZP-07" or "ZP-08"
                 ? "made no progress"
                 : "maximum of 10000 iterations", caseId);
-        }
-        catch (TimeoutException)
-        {
-            Assert.Fail($"HARNESS_TIMEOUT zero-progress reproduction did not terminate for {caseId}.");
-        }
+        return Task.CompletedTask;
     }
 
-    private static object CreateZeroProgressInterpreter(string caseId, out byte[] data)
+    private static (CompiledBinaryFixture Interpreter, byte[] Data) CreateZeroProgressInterpreter(string caseId)
     {
         var suffix = caseId[3..];
         var registry = new SchemaRegistry();
@@ -208,8 +209,8 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             registry.Register($"ZeroProgress{suffix}", new BinarySchemaNode(
                 $"ZeroProgress{suffix}",
                 [new FieldDefinitionNode($"Chunks{suffix}", repeat)]));
-            data = [0xAA, 0xBB];
-            return CompileInterpreter(registry, $"ZeroProgress{suffix}");
+            var data = new byte[] { 0xAA, 0xBB };
+            return (CompileInterpreter(registry, $"ZeroProgress{suffix}"), data);
         }
 
         if (caseId is "ZP-05" or "ZP-06" or "ZP-07" or "ZP-08")
@@ -223,8 +224,8 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             registry.Register(outerName, new BinarySchemaNode(
                 outerName,
                 [new FieldDefinitionNode($"Items{suffix}", repeat)]));
-            data = caseId is "ZP-05" or "ZP-06" ? [0x01] : [0x01, 0x02, 0x03];
-            return CompileInterpreter(registry, outerName);
+            byte[] data = caseId is "ZP-05" or "ZP-06" ? [0x01] : [0x01, 0x02, 0x03];
+            return (CompileInterpreter(registry, outerName), data);
         }
 
         var limitedRepeat = new RepeatUntilTypeNode(
@@ -235,37 +236,15 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         registry.Register(limitedName, new BinarySchemaNode(
             limitedName,
             [new FieldDefinitionNode($"Values{suffix}", limitedRepeat)]));
-        data = new byte[10_001];
-        return CompileInterpreter(registry, limitedName);
+        return (CompileInterpreter(registry, limitedName), new byte[10_001]);
     }
 
-    private static object CompileInterpreter(SchemaRegistry registry, string schemaName)
-    {
-        var generator = new InterpreterCodeGenerator(registry);
-        var code = generator.GenerateAll();
-
-        using var compilationUnit = new InterpreterCompilationUnit(
-            $"REC133_{Guid.NewGuid():N}",
-            code);
-        if (!compilationUnit.Compile())
-            throw new InvalidOperationException(
-                $"Compilation failed: {string.Join(Environment.NewLine, compilationUnit.GetErrorMessages())}");
-
-        var type = compilationUnit.GetInterpreterType(schemaName) ??
-                   throw new InvalidOperationException($"Interpreter '{schemaName}' was not generated.");
-        return Activator.CreateInstance(type)!;
-    }
-
-    private static object InvokeInterpret(object interpreter, byte[] data)
-    {
-        var method = interpreter.GetType().GetMethod("Interpret", [typeof(byte[])]) ??
-                     throw new InvalidOperationException("Interpret(byte[]) method was not generated.");
-        return method.Invoke(interpreter, [data])!;
-    }
+    private static CompiledBinaryFixture CompileInterpreter(SchemaRegistry registry, string schemaName) =>
+        new(new InterpreterCodeGenerator(registry).GenerateAll(), schemaName, []);
 
     private static async Task AssertCleanupBoundary(string caseId)
     {
-        var session = new ControlledSession();
+        using var session = new ControlledSession();
         var source = new ControlledSource(
             CreateSourceContext(),
             session,
@@ -274,26 +253,52 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
 
         if (caseId is "CL-09" or "CL-10" or "CL-11" or "CL-12")
         {
-            var rows = await Task.Run(() => source.Chunks.SelectMany(static chunk => chunk).ToArray())
-                .WaitAsync(HarnessBudget);
-            Assert.HasCount(2, rows, caseId);
-            Assert.IsFalse(session.CancellationObserved.IsSet, caseId);
-            Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT finite producer did not finish for {caseId}.");
+            await AssertFiniteProducer(source, session, caseId);
             return;
         }
 
-        await Task.Run(() =>
+        await AssertDisposalCancelsProducer(source, session, caseId);
+    }
+
+    private static async Task AssertFiniteProducer(ControlledSource source, ControlledSession session, string caseId)
+    {
+        var read = Task.Run(() => source.Chunks.SelectMany(static chunk => chunk).ToArray());
+        try
+        {
+            var rows = await read.WaitAsync(HarnessBudget);
+            CollectionAssert.AreEqual(new[] { 1, 2 }, rows.Select(row => row.Id).ToArray(), caseId);
+            Assert.IsFalse(session.CancellationObserved.IsSet, caseId);
+        }
+        finally
+        {
+            session.ReleaseProducer.Set();
+            await read.WaitAsync(HarnessBudget);
+            Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT finite producer did not finish for {caseId}.");
+        }
+    }
+
+    private static async Task AssertDisposalCancelsProducer(ControlledSource source, ControlledSession session, string caseId)
+    {
+        var read = Task.Run(() =>
         {
             using var enumerator = source.Chunks.GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext(), caseId);
             Assert.AreEqual(1, enumerator.Current[0].Id, caseId);
-        }).WaitAsync(HarnessBudget);
-
-        Assert.IsTrue(session.CancellationObserved.Wait(HarnessBudget),
-            $"HARNESS_TIMEOUT cleanup cancellation was not observed for {caseId}.");
-        Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
-            $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}.");
+        });
+        try
+        {
+            await read.WaitAsync(HarnessBudget);
+            Assert.IsTrue(session.CancellationObserved.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT cleanup cancellation was not observed for {caseId}.");
+        }
+        finally
+        {
+            session.ReleaseProducer.Set();
+            await read.WaitAsync(HarnessBudget);
+            Assert.IsTrue(session.ProducerExited.Wait(HarnessBudget),
+                $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}.");
+        }
     }
 
     private static SourceExecutionContext CreateSourceContext()
@@ -351,7 +356,7 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         {
             return EnsureSourceType<T, BasicEntity>(
                 name,
-                new ControlledSource(executionContext, session, finite: false, waitForCancellation: false));
+                new ControlledSource(executionContext, session, finite: false, waitForCancellation: true));
         }
 
         private static MethodsAggregator CreateLibrary()
@@ -362,12 +367,20 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         }
     }
 
-    private sealed class ControlledSession
+    private sealed class ControlledSession : IDisposable
     {
         public ManualResetEventSlim ProducerStarted { get; } = new();
         public ManualResetEventSlim CancellationObserved { get; } = new();
         public ManualResetEventSlim ProducerExited { get; } = new();
         public ManualResetEventSlim ReleaseProducer { get; } = new();
+
+        public void Dispose()
+        {
+            ProducerStarted.Dispose();
+            CancellationObserved.Dispose();
+            ProducerExited.Dispose();
+            ReleaseProducer.Dispose();
+        }
     }
 
     private sealed class ControlledSource(
@@ -382,10 +395,10 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
     {
         protected override void CollectChunks(DiagnosticChunkWriter<BasicEntity> writer)
         {
-            session.ProducerStarted.Set();
             try
             {
                 writer.Write([new BasicEntity("partial") { Id = 1 }]);
+                session.ProducerStarted.Set();
 
                 if (finite)
                 {

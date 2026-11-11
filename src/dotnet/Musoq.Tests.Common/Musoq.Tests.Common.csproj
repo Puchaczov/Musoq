@@ -4,10 +4,15 @@
         <TargetFramework>net10.0</TargetFramework>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <IsPackable>false</IsPackable>
+        <IsTestProject>false</IsTestProject>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Musoq.Schema\Musoq.Schema.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MSTest.TestFramework" />
     </ItemGroup>
 
 </Project>

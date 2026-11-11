@@ -10,7 +10,7 @@ using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class NegatedPredicateTests : BasicEntityTestBase
 {
     private sealed record ExecutionScenario(string Shape, SourcePlanningMode Mode,
@@ -54,13 +54,13 @@ public sealed partial class NegatedPredicateTests : BasicEntityTestBase
             var extracted = visitor.WhereNode.Expression;
             AssertLocalReferences(extracted, alias, predicate.Sql);
             foreach (var left in new[] { -1, 0, 1, 2, 3, 4 })
-            foreach (var right in new[] { -1, 0, 1, 2, 3, 4 })
-            {
-                if (!predicate.Evaluate(left, right))
-                    continue;
-                Assert.IsTrue(EvaluateExtracted(extracted, left, right),
-                    $"Original: {predicate.Sql}; source: {alias}; extracted: {extracted.ToString()}; left={left}; right={right}");
-            }
+                foreach (var right in new[] { -1, 0, 1, 2, 3, 4 })
+                {
+                    if (!predicate.Evaluate(left, right))
+                        continue;
+                    Assert.IsTrue(EvaluateExtracted(extracted, left, right),
+                        $"Original: {predicate.Sql}; source: {alias}; extracted: {extracted.ToString()}; left={left}; right={right}");
+                }
         }
     }
 

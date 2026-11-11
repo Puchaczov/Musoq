@@ -19,7 +19,7 @@ public partial class BinarySpecificationRegressionTests : BinaryOrTextualEvaluat
     {
         var entities = Array.ConvertAll(records, bytes => new BinaryEntity { Content = bytes });
         var provider = new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>> { ["#test"] = entities });
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, LoggerResolver, options);
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, LoggerResolver, options);
         return TableMaterializationTestHelper.Materialize(query.Run());
     }
 }

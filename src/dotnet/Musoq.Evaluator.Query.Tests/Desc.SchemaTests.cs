@@ -11,7 +11,7 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class DescStatementTests : BasicEntityTestBase
 {
 
@@ -143,14 +143,10 @@ public partial class DescStatementTests : BasicEntityTestBase
         var vm = CreateAndRunVirtualMachine(query, sources);
         var table = vm.Run(TestContext.CancellationToken);
 
-        foreach (var row in table)
-        {
-            var index = (int)row.ReadValue(1);
-            Assert.IsGreaterThanOrEqualTo(0, index, "Column index should be non-negative");
-        }
-
-        var indices = table.Select(row => (int)row.ReadValue(1)).ToList();
-        Assert.IsNotEmpty(indices, "Should have column indices");
+        var expected = new BasicEntityTable().Columns.Select(column => (column.ColumnName, column.ColumnIndex)).ToArray();
+        var actual = table.Where(row => !((string)row.ReadValue(0)).Contains('.', StringComparison.Ordinal))
+            .Select(row => ((string)row.ReadValue(0), (int)row.ReadValue(1))).ToArray();
+        CollectionAssert.AreEquivalent(expected, actual);
     }
 
     [TestMethod]
@@ -165,7 +161,7 @@ public partial class DescStatementTests : BasicEntityTestBase
             Population = 100m,
             Money = 50m,
             Month = "January",
-            Time = DateTime.Now,
+            Time = new DateTime(2024, 2, 29, 12, 34, 56, DateTimeKind.Utc),
             Id = 1,
             NullableValue = 10
         };

@@ -87,29 +87,27 @@ public partial class ErrorQualityExprEdgeCaseTests
     [TestMethod]
     public void E_FMT_05_EmptyQuery()
     {
-        // Arrange — Empty string
+
         var analyzer = CreateAnalyzer();
         var query = "";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — Should handle gracefully, not crash
-        Assert.IsNotNull(result, "Analyzer should not crash on empty query");
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2016_IncompleteStatement, nameof(E_FMT_05_EmptyQuery));
     }
 
     [TestMethod]
     public void E_FMT_06_WhitespaceOnlyQuery()
     {
-        // Arrange — Only spaces/tabs
+
         var analyzer = CreateAnalyzer();
         var query = "     ";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert — Should handle gracefully, not crash
-        Assert.IsNotNull(result, "Analyzer should not crash on whitespace-only query");
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2016_IncompleteStatement, nameof(E_FMT_06_WhitespaceOnlyQuery));
     }
 
     [TestMethod]

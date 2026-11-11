@@ -11,7 +11,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class CouplingSyntaxTests : BasicEntityTestBase
 {
 

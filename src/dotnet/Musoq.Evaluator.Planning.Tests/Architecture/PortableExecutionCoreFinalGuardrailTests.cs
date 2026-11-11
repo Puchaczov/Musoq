@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
@@ -126,12 +127,8 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
             new[] { "src/dotnet/Musoq.Targets.Abstractions/TargetHostAbiInventory.cs" },
             declarations);
         Assert.IsEmpty(legacyHostImports, "The parallel TargetHostImport model must not return.");
-        Assert.AreEqual(
-            typeof(TargetHostAbiInventory),
-            typeof(TargetExportArtifact).GetProperty(nameof(TargetExportArtifact.HostAbiInventory))!.PropertyType);
-        Assert.AreEqual(
-            typeof(TargetHostAbiInventory),
-            typeof(TargetArtifactPackage).GetProperty(nameof(TargetArtifactPackage.HostAbiInventory))!.PropertyType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(TargetHostAbiInventory)), CompilerContractSymbols.For(typeof(TargetExportArtifact)).GetProperty(nameof(TargetExportArtifact.HostAbiInventory))!.PropertyType));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(TargetHostAbiInventory)), CompilerContractSymbols.For(typeof(TargetArtifactPackage)).GetProperty(nameof(TargetArtifactPackage.HostAbiInventory))!.PropertyType));
     }
 
     [TestMethod]

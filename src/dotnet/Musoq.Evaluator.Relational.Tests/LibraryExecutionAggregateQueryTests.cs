@@ -8,7 +8,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionAggregateQueryTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class LibraryExecutionAggregateQueryTests : GenericEntityTestBase
 {
     [TestMethod] public void ByteAggregates_ShouldPreserveSumAndReturnDecimalAverage() => AssertNumeric<byte, decimal>(1.5m);

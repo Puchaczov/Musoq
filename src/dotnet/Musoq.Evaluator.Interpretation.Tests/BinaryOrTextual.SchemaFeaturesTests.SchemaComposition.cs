@@ -367,7 +367,7 @@ public partial class BinaryOrTextualSchemaFeaturesTests
             LoggerResolver, TestCompilationOptions);
 
         // Assert: Should throw validation exception
-        Assert.Throws<Exception>(() => _ = vm.Run(CancellationToken.None).Count);
+        Assert.Throws<Musoq.Schema.Interpreters.ParseException>(() => _ = vm.Run(CancellationToken.None).Count);
     }
 
     [TestMethod]

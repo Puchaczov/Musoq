@@ -96,7 +96,7 @@ public sealed class QueryRunContextTests
     public void Capture_WhenOptionsAreProvided_ShouldSnapshotOptions()
     {
         var parameters = new Dictionary<string, object?> { ["limit"] = 10 };
-        var options = new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterTestInputs.Capture<global::Musoq.Evaluator.TypedParameterSnapshot>(parameters));
+        var options = new TypedQueryRunOptions(CancellationToken.None, global::Musoq.Tests.Common.NativeParameterFixture.Capture(parameters));
         var sender = new object();
         var context = QueryRunContext.Capture(options, sender, "query");
 

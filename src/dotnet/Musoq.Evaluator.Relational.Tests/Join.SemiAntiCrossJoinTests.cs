@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class JoinSemiAntiCrossJoinTests : BasicEntityTestBase
 {
     private Table RunJoinQuery(string query, CompilationOptions? options = null)

@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     for interpretation schemas.
 ///     Covers: E-BINGEN (binary codegen), E-TEXTGEN (text codegen), E-MIXQUERY (mixed queries).
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class ErrorQualityCodegenStressTests : BasicEntityTestBase
 {
     // ============================================================================
@@ -22,8 +22,7 @@ public class ErrorQualityCodegenStressTests : BasicEntityTestBase
     [TestMethod]
     public void E_BINGEN_01_ManyFieldsBinarySchema()
     {
-        // Arrange — binary schema with large number of fields
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary WideFormat {
     F1: byte,
     F2: byte,
@@ -44,11 +43,12 @@ public class ErrorQualityCodegenStressTests : BasicEntityTestBase
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — Many fields should be handled
-        // Assert  binary schema with 16 fields should be handled
+
     }
 
     #endregion
@@ -58,8 +58,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_02_DeeplyNestedBinarySchemas()
     {
-        // Arrange — 3 levels of nesting
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary Inner {
     Value: int le
 };
@@ -74,11 +73,12 @@ binary Outer {
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — 3-level nesting should work
-        // Assert  3-level nested binary schemas should be handled
+
     }
 
     #endregion
@@ -88,8 +88,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_03_AllPrimitiveTypes()
     {
-        // Arrange — every primitive type
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary AllTypes {
     A: byte,
     B: sbyte,
@@ -104,11 +103,12 @@ select 1 from #A.Entities()";
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — all types should parse and analyze
-        // Assert  all primitive types in binary schema
+
     }
 
     #endregion
@@ -118,8 +118,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_04_MixedEndianness()
     {
-        // Arrange — some le, some be in same schema
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary MixedEndian {
     LittleInt: int le,
     BigInt: int be,
@@ -128,11 +127,12 @@ select 1 from #A.Entities()";
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — mixed endianness should be valid
-        // Assert  mixed endianness in single schema should be valid
+
     }
 
     #endregion
@@ -142,8 +142,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_05_StringAndByteArrayFields()
     {
-        // Arrange — combining string, byte[], and primitives
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary FileHeader {
     Magic: byte[4],
     NameLength: int le,
@@ -152,11 +151,12 @@ select 1 from #A.Entities()";
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — mixed field types should work
-        // Assert  binary schema with string and byte array fields
+
     }
 
     #endregion
@@ -166,8 +166,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_06_ConditionalWhenClause()
     {
-        // Arrange — conditional field
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary Packet {
     Type: byte,
     Size: int le when Type = 1,
@@ -175,11 +174,12 @@ select 1 from #A.Entities()";
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — when clauses should be handled
-        // Assert  binary schema with when conditional fields
+
     }
 
     #endregion
@@ -189,8 +189,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_07_AtOffsetPositioning()
     {
-        // Arrange — explicit offset positioning
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary FixedLayout {
     Magic: int le at 0,
     Version: short le at 4,
@@ -198,11 +197,12 @@ select 1 from #A.Entities()";
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — 'at' offset should be handled
-        // Assert  binary schema with 'at' offset positioning
+
     }
 
     #endregion
@@ -212,19 +212,19 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_08_BitsFields()
     {
-        // Arrange — bits extraction
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary Flags {
     HighNibble: bits[4],
     LowNibble: bits[4]
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — bits fields should be handled
-        // Assert  binary schema with bits fields
+
     }
 
     #endregion
@@ -256,18 +256,18 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_BINGEN_10_FieldNameCollisionWithKeyword()
     {
-        // Arrange — field named 'from' which is a keyword
+
         var analyzer = CreateAnalyzer();
         var query = @"binary Header {
     from: int le
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.ValidateSyntax(query);
+        var result = analyzer.ValidateSyntax(query);
 
-        // Assert — keyword as field name may be rejected
-        // Assert  SQL keyword as field name may be rejected
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_BINGEN_10_FieldNameCollisionWithKeyword));
     }
 
     #endregion
@@ -281,8 +281,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_01_ManyFieldsTextSchema()
     {
-        // Arrange — text schema with many fields
-        var analyzer = CreateAnalyzer();
+
         var query = @"text LogLine {
     Field1: until ' ',
     Field2: until ' ',
@@ -295,11 +294,12 @@ select 1 from #A.Entities()";
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — many fields should be handled
-        // Assert  text schema with 8 fields should be handled
+
     }
 
     #endregion
@@ -309,8 +309,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_02_AllExtractionMethods()
     {
-        // Arrange — using all extraction methods
-        var analyzer = CreateAnalyzer();
+
         var query = @"text CompleteLine {
     Prefix: chars[5],
     Sep1: whitespace,
@@ -320,11 +319,12 @@ select 1 from #A.Entities()";
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — all extraction methods should be handled
-        // Assert  all text extraction methods in one schema
+
     }
 
     #endregion
@@ -334,19 +334,19 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_03_LiteralField()
     {
-        // Arrange — literal text matching
-        var analyzer = CreateAnalyzer();
+
         var query = @"text FixedFormat {
     Marker: literal 'START',
     Data: rest
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — literal field should be handled
-        // Assert  text schema with literal field
+
     }
 
     #endregion
@@ -356,19 +356,19 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_04_PatternField()
     {
-        // Arrange — regex pattern extraction
-        var analyzer = CreateAnalyzer();
+
         var query = @"text LogEntry {
     Timestamp: pattern '\d{4}-\d{2}-\d{2}',
     Rest: rest
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — pattern field should be handled
-        // Assert  text schema with regex pattern field
+
     }
 
     #endregion
@@ -378,19 +378,19 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_05_TokenField()
     {
-        // Arrange — token extraction
-        var analyzer = CreateAnalyzer();
+
         var query = @"text SimpleLine {
     Word: token,
     Remainder: rest
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — token field should be handled
-        // Assert  text schema with token field
+
     }
 
     #endregion
@@ -422,18 +422,18 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_TEXTGEN_07_FieldNameCollisionWithKeyword()
     {
-        // Arrange — field named 'select'
+
         var analyzer = CreateAnalyzer();
         var query = @"text LogLine {
     select: rest
 };
 select 1 from #A.Entities()";
 
-        // Act
-        _ = analyzer.ValidateSyntax(query);
+        var result = analyzer.ValidateSyntax(query);
 
-        // Assert — keyword as field name may be rejected
-        // Assert  SQL keyword as text field name may be rejected
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_TEXTGEN_07_FieldNameCollisionWithKeyword));
     }
 
     #endregion
@@ -447,8 +447,7 @@ select 1 from #A.Entities()";
     [TestMethod]
     public void E_MIXQUERY_01_BinarySchemaWithCte()
     {
-        // Arrange — binary schema definition + CTE + query
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary Header {
     Magic: int le,
     Version: short le
@@ -458,11 +457,12 @@ with source as (
 )
 select s.Name from source s";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — binary schema + CTE should parse/analyze
-        // Assert  binary schema with CTE combination
+
     }
 
     #endregion
@@ -472,19 +472,19 @@ select s.Name from source s";
     [TestMethod]
     public void E_MIXQUERY_02_TextSchemaWithGroupBy()
     {
-        // Arrange — text schema definition + GROUP BY query
-        var analyzer = CreateAnalyzer();
+
         var query = @"text LogLine {
     Level: until ' ',
     Message: rest
 };
 select City, Count(1) as Cnt from #A.Entities() group by City";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — text schema + GROUP BY should work independently
-        // Assert  text schema with GROUP BY combination
+
     }
 
     #endregion
@@ -494,8 +494,7 @@ select City, Count(1) as Cnt from #A.Entities() group by City";
     [TestMethod]
     public void E_MIXQUERY_03_MultipleSchemasWithJoin()
     {
-        // Arrange — both binary and text schemas + JOIN query
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary Header {
     Magic: int le
 };
@@ -504,11 +503,12 @@ text LogLine {
 };
 select a.Name, b.Name from #A.Entities() a inner join #B.Entities() b on a.City = b.City";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(0, table.Count);
 
-        // Assert — multiple schemas + JOIN should parse/analyze
-        // Assert  multiple schemas with JOIN combination
+
     }
 
     #endregion
@@ -518,8 +518,7 @@ select a.Name, b.Name from #A.Entities() a inner join #B.Entities() b on a.City 
     [TestMethod]
     public void E_MIXQUERY_04_SchemaWithUnion()
     {
-        // Arrange — binary schema + UNION
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary Header {
     Magic: int le
 };
@@ -527,11 +526,12 @@ select Name from #A.Entities()
 union (Name)
 select Name from #B.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — schema + UNION should work
-        // Assert  binary schema definition with UNION query
+
     }
 
     #endregion
@@ -541,18 +541,18 @@ select Name from #B.Entities()";
     [TestMethod]
     public void E_MIXQUERY_05_SchemaWithOrderBySkipTake()
     {
-        // Arrange — text schema + complex query features
-        var analyzer = CreateAnalyzer();
+
         var query = @"text LogLine {
     Data: rest
 };
 select Name, Population from #A.Entities() order by Population desc skip 0 take 10";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — schema + ORDER BY + SKIP/TAKE should work
-        // Assert  text schema with ORDER BY, SKIP, TAKE
+
     }
 
     #endregion
@@ -562,8 +562,7 @@ select Name, Population from #A.Entities() order by Population desc skip 0 take 
     [TestMethod]
     public void E_MIXQUERY_06_SchemaWithCaseExpression()
     {
-        // Arrange — binary schema + CASE
-        var analyzer = CreateAnalyzer();
+
         var query = @"binary Header {
     Magic: int le
 };
@@ -571,11 +570,12 @@ select
     CASE WHEN Population > 100 THEN 'Large' ELSE 'Small' END as SizeCategory
 from #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — schema + CASE should work
-        // Assert  binary schema with CASE expression query
+
     }
 
     #endregion
@@ -585,18 +585,18 @@ from #A.Entities()";
     [TestMethod]
     public void E_MIXQUERY_07_SchemaWithHaving()
     {
-        // Arrange — text schema + GROUP BY + HAVING
-        var analyzer = CreateAnalyzer();
+
         var query = @"text LogLine {
     Data: rest
 };
 select City, Count(1) as Cnt from #A.Entities() group by City having Count(1) > 0";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        using var compiled = Musoq.Converter.InstanceCreator.CompileForExecution(
+            query, System.Guid.NewGuid().ToString(), CreateSchemaProvider(), LoggerResolver, TestCompilationOptions);
+        using var table = compiled.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
 
-        // Assert — schema + HAVING should work
-        // Assert  text schema with GROUP BY and HAVING
+
     }
 
     #endregion

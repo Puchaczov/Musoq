@@ -11,7 +11,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariablesTestBase
 {
     [TestMethod]
@@ -38,7 +38,7 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
             "param(keys: string[]) select Key from #Parameterized.Items() where Key not in $keys";
         var provider = new CountingSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", null);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -56,7 +56,7 @@ public sealed class DiagnosticCore007ScriptParameterTests : EnvironmentVariables
             "param(keys: string[]) select Key from #Parameterized.Items() where Key in $keys";
         var provider = new CountingSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { 1, 2 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { 1, 2 });
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 

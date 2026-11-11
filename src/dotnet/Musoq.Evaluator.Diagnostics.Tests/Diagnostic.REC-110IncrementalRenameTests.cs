@@ -9,7 +9,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticREC110IncrementalRenameTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -57,11 +57,28 @@ public sealed class DiagnosticREC110IncrementalRenameTests : BasicEntityTestBase
     [TestMethod]
     public void ValidControls_ShouldExecuteWithoutChangingScopeResolution()
     {
-        foreach (var candidate in CandidateCases().Where(static candidate => candidate.ExpectedCode is null))
         {
-            ExecuteCandidateQuery(candidate.SeedQuery);
-            ExecuteCandidateQuery(candidate.ResultQuery);
+            var selectedCases = CandidateCases().Where(static candidate => candidate.ExpectedCode is null).ToArray(); Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases."); foreach (var candidate in selectedCases)
+            {
+                AssertValidControl(candidate.CaseId, candidate.SeedQuery);
+                AssertValidControl(candidate.CaseId, candidate.ResultQuery);
+            }
         }
+    }
+
+    private void AssertValidControl(string caseId, string query)
+    {
+        using var compiled = CreateAndRunVirtualMachine(query, CreateSources());
+        using var result = compiled.Run(TestContext.CancellationToken);
+        var expected = caseId switch
+        {
+            "F03" or "G02" or "G03" or "G05" or "G06" or "H05" =>
+                new object?[][] { ["WARSAW"], ["BERLIN"] },
+            "F04" or "F06" or "H03" => new object?[][] { ["WARSAW"] },
+            _ => throw new InvalidOperationException($"Unregistered valid control '{caseId}'.")
+        };
+        Assert.AreEqual(typeof(string), result.Columns.Single().ColumnType);
+        TableMaterializationTestHelper.AssertRowsUnordered(result, expected);
     }
 
     [TestMethod]
@@ -236,32 +253,32 @@ public sealed class DiagnosticREC110IncrementalRenameTests : BasicEntityTestBase
         Invalid("H06", "BLOCK_TARGET", "select l.CityOut from (select a.City as CityOut from #A.entities() a) l inner join (select b.City as CityOut from #B.entities() b) r on l.CityOut = r.CityOut", "select b.City as CityOut from #B.entities() b", "select b.City as TownOut from #B.entities() b", DiagnosticCode.MQ3001_UnknownColumn, "CityOut", "column", "block-target-derived-join", "stale consumer targets the renamed right derived output", "right derived input"),
     ];
 
-    private static RecoveryCase Invalid(string id,string family,string seed,string before,string after,DiagnosticCode code,string token,string guidance,string root,string insert,string boundary) =>
-        Create(id,family,seed,before,after,"invalid",code,token,guidance,"request_observation",root,insert,boundary);
+    private static RecoveryCase Invalid(string id, string family, string seed, string before, string after, DiagnosticCode code, string token, string guidance, string root, string insert, string boundary) =>
+        Create(id, family, seed, before, after, "invalid", code, token, guidance, "request_observation", root, insert, boundary);
 
-    private static RecoveryCase Valid(string id,string family,string seed,string before,string after,string root,string insert,string boundary) =>
-        Create(id,family,seed,before,after,"valid_ordinary",null,null,"valid","no_change",root,insert,boundary);
+    private static RecoveryCase Valid(string id, string family, string seed, string before, string after, string root, string insert, string boundary) =>
+        Create(id, family, seed, before, after, "valid_ordinary", null, null, "valid", "no_change", root, insert, boundary);
 
-    private static RecoveryCase Create(string id,string family,string seed,string before,string after,string classification,DiagnosticCode? code,string? token,string guidance,string repair,string root,string insert,string boundary)
+    private static RecoveryCase Create(string id, string family, string seed, string before, string after, string classification, DiagnosticCode? code, string? token, string guidance, string repair, string root, string insert, string boundary)
     {
         var marker = $" /* {id} */";
-        return new RecoveryCase(id,family,seed+marker,ReplaceOnce(seed,before,after)+marker,classification,code,token,guidance,repair,root,insert,boundary);
+        return new RecoveryCase(id, family, seed + marker, ReplaceOnce(seed, before, after) + marker, classification, code, token, guidance, repair, root, insert, boundary);
     }
 
-    private static string ReplaceOnce(string source,string before,string after)
+    private static string ReplaceOnce(string source, string before, string after)
     {
-        var start = source.IndexOf(before,StringComparison.Ordinal);
-        if(start<0 || source.IndexOf(before,start+before.Length,StringComparison.Ordinal)>=0)
+        var start = source.IndexOf(before, StringComparison.Ordinal);
+        if (start < 0 || source.IndexOf(before, start + before.Length, StringComparison.Ordinal) >= 0)
             throw new InvalidOperationException($"Expected exactly one '{before}' occurrence in '{source}'.");
-        return source[..start]+after+source[(start+before.Length)..];
+        return source[..start] + after + source[(start + before.Length)..];
     }
 
-    private static IDictionary<string,IEnumerable<BasicEntity>> CreateSources() =>
-        new Dictionary<string,IEnumerable<BasicEntity>>
+    private static IDictionary<string, IEnumerable<BasicEntity>> CreateSources() =>
+        new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            ["#A"] = [new BasicEntity { Name="A1", City="WARSAW", Country="POLAND", Population=500, Id=1 }, new BasicEntity { Name="A2", City="BERLIN", Country="GERMANY", Population=250, Id=2 }],
-            ["#B"] = [new BasicEntity { Name="B1", City="WARSAW", Country="POLAND", Population=450, Id=1 }, new BasicEntity { Name="B2", City="KRAKOW", Country="POLAND", Population=300, Id=3 }]
+            ["#A"] = [new BasicEntity { Name = "A1", City = "WARSAW", Country = "POLAND", Population = 500, Id = 1 }, new BasicEntity { Name = "A2", City = "BERLIN", Country = "GERMANY", Population = 250, Id = 2 }],
+            ["#B"] = [new BasicEntity { Name = "B1", City = "WARSAW", Country = "POLAND", Population = 450, Id = 1 }, new BasicEntity { Name = "B2", City = "KRAKOW", Country = "POLAND", Population = 300, Id = 3 }]
         };
 
-    private sealed record RecoveryCase(string CaseId,string Family,string SeedQuery,string ResultQuery,string ExpectedClassification,DiagnosticCode? ExpectedCode,string? ExpectedToken,string Guidance,string RepairPolicy,string RootCause,string InsertionPoint,string ExpectedBoundaryToken);
+    private sealed record RecoveryCase(string CaseId, string Family, string SeedQuery, string ResultQuery, string ExpectedClassification, DiagnosticCode? ExpectedCode, string? ExpectedToken, string Guidance, string RepairPolicy, string RootCause, string InsertionPoint, string ExpectedBoundaryToken);
 }

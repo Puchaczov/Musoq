@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
+using Musoq.Converter;
+using Musoq.Converter.Build;
+using Musoq.Converter.Exceptions;
+using Musoq.Schema;
+using Musoq.Tests.Common;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Musoq.Evaluator.Tests;
@@ -27,15 +33,59 @@ internal static class GeneratedExecutionIlInspection
         }
     }
 
+    private static readonly ConditionalWeakTable<CompiledQuery, Type> GeneratedTypes = new();
+
+    internal static void RecordCompilation(BuildResult result, GeneratedAssemblyCapture capture)
+    {
+        if (!result.Succeeded)
+            return;
+        RecordCompilation(result.CompiledQuery, result.BuildItems!, capture);
+    }
+
+    private static void RecordCompilation(CompiledQuery query, BuildItems items, GeneratedAssemblyCapture capture)
+    {
+        if (items.ExecutableArtifact is not (ClrLoadedExecutableArtifact or ClrAssemblyExecutableArtifact) &&
+            !items.ContainsKey(BuildItemKeys.AccessToClassPath))
+            return;
+        var type = items.ExecutableArtifact is ClrLoadedExecutableArtifact loaded
+            ? loaded.RunnableType
+            : capture.RequireType(items.ContainsKey(global::Musoq.Converter.Build.BuildItemKeys.AccessToClassPath)
+                ? items.AccessToClassPath
+                : ((ClrAssemblyExecutableArtifact)items.ExecutableArtifact!).RunnableTypeName);
+        GeneratedTypes.Add(query, type);
+    }
+
+    internal static CompiledQuery CompileForExecution(string script, string assemblyName,
+        ISchemaProvider schemaProvider, ILoggerResolver loggerResolver, CompilationOptions? compilationOptions = null)
+    {
+        using var capture = new GeneratedAssemblyCapture();
+        var result = InstanceCreator.CompileWithDiagnostics(script, assemblyName, schemaProvider, loggerResolver, compilationOptions);
+        if (!result.Succeeded)
+            throw result.CaughtException is { } cause
+                ? new MusoqQueryException(result.ToEnvelopes(), cause)
+                : new MusoqQueryException(result.ToEnvelopes());
+        RecordCompilation(result, capture);
+        return result.CompiledQuery;
+    }
+
+    internal static CompiledQuery CompileForExecution(string script, string assemblyName,
+        ISchemaProvider provider, ILoggerResolver logger, Func<BuildChain> createChain, Action<BuildItems> modify)
+    {
+        using var capture = new GeneratedAssemblyCapture();
+        BuildItems? capturedItems = null;
+        var query = InstanceCreator.CompileForExecution(script, assemblyName, provider, logger, createChain, items =>
+        {
+            capturedItems = items;
+            modify(items);
+        });
+        RecordCompilation(query, capturedItems ?? throw new InvalidOperationException("Build artifacts were not captured."), capture);
+        return query;
+    }
+
     internal static IEnumerable<MethodInfo> GetGeneratedComputeMethods(CompiledQuery query)
     {
-        var runnableField = typeof(CompiledQuery).GetField("_runnable", BindingFlags.Instance | BindingFlags.NonPublic) ??
-                            throw new InvalidOperationException("Compiled query runnable field was not found.");
-        var runnable = runnableField.GetValue(query) ??
-                       throw new InvalidOperationException("Compiled query runnable was not initialized.");
-
-        runnable = UnwrapGeneratedRunnable(runnable);
-        var runnableType = runnable.GetType();
+        var runnableType = GeneratedTypes.GetValue(query,
+            static _ => throw new InvalidOperationException("No generated assembly receipt was retained for this query."));
         var methods = runnableType.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
             .Where(static method => method.Name.StartsWith("Compute", StringComparison.Ordinal))
             .Concat(runnableType.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
@@ -47,31 +97,6 @@ internal static class GeneratedExecutionIlInspection
         var reflectionCalls = methods.SelectMany(GetReflectionExecutionCalls).ToArray();
         Assert.IsEmpty(reflectionCalls, "Generated execution must not invoke runtime reflection: " + string.Join(", ", reflectionCalls));
         return methods;
-    }
-
-    private static object UnwrapGeneratedRunnable(object runnable)
-    {
-        var visited = new HashSet<object>(ReferenceEqualityComparer.Instance);
-        while (visited.Add(runnable))
-        {
-            if (runnable.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                .Any(static method => method.Name.StartsWith("Compute", StringComparison.Ordinal)))
-                return runnable;
-            var inner = GetRunnableFields(runnable.GetType())
-                .Where(static field => typeof(IQueryRunnable).IsAssignableFrom(field.FieldType))
-                .Select(field => field.GetValue(runnable)).OfType<ITableRunnable>().SingleOrDefault();
-            if (inner is null)
-                throw new InvalidOperationException($"No generated compute methods or runnable child on {runnable.GetType()}.");
-            runnable = inner;
-        }
-        throw new InvalidOperationException("Runnable wrappers contain a cycle.");
-    }
-
-    private static IEnumerable<FieldInfo> GetRunnableFields(Type type)
-    {
-        for (Type? current = type; current is not null; current = current.BaseType)
-            foreach (var field in current.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly))
-                yield return field;
     }
 
     private static IEnumerable<string> GetReflectionExecutionCalls(MethodInfo method)

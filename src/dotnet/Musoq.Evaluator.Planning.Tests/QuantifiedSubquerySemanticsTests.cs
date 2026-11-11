@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class QuantifiedSubquerySemanticsTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -33,11 +33,13 @@ public sealed class QuantifiedSubquerySemanticsTests : BasicEntityTestBase
         int?[][] groups = [[1, null], [3, null], [null], [], [1], [], [1, 1], [3, 3], [2, 2], [null, 1], [null, 3]];
         var outer = Enumerable.Range(1, groups.Length).Select(id => new BasicEntity
         {
-            Id = id, NullableValue = id is 5 or 6 ? null : 2
+            Id = id,
+            NullableValue = id is 5 or 6 ? null : 2
         }).ToArray();
         var inner = groups.SelectMany((values, index) => values.Select(value => new BasicEntity
         {
-            Id = index + 1, NullableValue = value
+            Id = index + 1,
+            NullableValue = value
         })).ToArray();
         var sources = new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = outer, ["#B"] = inner };
         var query = $"select o.Id, o.NullableValue {operation} {quantifier} " +
@@ -192,12 +194,13 @@ public sealed class QuantifiedSubquerySemanticsTests : BasicEntityTestBase
     [DataRow("ALL", 2)]
     public void LeftOperand_ShouldBeEvaluatedOnceIncludingForEmptyInputs(string quantifier, int take)
     {
-        var baseline = new Library().NextValue();
-        var query = $"select NextValue() > {quantifier} (select i.Id from #B.entities() i where i.Id >= o.Id take {take}) as Outcome, " +
-                    "NextValue() as Calls from #A.entities() o";
-        using var compiled = CreateAndRunVirtualMachine(query, ShapingSources());
+        var fixture = new EvaluationFixture(new BasicSchemaProvider<BasicEntity>(ShapingSources()), "A");
+        var query = $"select NextTestValue() > {quantifier} (select i.Id from #B.entities() i where i.Id >= o.Id take {take}) as Outcome, " +
+                    "NextTestValue() as Calls from #A.entities() o";
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var result = compiled.Run(TestContext.CancellationToken);
-        Assert.AreEqual(baseline + 2, result[0].ReadValue(1));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [quantifier == "ALL" && take == 0, 2]);
+        Assert.AreEqual(2, fixture.Calls);
     }
 
     [TestMethod]
@@ -207,15 +210,15 @@ public sealed class QuantifiedSubquerySemanticsTests : BasicEntityTestBase
     [DataRow("ALL")]
     public void UnknownQuantifierOnLeftOfAnd_ShouldEvaluateTheRightOperand(string quantifier)
     {
-        var baseline = new Library().NextValue();
         var query = $"select o.Id from #A.entities() o where 2 > {quantifier} " +
-                    "(select i.NullableValue from #B.entities() i where i.Id = o.Id) and NextValue() > 0";
+                    "(select i.NullableValue from #B.entities() i where i.Id = o.Id) and NextTestValue() > 0";
         var sources = ShapingSources();
         sources["#B"] = [new BasicEntity { Id = 1 }];
-        using var compiled = CreateAndRunVirtualMachine(query, sources);
+        var fixture = new EvaluationFixture(new BasicSchemaProvider<BasicEntity>(sources), "A");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(0, result.Count);
-        Assert.AreEqual(baseline + 2, new Library().NextValue());
+        Assert.AreEqual(1, fixture.Calls);
     }
 
     private static Dictionary<string, IEnumerable<BasicEntity>> ShapingSources() => new()

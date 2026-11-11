@@ -19,10 +19,10 @@ public sealed partial class ComputedSourceArgumentTests
     private static readonly CompilationOptions Options = new(parallelizationMode: ParallelizationMode.None);
 
     private static CompiledQuery Compile(string sql, CapturingProvider provider) =>
-        InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(), Options);
+        GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, new TestsLoggerResolver(), Options);
 
     private static void Set(CompiledQuery query, string name, object? value) =>
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, name, value);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, name, value);
 
     public sealed class ArgumentRow
     {
@@ -71,7 +71,8 @@ public sealed partial class ComputedSourceArgumentTests
             {
                 var row = new ArgumentRow
                 {
-                    Path = arguments.GetValue<string>(0), Suffix = arguments.GetValue<string>(1),
+                    Path = arguments.GetValue<string>(0),
+                    Suffix = arguments.GetValue<string>(1),
                     Number = arguments.GetValue<int?>(2)
                 };
                 owner.Opened.Add(row);

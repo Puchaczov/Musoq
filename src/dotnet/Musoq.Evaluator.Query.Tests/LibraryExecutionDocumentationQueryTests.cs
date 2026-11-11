@@ -12,7 +12,7 @@ using static Musoq.Evaluator.Tests.LibraryExecutionDocumentationQueryTestsFixtur
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class LibraryExecutionDocumentationQueryTests : GenericEntityTestBase
 {
     [TestMethod]

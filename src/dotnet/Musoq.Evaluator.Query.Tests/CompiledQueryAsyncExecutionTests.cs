@@ -18,7 +18,7 @@ public sealed class CompiledQueryAsyncExecutionTests
     {
         using var runnable = new AsyncParameterizedRunnable();
         using var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
 
         var execution = query.RunAsync().AsTask();
         Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
@@ -68,7 +68,7 @@ public sealed class CompiledQueryAsyncExecutionTests
     {
         using var runnable = new AsyncParameterizedRunnable();
         var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
 
         var execution = query.RunAsync().AsTask();
         Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));

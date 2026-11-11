@@ -182,9 +182,9 @@ select City, Sum(Population) from #C.Entities() group by City";
     {
         var query =
             @"select City, Sum(Population) from #A.Entities() group by City
-except (City)
+intersect (City)
 select City, Sum(Population) from #B.Entities() group by City
-except (City)
+intersect (City)
 select City, Sum(Population) from #C.Entities() group by City";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
@@ -199,10 +199,10 @@ select City, Sum(Population) from #C.Entities() group by City";
             {
                 "#B",
                 [
-                    new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("003", "", 13)
+                    new BasicEntity("003", "", 13), new BasicEntity("003", "", 13), new BasicEntity("001", "", 7)
                 ]
             },
-            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("002", "", 14)] }
+            { "#C", [new BasicEntity("002", "", 14), new BasicEntity("001", "", 9)] }
         };
 
         var vm = CreateAndRunVirtualMachine(query, sources);

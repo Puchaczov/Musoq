@@ -41,7 +41,9 @@ public class GenericSchema<TLibrary>(
         if (filterRowsSource.TryGetValue(name, out var filter))
             return CreateSourceFromFilterResult<T>(
                 name,
-                filter?.Invoke(parameters, new RowSourceFilterInput(table.RowSource)) ?? table.RowSource);
+                filter?.Invoke(parameters, new RowSourceFilterInput(
+                    EnsureSourceType<T>(name, table.RowSource).Chunks.Where(chunk => chunk.Count > 0).Select(chunk =>
+                        (IReadOnlyList<dynamic>)chunk.Cast<dynamic>().ToArray()))) ?? table.RowSource);
 
         return EnsureSourceType<T>(name, table.RowSource);
     }
@@ -104,9 +106,9 @@ public class GenericSchema<TLibrary>(
     }
 }
 
-public sealed class RowSourceFilterInput(object rowSource)
+public sealed class RowSourceFilterInput(IEnumerable<IReadOnlyList<dynamic>> chunks)
 {
-    public IEnumerable<IReadOnlyList<dynamic>> Chunks => GetChunks(rowSource);
+    public IEnumerable<IReadOnlyList<dynamic>> Chunks => chunks;
 
     public IEnumerable<IReadOnlyList<dynamic>> Filter(Func<dynamic, bool> predicate)
     {
@@ -127,23 +129,4 @@ public sealed class RowSourceFilterInput(object rowSource)
         }
     }
 
-    private static IEnumerable<IReadOnlyList<dynamic>> GetChunks(object rowSource)
-    {
-        var chunksProperty = rowSource.GetType().GetProperty(nameof(RowSource<object>.Chunks));
-        if (chunksProperty?.GetValue(rowSource) is not IEnumerable chunks)
-            yield break;
-
-        foreach (var chunk in chunks)
-        {
-            if (chunk is not IEnumerable rows)
-                continue;
-
-            var typedChunk = new List<dynamic>();
-            foreach (var row in rows)
-                typedChunk.Add(row);
-
-            if (typedChunk.Count > 0)
-                yield return typedChunk;
-        }
-    }
 }

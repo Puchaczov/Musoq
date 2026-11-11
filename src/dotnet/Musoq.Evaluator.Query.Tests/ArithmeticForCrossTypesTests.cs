@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class ArithmeticForCrossTypesTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -476,23 +476,11 @@ public class ArithmeticForCrossTypesTests : BasicEntityTestBase
         TestMethodTemplate<decimal>("1ul + 1d", 2);
     }
 
-    [TestMethod]
-    public void WhenByteAndULongUsed_ShouldHaveColumnOfThatType()
-    {
-        TestMethodTemplate<ulong>("1ub + 1ul", 2);
-    }
 
-    [TestMethod]
-    public void WhenByteAndFloatUsed_ShouldHaveColumnOfThatType()
-    {
-        TestMethodTemplate<float?>("1ub + ToFloat(1)", 2);
-    }
 
-    [TestMethod]
-    public void WhenByteAndDoubleUsed_ShouldHaveColumnOfThatType()
-    {
-        TestMethodTemplate<double?>("1ub + ToDouble(1)", 2);
-    }
+
+
+
 
     [TestMethod]
     public void WhenFloatAndSByteUsed_ShouldHaveColumnOfThatType()

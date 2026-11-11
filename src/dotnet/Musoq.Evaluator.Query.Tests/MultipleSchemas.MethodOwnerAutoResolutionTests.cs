@@ -15,7 +15,7 @@ using static Musoq.Evaluator.Tests.MethodOwnerAutoResolutionTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class MethodOwnerAutoResolutionTests : BasicEntityTestBase
 {
     [TestMethod]

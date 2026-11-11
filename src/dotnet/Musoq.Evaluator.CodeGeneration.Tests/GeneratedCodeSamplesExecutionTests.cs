@@ -14,7 +14,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
 {
     private static readonly CompiledQueryBatchRepository<string> RecursiveSampleQueries =
@@ -80,8 +80,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         var vm = CompileSample(
             "Q123_ScriptParameterGroupByHelperCapture.cs",
             CreateBasicProvider(CreateLargeCountryRows(), []));
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-large");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2500);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-large");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "minCount", 2500);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -101,8 +101,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         var vm = CompileSample(
             "Q124_ScriptParameterJoinHelperCapture.cs",
             CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-match");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "fallback", "missing");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "suffix", "-match");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "fallback", "missing");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -165,7 +165,7 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         var vm = CompileSample(
             "Q125_ScriptParameterCteHelperCapture.cs",
             CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -185,8 +185,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         var vm = CompileSample(
             "Q126_ScriptParameterWindowHelperCapture.cs",
             CreateBasicProvider(CreateBasicRows(), CreateTargetRows()));
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "-window");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "country", "PL");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "-window");
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -219,8 +219,8 @@ public sealed class GeneratedCodeSamplesExecutionTests : BasicEntityTestBase
         Assert.Contains("QueryRows.FromRowShards", inspection.GeneratedCSharpCode);
 
         var vm = CompileSample(sample.FileName, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "threshold", 4990);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "hot");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "threshold", 4990);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "hot");
 
         var table = vm.Run(TestContext.CancellationToken);
 

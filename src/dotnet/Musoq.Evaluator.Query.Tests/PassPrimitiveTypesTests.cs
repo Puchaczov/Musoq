@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
@@ -12,7 +11,7 @@ using Musoq.Schema.Reflection;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class PassPrimitiveTypesTests : BasicEntityTestBase
 {
 
@@ -20,17 +19,22 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     public void GetSchemaTableAndRowSourcePassedPrimitiveArgumentsTest()
     {
         var query = "select 1 from #test.whatever(1, 2d, true, false, 'text')";
-
-        var vm = CreateAndRunVirtualMachine(query, [], passedParams =>
+        var tableCalls = 0;
+        var sourceCalls = 0;
+        using var vm = CreateAndRunVirtualMachine(query, [new TestEntity()], passedParams =>
         {
-            Assert.AreEqual(1, passedParams[0]);
-            Assert.AreEqual(2m, passedParams[1]);
-            Assert.IsTrue((bool?)passedParams[2]);
-            Assert.IsFalse((bool?)passedParams[3]);
-            Assert.AreEqual("text", passedParams[4]);
-        }, WhenCheckedParameters.OnSchemaTableOrRowSourceGet);
+            tableCalls++;
+            AssertSourceArguments(passedParams);
+        }, passedParams =>
+        {
+            sourceCalls++;
+            AssertSourceArguments(passedParams);
+        });
 
-        vm.Run(TestContext.CancellationToken);
+        using var table = vm.Run(TestContext.CancellationToken);
+        Assert.AreEqual(1, table.Count);
+        Assert.IsGreaterThan(0, tableCalls);
+        Assert.IsGreaterThan(0, sourceCalls);
     }
 
     [TestMethod]
@@ -38,50 +42,45 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
     {
         var query = "select PrimitiveArgumentsMethod(1, 2d, true, false, 'text') from #test.whatever()";
 
-        var vm = CreateAndRunVirtualMachine(query, [], passedParams =>
-        {
-            Assert.AreEqual(1L, passedParams[0]);
-            Assert.AreEqual(2m, passedParams[1]);
-            Assert.IsTrue((bool?)passedParams[2]);
-            Assert.IsFalse((bool?)passedParams[3]);
-            Assert.AreEqual("text", passedParams[4]);
-        }, WhenCheckedParameters.OnMethodCall);
+        using var vm = CreateAndRunVirtualMachine(query, [new TestEntity()]);
 
-        vm.Run(TestContext.CancellationToken);
+        using var table = vm.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1]);
+    }
+
+    private static void AssertSourceArguments(object?[] arguments)
+    {
+        Assert.HasCount(5, arguments);
+        Assert.AreEqual(1, arguments[0]);
+        Assert.AreEqual(2m, arguments[1]);
+        Assert.AreEqual(true, arguments[2]);
+        Assert.AreEqual(false, arguments[3]);
+        Assert.AreEqual("text", arguments[4]);
     }
 
     private CompiledQuery CreateAndRunVirtualMachine(string script, IReadOnlyList<TestEntity> source,
-        Action<object?[]> onGetTableOrRowSource, WhenCheckedParameters whenChecked)
+        Action<object?[]>? onGetTable = null, Action<object?[]>? onGetRowSource = null)
     {
-        var environmentVariablesMock = new Mock<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>();
-        environmentVariablesMock.Setup(f => f[It.IsAny<string>()]).Returns(new Dictionary<string, string>());
-
         return InstanceCreator.CompileForExecution(script, Guid.NewGuid().ToString(),
-            new TestSchemaProvider(source, onGetTableOrRowSource, whenChecked), LoggerResolver);
-    }
-
-    private enum WhenCheckedParameters
-    {
-        OnSchemaTableOrRowSourceGet,
-        OnMethodCall
+            new TestSchemaProvider(source, onGetTable, onGetRowSource), LoggerResolver);
     }
 
     private sealed class TestSchemaProvider(
         IReadOnlyList<TestEntity> entities,
-        Action<object?[]> onGetTableOrRowSource,
-        WhenCheckedParameters whenChecked)
+        Action<object?[]>? onGetTable,
+        Action<object?[]>? onGetRowSource)
         : ISchemaProvider
     {
         public ISchema GetSchema(string schema)
         {
-            return new TestSchema(entities, onGetTableOrRowSource, whenChecked);
+            return new TestSchema(entities, onGetTable, onGetRowSource);
         }
     }
 
     private sealed class TestSchema(
         IReadOnlyList<TestEntity> entities,
-        Action<object?[]> onGetTableOrRowSource,
-        WhenCheckedParameters whenChecked)
+        Action<object?[]>? onGetTable,
+        Action<object?[]>? onGetRowSource)
         : SchemaBase("test", CachedLibrary.Value)
     {
         private static readonly Lazy<MethodsAggregator> CachedLibrary = new(CreateLibrary);
@@ -89,7 +88,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         public override RowSource<T> GetRowSource<T, TArguments>(string name, SourceExecutionContext communicator, TArguments nativeArguments)
         {
             var parameters = global::Musoq.Tests.Common.NativeSourceTestArguments.Read(nativeArguments);
-            if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
+            onGetRowSource?.Invoke(parameters);
             return EnsureSourceType<T, TestEntity>(name, new EntitySource<TestEntity>([entities], new Dictionary<string, int>(),
                 new Dictionary<int, Func<TestEntity, object?>>()));
         }
@@ -97,18 +96,15 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
         public override ISchemaTable GetTableByName(string name, SourceMetadataContext metadataContext,
             params object?[] parameters)
         {
-            if (whenChecked == WhenCheckedParameters.OnSchemaTableOrRowSourceGet) onGetTableOrRowSource(parameters);
+            onGetTable?.Invoke(parameters);
             return new TestTable();
         }
 
         private static MethodsAggregator CreateLibrary()
         {
             var methodManager = new MethodsManager();
-            var propertiesManager = new PropertiesManager();
-
             var lib = new Library();
 
-            propertiesManager.RegisterProperties(lib);
             methodManager.RegisterLibraries(lib);
 
             return new MethodsAggregator(methodManager);
@@ -116,8 +112,7 @@ public class PassPrimitiveTypesTests : BasicEntityTestBase
 
         public override SchemaMethodInfo[] GetConstructors()
         {
-            var methodInfos = new List<SchemaMethodInfo>();
-            return methodInfos.ToArray();
+            return [];
         }
     }
 

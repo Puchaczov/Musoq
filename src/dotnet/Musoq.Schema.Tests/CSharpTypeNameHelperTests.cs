@@ -115,9 +115,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void GetCSharpTypeName_GenericTypeParameter_ReturnsParameterName()
     {
-        var method =
-            GetRequiredMethod(typeof(CSharpTypeNameHelperTests), nameof(GenericMethod),
-                BindingFlags.NonPublic | BindingFlags.Static);
+        var method = ((Func<int, int>)GenericMethod<int>).Method.GetGenericMethodDefinition();
         var genericParam = method.GetGenericArguments()[0];
 
         Assert.AreEqual("T", CSharpTypeNameHelper.GetCSharpTypeName(genericParam));
@@ -126,8 +124,7 @@ public class CSharpTypeNameHelperTests
     [TestMethod]
     public void GetCSharpTypeName_ComplexGenericTypeParameter_ReturnsParameterName()
     {
-        var method = GetRequiredMethod(typeof(CSharpTypeNameHelperTests), nameof(ComplexGenericMethod),
-            BindingFlags.NonPublic | BindingFlags.Static);
+        var method = ((Func<int, string, string>)ComplexGenericMethod<int, string>).Method.GetGenericMethodDefinition();
         var genericParams = method.GetGenericArguments();
 
         Assert.AreEqual("TKey", CSharpTypeNameHelper.GetCSharpTypeName(genericParams[0]));

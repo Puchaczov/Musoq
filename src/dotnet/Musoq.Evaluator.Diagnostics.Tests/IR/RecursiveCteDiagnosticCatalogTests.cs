@@ -56,24 +56,26 @@ public sealed class RecursiveCteDiagnosticCatalogTests
         var schemaProvider = new BasicSchemaProvider<BasicEntity>(
             new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [] } });
 
-        foreach (var testCase in RecursiveCteUnsupportedCaseCatalog.Cases.Where(static item => item.ParserRecovery))
         {
-            var actual = new QueryAnalyzer(schemaProvider).Analyze(testCase.Query).Diagnostics.ToArray();
-            var expected = testCase.ExpectedDiagnostics!;
-
-            Assert.HasCount(expected.Count, actual, testCase.Name);
-            for (var index = 0; index < expected.Count; index++)
+            var selectedCases = RecursiveCteUnsupportedCaseCatalog.Cases.Where(static item => item.ParserRecovery).ToArray(); Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases."); foreach (var testCase in selectedCases)
             {
-                var expectedDiagnostic = expected[index];
-                var actualDiagnostic = actual[index];
-                Assert.AreEqual(expectedDiagnostic.Code, actualDiagnostic.Code, testCase.Name);
-                StringAssert.Contains(actualDiagnostic.Message, expectedDiagnostic.MessageFragment, testCase.Name);
-                Assert.IsGreaterThan(0, actualDiagnostic.Span.Length, testCase.Name);
-                var span = testCase.Query.Substring(actualDiagnostic.Span.Start, actualDiagnostic.Span.Length);
-                Assert.IsTrue(
-                    span.Contains(expectedDiagnostic.SpanFragment, StringComparison.OrdinalIgnoreCase),
-                    $"{testCase.Name}: diagnostic {index} span '{span}' does not contain " +
-                    $"'{expectedDiagnostic.SpanFragment}'.");
+                var actual = new QueryAnalyzer(schemaProvider).Analyze(testCase.Query).Diagnostics.ToArray();
+                var expected = testCase.ExpectedDiagnostics!;
+
+                Assert.HasCount(expected.Count, actual, testCase.Name);
+                for (var index = 0; index < expected.Count; index++)
+                {
+                    var expectedDiagnostic = expected[index];
+                    var actualDiagnostic = actual[index];
+                    Assert.AreEqual(expectedDiagnostic.Code, actualDiagnostic.Code, testCase.Name);
+                    StringAssert.Contains(actualDiagnostic.Message, expectedDiagnostic.MessageFragment, testCase.Name);
+                    Assert.IsGreaterThan(0, actualDiagnostic.Span.Length, testCase.Name);
+                    var span = testCase.Query.Substring(actualDiagnostic.Span.Start, actualDiagnostic.Span.Length);
+                    Assert.IsTrue(
+                        span.Contains(expectedDiagnostic.SpanFragment, StringComparison.OrdinalIgnoreCase),
+                        $"{testCase.Name}: diagnostic {index} span '{span}' does not contain " +
+                        $"'{expectedDiagnostic.SpanFragment}'.");
+                }
             }
         }
     }

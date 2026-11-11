@@ -98,18 +98,20 @@ public sealed class DiagnosticREC113SemanticMutationTests
     public void NormalizedSemanticFailures_ShouldStopBeforePhysicalPlanning()
     {
         var ids = new[] { "G01", "G02", "G03", "G04", "G05" };
-        foreach (var candidate in CandidateCases.Where(candidate => ids.Contains(candidate.Id)))
         {
-            var buildItems = PlanOnlyBuildItems.Create(candidate.Query);
-            var errors = buildItems.DiagnosticContext.Errors.ToArray();
+            var selectedCases = CandidateCases.Where(candidate => ids.Contains(candidate.Id)).ToArray(); Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases."); foreach (var candidate in selectedCases)
+            {
+                var buildItems = PlanOnlyBuildItems.Create(candidate.Query);
+                var errors = buildItems.DiagnosticContext.Errors.ToArray();
 
-            Assert.IsNotEmpty(errors, candidate.Id);
-            Assert.AreEqual(candidate.ExpectedCode, errors[0].Code, candidate.Id);
-            Assert.IsNull(buildItems.LogicalPlan, candidate.Id);
-            Assert.IsNull(buildItems.PhysicalPlan, candidate.Id);
-            Assert.IsFalse(
-                errors.Any(error => StableForbiddenCodes.Contains(error.Code)),
-                $"{candidate.Id}: {FormatDiagnostics(errors)}");
+                Assert.IsNotEmpty(errors, candidate.Id);
+                Assert.AreEqual(candidate.ExpectedCode, errors[0].Code, candidate.Id);
+                Assert.IsNull(buildItems.LogicalPlan, candidate.Id);
+                Assert.IsNull(buildItems.PhysicalPlan, candidate.Id);
+                Assert.IsFalse(
+                    errors.Any(error => StableForbiddenCodes.Contains(error.Code)),
+                    $"{candidate.Id}: {FormatDiagnostics(errors)}");
+            }
         }
     }
 

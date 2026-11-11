@@ -107,35 +107,30 @@ public partial class CompilationPipelineErrorTests
     [TestMethod]
     public void Stage2_InvalidExpression_ConsecutiveLiterals()
     {
-        // Arrange - SELECT 5 5 FROM (two literals without operator)
-        // Parser may interpret second 5 as alias
+
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT 5 5 FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Document: parser may accept "5" as alias for literal 5
-        DocumentParserBehavior(result,
-            "5 5: may parse as literal 5 with alias '5' (valid) or MQ2018_MissingOperator",
-            result.HasErrors);
+        var diagnostic = DiagnosticContractTestAssertions.AssertSingleError(
+            result, DiagnosticCode.MQ2018_MissingOperator, nameof(Stage2_InvalidExpression_ConsecutiveLiterals));
+        Assert.AreEqual(new Musoq.Parser.TextSpan(9, 0), diagnostic.Span);
     }
 
     [TestMethod]
     public void Stage2_InvalidExpression_ConsecutiveIdentifiers()
     {
-        // Arrange - Two identifiers without operator
-        // Parser interprets second as alias: "Name City" = Name AS City
+
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name City FROM #A.Entities()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - This is VALID SQL (City is alias for Name)
-        DocumentParserBehavior(result,
-            "Name City: valid alias syntax (Name AS City implicit)",
-            false);
+        Assert.IsTrue(result.IsParsed);
+        AssertNoErrors(result);
     }
 
     [TestMethod]

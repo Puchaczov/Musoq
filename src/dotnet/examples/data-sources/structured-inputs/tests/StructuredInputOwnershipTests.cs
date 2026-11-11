@@ -23,7 +23,7 @@ public sealed class StructuredInputOwnershipTests
             ["Pattern"] = "TODO"
         };
         var host = new List<Dictionary<string, object?>> { record };
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", host);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", host);
 
         string firstMatch;
         using (var first = compiled.Run())
@@ -50,7 +50,7 @@ public sealed class StructuredInputOwnershipTests
             "param(patterns: (Id: string, Pattern: string)[]) " +
             "select m.PatternId from #inputs.match('TODO', patterns: $patterns) m";
         using var compiled = Compile(query, "structured-input-invalid-runtime");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "patterns", new List<Dictionary<string, object?>>
         {
             new()
             {

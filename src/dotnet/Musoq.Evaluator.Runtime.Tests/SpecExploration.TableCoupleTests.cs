@@ -8,7 +8,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Tests derived from the TABLE/COUPLE Specification (musoq-table-couple-spec.md).
 ///     These use UnknownQueryTestsBase for dynamic schema testing.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class SpecExplorationTableCoupleTests : UnknownQueryTestsBase
 {
 

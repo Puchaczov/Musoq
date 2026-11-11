@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Single schema tests: Pattern matching and validation.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class SingleSchemaPatternMatchingTests : BasicEntityTestBase
 {
 

@@ -8,16 +8,15 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Invalid_ComparisonOperator()
     {
-        // Arrange - using "==" instead of "="
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name == 'test'";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - could be valid or error depending on parser
-        // We just verify it doesn't crash
-        Assert.IsNotNull(result);
+
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2019_InvalidOperator, nameof(Invalid_ComparisonOperator));
     }
 
     [TestMethod]
@@ -65,15 +64,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Invalid_InExpression_EmptyList()
     {
-        // Arrange - Some SQL dialects allow empty IN lists
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name IN ()";
 
-        // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert - Accept either error or success (dialect-dependent)
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ2037_EmptyPredicateListNotAllowed, nameof(Invalid_InExpression_EmptyList));
     }
 
     [TestMethod]
@@ -95,30 +93,28 @@ public partial class UserMistakesTests
     [TestMethod]
     public void TypeMismatch_StringComparedToNumber()
     {
-        // Arrange - comparing string column to number
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name = 123";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - This might be allowed in some SQL dialects
-        // Just verify it's processed without crashing
-        Assert.IsNotNull(result);
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(TypeMismatch_StringComparedToNumber));
     }
 
     [TestMethod]
     public void TypeMismatch_NumberInStringFunction()
     {
-        // Arrange
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Substring(Population, 1, 2) FROM #A.Entities()";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - verify it handles the type mismatch
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3088_NoMatchingCallableOverload, nameof(TypeMismatch_NumberInStringFunction));
     }
 
 
@@ -154,15 +150,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void CaseSensitivity_ColumnNameWrongCase()
     {
-        // Arrange - "name" instead of "Name"
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT name FROM #A.Entities()";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - column names may or may not be case-sensitive
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3001_UnknownColumn, nameof(CaseSensitivity_ColumnNameWrongCase));
     }
 
 
@@ -245,15 +240,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Aggregate_WithoutGroupBy()
     {
-        // Arrange - mixing aggregated and non-aggregated
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name, Count(*) FROM #A.Entities()";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3012_NonAggregateInSelect, nameof(Aggregate_WithoutGroupBy));
     }
 
     [TestMethod]
@@ -273,15 +267,14 @@ public partial class UserMistakesTests
     [TestMethod]
     public void Aggregate_WrongArgumentCount()
     {
-        // Arrange - Count with wrong args
+
         var analyzer = CreateAnalyzer();
         var query = "SELECT Count(Name, City, Country) FROM #A.Entities()";
 
-        // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsNotNull(result);
+        _ = DiagnosticContractTestAssertions.AssertSingleError(result,
+            Musoq.Parser.Diagnostics.DiagnosticCode.MQ3087_InvalidCallableArity, nameof(Aggregate_WrongArgumentCount));
     }
 
 

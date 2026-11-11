@@ -9,7 +9,7 @@ using Musoq.Plugins.Attributes;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class Core020ApplyFundamentalsTests : GenericEntityTestBase
 {
     [TestMethod]

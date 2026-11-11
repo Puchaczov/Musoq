@@ -8,7 +8,7 @@ using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticREC092MeaningPreservationTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -417,7 +417,7 @@ public sealed class DiagnosticREC092MeaningPreservationTests : BasicEntityTestBa
     {
         var vm = CreateAndRunVirtualMachine(query, CreateSources(candidate.Fixture));
         if (candidate.ParameterName != null)
-            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, candidate.ParameterName, candidate.ParameterValue);
+            global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, candidate.ParameterName, candidate.ParameterValue);
 
         var table = TableMaterializationTestHelper.Materialize(vm.Run(TestContext.CancellationToken));
         return new QuerySnapshot(

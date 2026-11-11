@@ -6,7 +6,7 @@ using Musoq.Evaluator.Tests.Schema.Unknown;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class AutomaticNumericTypeInferenceOverflowTests : UnknownQueryTestsBase
 {
     #region Phase 7: Overflow and Type Boundary Tests

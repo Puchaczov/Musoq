@@ -47,7 +47,7 @@ public partial class ScriptParameterExecutionTests
 
         if (inputKind == "param")
         {
-            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+            global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
             var rebound = vm.Run(TestContext.CancellationToken);
             Assert.AreEqual(table.Count, rebound.Count);
             Assert.AreEqual("KEY_2", rebound[0].ReadValue(0));

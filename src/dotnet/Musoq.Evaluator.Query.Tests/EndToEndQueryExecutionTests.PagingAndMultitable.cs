@@ -45,7 +45,7 @@ public partial class EndToEndQueryExecutionTests
         var table = vm.Run();
 
         TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A"], ["B"], ["C"], ["D"]);
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["A"], ["B"], ["C"], ["D"]);
     }
 
     [TestMethod]

@@ -1,5 +1,7 @@
 using System;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Musoq.Evaluator.Tests.Architecture;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Runtime;
@@ -14,90 +16,64 @@ public sealed class EvaluationHelperRuntimeCacheTests
     [TestMethod]
     public void DynamicNestedValueAccessors_ShouldNotExist()
     {
-        Assert.IsNull(typeof(EvaluationHelper).GetMethod("GetNestedValueAccessor"));
-        Assert.IsNull(typeof(EvaluationHelper).GetMethod("GetNestedValue"));
-        Assert.IsNull(typeof(EvaluationHelper).GetField("NestedValueAccessors", BindingFlags.NonPublic | BindingFlags.Static));
+        Assert.IsNull(CompilerContractSymbols.For(typeof(EvaluationHelper)).GetMethod("GetNestedValueAccessor"));
+        Assert.IsNull(CompilerContractSymbols.For(typeof(EvaluationHelper)).GetMethod("GetNestedValue"));
+        Assert.IsNull(CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("NestedValueAccessors", BindingFlags.NonPublic | BindingFlags.Static));
     }
 
     [TestMethod]
     public void XmlDocumentationCache_ShouldUseBoundedRuntimeCache()
     {
-        var cache = PrivateStaticCache("XmlDocCache");
-
-        StringAssert.Contains(cache.GetType().FullName, nameof(BoundedRuntimeCache<object, object>));
+        var cache = CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("XmlDocCache", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.IsNotNull(cache);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(BoundedRuntimeCache<,>)), cache.Type.OriginalDefinition));
     }
 
     [TestMethod]
     public void RemainingTypeKeyedCaches_ShouldUseWeakBoundedRuntimeCache()
     {
-        foreach (var fieldName in new[]
-                 {
-                     "CastableTypeCache"
-                 })
+        var castable = CompilerContractSymbols.For(typeof(EvaluationHelper)).GetField("CastableTypeCache", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.IsNotNull(castable);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>)), castable.Type.OriginalDefinition));
+        foreach (var name in new[] { "HasIndexerCache", "IsIndexableCache" })
         {
-            var cache = PrivateStaticCache(fieldName);
-            Assert.AreEqual(
-                typeof(WeakTypeRuntimeCache<>),
-                cache.GetType().GetGenericTypeDefinition(),
-                $"EvaluationHelper.{fieldName} must use weak bounded ownership.");
-        }
-
-        foreach (var fieldName in new[] { "HasIndexerCache", "IsIndexableCache" })
-        {
-            var field = typeof(BuildMetadataAndInferTypesVisitorUtilities).GetField(
-                fieldName,
-                BindingFlags.NonPublic | BindingFlags.Static);
-            Assert.IsNotNull(field, $"{fieldName} private static cache field was not found.");
-            Assert.AreEqual(typeof(WeakTypeRuntimeCache<>), field!.FieldType.GetGenericTypeDefinition());
+            var cache = CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities)).GetField(name, BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.IsNotNull(cache);
+            Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>)), cache.Type.OriginalDefinition));
         }
     }
 
     [TestMethod]
     public void TypeInspectionCaches_ShouldSupportExplicitClear()
     {
+        var indexer = new CountingType();
+        var indexable = new CountingType();
         BuildMetadataAndInferTypesVisitorUtilities.ClearTypeInspectionCaches();
-
-        Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(typeof(CacheEntity)));
-        Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(typeof(CacheEntity)));
-
-        var hasIndexer = PrivateStaticCache(typeof(BuildMetadataAndInferTypesVisitorUtilities), "HasIndexerCache");
-        var isIndexable = PrivateStaticCache(typeof(BuildMetadataAndInferTypesVisitorUtilities), "IsIndexableCache");
-        Assert.AreEqual(1, Count(hasIndexer));
-        Assert.AreEqual(1, Count(isIndexable));
-
-        BuildMetadataAndInferTypesVisitorUtilities.ClearTypeInspectionCaches();
-
-        Assert.AreEqual(0, Count(hasIndexer));
-        Assert.AreEqual(0, Count(isIndexable));
+        try
+        {
+            Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(indexer));
+            Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(indexer));
+            Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(indexable));
+            Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(indexable));
+            Assert.AreEqual((1, 1), (indexer.PropertyReads, indexable.PropertyReads));
+            BuildMetadataAndInferTypesVisitorUtilities.ClearTypeInspectionCaches();
+            Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.HasIndexer(indexer));
+            Assert.IsTrue(BuildMetadataAndInferTypesVisitorUtilities.IsIndexableType(indexable));
+            Assert.AreEqual((2, 2), (indexer.PropertyReads, indexable.PropertyReads));
+        }
+        finally { BuildMetadataAndInferTypesVisitorUtilities.ClearTypeInspectionCaches(); }
     }
 
-    private static object PrivateStaticCache(string fieldName)
+    // Type is the API input under test. This typed delegator observes public metadata requests;
+    // it does not inspect production fields or invoke private members.
+    private sealed class CountingType() : TypeDelegator(typeof(CacheEntity))
     {
-        return PrivateStaticCache(typeof(EvaluationHelper), fieldName);
-    }
-
-    private static object PrivateStaticCache(Type owner, string fieldName)
-    {
-        var field = owner.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Static)
-                    ?? throw new AssertFailedException($"EvaluationHelper.{fieldName} private static cache field was not found.");
-        return field.GetValue(null)
-               ?? throw new AssertFailedException($"EvaluationHelper.{fieldName} private static cache field is null.");
-    }
-
-    private static void Clear(object cache)
-    {
-        var clearMethod = cache.GetType().GetMethod(nameof(BoundedRuntimeCache<object, object>.Clear), BindingFlags.Public | BindingFlags.Instance)
-                          ?? throw new AssertFailedException($"{cache.GetType().FullName} does not expose Clear.");
-        clearMethod.Invoke(cache, []);
-    }
-
-    private static int Count(object cache)
-    {
-        var countProperty = cache.GetType().GetProperty(nameof(BoundedRuntimeCache<object, object>.Count), BindingFlags.Public | BindingFlags.Instance)
-                            ?? throw new AssertFailedException($"{cache.GetType().FullName} does not expose Count.");
-        return countProperty.GetValue(cache) is int count
-            ? count
-            : throw new AssertFailedException($"{cache.GetType().FullName}.Count did not return an int.");
+        internal int PropertyReads { get; private set; }
+        public override PropertyInfo[] GetProperties(BindingFlags bindingAttr)
+        {
+            PropertyReads++;
+            return base.GetProperties(bindingAttr);
+        }
     }
 
     private sealed class CacheEntity

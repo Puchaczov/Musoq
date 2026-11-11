@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -16,120 +18,120 @@ public sealed class AstVisitorCoverageTests
     [TestMethod]
     public void CloneQueryVisitor_ShouldDeclareVisitMethodForEveryExpressionVisitorNode()
     {
-        AssertDeclaresVisitMethods(typeof(CloneQueryVisitor));
+        AssertDeclaresVisitMethods(CompilerContractSymbols.For(typeof(CloneQueryVisitor)));
     }
 
     [TestMethod]
     public void RawTraverseVisitor_ShouldDeclareVisitMethodForEveryExpressionVisitorNode()
     {
-        AssertDeclaresVisitMethods(typeof(RawTraverseVisitor<>));
+        AssertDeclaresVisitMethods(CompilerContractSymbols.For(typeof(RawTraverseVisitor<>)));
     }
 
     [TestMethod]
     public void NoOpExpressionVisitor_ShouldDeclareVisitMethodForEveryExpressionVisitorNode()
     {
-        AssertDeclaresVisitMethods(typeof(NoOpExpressionVisitor));
+        AssertDeclaresVisitMethods(CompilerContractSymbols.For(typeof(NoOpExpressionVisitor)));
     }
 
     [TestMethod]
     public void RewriteQueryTraverseVisitor_ShouldKeepDomainSpecificVisitOverrides()
     {
         AssertDeclaresVisitMethods(
-            typeof(RewriteQueryTraverseVisitor),
-            typeof(DotNode),
-            typeof(GroupByNode),
-            typeof(JoinSourcesTableFromNode),
-            typeof(ApplySourcesTableFromNode),
-            typeof(JoinFromNode),
-            typeof(ApplyFromNode),
-            typeof(AccessMethodFromNode),
-            typeof(AliasedFromNode),
-            typeof(QueryNode),
-            typeof(WindowFunctionNode),
-            typeof(WindowSpecificationNode),
-            typeof(WindowDefinitionNode),
-            typeof(WindowNode),
-            typeof(InternalQueryNode),
-            typeof(UnionNode),
-            typeof(UnionAllNode),
-            typeof(ExceptNode),
-            typeof(IntersectNode),
-            typeof(CteExpressionNode),
-            typeof(CteInnerExpressionNode),
-            typeof(InterpretCallNode),
-            typeof(ParseCallNode),
-            typeof(TryInterpretCallNode),
-            typeof(TryParseCallNode),
-            typeof(PartialInterpretCallNode),
-            typeof(PartialParseCallNode),
-            typeof(InterpretAtCallNode));
+            CompilerContractSymbols.For(typeof(RewriteQueryTraverseVisitor)),
+            CompilerContractSymbols.For(typeof(DotNode)),
+            CompilerContractSymbols.For(typeof(GroupByNode)),
+            CompilerContractSymbols.For(typeof(JoinSourcesTableFromNode)),
+            CompilerContractSymbols.For(typeof(ApplySourcesTableFromNode)),
+            CompilerContractSymbols.For(typeof(JoinFromNode)),
+            CompilerContractSymbols.For(typeof(ApplyFromNode)),
+            CompilerContractSymbols.For(typeof(AccessMethodFromNode)),
+            CompilerContractSymbols.For(typeof(AliasedFromNode)),
+            CompilerContractSymbols.For(typeof(QueryNode)),
+            CompilerContractSymbols.For(typeof(WindowFunctionNode)),
+            CompilerContractSymbols.For(typeof(WindowSpecificationNode)),
+            CompilerContractSymbols.For(typeof(WindowDefinitionNode)),
+            CompilerContractSymbols.For(typeof(WindowNode)),
+            CompilerContractSymbols.For(typeof(InternalQueryNode)),
+            CompilerContractSymbols.For(typeof(UnionNode)),
+            CompilerContractSymbols.For(typeof(UnionAllNode)),
+            CompilerContractSymbols.For(typeof(ExceptNode)),
+            CompilerContractSymbols.For(typeof(IntersectNode)),
+            CompilerContractSymbols.For(typeof(CteExpressionNode)),
+            CompilerContractSymbols.For(typeof(CteInnerExpressionNode)),
+            CompilerContractSymbols.For(typeof(InterpretCallNode)),
+            CompilerContractSymbols.For(typeof(ParseCallNode)),
+            CompilerContractSymbols.For(typeof(TryInterpretCallNode)),
+            CompilerContractSymbols.For(typeof(TryParseCallNode)),
+            CompilerContractSymbols.For(typeof(PartialInterpretCallNode)),
+            CompilerContractSymbols.For(typeof(PartialParseCallNode)),
+            CompilerContractSymbols.For(typeof(InterpretAtCallNode)));
     }
 
     [TestMethod]
     public void InterpretationSchemaDefinitionSkippingTraverseVisitor_ShouldKeepSchemaDefinitionVisitOverrides()
     {
         AssertDeclaresVisitMethods(
-            typeof(InterpretationSchemaDefinitionSkippingTraverseVisitor<>),
-            typeof(BinarySchemaNode),
-            typeof(TextSchemaNode),
-            typeof(FieldDefinitionNode),
-            typeof(ComputedFieldNode),
-            typeof(TextFieldDefinitionNode),
-            typeof(FieldConstraintNode),
-            typeof(PrimitiveTypeNode),
-            typeof(ByteArrayTypeNode),
-            typeof(StringTypeNode),
-            typeof(SchemaReferenceTypeNode),
-            typeof(ArrayTypeNode),
-            typeof(BitsTypeNode),
-            typeof(AlignmentNode),
-            typeof(RepeatUntilTypeNode),
-            typeof(InlineSchemaTypeNode));
+            CompilerContractSymbols.For(typeof(InterpretationSchemaDefinitionSkippingTraverseVisitor<>)),
+            CompilerContractSymbols.For(typeof(BinarySchemaNode)),
+            CompilerContractSymbols.For(typeof(TextSchemaNode)),
+            CompilerContractSymbols.For(typeof(FieldDefinitionNode)),
+            CompilerContractSymbols.For(typeof(ComputedFieldNode)),
+            CompilerContractSymbols.For(typeof(TextFieldDefinitionNode)),
+            CompilerContractSymbols.For(typeof(FieldConstraintNode)),
+            CompilerContractSymbols.For(typeof(PrimitiveTypeNode)),
+            CompilerContractSymbols.For(typeof(ByteArrayTypeNode)),
+            CompilerContractSymbols.For(typeof(StringTypeNode)),
+            CompilerContractSymbols.For(typeof(SchemaReferenceTypeNode)),
+            CompilerContractSymbols.For(typeof(ArrayTypeNode)),
+            CompilerContractSymbols.For(typeof(BitsTypeNode)),
+            CompilerContractSymbols.For(typeof(AlignmentNode)),
+            CompilerContractSymbols.For(typeof(RepeatUntilTypeNode)),
+            CompilerContractSymbols.For(typeof(InlineSchemaTypeNode)));
     }
 
     [TestMethod]
     public void BuildMetadataAndInferTypesTraverseVisitor_ShouldKeepDomainSpecificVisitOverrides()
     {
         AssertDeclaresVisitMethods(
-            typeof(BuildMetadataAndInferTypesTraverseVisitor),
-            typeof(GroupSelectNode),
-            typeof(DotNode),
-            typeof(GroupByNode),
-            typeof(HavingNode),
-            typeof(QualifyNode),
-            typeof(JoinSourcesTableFromNode),
-            typeof(JoinFromNode),
-            typeof(ApplyFromNode),
-            typeof(ValuesFromNode),
-            typeof(WindowFunctionNode),
-            typeof(QueryNode),
-            typeof(UnionNode),
-            typeof(UnionAllNode),
-            typeof(ExceptNode),
-            typeof(IntersectNode),
-            typeof(CteExpressionNode),
-                typeof(CteInnerExpressionNode));
+            CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesTraverseVisitor)),
+            CompilerContractSymbols.For(typeof(GroupSelectNode)),
+            CompilerContractSymbols.For(typeof(DotNode)),
+            CompilerContractSymbols.For(typeof(GroupByNode)),
+            CompilerContractSymbols.For(typeof(HavingNode)),
+            CompilerContractSymbols.For(typeof(QualifyNode)),
+            CompilerContractSymbols.For(typeof(JoinSourcesTableFromNode)),
+            CompilerContractSymbols.For(typeof(JoinFromNode)),
+            CompilerContractSymbols.For(typeof(ApplyFromNode)),
+            CompilerContractSymbols.For(typeof(ValuesFromNode)),
+            CompilerContractSymbols.For(typeof(WindowFunctionNode)),
+            CompilerContractSymbols.For(typeof(QueryNode)),
+            CompilerContractSymbols.For(typeof(UnionNode)),
+            CompilerContractSymbols.For(typeof(UnionAllNode)),
+            CompilerContractSymbols.For(typeof(ExceptNode)),
+            CompilerContractSymbols.For(typeof(IntersectNode)),
+            CompilerContractSymbols.For(typeof(CteExpressionNode)),
+                CompilerContractSymbols.For(typeof(CteInnerExpressionNode)));
     }
 
-    private static void AssertDeclaresVisitMethods(Type visitorType)
+    private static void AssertDeclaresVisitMethods(ITypeSymbol visitorType)
     {
         var declaredVisitTypes = visitorType
             .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-            .Where(method => method.Name == nameof(IExpressionVisitor.Visit))
+            .Where(method => method.MetadataName == nameof(IExpressionVisitor.Visit))
             .Select(method => method.GetParameters())
             .Where(parameters => parameters.Length == 1)
             .Select(parameters => parameters[0].ParameterType)
-            .ToHashSet();
+            .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 
-        var missing = typeof(IExpressionVisitor)
+        var missing = CompilerContractSymbols.For(typeof(IExpressionVisitor))
             .GetMethods()
-            .Where(method => method.Name == nameof(IExpressionVisitor.Visit))
+            .Where(method => method.MetadataName == nameof(IExpressionVisitor.Visit))
             .Select(method => method.GetParameters())
             .Where(parameters => parameters.Length == 1)
             .Select(parameters => parameters[0].ParameterType)
-            .Where(type => typeof(Node).IsAssignableFrom(type))
+            .Where(type => CompilerContractSymbols.For(typeof(Node)).IsAssignableFrom(type))
             .Where(type => !declaredVisitTypes.Contains(type))
-            .Select(type => type.Name)
+            .Select(type => type.MetadataName)
             .OrderBy(static name => name)
             .ToArray();
 
@@ -139,19 +141,19 @@ public sealed class AstVisitorCoverageTests
             string.Join(", ", missing));
     }
 
-    private static void AssertDeclaresVisitMethods(Type visitorType, params Type[] expectedNodeTypes)
+    private static void AssertDeclaresVisitMethods(ITypeSymbol visitorType, params ITypeSymbol[] expectedNodeTypes)
     {
         var declaredVisitTypes = visitorType
             .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)
-            .Where(method => method.Name == nameof(IExpressionVisitor.Visit))
+            .Where(method => method.MetadataName == nameof(IExpressionVisitor.Visit))
             .Select(method => method.GetParameters())
             .Where(parameters => parameters.Length == 1)
             .Select(parameters => parameters[0].ParameterType)
-            .ToHashSet();
+            .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 
         var missing = expectedNodeTypes
             .Where(type => !declaredVisitTypes.Contains(type))
-            .Select(type => type.Name)
+            .Select(type => type.MetadataName)
             .OrderBy(static name => name)
             .ToArray();
 

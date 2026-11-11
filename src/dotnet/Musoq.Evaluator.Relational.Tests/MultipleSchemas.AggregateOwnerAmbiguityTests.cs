@@ -14,7 +14,7 @@ using static Musoq.Evaluator.Tests.AggregateOwnerAmbiguityTestsFixtures;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class AggregateOwnerAmbiguityTests : BasicEntityTestBase
 {
     [TestMethod]

@@ -12,11 +12,6 @@ public class DynamicQueryTestsBase : MSTestContextTestBase
 {
     protected static readonly CompilationOptions TestCompilationOptions = new(usePrimitiveTypeValidation: false);
 
-    static DynamicQueryTestsBase()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
-
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 
     protected CompiledQuery CreateAndRunVirtualMachine(

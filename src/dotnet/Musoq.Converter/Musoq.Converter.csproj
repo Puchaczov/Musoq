@@ -25,7 +25,10 @@
   </ItemGroup>
   <Import Project="..\..\..\scripts\release\BundledTargets.targets" />
   <ItemGroup>
-    <InternalsVisibleTo Include="Musoq.Converter.Tests" />
+    <InternalsVisibleTo Include="Musoq.Converter.Compilation.Tests" />
+    <InternalsVisibleTo Include="Musoq.Converter.Targets.Tests" />
+    <InternalsVisibleTo Include="Musoq.Converter.Inspection.Tests" />
+    <InternalsVisibleTo Include="Musoq.Converter.Tests.Common" />
     <InternalsVisibleTo Include="Musoq.Evaluator.CodeGeneration.Tests" />
     <InternalsVisibleTo Include="Musoq.Evaluator.Planning.Tests" />
     <InternalsVisibleTo Include="Musoq.Evaluator.Relational.Tests" />

@@ -6,7 +6,7 @@ using Musoq.Parser.Diagnostics;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class IsDistinctFromTests : BasicEntityTestBase
 {
 

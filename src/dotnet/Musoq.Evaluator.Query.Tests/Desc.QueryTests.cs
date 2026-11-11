@@ -74,7 +74,7 @@ desc query (
 )";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "adjust", 10m);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "adjust", 10m);
         var table = vm.Run(TestContext.CancellationToken);
 
         AssertDescriptionRows(
@@ -167,8 +167,8 @@ desc query (
 )";
 
         var vm = CreateAndRunVirtualMachine(query, CreateSingleSource(new BasicEntity("Ada")));
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "prefix", "person:");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "adjust", 10m);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "prefix", "person:");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "adjust", 10m);
         var table = vm.Run(TestContext.CancellationToken);
 
         AssertDescriptionRows(

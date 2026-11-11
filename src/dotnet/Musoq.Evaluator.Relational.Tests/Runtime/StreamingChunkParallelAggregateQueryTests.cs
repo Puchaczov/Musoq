@@ -13,15 +13,10 @@ using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class StreamingChunkParallelAggregateQueryTests
 {
     private readonly ILoggerResolver _loggerResolver = new TestsLoggerResolver();
-
-    static StreamingChunkParallelAggregateQueryTests()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
 
     [TestMethod]
     public void StreamingRowSource_WhenParallelGroupedDistinctAggregateRuns_ShouldMergeValuesAcrossChunks()

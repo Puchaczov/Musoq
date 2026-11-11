@@ -58,7 +58,7 @@ public sealed partial class LibraryExecutionPerformanceQueryTests
     private void AssertNumericKernel<T>() where T : struct, INumber<T>
     {
         NumericInput<T>[] input = [new(T.One), new(null), new(T.Zero), new(T.Zero)];
-        using var query = InstanceCreator.CompileForExecution("select Sum(Value) as Total from #schema.first()",
+        using var query = GeneratedExecutionIlInspection.CompileForExecution("select Sum(Value) as Total from #schema.first()",
             Guid.NewGuid().ToString(), LibraryExecutionFixture.CreateProvider(input), LoggerResolver, TestCompilationOptions);
         using var table = query.Run(TestContext.CancellationToken);
         var rows = table.ToArray();

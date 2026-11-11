@@ -54,7 +54,7 @@ public sealed partial class NullExtendedScalarProjectionTests
         finally { NullProjectionLibrary.Trace.Value = null; }
     }
 
-    private static CompiledQuery CompileCustom(string sql) => InstanceCreator.CompileForExecution(sql,
+    private static CompiledQuery CompileCustom(string sql) => GeneratedExecutionIlInspection.CompileForExecution(sql,
         Guid.NewGuid().ToString(), LibraryExecutionFixture.CreateProvider<NullProjectionRow, NullProjectionLibrary>([new("x")]),
         new TestsLoggerResolver(), new CompilationOptions(parallelizationMode: ParallelizationMode.None));
 }

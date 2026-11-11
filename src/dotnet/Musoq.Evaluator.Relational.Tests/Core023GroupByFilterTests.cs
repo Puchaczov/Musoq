@@ -9,7 +9,7 @@ using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class Core023GroupByFilterTests : BasicEntityTestBase
 {
     [TestMethod]

@@ -169,7 +169,9 @@ Musoq.Converter
 
 ```bash
 # Run converter tests
-dotnet test src/dotnet/Musoq.Converter.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+dotnet test src/dotnet/Musoq.Converter.Compilation.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+dotnet test src/dotnet/Musoq.Converter.Inspection.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
+dotnet test src/dotnet/Musoq.Converter.Targets.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"
 ```
 
 ### Common Modifications
@@ -201,5 +203,5 @@ Converter is the entry point for the entire pipeline. Changes here can affect:
 - The order and configuration of compilation phases
 - Logical and physical plan availability to tests and analysis tooling
 - Execution IR and renderer metadata handoff, including inferred columns and scope
-- Run converter tests: `dotnet test src/dotnet/Musoq.Converter.Tests --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"`
+- Run the 3 Converter test projects listed in the testing section above.
 - Run evaluator tests for integration coverage: `dotnet test src/dotnet/Musoq.sln --filter "FullyQualifiedName~Musoq.Evaluator.Tests" --configuration Release --no-build --nologo --verbosity quiet --logger "console;verbosity=minimal"`

@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Integration tests verifying that non-deterministic methods (marked with [NonDeterministic])
 ///     behave correctly in queries and are NOT cached by Common Subexpression Elimination (CSE).
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
 {
     #region Non-Deterministic in WHERE and SELECT
@@ -19,27 +19,16 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     public void WhenNonDeterministicMethodInWhereAndSelect_ShouldNotBeCached()
     {
         const string query = @"
-            SELECT RandomNumber() as RandomVal, Name
+            SELECT NextTestValue() as RandomVal, Name
             FROM #A.Entities()
-            WHERE RandomNumber() >= 0";
+            WHERE NextTestValue() >= 0";
+        var fixture = new EvaluationFixture("A", "B", "C");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("B"),
-                    new BasicEntity("C")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-
-        Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            [2, "A"], [12, "B"], [22, "C"]);
+        Assert.AreEqual(6, fixture.Calls);
     }
 
     #endregion
@@ -51,35 +40,16 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     {
         const string query = @"
             SELECT
-                CASE WHEN RandomNumber() < 50 THEN 'Low' ELSE 'High' END as Category,
+                CASE WHEN NextTestValue() < 50 THEN 'Low' ELSE 'High' END as Category,
                 Name
             FROM #A.Entities()";
+        var fixture = new EvaluationFixture("A", "B", "C", "D");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("B"),
-                    new BasicEntity("C"),
-                    new BasicEntity("D")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(4, table.Count);
-
-
-        foreach (var row in table)
-        {
-            var category = (string)row.ReadValue(0);
-            Assert.IsTrue(category == "Low" || category == "High",
-                $"Category should be 'Low' or 'High', but was '{category}'");
-        }
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            ["Low", "A"], ["Low", "B"], ["Low", "C"], ["Low", "D"]);
+        Assert.AreEqual(4, fixture.Calls);
     }
 
     #endregion
@@ -90,36 +60,16 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     public void WhenNonDeterministicMethodInSubquery_ShouldWork()
     {
         const string query = @"
-            SELECT Name, RandomNumber() as Rand
+            SELECT Name, NextTestValue() as Rand
             FROM #A.Entities()
-            WHERE Name IN ('A', 'B')";
+            WHERE Name IN (SELECT Name FROM #A.Entities() WHERE Name IN ('A', 'B'))";
+        var fixture = new EvaluationFixture("A", "B", "C", "D");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("B"),
-                    new BasicEntity("C"),
-                    new BasicEntity("D")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(2, table.Count);
-
-        foreach (var row in table)
-        {
-            var name = (string)row.ReadValue(0);
-            var random = Convert.ToInt32(row.ReadValue(1));
-
-            Assert.IsTrue(name == "A" || name == "B");
-            Assert.IsTrue(random is >= 0 and < 100);
-        }
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            ["A", 1], ["B", 11]);
+        Assert.AreEqual(2, fixture.Calls);
     }
 
     #endregion
@@ -129,63 +79,27 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNonDeterministicMethodInSelect_ShouldReturnDifferentValuesPerRow()
     {
-        const string query = "SELECT RandomNumber(), Name FROM #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("B"),
-                    new BasicEntity("C"),
-                    new BasicEntity("D"),
-                    new BasicEntity("E")
-                ]
-            }
-        };
+        const string query = "SELECT NextTestValue(), Name FROM #A.Entities()";
+        var fixture = new EvaluationFixture("A", "B", "C", "D", "E");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-
-        Assert.AreEqual(5, table.Count);
-
-
-        foreach (var row in table)
-        {
-            var value = Convert.ToInt32(row.ReadValue(0));
-            Assert.IsTrue(value is >= 0 and < 100, $"Random value {value} should be between 0 and 99");
-        }
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            [1, "A"], [11, "B"], [21, "C"], [31, "D"], [41, "E"]);
+        Assert.AreEqual(5, fixture.Calls);
     }
 
     [TestMethod]
     public void WhenNonDeterministicMethodAppearsMultipleTimes_ShouldNotBeCached()
     {
-        const string query = "SELECT RandomNumber() as R1, RandomNumber() as R2, Name FROM #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("Test1"),
-                    new BasicEntity("Test2"),
-                    new BasicEntity("Test3")
-                ]
-            }
-        };
+        const string query = "SELECT NextTestValue() as R1, NextTestValue() as R2, Name FROM #A.Entities()";
+        var fixture = new EvaluationFixture("Test1", "Test2", "Test3");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(3, table.Count);
-
-
-        var r1Values = table.Select(r => Convert.ToInt32(r.ReadValue(0))).ToList();
-        var r2Values = table.Select(r => Convert.ToInt32(r.ReadValue(1))).ToList();
-
-
-        foreach (var v in r1Values.Concat(r2Values))
-            Assert.IsTrue(v is >= 0 and < 100, $"Random value {v} should be between 0 and 99");
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            [1, 2, "Test1"], [11, 12, "Test2"], [21, 22, "Test3"]);
+        Assert.AreEqual(6, fixture.Calls);
     }
 
     #endregion
@@ -195,31 +109,14 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     [TestMethod]
     public void WhenNonDeterministicMethodInArithmetic_ShouldWork()
     {
-        const string query = "SELECT RandomNumber() + 100 as Shifted, Name FROM #A.Entities()";
+        const string query = "SELECT NextTestValue() + 100 as Shifted, Name FROM #A.Entities()";
+        var fixture = new EvaluationFixture("A", "B");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("B")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(2, table.Count);
-
-
-        foreach (var row in table)
-        {
-            var shifted = Convert.ToInt32(row.ReadValue(0));
-            Assert.IsTrue(shifted is >= 100 and < 200,
-                $"Shifted value {shifted} should be between 100 and 199");
-        }
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            [101, "A"], [111, "B"]);
+        Assert.AreEqual(2, fixture.Calls);
     }
 
     [TestMethod]
@@ -227,38 +124,17 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     {
         const string query = @"
             SELECT
-                RandomNumber() + 100 as Shifted1,
-                RandomNumber() * 2 as Doubled,
+                NextTestValue() + 100 as Shifted1,
+                NextTestValue() * 2 as Doubled,
                 Name
             FROM #A.Entities()";
+        var fixture = new EvaluationFixture("A", "B");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("A"),
-                    new BasicEntity("B")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(2, table.Count);
-
-        foreach (var row in table)
-        {
-            var shifted1 = Convert.ToInt32(row.ReadValue(0));
-            var doubled = Convert.ToInt32(row.ReadValue(1));
-
-
-            Assert.IsTrue(shifted1 is >= 100 and < 200,
-                $"Shifted1 {shifted1} should be between 100 and 199");
-            Assert.IsTrue(doubled is >= 0 and < 200,
-                $"Doubled {doubled} should be between 0 and 198");
-        }
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            [101, 4, "A"], [111, 24, "B"]);
+        Assert.AreEqual(4, fixture.Calls);
     }
 
     #endregion
@@ -266,32 +142,16 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
     #region Deterministic vs Non-Deterministic Comparison
 
     [TestMethod]
-    public void WhenDeterministicMethodAppearsMultipleTimes_ShouldBeCached()
+    public void WhenDeterministicMethodAppearsMultipleTimes_ShouldReturnExpectedValues()
     {
         const string query = "SELECT Length(Name) as Len1, Length(Name) as Len2, Name FROM #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("ABC"),
-                    new BasicEntity("DEFGH")
-                ]
-            }
-        };
+        var fixture = new EvaluationFixture("ABC", "DEFGH");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(2, table.Count);
-
-
-        foreach (var row in table)
-        {
-            var len1 = Convert.ToInt32(row.ReadValue(0));
-            var len2 = Convert.ToInt32(row.ReadValue(1));
-            Assert.AreEqual(len1, len2, "Deterministic function results should be identical when cached");
-        }
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            [3, 3, "ABC"], [5, 5, "DEFGH"]);
+        Assert.AreEqual(0, fixture.Calls);
     }
 
     [TestMethod]
@@ -301,42 +161,17 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
             SELECT
                 Length(Name) as NameLength,
                 Length(Name) + 10 as LengthPlus10,
-                RandomNumber() as Random1,
-                RandomNumber() as Random2,
+                NextTestValue() as Random1,
+                NextTestValue() as Random2,
                 Name
             FROM #A.Entities()";
+        var fixture = new EvaluationFixture("Test", "Hello");
+        using var compiled = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
+        using var table = compiled.Run(TestContext.CancellationToken);
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A",
-                [
-                    new BasicEntity("Test"),
-                    new BasicEntity("Hello")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(2, table.Count);
-
-        foreach (var row in table)
-        {
-            var nameLength = Convert.ToInt32(row.ReadValue(0));
-            var lengthPlus10 = Convert.ToInt32(row.ReadValue(1));
-            var random1 = Convert.ToInt32(row.ReadValue(2));
-            var random2 = Convert.ToInt32(row.ReadValue(3));
-
-
-            Assert.AreEqual(nameLength + 10, lengthPlus10,
-                "Deterministic expressions should have consistent results");
-
-
-            Assert.IsTrue(random1 is >= 0 and < 100);
-            Assert.IsTrue(random2 is >= 0 and < 100);
-        }
+        TableMaterializationTestHelper.AssertRowsUnordered(table,
+            [4, 14, 1, 2, "Test"], [5, 15, 11, 12, "Hello"]);
+        Assert.AreEqual(4, fixture.Calls);
     }
 
     #endregion
@@ -349,7 +184,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
         const string query = @"
             SELECT
                 Name,
-                Count(Name) as Cnt
+                Count(Name) as Cnt, NextGroupValue() as Probe
             FROM #A.Entities()
             GROUP BY Name
             HAVING Count(Name) > 1";
@@ -369,10 +204,13 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
             }
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
+        var fixture = new EvaluationFixture(sources["#A"].Select(entity => entity.Name!).ToArray());
+        var vm = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        Assert.AreEqual(0, fixture.Calls);
+        CollectionAssert.AreEquivalent(new[] { 1, 2 }, table.Select(row => Convert.ToInt32(row.ReadValue(2))).ToArray());
 
         var rowA = table.First(r => (string)r.ReadValue(0) == "A");
         var rowB = table.First(r => (string)r.ReadValue(0) == "B");
@@ -390,7 +228,7 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
                 Count(Name) as Cnt
             FROM #A.Entities()
             GROUP BY Name
-            HAVING RandomNumber() >= 0";
+            HAVING NextGroupValue() = 2";
 
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
@@ -404,11 +242,15 @@ public class NonDeterministicMethodsQueryTests : BasicEntityTestBase
             }
         };
 
-        var vm = CreateAndRunVirtualMachine(query, sources);
+        var fixture = new EvaluationFixture(sources["#A"].Select(entity => entity.Name!).ToArray());
+        var vm = CreateAndRunVirtualMachine(query, schemaProvider: fixture.Provider);
         var table = vm.Run(TestContext.CancellationToken);
 
 
-        Assert.AreEqual(2, table.Count);
+        Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(0, fixture.Calls);
+        var expectedCounts = new Dictionary<string, int> { ["A"] = 2, ["B"] = 1 };
+        Assert.AreEqual(expectedCounts[(string)table[0].ReadValue(0)], Convert.ToInt32(table[0].ReadValue(1)));
     }
 
 

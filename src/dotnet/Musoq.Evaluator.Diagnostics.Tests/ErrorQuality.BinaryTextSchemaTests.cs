@@ -12,7 +12,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Covers: P-BIN (binary parse errors), P-TEXT (text parse errors), P-MIX (mixed interaction errors),
 ///     E-BIN (binary semantic errors), E-TEXT (text semantic errors).
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ErrorQualityBinaryTextSchemaTests : BasicEntityTestBase
 {
 

@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,14 +29,14 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
         Assert.HasCount(1, declarations);
         Assert.IsLessThanOrEqualTo(250, File.ReadAllLines(declarations[0]).Length);
 
-        var methods = typeof(PhysicalToExecutionPlanBuilder)
+        var methods = CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder))
             .GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-            .Where(static method => method.DeclaringType == typeof(PhysicalToExecutionPlanBuilder) && !method.IsSpecialName)
-            .Select(static method => method.Name)
+            .Where(static method => SymbolEqualityComparer.Default.Equals(method.DeclaringType, CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder))) && !method.IsSpecialName)
+            .Select(static method => method.MetadataName)
             .ToArray();
 
         CollectionAssert.AreEqual(new[] { "Build" }, methods);
-        Assert.IsEmpty(typeof(PhysicalToExecutionPlanBuilder).GetNestedTypes(
+        Assert.IsEmpty(CompilerContractSymbols.For(typeof(PhysicalToExecutionPlanBuilder)).GetNestedTypes(
             BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic));
     }
 
@@ -44,21 +45,21 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
     {
         var delegateReturnTypes = new[]
         {
-            typeof(PhysicalLoweringHandlers),
-            typeof(PhysicalPlanLoweringDescriptor),
-            typeof(PhysicalTableLoweringDescriptor)
+            CompilerContractSymbols.For(typeof(PhysicalLoweringHandlers)),
+            CompilerContractSymbols.For(typeof(PhysicalPlanLoweringDescriptor)),
+            CompilerContractSymbols.For(typeof(PhysicalTableLoweringDescriptor))
         }
         .SelectMany(static type => type.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
         .SelectMany(static constructor => constructor.GetParameters())
         .Select(static parameter => parameter.ParameterType)
         .Where(static type => type.IsGenericType &&
-                              type.GetGenericTypeDefinition().Name.StartsWith("Func`", StringComparison.Ordinal))
+                              type.GetGenericTypeDefinition().MetadataName.StartsWith("Func`", StringComparison.Ordinal))
         .Select(static type => type.GetGenericArguments()[^1])
         .ToArray();
 
         Assert.IsNotEmpty(delegateReturnTypes);
         Assert.IsTrue(delegateReturnTypes.All(static type =>
-            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(LoweringAttempt<>)));
+            type.IsGenericType && SymbolEqualityComparer.Default.Equals(type.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(LoweringAttempt<>)))));
 
         var loweringSources = RepositorySourceScan.FilesUnder(
             RepositorySourceScan.RepositoryRoot(),
@@ -80,11 +81,11 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
     [TestMethod]
     public void SemanticHandoffs_ShouldNotExposeMutableScopeTraversal()
     {
-        var semanticPhaseArtifacts = typeof(QueryAnalyzer).Assembly.GetType(
+        var semanticPhaseArtifacts = CompilerContractSymbols.For(typeof(QueryAnalyzer)).Assembly.GetType(
             "Musoq.Evaluator.Visitors.SemanticPhaseArtifacts")!;
-        var rewriteInput = typeof(QueryAnalyzer).Assembly.GetType(
+        var rewriteInput = CompilerContractSymbols.For(typeof(QueryAnalyzer)).Assembly.GetType(
             "Musoq.Evaluator.Visitors.RewriteQueryPhaseInput")!;
-        var semanticBuildArtifacts = typeof(Converter.InstanceCreator).Assembly.GetType(
+        var semanticBuildArtifacts = CompilerContractSymbols.For(typeof(Converter.InstanceCreator)).Assembly.GetType(
             "Musoq.Converter.Build.SemanticBuildArtifacts")!;
 
         foreach (var type in new[] { semanticPhaseArtifacts, rewriteInput, semanticBuildArtifacts })
@@ -94,7 +95,7 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
                 .SelectMany(static property => ExpandType(property.PropertyType))
                 .Concat(type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                     .SelectMany(static method => ExpandType(method.ReturnType)))
-                .Where(static memberType => memberType == typeof(Scope) || memberType == typeof(ScopeWalker))
+                .Where(static memberType => SymbolEqualityComparer.Default.Equals(memberType, CompilerContractSymbols.For(typeof(Scope))) || SymbolEqualityComparer.Default.Equals(memberType, CompilerContractSymbols.For(typeof(ScopeWalker))))
                 .ToArray();
 
             Assert.IsEmpty(exposedScopeTypes, $"Mutable scope leaked from {type.FullName}.");
@@ -116,16 +117,16 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
     [TestMethod]
     public void RuntimeAndTargetContracts_ShouldHaveExplicitOwnership()
     {
-        var executionGate = typeof(CompiledQuery).GetField(
+        var executionGate = CompilerContractSymbols.For(typeof(CompiledQuery)).GetField(
             "_executionGate",
             BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.IsNotNull(executionGate);
-        Assert.AreEqual(typeof(SemaphoreSlim), executionGate!.FieldType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(SemaphoreSlim)), executionGate!.FieldType));
 
-        var asyncRun = typeof(IAsyncTableRunnable).GetMethod(nameof(IAsyncTableRunnable.RunAsync));
+        var asyncRun = CompilerContractSymbols.For(typeof(IAsyncTableRunnable)).GetMethod(nameof(IAsyncTableRunnable.RunAsync));
         Assert.IsNotNull(asyncRun);
-        Assert.AreEqual(typeof(System.Threading.Tasks.ValueTask<Tables.Table>), asyncRun!.ReturnType);
-        Assert.IsTrue(typeof(IDisposable).IsAssignableFrom(typeof(EvaluatorRuntimeEnvironment)));
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(System.Threading.Tasks.ValueTask<>)).Construct(CompilerContractSymbols.For(typeof(Tables.Table))), asyncRun!.ReturnType));
+        Assert.IsTrue(CompilerContractSymbols.For(typeof(IDisposable)).IsAssignableFrom(CompilerContractSymbols.For(typeof(EvaluatorRuntimeEnvironment))));
 
         var targetFiles = RepositorySourceScan.ProductionSourceFiles(
             RepositorySourceScan.RepositoryRoot(),
@@ -146,44 +147,44 @@ public sealed class ResidualArchitectureCompletionGuardrailTests
     [TestMethod]
     public void PortableDescriptorsAndCaches_ShouldKeepTheirBoundaries()
     {
-        var descriptorTypes = new[] { typeof(ExecutionTypeRef), typeof(ExecutionCallableRef) };
+        var descriptorTypes = new[] { CompilerContractSymbols.For(typeof(ExecutionTypeRef)), CompilerContractSymbols.For(typeof(ExecutionCallableRef)) };
         var forbiddenBindingMethods = descriptorTypes
             .SelectMany(static type => type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-            .Where(static method => method.Name.Contains("ResolveClr", StringComparison.Ordinal) ||
-                                    method.Name.Contains("FromClr", StringComparison.Ordinal))
+            .Where(static method => method.MetadataName.Contains("ResolveClr", StringComparison.Ordinal) ||
+                                    method.MetadataName.Contains("FromClr", StringComparison.Ordinal))
             .ToArray();
         Assert.IsEmpty(forbiddenBindingMethods);
 
         var cacheTypes = new[]
         {
-            typeof(Helpers.EvaluationHelper),
-            typeof(BuildMetadataAndInferTypesVisitorUtilities)
+            CompilerContractSymbols.For(typeof(Helpers.EvaluationHelper)),
+            CompilerContractSymbols.For(typeof(BuildMetadataAndInferTypesVisitorUtilities))
         };
         var cacheFields = cacheTypes
             .SelectMany(static type => type.GetFields(BindingFlags.Static | BindingFlags.NonPublic))
-            .Where(static field => field.Name.Contains("Cache", StringComparison.Ordinal) ||
-                                   field.Name.Contains("Adapters", StringComparison.Ordinal))
+            .Where(static field => field.MetadataName.Contains("Cache", StringComparison.Ordinal) ||
+                                   field.MetadataName.Contains("Adapters", StringComparison.Ordinal))
             .ToArray();
 
         Assert.IsNotEmpty(cacheFields);
         Assert.IsTrue(cacheFields.All(static field =>
             field.FieldType.IsGenericType &&
-            (field.FieldType.GetGenericTypeDefinition() == typeof(BoundedRuntimeCache<,>) ||
-             field.FieldType.GetGenericTypeDefinition() == typeof(WeakTypeRuntimeCache<>))));
+            (SymbolEqualityComparer.Default.Equals(field.FieldType.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(BoundedRuntimeCache<,>))) ||
+             SymbolEqualityComparer.Default.Equals(field.FieldType.GetGenericTypeDefinition(), CompilerContractSymbols.For(typeof(WeakTypeRuntimeCache<>))))));
 
-        Assert.IsTrue(typeof(IDisposable).IsAssignableFrom(typeof(InterpreterCompilationUnit)));
-        var handleContext = typeof(LoadedAssemblyHandle).GetField(
+        Assert.IsTrue(CompilerContractSymbols.For(typeof(IDisposable)).IsAssignableFrom(CompilerContractSymbols.For(typeof(InterpreterCompilationUnit))));
+        var handleContext = CompilerContractSymbols.For(typeof(LoadedAssemblyHandle)).GetField(
             "_loadContext",
             BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.IsNotNull(handleContext);
-        Assert.AreEqual(typeof(System.Runtime.Loader.AssemblyLoadContext), handleContext!.FieldType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(CompilerContractSymbols.For(typeof(System.Runtime.Loader.AssemblyLoadContext)), handleContext!.FieldType));
     }
 
-    private static IEnumerable<Type> ExpandType(Type type)
+    private static IEnumerable<ITypeSymbol> ExpandType(ITypeSymbol type)
     {
         yield return type;
 
-        if (type.IsArray || type.IsByRef || type.IsPointer)
+        if (type.IsArray || type.IsPointer)
         {
             foreach (var nested in ExpandType(type.GetElementType()!))
                 yield return nested;

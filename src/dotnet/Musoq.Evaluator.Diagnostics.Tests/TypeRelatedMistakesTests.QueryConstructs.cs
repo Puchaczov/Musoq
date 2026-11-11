@@ -21,10 +21,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - SUM expects numeric argument
-        DocumentTypeHandling(result, "SUM on string",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "SUM on string", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -36,10 +33,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - AVG expects numeric argument
-        DocumentTypeHandling(result, "AVG on string",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "AVG on string", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -51,10 +45,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - String + decimal type mismatch affects MIN
-        DocumentTypeHandling(result, "MIN on string + number expression",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "MIN on string + number expression", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -66,10 +57,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - SUM on boolean may or may not be supported
-        DocumentTypeHandling(result, "SUM on boolean",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "SUM on boolean", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -81,11 +69,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - COUNT typically takes 0 or 1 argument
-        DocumentTypeHandling(result, "COUNT with too many arguments",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload,
-            DiagnosticCode.MQ3087_InvalidCallableArity);
+        AssertTypeHandling(result, "COUNT with too many arguments", DiagnosticCode.MQ3088_NoMatchingCallableOverload);
     }
 
     [TestMethod]
@@ -103,10 +87,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - CASE branches should have compatible types
-        DocumentTypeHandling(result, "CASE with mismatched THEN types",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "CASE with mismatched THEN types", DiagnosticCode.MQ3027_InvalidExpressionType);
     }
 
     [TestMethod]
@@ -123,10 +104,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - WHEN requires boolean condition
-        DocumentTypeHandling(result, "CASE WHEN with non-boolean",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "CASE WHEN with non-boolean", DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -144,10 +122,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - CASE comparisons should have compatible types
-        DocumentTypeHandling(result, "simple CASE with type mismatch",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "simple CASE with type mismatch");
     }
 
     [TestMethod]
@@ -159,10 +134,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - COALESCE should have compatible types
-        DocumentTypeHandling(result, "COALESCE with mixed types",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "COALESCE with mixed types");
     }
 
     [TestMethod]
@@ -174,10 +146,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - COALESCE string and number
-        DocumentTypeHandling(result, "COALESCE string and number",
-            DiagnosticCode.MQ3088_NoMatchingCallableOverload);
+        AssertTypeHandling(result, "COALESCE string and number");
     }
 
     [TestMethod]
@@ -192,10 +161,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Should detect type mismatch or structural issues
-        DocumentTypeHandling(result, "UNION with mismatched column types",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "UNION with mismatched column types", DiagnosticCode.MQ3020_SetOperatorColumnTypes);
     }
 
     [TestMethod]
@@ -210,10 +176,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - EXCEPT with type mismatch in columns
-        DocumentTypeHandling(result, "EXCEPT with mismatched column types",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "EXCEPT with mismatched column types", DiagnosticCode.MQ3020_SetOperatorColumnTypes, DiagnosticCode.MQ3020_SetOperatorColumnTypes);
     }
 
     [TestMethod]
@@ -228,10 +191,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - INTERSECT with type mismatch
-        DocumentTypeHandling(result, "INTERSECT with mismatched column types",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "INTERSECT with mismatched column types", DiagnosticCode.MQ3020_SetOperatorColumnTypes);
     }
 
     [TestMethod]
@@ -277,10 +237,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - ORDER BY with mixed-type expression
-        DocumentTypeHandling(result, "ORDER BY with string + int expression",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "ORDER BY with string + int expression", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -292,10 +249,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Ordering by boolean expression may or may not be supported
-        DocumentTypeHandling(result, "ORDER BY boolean expression",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "ORDER BY boolean expression");
     }
 
     [TestMethod]
@@ -307,10 +261,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - City is not in GROUP BY and not aggregated
-        DocumentTypeHandling(result, "Non-aggregated column in GROUP BY",
-            DiagnosticCode.MQ3012_NonAggregateInSelect);
+        AssertTypeHandling(result, "Non-aggregated column in GROUP BY", DiagnosticCode.MQ3012_NonAggregateInSelect);
     }
 
     [TestMethod]
@@ -322,10 +273,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - GROUP BY with mixed-type expression
-        DocumentTypeHandling(result, "GROUP BY with string + int expression",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "GROUP BY with string + int expression", DiagnosticCode.MQ3007_InvalidOperandTypes);
     }
 
     [TestMethod]
@@ -337,10 +285,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - HAVING requires boolean condition
-        DocumentTypeHandling(result, "HAVING with non-boolean condition",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "HAVING with non-boolean condition", DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]
@@ -352,10 +297,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Arithmetic with NULL literal
-        DocumentTypeHandling(result, "Arithmetic with NULL literal",
-            DiagnosticCode.MQ3007_InvalidOperandTypes);
+        AssertTypeHandling(result, "Arithmetic with NULL literal");
     }
 
     [TestMethod]
@@ -367,10 +309,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Comparison with NULL literal (semantically wrong but may parse)
-        DocumentTypeHandling(result, "Direct comparison with NULL",
-            DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "Direct comparison with NULL");
     }
 
     [TestMethod]
@@ -396,10 +335,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Accessing Length on int type
-        DocumentTypeHandling(result, "Property access on primitive type",
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertTypeHandling(result, "Property access on primitive type", DiagnosticCode.MQ3028_UnknownProperty);
     }
 
     [TestMethod]
@@ -411,10 +347,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Chained property access on string
-        DocumentTypeHandling(result, "Chained property access on wrong type",
-            DiagnosticCode.MQ3001_UnknownColumn);
+        AssertTypeHandling(result, "Chained property access on wrong type", DiagnosticCode.MQ3028_UnknownProperty);
     }
 
     [TestMethod]
@@ -426,10 +359,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - Index access on non-indexable type
-        DocumentTypeHandling(result, "Index access on primitive",
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertTypeHandling(result, "Index access on primitive", DiagnosticCode.MQ3017_ObjectNotArray);
     }
 
     [TestMethod]
@@ -441,10 +371,7 @@ public partial class TypeRelatedMistakesTests
 
         // Act
         var result = analyzer.Analyze(query);
-
-        // Assert - String indexing syntax
-        DocumentTypeHandling(result, "String index access",
-            DiagnosticCode.MQ2001_UnexpectedToken);
+        AssertTypeHandling(result, "String index access", DiagnosticCode.MQ3018_NoIndexer);
     }
 
 }

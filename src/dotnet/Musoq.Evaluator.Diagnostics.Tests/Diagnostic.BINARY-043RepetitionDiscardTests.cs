@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -47,9 +46,8 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
         var repeat = new RepeatUntilTypeNode(ByteType(), new BooleanNode(true), "Values");
         var interpreter = CreateAndCompileInterpreter("DoWhile", new FieldDefinitionNode("Values", repeat));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, []));
-        var exception = AssertParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.InsufficientData, exception.ErrorCode);
         Assert.AreEqual("DoWhile", exception.SchemaName);
@@ -81,9 +79,8 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
         var repeat = new RepeatUntilTypeNode(ByteType(), new BooleanNode(false), "Values");
         var interpreter = CreateAndCompileInterpreter("ConditionLimit", new FieldDefinitionNode("Values", repeat));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, new byte[10_001]));
-        var exception = AssertParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("ConditionLimit", exception.SchemaName);
@@ -99,9 +96,8 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
         var repeat = RepeatUntilTypeNode.EndOfInput(ByteType(), "Values");
         var interpreter = CreateAndCompileInterpreter("EofLimit", new FieldDefinitionNode("Values", repeat));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, new byte[10_001]));
-        var exception = AssertParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("EofLimit", exception.SchemaName);
@@ -118,9 +114,8 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
             "Chunks");
         var interpreter = CreateAndCompileInterpreter("ZeroProgress", new FieldDefinitionNode("Chunks", repeat));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [0xAA]));
-        var exception = AssertParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("ZeroProgress", exception.SchemaName);
@@ -158,10 +153,4 @@ public sealed class DiagnosticBinary043RepetitionDiscardTests : BinaryInterpreta
         return new PrimitiveTypeNode(PrimitiveTypeName.Byte, Endianness.NotApplicable);
     }
 
-    private static BinaryParseException AssertParseException(TargetInvocationException wrapper)
-    {
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<BinaryParseException>(wrapper.InnerException);
-        return (BinaryParseException)wrapper.InnerException;
-    }
 }

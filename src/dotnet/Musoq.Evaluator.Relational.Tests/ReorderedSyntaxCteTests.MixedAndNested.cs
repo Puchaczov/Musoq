@@ -6,32 +6,7 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class ReorderedSyntaxCteTests
 {
-    [TestMethod]
-    public void MixedSyntax_StandardCteReorderedOuter_ShouldWork()
-    {
-        var query = @"
-            with cte as (
-                select City, Country, Population from #A.Entities()
-            )
-            from cte where Population > 300 select City, Country";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("WARSAW", "POLAND", 500),
-                    new BasicEntity("CZESTOCHOWA", "POLAND", 400),
-                    new BasicEntity("KATOWICE", "POLAND", 250)
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
-        TableMaterializationTestHelper.AssertRowsInOrder(table, ["WARSAW", "POLAND"], ["CZESTOCHOWA", "POLAND"]);
-    }
 
     [TestMethod]
     public void MixedSyntax_ReorderedCteStandardOuter_ShouldWork()

@@ -14,7 +14,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Tests to ensure comprehensive branch coverage for diagnostic infrastructure.
 ///     Tests both diagnostic mode (QueryAnalyzer) and throwing mode (traditional path).
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
 {
     #region Test Helpers
@@ -44,8 +44,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Should detect invalid ordinal
-        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3024_GroupByIndexOutOfRange, query);
     }
 
     #endregion
@@ -65,8 +64,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3001_UnknownColumn, query);
     }
 
     #endregion
@@ -88,8 +86,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Should detect duplicate alias
-        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3021_DuplicateAlias, query);
     }
 
     #endregion
@@ -108,8 +105,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - May or may not detect type mismatch (depends on implicit conversion)
-        Assert.IsNotNull(result);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3007_InvalidOperandTypes, query);
     }
 
     #endregion
@@ -128,10 +124,9 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsTrue(result.IsParsed);
-        // In diagnostic mode, should attempt to collect multiple errors
-        // (actual behavior depends on error recovery implementation)
+        DiagnosticContractTestAssertions.AssertErrorsHaveCode(result, DiagnosticCode.MQ3001_UnknownColumn, query);
+        Assert.HasCount(3, result.Errors);
+        CollectionAssert.AreEqual(new[] { 7, 17, 27 }, result.Errors.Select(error => error.Span.Start).ToArray());
     }
 
     #endregion
@@ -160,7 +155,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         Assert.AreEqual(0, warnings.Count + errors.Count);
 
         // Access HasErrors to cover that branch
-        if (!result.HasErrors) Assert.IsTrue(result.IsSuccess);
+        Assert.IsFalse(result.HasErrors);
+        Assert.IsTrue(result.IsSuccess);
     }
 
     [TestMethod]
@@ -174,16 +170,12 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - cover error branch
-        if (result.HasErrors)
-        {
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Errors.Any());
-        }
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3001_UnknownColumn, query);
+        Assert.IsFalse(result.IsSuccess);
     }
 
     [TestMethod]
-    public void QueryAnalysisResult_Diagnostics_ContainsAllSeverityLevels()
+    public void QueryAnalysisResult_InvalidSelectList_ContainsOnlyTheExpectedError()
     {
         // Arrange
         var schemaProvider = CreateSchemaProvider();
@@ -195,18 +187,11 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(syntaxErrorQuery);
 
-        // Assert
-        Assert.IsNotNull(result.Diagnostics);
-        // Cover the severity filter branches
-        var allDiagnostics = result.Diagnostics;
-        var errorDiagnostics = allDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).ToList();
-        var warningDiagnostics = allDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Warning).ToList();
-        var infoDiagnostics = allDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Info).ToList();
-
-        // At least check that the collections are created (branch coverage)
-        Assert.IsNotNull(errorDiagnostics);
-        Assert.IsNotNull(warningDiagnostics);
-        Assert.IsNotNull(infoDiagnostics);
+        var error = DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ2005_InvalidSelectList, syntaxErrorQuery);
+        Assert.AreEqual(7, error.Span.Start);
+        Assert.AreEqual(4, error.Span.Length);
+        Assert.IsEmpty(result.Warnings);
+        Assert.IsEmpty(result.Diagnostics.Where(item => item.Severity == DiagnosticSeverity.Info));
     }
 
     #endregion
@@ -224,9 +209,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Should have collected error without throwing
-        Assert.IsTrue(result.IsParsed);
-        Assert.IsTrue(result.HasErrors);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3001_UnknownColumn, query);
     }
 
     [TestMethod]
@@ -262,8 +245,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Should have collected error without throwing
-        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3028_UnknownProperty, query);
     }
 
     [TestMethod]
@@ -277,8 +259,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Should report error
-        Assert.IsNotEmpty(result.Errors);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3010_UnknownSchema, query);
     }
 
     [TestMethod]
@@ -296,8 +277,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Parsing should work, ambiguity check at semantic level
-        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3002_AmbiguousColumn, query);
     }
 
     #endregion
@@ -318,8 +298,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - Should detect column count mismatch
-        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3019_SetOperatorColumnCount, query);
     }
 
     [TestMethod]
@@ -336,8 +315,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert - May detect type mismatch
-        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ3020_SetOperatorColumnTypes, query);
     }
 
     #endregion
@@ -356,8 +334,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert
-        Assert.IsNotEmpty(result.Errors);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ2005_InvalidSelectList, query);
     }
 
     [TestMethod]
@@ -371,8 +348,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert
-        Assert.IsTrue(result.HasErrors);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ1002_UnterminatedString, query);
     }
 
     [TestMethod]
@@ -386,8 +362,7 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.ValidateSyntax(query);
 
-        // Assert
-        Assert.IsNotEmpty(result.Errors);
+        DiagnosticContractTestAssertions.AssertSingleError(result, DiagnosticCode.MQ2001_UnexpectedToken, query);
     }
 
     #endregion
@@ -472,8 +447,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsTrue(result.IsParsed);
+        Assert.IsTrue(result.IsSuccess);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, query);
     }
 
     [TestMethod]
@@ -487,8 +462,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsTrue(result.IsParsed);
+        Assert.IsTrue(result.IsSuccess);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, query);
     }
 
     [TestMethod]
@@ -502,8 +477,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsTrue(result.IsParsed);
+        Assert.IsTrue(result.IsSuccess);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, query);
     }
 
     [TestMethod]
@@ -517,8 +492,8 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
         // Act
         var result = analyzer.Analyze(query);
 
-        // Assert
-        Assert.IsTrue(result.IsParsed);
+        Assert.IsTrue(result.IsSuccess);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, query);
     }
 
     #endregion
@@ -526,12 +501,12 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
     #region Exception-Based Coverage for Traditional Path
 
     [TestMethod]
-    public void ThrowingMode_AmbiguousColumn_ThrowsException()
+    public void QualifiedSelfJoin_ShouldExecuteWithoutAmbiguousColumnError()
     {
         // Arrange
         var sources = new Dictionary<string, IEnumerable<BasicEntity>>
         {
-            { "#A", [new BasicEntity("city", "country", 0)] }
+            { "#A", [new BasicEntity { Name = "Alice" }] }
         };
 
         // Query that should work - self join with qualified names
@@ -541,8 +516,10 @@ public class QueryAnalyzerDiagnosticTests : BasicEntityTestBase
             INNER JOIN #A.Entities() b ON a.Name = b.Name";
 
         // Act & Assert - Should not throw when properly qualified
-        var result = CreateAndRunVirtualMachine(query, sources);
-        Assert.IsNotNull(result);
+        using var compiled = CreateAndRunVirtualMachine(query, sources);
+        using var result = compiled.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(result, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["Alice"]);
     }
 
     [TestMethod]

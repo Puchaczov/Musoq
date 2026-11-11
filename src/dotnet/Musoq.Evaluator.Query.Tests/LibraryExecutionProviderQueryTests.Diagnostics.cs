@@ -21,7 +21,7 @@ public sealed partial class LibraryExecutionProviderQueryTests
         using var compiled = InstanceCreator.CompileForExecution(query, Guid.NewGuid().ToString(),
             new LibraryExecutionQueryRowProvider(), LoggerResolver);
         if (query.StartsWith("param", StringComparison.Ordinal))
-            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", 42);
+            global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "value", 42);
         var table = compiled.Run(TestContext.CancellationToken);
         var rows = table.ToArray();
         TableMaterializationTestHelper.AssertColumns(table, ("LineNumber", typeof(int)), ("Text", typeof(string)));

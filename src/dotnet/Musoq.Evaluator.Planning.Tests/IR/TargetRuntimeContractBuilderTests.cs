@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -541,12 +543,12 @@ public sealed class TargetRuntimeContractBuilderTests
     [TestMethod]
     public void HostAbiImport_ShouldNotExposeRawAttributeConstructor()
     {
-        var rawAttributeConstructors = typeof(TargetHostAbiImport)
+        var rawAttributeConstructors = CompilerContractSymbols.For(typeof(TargetHostAbiImport))
             .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
             .Where(static constructor =>
                 constructor.GetParameters()
                     .Any(static parameter =>
-                        parameter.ParameterType == typeof(IReadOnlyDictionary<string, string>)))
+                        SymbolEqualityComparer.Default.Equals(parameter.ParameterType, CompilerContractSymbols.For(typeof(IReadOnlyDictionary<,>)).Construct(CompilerContractSymbols.For(typeof(string)), CompilerContractSymbols.For(typeof(string))))))
             .ToArray();
 
         Assert.IsEmpty(rawAttributeConstructors);

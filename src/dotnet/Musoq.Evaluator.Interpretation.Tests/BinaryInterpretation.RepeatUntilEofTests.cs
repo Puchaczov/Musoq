@@ -79,7 +79,7 @@ public class BinaryInterpretationRepeatUntilEofTests : BinaryInterpretationTestB
 
         var data = new byte[] { (byte)'A', (byte)'B', (byte)'C' };
 
-        Assert.ThrowsExactly<System.Reflection.TargetInvocationException>(
+        Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(
             () => InvokeInterpret(interpreter, data));
     }
 
@@ -121,9 +121,9 @@ public class BinaryInterpretationRepeatUntilEofTests : BinaryInterpretationTestB
 
         var data = new byte[] { 0x01, 0x02 };
 
-        var exception = Assert.ThrowsExactly<System.Reflection.TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<Musoq.Schema.Interpreters.ParseException>(
             () => InvokeInterpret(interpreter, data));
-        Assert.IsInstanceOfType<Musoq.Schema.Interpreters.ParseException>(exception.InnerException);
+        Assert.AreEqual(Musoq.Schema.Interpreters.ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
     }
 
     private static SchemaRegistry BuildBytePrimitiveEofRegistry()

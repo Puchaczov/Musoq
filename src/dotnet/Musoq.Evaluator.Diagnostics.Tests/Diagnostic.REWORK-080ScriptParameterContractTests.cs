@@ -14,7 +14,7 @@ using Musoq.Schema.Managers;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class DiagnosticRework080ScriptParameterContractTests : EnvironmentVariablesTestBase
 {
     [TestMethod]
@@ -29,7 +29,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "defaulted");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", "defaulted");
         var defaults = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, defaults.Count);
@@ -44,11 +44,11 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
 
         var overriddenId = Guid.Parse("7c9e6679-7425-40de-944b-e07fc1f90ae7");
         var overriddenCreated = new DateTime(2025, 6, 7, 8, 9, 10, DateTimeKind.Utc);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "enabled", false);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "maybeCount", 42);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "id", overriddenId);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "created", overriddenCreated);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "delay", TimeSpan.FromMinutes(5));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "enabled", false);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "maybeCount", 42);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "id", overriddenId);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "created", overriddenCreated);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "delay", TimeSpan.FromMinutes(5));
 
         var overrides = vm.Run(TestContext.CancellationToken);
 
@@ -71,8 +71,8 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", null);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "maybeCount", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "label", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "maybeCount", null);
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -88,7 +88,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(limit: int = 10) select Key from #ParameterRows.Items()";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", 10L);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", 10L);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -121,7 +121,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(limit: int) select Key from #ParameterRows.Items($limit)";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "limit", null);
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -139,7 +139,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
             "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<string> { "KEY_2" });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<string> { "KEY_2" });
 
         var table = vm.Run(TestContext.CancellationToken);
 
@@ -155,14 +155,14 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
             "param(keys: string[]) select Key from #ParameterRows.Items() where Key not in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { "KEY_1" });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new[] { "KEY_1" });
 
         var arrayTable = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, arrayTable.Count);
         Assert.AreEqual("KEY_2", arrayTable[0].ReadValue(0));
 
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new ReadOnlyCollection<string>(["KEY_2"]));
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new ReadOnlyCollection<string>(["KEY_2"]));
         var readOnlyTable = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(1, readOnlyTable.Count);
@@ -194,7 +194,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
             "param(keys: string[]) select Key from #ParameterRows.Items() where Key in $keys";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<int> { 1 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "keys", new List<int> { 1 });
 
         var exception = Assert.Throws<QueryExecutionException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
 
@@ -211,7 +211,7 @@ public sealed class DiagnosticRework080ScriptParameterContractTests : Environmen
         const string query = "param(key: string) select Key from #ParameterRows.Items($key)";
         var provider = new CountingParameterSchemaProvider();
         var vm = CompileWithProvider(query, provider);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(vm.TypedParameters, vm.ParameterDefinitions, "key", "KEY_2");
 
         var table = vm.Run(TestContext.CancellationToken);
 

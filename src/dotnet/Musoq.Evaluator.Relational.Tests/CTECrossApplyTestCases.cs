@@ -8,7 +8,7 @@ public sealed class EmptySourceEntity
 {
 }
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class CteCrossApplyTestCases : GenericEntityTestBase
 {
 

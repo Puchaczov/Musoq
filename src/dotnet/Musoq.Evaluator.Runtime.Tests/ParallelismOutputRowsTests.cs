@@ -19,13 +19,9 @@ namespace Musoq.Evaluator.Tests;
 ///     Tests with large input datasets should produce correct amount of output rows.
 ///     Tests verify both the count of rows and the correctness of row values.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class ParallelismOutputRowsTests
 {
-    static ParallelismOutputRowsTests()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
 
     private static ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 

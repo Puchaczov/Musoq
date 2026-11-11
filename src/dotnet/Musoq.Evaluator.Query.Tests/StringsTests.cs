@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class StringsTests : BasicEntityTestBase
 {
     private static readonly char[] SpecialCharacterCases =

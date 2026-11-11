@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Tests;
 ///     to find errors at the seams.
 ///     Covers: E-CROSS category.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class ErrorQualityCrossFeatureTests : BasicEntityTestBase
 {
     // ============================================================================
@@ -22,7 +22,7 @@ public class ErrorQualityCrossFeatureTests : BasicEntityTestBase
     [TestMethod]
     public void E_CROSS_01_CteWithGroupByFeedingJoin()
     {
-        // Arrange — CTE with GROUP BY, then JOIN
+
         var analyzer = CreateAnalyzer();
         var query = @"WITH Grouped AS (
     SELECT City, Count(1) AS Cnt
@@ -33,11 +33,11 @@ SELECT g.City, g.Cnt, b.Name
 FROM Grouped g
 INNER JOIN #B.Entities() b ON g.City = b.City";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Should work or produce clear error about column resolution
-        // Assert  CTE with GROUP BY feeding INTO JOIN
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_01_CteWithGroupByFeedingJoin));
     }
 
     #endregion
@@ -47,7 +47,7 @@ INNER JOIN #B.Entities() b ON g.City = b.City";
     [TestMethod]
     public void E_CROSS_02_MultipleCTEsWithSetOperation()
     {
-        // Arrange — Two CTEs, then EXCEPT between them
+
         var analyzer = CreateAnalyzer();
         var query = @"WITH A AS (SELECT Name FROM #A.Entities()),
      B AS (SELECT Name FROM #B.Entities())
@@ -55,11 +55,11 @@ SELECT a.Name FROM A a
 EXCEPT (Name)
 SELECT b.Name FROM B b";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Document: CTE + EXCEPT interaction
-        // Assert  multiple CTEs with EXCEPT set operation
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_02_MultipleCTEsWithSetOperation));
     }
 
     #endregion
@@ -69,18 +69,18 @@ SELECT b.Name FROM B b";
     [TestMethod]
     public void E_CROSS_04_GroupByOnCrossApplyResult()
     {
-        // Arrange — CROSS APPLY followed by GROUP BY
+
         var analyzer = CreateAnalyzer();
         var query = @"SELECT b.Name, Count(1) AS Cnt
 FROM #A.Entities() a
 CROSS APPLY #B.Entities() b
 GROUP BY b.Name";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Document: GROUP BY after CROSS APPLY
-        // Assert  GROUP BY on CROSS APPLY result
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_04_GroupByOnCrossApplyResult));
     }
 
     #endregion
@@ -90,7 +90,7 @@ GROUP BY b.Name";
     [TestMethod]
     public void E_CROSS_05_HavingWithAggregateOnCrossApply()
     {
-        // Arrange — HAVING + CROSS APPLY interaction
+
         var analyzer = CreateAnalyzer();
         var query = @"SELECT b.Name, Count(1) AS Cnt
 FROM #A.Entities() a
@@ -98,11 +98,11 @@ CROSS APPLY #B.Entities() b
 GROUP BY b.Name
 HAVING Count(1) > 0";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Document: HAVING after CROSS APPLY + GROUP BY
-        // Assert  HAVING with aggregate on CROSS APPLY column
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_05_HavingWithAggregateOnCrossApply));
     }
 
     #endregion
@@ -112,7 +112,7 @@ HAVING Count(1) > 0";
     [TestMethod]
     public void E_CROSS_07_OrderByOnCteAfterGroupBy()
     {
-        // Arrange — CTE → GROUP BY → ORDER BY
+
         var analyzer = CreateAnalyzer();
         var query = @"WITH Source AS (
     SELECT Name, Population FROM #A.Entities()
@@ -122,11 +122,11 @@ FROM Source s
 GROUP BY s.Name
 ORDER BY Cnt DESC";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Document: ORDER BY on aggregate alias from CTE
-        // Assert  ORDER BY on aggregate alias from CTE after GROUP BY
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_07_OrderByOnCteAfterGroupBy));
     }
 
     #endregion
@@ -136,17 +136,17 @@ ORDER BY Cnt DESC";
     [TestMethod]
     public void E_CROSS_08_CaseInsideAggregate()
     {
-        // Arrange — Sum(CASE WHEN ... THEN ... ELSE ... END)
+
         var analyzer = CreateAnalyzer();
         var query = @"SELECT
     Sum(CASE WHEN Population > 50 THEN Population ELSE 0 END) AS ConditionalSum
 FROM #A.Entities()";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — CASE inside aggregate should work
-        // Assert  CASE expression inside Sum aggregate
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_08_CaseInsideAggregate));
     }
 
     #endregion
@@ -156,20 +156,20 @@ FROM #A.Entities()";
     [TestMethod]
     public void E_CROSS_11_TableCoupleWithCte()
     {
-        // Arrange — TABLE/COUPLE definition + CTE
+
         var analyzer = CreateAnalyzer();
         var query = @"table TypedRow { Id: int, Name: string };
-couple #A.Entities() with table TypedRow as TypedSource;
+couple #A.Entities with table TypedRow as TypedSource;
 WITH MyData AS (
     SELECT Id, Name FROM TypedSource()
 )
 SELECT md.Id, md.Name FROM MyData md";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — TABLE/COUPLE + CTE interaction
-        // Assert  TABLE/COUPLE with CTE
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_11_TableCoupleWithCte));
     }
 
     #endregion
@@ -179,7 +179,7 @@ SELECT md.Id, md.Name FROM MyData md";
     [TestMethod]
     public void E_CROSS_12_DeeplyNestedCteChain()
     {
-        // Arrange — 5 levels of CTE chaining
+
         var analyzer = CreateAnalyzer();
         var query = @"WITH
     L1 AS (SELECT Name, Population FROM #A.Entities()),
@@ -189,11 +189,11 @@ SELECT md.Id, md.Name FROM MyData md";
     L5 AS (SELECT l.Name, l.Population, l.Population * 2 AS Doubled FROM L4 l)
 SELECT l.Name, l.Population, l.Doubled FROM L5 l ORDER BY l.Population";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — Deep CTE chain should work
-        // Assert  5-level deep CTE chain
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_12_DeeplyNestedCteChain));
     }
 
     #endregion
@@ -203,18 +203,18 @@ SELECT l.Name, l.Population, l.Doubled FROM L5 l ORDER BY l.Population";
     [TestMethod]
     public void E_CROSS_15_CaseInsideJoinOnCondition()
     {
-        // Arrange — CASE expression in JOIN ON clause
+
         var analyzer = CreateAnalyzer();
         var query = @"SELECT a.Name, b.Name
 FROM #A.Entities() a
 INNER JOIN #B.Entities() b ON
     CASE WHEN a.Population > 50 THEN a.Name ELSE a.City END = b.Name";
 
-        // Act
-        _ = analyzer.Analyze(query);
+        var result = analyzer.Analyze(query);
 
-        // Assert — CASE in ON condition may or may not be supported
-        // Assert  CASE expression inside JOIN ON condition
+
+        Assert.IsTrue(result.IsParsed);
+        DiagnosticContractTestAssertions.AssertNoErrors(result, nameof(E_CROSS_15_CaseInsideJoinOnCondition));
     }
 
     #endregion

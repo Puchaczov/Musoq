@@ -9,7 +9,7 @@ using ApplyParent = Musoq.Evaluator.Tests.LikeApplyConformanceTests.ApplyParent;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class RLikeApplyConformanceTests : GenericEntityTestBase
 {
     [TestMethod]

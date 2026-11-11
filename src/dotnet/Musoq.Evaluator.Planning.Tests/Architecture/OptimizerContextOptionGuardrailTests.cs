@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
@@ -39,7 +40,7 @@ public sealed class OptimizerContextOptionGuardrailTests
     public void OptimizationContext_ShouldNotExposeRawPropertiesBag()
     {
         Assert.IsNull(
-            typeof(OptimizationContext).GetProperty("Properties"),
+            CompilerContractSymbols.For(typeof(OptimizationContext)).GetProperty("Properties"),
             "Optimizer state must flow through OptimizationOptions and OptimizationContextState, not a raw property bag.");
     }
 

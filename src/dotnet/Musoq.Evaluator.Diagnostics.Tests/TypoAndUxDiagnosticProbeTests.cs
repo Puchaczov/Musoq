@@ -11,7 +11,7 @@ namespace Musoq.Evaluator.Tests;
 ///     Each test exercises a realistic user error and validates whether the
 ///     error message is helpful from a UX perspective.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class TypoAndUxDiagnosticProbeTests : NegativeTestsBase
 {
     // ========================================================================

@@ -148,17 +148,19 @@ public sealed class DiagnosticREC123IndependentRootsTests
     [TestMethod]
     public void IndependentRoots_ShouldPreserveSourceOrderAcrossRepeatedAnalysis()
     {
-        foreach (var candidate in CandidateCases.Where(static candidate => candidate.ExpectedCodes.Count > 1))
         {
-            var first = Analyze(candidate.ResultQuery, candidate.Provider).Errors
-                .Select(static item => (Code: item.Code, Offset: item.Location.Offset, EndOffset: item.EndLocation.Offset, Message: item.Message))
-                .ToArray();
-            var second = Analyze(candidate.ResultQuery, candidate.Provider).Errors
-                .Select(static item => (Code: item.Code, Offset: item.Location.Offset, EndOffset: item.EndLocation.Offset, Message: item.Message))
-                .ToArray();
+            var selectedCases = CandidateCases.Where(static candidate => candidate.ExpectedCodes.Count > 1).ToArray(); Assert.IsNotEmpty(selectedCases, "The intended scenario subset must contain cases."); foreach (var candidate in selectedCases)
+            {
+                var first = Analyze(candidate.ResultQuery, candidate.Provider).Errors
+                    .Select(static item => (Code: item.Code, Offset: item.Location.Offset, EndOffset: item.EndLocation.Offset, Message: item.Message))
+                    .ToArray();
+                var second = Analyze(candidate.ResultQuery, candidate.Provider).Errors
+                    .Select(static item => (Code: item.Code, Offset: item.Location.Offset, EndOffset: item.EndLocation.Offset, Message: item.Message))
+                    .ToArray();
 
-            CollectionAssert.AreEqual(first, second, candidate.Id);
-            Assert.IsTrue(first.Zip(first.Skip(1), static (left, right) => left.Offset <= right.Offset).All(static value => value), candidate.Id);
+                CollectionAssert.AreEqual(first, second, candidate.Id);
+                Assert.IsTrue(first.Zip(first.Skip(1), static (left, right) => left.Offset <= right.Offset).All(static value => value), candidate.Id);
+            }
         }
     }
 

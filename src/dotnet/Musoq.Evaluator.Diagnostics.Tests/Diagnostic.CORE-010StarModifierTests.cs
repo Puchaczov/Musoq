@@ -8,7 +8,7 @@ using static Musoq.Evaluator.Tests.MusoqExceptionAssertions;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 [DoNotParallelize]
 public sealed partial class DiagnosticCore010StarModifierTests : BasicEntityTestBase
 {

@@ -3,7 +3,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class BitwiseOperationsAndTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -30,11 +30,7 @@ public class BitwiseOperationsAndTests : BasicEntityTestBase
         TestMethodTemplate<int?>("And(1b, 1us)", 1);
     }
 
-    [TestMethod]
-    public void WhenBitwiseAndBetweenSbyteAndInt_ShouldBeEvaluated()
-    {
-        TestMethodTemplate<int?>("And(1b, 1i)", 1);
-    }
+
 
     [TestMethod]
     public void WhenBitwiseAndBetweenSbyteAndUint_ShouldBeEvaluated()

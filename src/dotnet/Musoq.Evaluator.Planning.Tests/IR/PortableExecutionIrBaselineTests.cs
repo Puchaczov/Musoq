@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis;
+using Musoq.Evaluator.Tests.Architecture;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,25 +18,25 @@ public sealed class PortableExecutionIrBaselineTests
     [TestMethod]
     public void ExecutionIr_PublicShape_ShouldMatchPortableMigrationBaseline()
     {
-        var assembly = typeof(ExecutionPlan).Assembly;
+        var assembly = CompilerContractSymbols.For(typeof(ExecutionPlan)).Assembly;
         var concreteTypes = assembly
             .GetTypes()
             .Where(static type =>
                 !type.IsAbstract &&
-                (typeof(ExecutionNode).IsAssignableFrom(type) ||
-                 typeof(ExecutionExpression).IsAssignableFrom(type) ||
-                 typeof(RowShape).IsAssignableFrom(type)))
+                (CompilerContractSymbols.For(typeof(ExecutionNode)).IsAssignableFrom(type) ||
+                 CompilerContractSymbols.For(typeof(ExecutionExpression)).IsAssignableFrom(type) ||
+                 CompilerContractSymbols.For(typeof(RowShape)).IsAssignableFrom(type)))
             .OrderBy(static type => type.FullName, StringComparer.Ordinal)
             .ToArray();
 
-        var nodeCount = concreteTypes.Count(static type => typeof(ExecutionNode).IsAssignableFrom(type));
-        var expressionCount = concreteTypes.Count(static type => typeof(ExecutionExpression).IsAssignableFrom(type));
-        var rowShapeCount = concreteTypes.Count(static type => typeof(RowShape).IsAssignableFrom(type));
+        var nodeCount = concreteTypes.Count(static type => CompilerContractSymbols.For(typeof(ExecutionNode)).IsAssignableFrom(type));
+        var expressionCount = concreteTypes.Count(static type => CompilerContractSymbols.For(typeof(ExecutionExpression)).IsAssignableFrom(type));
+        var rowShapeCount = concreteTypes.Count(static type => CompilerContractSymbols.For(typeof(RowShape)).IsAssignableFrom(type));
         var clrShapedMembers = concreteTypes
             .SelectMany(static type => type
                 .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(static property => IsClrShaped(property.PropertyType))
-                .Select(property => $"{type.FullName}.{property.Name}:{FormatType(property.PropertyType)}"))
+                .Select(property => $"{type.FullName}.{property.MetadataName}:{FormatType(property.PropertyType)}"))
             .Distinct(StringComparer.Ordinal)
             .OrderBy(static value => value, StringComparer.Ordinal)
             .ToArray();
@@ -56,14 +58,14 @@ public sealed class PortableExecutionIrBaselineTests
     [TestMethod]
     public void ExecutionExpressionConverter_RegisteredTypes_ShouldCoverEveryConcreteIrExpression()
     {
-        var concreteExpressions = typeof(IrExpression).Assembly
+        var concreteExpressions = CompilerContractSymbols.For(typeof(IrExpression)).Assembly
             .GetTypes()
-            .Where(static type => !type.IsAbstract && typeof(IrExpression).IsAssignableFrom(type))
-            .ToHashSet();
+            .Where(static type => !type.IsAbstract && CompilerContractSymbols.For(typeof(IrExpression)).IsAssignableFrom(type))
+            .ToHashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
 
         CollectionAssert.AreEquivalent(
             concreteExpressions.ToArray(),
-            ExecutionExpressionConverter.RegisteredExpressionTypes.ToArray());
+            ExecutionExpressionConverter.RegisteredExpressionTypes.Select(CompilerContractSymbols.For).ToArray());
     }
 
     [TestMethod]
@@ -79,11 +81,11 @@ public sealed class PortableExecutionIrBaselineTests
     [TestMethod]
     public void ExecutionPlan_PublicContractGraph_ShouldNotExposeClrSidecarsOrRawExpressions()
     {
-        var executionAssembly = typeof(ExecutionPlan).Assembly;
-        var pending = new Queue<Type>();
-        var visited = new HashSet<Type>();
+        var executionAssembly = CompilerContractSymbols.For(typeof(ExecutionPlan)).Assembly;
+        var pending = new Queue<ITypeSymbol>();
+        var visited = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
         var violations = new List<string>();
-        EnqueueContractTypes(typeof(ExecutionPlan), executionAssembly, pending);
+        EnqueueContractTypes(CompilerContractSymbols.For(typeof(ExecutionPlan)), executionAssembly, pending);
 
         while (pending.TryDequeue(out var contractType))
         {
@@ -95,7 +97,7 @@ public sealed class PortableExecutionIrBaselineTests
                 if (IsClrShaped(property.PropertyType))
                 {
                     violations.Add(
-                        $"{contractType.FullName}.{property.Name}:{FormatType(property.PropertyType)}");
+                        $"{contractType.FullName}.{property.MetadataName}:{FormatType(property.PropertyType)}");
                 }
 
                 EnqueueContractTypes(property.PropertyType, executionAssembly, pending);
@@ -110,17 +112,17 @@ public sealed class PortableExecutionIrBaselineTests
             executionAssembly.GetType("Musoq.Evaluator.IR.Execution.ExecutionRawExpression"),
             "Raw-expression fallback must not return to portable Execution IR.");
 
-        AssertNoClrSidecar(typeof(ExecutionTypeRef), "ClrType");
-        AssertNoClrSidecar(typeof(ExecutionCallableRef), "ClrMethod");
-        AssertInternalSidecar(typeof(ExecutionConstantValue), "ClrOnlyValue", typeof(object));
+        AssertNoClrSidecar(CompilerContractSymbols.For(typeof(ExecutionTypeRef)), "ClrType");
+        AssertNoClrSidecar(CompilerContractSymbols.For(typeof(ExecutionCallableRef)), "ClrMethod");
+        AssertInternalSidecar(CompilerContractSymbols.For(typeof(ExecutionConstantValue)), "ClrOnlyValue", CompilerContractSymbols.For(typeof(object)));
     }
 
-    private static bool IsClrShaped(Type type)
+    private static bool IsClrShaped(ITypeSymbol type)
     {
-        if (type == typeof(Type) ||
-            type == typeof(object) ||
-            typeof(MemberInfo).IsAssignableFrom(type) ||
-            typeof(Assembly).IsAssignableFrom(type))
+        if (SymbolEqualityComparer.Default.Equals(type, CompilerContractSymbols.For(typeof(Type))) ||
+            SymbolEqualityComparer.Default.Equals(type, CompilerContractSymbols.For(typeof(object))) ||
+            CompilerContractSymbols.For(typeof(MemberInfo)).IsAssignableFrom(type) ||
+            CompilerContractSymbols.For(typeof(Assembly)).IsAssignableFrom(type))
         {
             return true;
         }
@@ -131,15 +133,15 @@ public sealed class PortableExecutionIrBaselineTests
         return type.IsGenericType && type.GetGenericArguments().Any(IsClrShaped);
     }
 
-    private static string FormatType(Type type)
+    private static string FormatType(ITypeSymbol type)
     {
         if (type.IsArray)
             return $"{FormatType(type.GetElementType()!)}[]";
 
         if (!type.IsGenericType)
-            return type.FullName ?? type.Name;
+            return type.FullName ?? type.MetadataName;
 
-        var definitionName = type.GetGenericTypeDefinition().FullName ?? type.Name;
+        var definitionName = type.GetGenericTypeDefinition().FullName ?? type.MetadataName;
         var tickIndex = definitionName.IndexOf('`', StringComparison.Ordinal);
         if (tickIndex >= 0)
             definitionName = definitionName[..tickIndex];
@@ -147,7 +149,7 @@ public sealed class PortableExecutionIrBaselineTests
         return $"{definitionName}<{string.Join(",", type.GetGenericArguments().Select(FormatType))}>";
     }
 
-    private static void EnqueueContractTypes(Type type, Assembly executionAssembly, Queue<Type> pending)
+    private static void EnqueueContractTypes(ITypeSymbol type, IAssemblySymbol executionAssembly, Queue<ITypeSymbol> pending)
     {
         if (type.IsArray)
         {
@@ -161,7 +163,7 @@ public sealed class PortableExecutionIrBaselineTests
                 EnqueueContractTypes(argument, executionAssembly, pending);
         }
 
-        if (type.Assembly != executionAssembly ||
+        if (!SymbolEqualityComparer.Default.Equals(type.Assembly, executionAssembly) ||
             type.Namespace?.StartsWith("Musoq.Evaluator.IR.Execution", StringComparison.Ordinal) != true)
         {
             return;
@@ -179,18 +181,18 @@ public sealed class PortableExecutionIrBaselineTests
         }
     }
 
-    private static void AssertInternalSidecar(Type declaringType, string propertyName, Type propertyType)
+    private static void AssertInternalSidecar(ITypeSymbol declaringType, string propertyName, ITypeSymbol propertyType)
     {
         var property = declaringType.GetProperty(
             propertyName,
             BindingFlags.Instance | BindingFlags.NonPublic);
 
         Assert.IsNotNull(property, $"Expected internal sidecar {declaringType.Name}.{propertyName}.");
-        Assert.AreEqual(propertyType, property.PropertyType);
+        Assert.IsTrue(SymbolEqualityComparer.Default.Equals(propertyType, property.PropertyType));
         Assert.IsFalse(property.GetMethod!.IsPublic);
     }
 
-    private static void AssertNoClrSidecar(Type declaringType, string propertyName)
+    private static void AssertNoClrSidecar(ITypeSymbol declaringType, string propertyName)
     {
         Assert.IsNull(
             declaringType.GetProperty(

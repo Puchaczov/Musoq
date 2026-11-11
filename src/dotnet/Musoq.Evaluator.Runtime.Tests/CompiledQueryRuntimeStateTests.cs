@@ -18,7 +18,7 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingParameterizedRunnable();
         using var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
 
         var firstRun = StartLongRunning(() => query.Run());
         try
@@ -55,7 +55,7 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingParameterizedRunnable();
         var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
 
         var run = StartLongRunning(() => query.Run());
         try
@@ -84,7 +84,7 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingContextualRunnable();
         using var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 1);
 
         var firstRun = StartLongRunning(() => query.Run());
         try
@@ -124,7 +124,7 @@ public sealed class CompiledQueryRuntimeStateTests
     {
         using var runnable = new BlockingContextualRunnable();
         var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", 3);
 
         var firstRun = StartLongRunning(() => query.Run());
         try
@@ -190,11 +190,11 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = [];
 
-        #pragma warning disable CS0067
+#pragma warning disable CS0067
         public event QueryPhaseEventHandler? PhaseChanged;
 
         public event DataSourceEventHandler? DataSourceProgress;
-        #pragma warning restore CS0067
+#pragma warning restore CS0067
 
         public bool IsDisposed { get; private set; }
 
@@ -280,11 +280,11 @@ public sealed class CompiledQueryRuntimeStateTests
 
         public IReadOnlyList<ScriptParameterContract> ParameterContracts { get; } = [];
 
-        #pragma warning disable CS0067
+#pragma warning disable CS0067
         public event QueryPhaseEventHandler? PhaseChanged;
 
         public event DataSourceEventHandler? DataSourceProgress;
-        #pragma warning restore CS0067
+#pragma warning restore CS0067
 
         public bool IsDisposed { get; private set; }
 

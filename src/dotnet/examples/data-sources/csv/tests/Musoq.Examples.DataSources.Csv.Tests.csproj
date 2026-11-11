@@ -27,4 +27,7 @@
         <ProjectReference Include="..\..\..\..\Musoq.Schema\Musoq.Schema.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Include="..\..\..\..\Musoq.Evaluator.Tests.Common\NativeParameterFixture.cs" Link="Fixtures\NativeParameterFixture.cs" />
+    </ItemGroup>
 </Project>

@@ -5,7 +5,7 @@ using Musoq.Parser.Lexing;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class StringifyTests : BasicEntityTestBase
 {
     [TestMethod]

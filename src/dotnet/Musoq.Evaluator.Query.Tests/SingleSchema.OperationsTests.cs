@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 /// <summary>
 ///     Single schema tests: NULL handling, WHERE, strings, and complex types.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class SingleSchemaOperationsTests : BasicEntityTestBase
 {
     [TestMethod]

@@ -39,7 +39,7 @@ public partial class AdditionalNodesTests
 
         // Assert
         // The output may vary based on culture settings, just verify it's not null
-        Assert.IsNotNull(result);
+        Assert.AreEqual("123.456", result);
     }
 
     [TestMethod]

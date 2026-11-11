@@ -169,11 +169,8 @@ public sealed class CompiledQueryDeferredTableTests
             new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
             owner);
 
-        var table = query.Run(CancellationToken.None);
-        var dispose = Task.Run(query.Dispose);
-
-        Assert.AreEqual(1, table.Count);
-        await dispose;
+        using var table = query.Run(CancellationToken.None);
+        await AssertDisposalWaits(query, table, () => Assert.AreEqual(1, table.Count), owner);
         Assert.IsFalse(owner.DisposedBeforeRelease);
         Assert.IsTrue(owner.IsDisposed);
         return;
@@ -195,13 +192,12 @@ public sealed class CompiledQueryDeferredTableTests
             new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
             owner);
 
-        var table = query.Run(CancellationToken.None);
-        var dispose = Task.Run(query.Dispose);
-
-        Volatile.Write(ref tableDisposeStarted, 1);
-        table.Dispose();
-
-        await dispose;
+        using var table = query.Run(CancellationToken.None);
+        await AssertDisposalWaits(query, table, () =>
+        {
+            Volatile.Write(ref tableDisposeStarted, 1);
+            table.Dispose();
+        }, owner);
         Assert.IsFalse(owner.DisposedBeforeRelease);
         Assert.IsTrue(owner.IsDisposed);
         return;
@@ -210,6 +206,49 @@ public sealed class CompiledQueryDeferredTableTests
         {
             token.ThrowIfCancellationRequested();
             yield return new TestRow("a");
+        }
+    }
+
+    private static async Task AssertDisposalWaits(CompiledQuery query, Table table, Action releaseResult, TrackingLifetimeOwner owner)
+    {
+        var timeout = TimeSpan.FromMinutes(2);
+        using var started = new ManualResetEventSlim();
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var worker = new Thread(() =>
+        {
+            started.Set();
+            try
+            {
+                query.Dispose();
+                completion.SetResult();
+            }
+            catch (Exception failure)
+            {
+                completion.SetException(failure);
+            }
+        })
+        { IsBackground = true };
+        worker.Start();
+        try
+        {
+            Assert.IsTrue(started.Wait(timeout));
+            Assert.IsTrue(SpinWait.SpinUntil(() => completion.Task.IsCompleted ||
+                (worker.ThreadState & ThreadState.WaitSleepJoin) != 0, timeout));
+            Assert.IsFalse(completion.Task.IsCompleted, "Query disposal must wait for the outstanding result.");
+            Assert.IsFalse(owner.IsDisposed);
+        }
+        finally
+        {
+            try
+            {
+                releaseResult();
+            }
+            finally
+            {
+                table.Dispose();
+                await completion.Task.WaitAsync(timeout);
+                Assert.IsTrue(worker.Join(timeout));
+            }
         }
     }
 

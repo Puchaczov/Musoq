@@ -44,7 +44,7 @@ public sealed partial class NullExtendedScalarProjectionTests
         TableMaterializationTestHelper.AssertRowsInOrder(table, [null, true]);
     }
 
-    private static CompiledQuery Compile(string sql) => InstanceCreator.CompileForExecution(sql,
+    private static CompiledQuery Compile(string sql) => GeneratedExecutionIlInspection.CompileForExecution(sql,
         Guid.NewGuid().ToString(), new TestSchemaProvider(), new TestsLoggerResolver(), new CompilationOptions());
 
 }

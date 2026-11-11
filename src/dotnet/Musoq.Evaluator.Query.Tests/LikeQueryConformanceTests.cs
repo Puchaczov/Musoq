@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 [DoNotParallelize]
 public sealed class LikeQueryConformanceTests : BasicEntityTestBase
 {
@@ -67,7 +67,7 @@ public sealed class LikeQueryConformanceTests : BasicEntityTestBase
             if (testCase.Parameters is not null)
             {
                 foreach (var parameter in testCase.Parameters)
-                    global::Musoq.Tests.Common.NativeParameterTestInputs.Set(query.TypedParameters, query.ParameterDefinitions, parameter.Key, parameter.Value);
+                    global::Musoq.Tests.Common.NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, parameter.Key, parameter.Value);
             }
 
             AssertSnapshot(testCase, culture, query.Run(TestContext.CancellationToken));

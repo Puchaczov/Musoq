@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.Tests;
 ///     These tests cover full query execution to ensure the evaluator correctly handles
 ///     both hash and hash-optional schema references through the entire query pipeline.
 /// </summary>
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public partial class HashOptionalSchemaComprehensiveTests : BasicEntityTestBase
 {
 

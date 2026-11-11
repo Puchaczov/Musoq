@@ -4,7 +4,7 @@ using Musoq.Evaluator.Tests.Schema.NegativeTests;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public class SemanticLogicalTests : NegativeTestsBase
 {
     #region 6.1 Empty / Vacuous Queries

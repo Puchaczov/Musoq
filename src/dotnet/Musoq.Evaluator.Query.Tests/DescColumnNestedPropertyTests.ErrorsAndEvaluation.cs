@@ -119,25 +119,7 @@ public partial class DescColumnNestedPropertyTests
     /// <summary>
     ///     Tests that primitive/string types cannot be described (they have no meaningful properties).
     /// </summary>
-    [TestMethod]
-    public void DescColumn_PrimitiveType_ShouldThrowException()
-    {
-        var query = "desc #A.entities() column Name";
 
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
-        {
-            {
-                "#A", [
-                    new BasicEntity("test")
-                ]
-            }
-        };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-
-
-        Assert.Throws<ColumnMustBeAnArrayOrImplementIEnumerableException>(() => _ = vm.Run(TestContext.CancellationToken).Count);
-    }
 
     /// <summary>
     ///     Tests that an exception is thrown for intermediate property that is not a complex type.

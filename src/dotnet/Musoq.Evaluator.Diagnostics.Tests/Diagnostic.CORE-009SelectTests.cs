@@ -5,7 +5,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed partial class DiagnosticCore009SelectTests : BasicEntityTestBase
 {
     [TestMethod]

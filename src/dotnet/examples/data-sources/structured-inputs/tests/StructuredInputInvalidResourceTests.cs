@@ -26,8 +26,10 @@ public sealed class StructuredInputInvalidResourceTests
             ["scalar-cte-ambiguity.sql"] = [DiagnosticCode.MQ3116_AmbiguousRelationArgument]
         };
 
-        foreach (var path in Directory.GetFiles(invalidDirectory, "*.sql", SearchOption.TopDirectoryOnly)
-                     .Where(path => expectedFamilies.ContainsKey(Path.GetFileName(path))))
+        var resources = Directory.GetFiles(invalidDirectory, "*.sql", SearchOption.TopDirectoryOnly)
+            .Where(path => expectedFamilies.ContainsKey(Path.GetFileName(path))).ToArray();
+        CollectionAssert.AreEquivalent(expectedFamilies.Keys.ToArray(), resources.Select(Path.GetFileName).ToArray());
+        foreach (var path in resources)
         {
             StructuredInputSourceCounters.Reset();
             var name = Path.GetFileName(path);
@@ -99,7 +101,7 @@ public sealed class StructuredInputInvalidResourceTests
             "param(values: int[]) select s.Value from #inputs.strict(values: $values) s";
         StructuredInputSourceCounters.Reset();
         using var parameterCompiled = Compile(parameterQuery, "structured-limit-parameter");
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(parameterCompiled.TypedParameters, parameterCompiled.ParameterDefinitions, "values", new[] { 1, 2, 3 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(parameterCompiled.TypedParameters, parameterCompiled.ParameterDefinitions, "values", new[] { 1, 2, 3 });
         var parameterException = Assert.ThrowsExactly<QueryExecutionException>(() =>
         {
             using var table = parameterCompiled.Run();

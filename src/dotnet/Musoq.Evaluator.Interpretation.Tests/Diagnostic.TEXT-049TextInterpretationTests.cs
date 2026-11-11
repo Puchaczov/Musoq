@@ -27,7 +27,7 @@ public partial class TextInterpretationTests
         Assert.AreEqual("tail", GetPropertyValue<string>(present, "Tail"));
 
         var absent = InvokeParse(interpreter, "tail");
-        Assert.IsNull(absent.GetType().GetProperty("Code")!.GetValue(absent));
+        Assert.IsNull(GetNullablePropertyValue<object>(absent, "Code"));
         Assert.AreEqual("tail", GetPropertyValue<string>(absent, "Tail"));
     }
 
@@ -63,7 +63,7 @@ public partial class TextInterpretationTests
         Assert.AreEqual(" tail", GetPropertyValue<string>(present, "Tail"));
 
         var absent = InvokeParse(interpreter, "tail");
-        Assert.IsNull(absent.GetType().GetProperty("Items")!.GetValue(absent));
+        Assert.IsNull(GetNullablePropertyValue<object>(absent, "Items"));
         Assert.AreEqual("tail", GetPropertyValue<string>(absent, "Tail"));
     }
 
@@ -99,7 +99,7 @@ public partial class TextInterpretationTests
         Assert.AreEqual(string.Empty, GetPropertyValue<string>(present, "Tail"));
 
         var absent = InvokeParse(interpreter, "payload");
-        Assert.IsNull(absent.GetType().GetProperty("Content")!.GetValue(absent));
+        Assert.IsNull(GetNullablePropertyValue<object>(absent, "Content"));
         Assert.AreEqual("payload", GetPropertyValue<string>(absent, "Tail"));
     }
 
@@ -138,9 +138,8 @@ public partial class TextInterpretationTests
                 [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Empty")]));
 
         var interpreter = CompileFromRegistry(registry, "Container");
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<ParseException>(
             () => InvokeParse(interpreter, "x"));
-        var exception = GetParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("Container", exception.SchemaName);
@@ -164,9 +163,8 @@ public partial class TextInterpretationTests
                 [new TextFieldDefinitionNode("Items", TextFieldType.Repeat, "Character")]));
 
         var interpreter = CompileFromRegistry(registry, "Container");
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<ParseException>(
             () => InvokeParse(interpreter, new string('x', 10_001)));
-        var exception = GetParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.MaxIterationsExceeded, exception.ErrorCode);
         Assert.AreEqual("Container", exception.SchemaName);
@@ -212,7 +210,7 @@ public partial class TextInterpretationTests
         var content = GetPropertyValue<object>(result, "Content");
 
         Assert.AreEqual("data", GetPropertyValue<string>(content, "Value"));
-        Assert.IsNull(content.GetType().GetProperty("Other"));
+        Assert.IsFalse(((System.Collections.Generic.IReadOnlyDictionary<string, object?>)content).ContainsKey("Other"));
     }
 
     [TestMethod]
@@ -231,9 +229,8 @@ public partial class TextInterpretationTests
                     [new TextSwitchCaseNode("x", "Branch")])]));
 
         var interpreter = CompileFromRegistry(registry, "Container");
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<ParseException>(
             () => InvokeParse(interpreter, "y"));
-        var exception = GetParseException(wrapper);
 
         Assert.AreEqual(ParseErrorCode.NoAlternativeMatched, exception.ErrorCode);
         Assert.AreEqual("Container", exception.SchemaName);
@@ -242,10 +239,5 @@ public partial class TextInterpretationTests
         Assert.AreEqual("ISE0012", exception.FormattedErrorCode);
     }
 
-    private static ParseException GetParseException(TargetInvocationException wrapper)
-    {
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<ParseException>(wrapper.InnerException);
-        return (ParseException)wrapper.InnerException!;
-    }
+
 }

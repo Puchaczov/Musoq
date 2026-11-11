@@ -9,13 +9,9 @@ using Musoq.Evaluator.Runtime;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
 {
-    static ProjectionRowsRuntimeTests()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
 
     [TestMethod]
     public void TypedProjectionRows_ProjectValuesSerial_WhenCancelled_ShouldThrow()

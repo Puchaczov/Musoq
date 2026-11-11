@@ -7,7 +7,7 @@ using Musoq.Evaluator.Tests.Schema.SourcePlanning;
 
 namespace Musoq.Evaluator.Tests;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class PredicateTransferAtomTests : BasicEntityTestBase
 {
     [TestMethod]
@@ -71,7 +71,7 @@ public sealed class PredicateTransferAtomTests : BasicEntityTestBase
             schemaProvider: provider);
         foreach (var minimum in new[] { 1, 2, 0, 1 })
         {
-            global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "min", minimum);
+            global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "min", minimum);
             var expected = Rows.Where(row => row.Score >= minimum && row.Score <= minimum + 1).Select(row => row.Id).Order().ToArray();
             CollectionAssert.AreEqual(expected, compiled.Run().Select(row => (int)row.ReadValue(0)!).ToArray());
         }

@@ -34,7 +34,7 @@ public partial class ScriptParameterLanguageRegressionTests
     public void NullableCollectionMembership_WithOverride_ShouldUseCapturedValues(string predicate, int expectedCount)
     {
         using var compiled = CompileNullableCollectionMembership(predicate);
-        global::Musoq.Tests.Common.NativeParameterTestInputs.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "ids", new[] { 1 });
+        global::Musoq.Tests.Common.NativeParameterFixture.Set(compiled.TypedParameters, compiled.ParameterDefinitions, "ids", new[] { 1 });
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(expectedCount, result.Count);
     }

@@ -411,7 +411,7 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
                 "source",
                 new SchemaConstructorInfo(
                     typeof(HiddenContextTable)
-                        .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                        .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
                         .Single(),
                     false,
                     ("value", typeof(int))))
@@ -448,7 +448,7 @@ public sealed class NamedDatasourceArgumentBinderMatrixTests
         private static SchemaMethodInfo Method(Type tableType, params (string Name, Type Type)[] arguments)
         {
             var constructor = tableType
-                .GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetConstructors(BindingFlags.Public | BindingFlags.Instance)
                 .Single(candidate => candidate.GetParameters().Length == arguments.Length);
             return new SchemaMethodInfo("source", new SchemaConstructorInfo(constructor, false, arguments));
         }

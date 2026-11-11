@@ -11,10 +11,6 @@ namespace Musoq.Evaluator.Tests.Schema.Multi;
 
 public class MultiSchemaTestBase : MSTestContextTestBase
 {
-    static MultiSchemaTestBase()
-    {
-        Culture.ApplyWithDefaultCulture();
-    }
 
     protected ILoggerResolver LoggerResolver { get; } = new TestsLoggerResolver();
 

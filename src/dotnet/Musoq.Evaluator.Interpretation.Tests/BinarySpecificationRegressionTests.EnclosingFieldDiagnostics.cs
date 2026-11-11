@@ -117,10 +117,10 @@ public partial class BinarySpecificationRegressionTests
         const string sql = "binary Inner { Payload: byte[parent.Len] }; binary Rec { Len: byte, Body: Inner }; " +
             "select r.Len, r.Body.Payload[0], r.Body.Payload[1] from #test.files() f cross apply Interpret<Rec>(f.Content) r";
         var provider = new BinarySchemaProvider(new Dictionary<string, IEnumerable<BinaryEntity>>
-            { ["#test"] = [new() { Content = [2, 10, 20] }] });
+        { ["#test"] = [new() { Content = [2, 10, 20] }] });
         var inspection = InstanceCreator.CompileForInspection(sql, Guid.NewGuid().ToString(), provider, LoggerResolver);
         Assert.Contains("r.Body.Payload", inspection.GeneratedCSharpCode);
-        using var query = InstanceCreator.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, LoggerResolver);
+        using var query = GeneratedExecutionIlInspection.CompileForExecution(sql, Guid.NewGuid().ToString(), provider, LoggerResolver);
         using var table = query.Run();
         TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)2, (byte)10, (byte)20]);
         Assert.IsFalse(GeneratedExecutionIlInspection.GetGeneratedComputeMethods(query).Any(GeneratedExecutionIlInspection.ContainsBoxOpcode));

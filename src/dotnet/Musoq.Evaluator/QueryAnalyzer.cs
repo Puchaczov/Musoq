@@ -48,6 +48,7 @@ public sealed class QueryAnalyzer
     /// </summary>
     /// <param name="query">The SQL query text to analyze.</param>
     /// <returns>Analysis result containing AST and diagnostics.</returns>
+    /// <exception cref="ArgumentNullException">The query argument is null.</exception>
     public QueryAnalysisResult Analyze(string query)
     {
         return Analyze(query, CancellationToken.None);
@@ -59,9 +60,11 @@ public sealed class QueryAnalyzer
     /// <param name="query">The SQL query text to analyze.</param>
     /// <param name="cancellationToken">Token used to cancel semantic analysis.</param>
     /// <returns>Analysis result containing AST and diagnostics.</returns>
+    /// <exception cref="ArgumentNullException">The query argument is null and cancellation has not been requested.</exception>
     public QueryAnalysisResult Analyze(string query, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(query);
         var sourceText = new SourceText(query);
         var diagnosticBag = new DiagnosticBag { SourceText = sourceText };
 

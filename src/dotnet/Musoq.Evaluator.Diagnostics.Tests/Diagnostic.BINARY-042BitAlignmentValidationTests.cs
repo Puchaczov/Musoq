@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Unknown;
 using Musoq.Parser;
@@ -89,12 +88,9 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
         registry.Register("InvalidPosition", new BinarySchemaNode("InvalidPosition", [field]));
 
         var interpreter = CompileInterpreter(registry, "InvalidPosition");
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [0x01]));
 
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<BinaryParseException>(wrapper.InnerException);
-        var exception = (BinaryParseException)wrapper.InnerException;
         Assert.AreEqual(ParseErrorCode.InvalidPosition, exception.ErrorCode);
         Assert.AreEqual("InvalidPosition", exception.SchemaName);
         Assert.IsNull(exception.FieldName);
@@ -118,11 +114,8 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
         var result = InvokeInterpret(interpreter, [0x01]);
         Assert.AreEqual((byte)1, GetPropertyValue<byte>(result, "Value"));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [0x00]));
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<BinaryParseException>(wrapper.InnerException);
-        var exception = (BinaryParseException)wrapper.InnerException;
         Assert.AreEqual(ParseErrorCode.ValidationFailed, exception.ErrorCode);
         Assert.AreEqual("Checked", exception.SchemaName);
         Assert.AreEqual("Value", exception.FieldName);
@@ -141,11 +134,9 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
         Assert.AreEqual("OK", GetPropertyValue<string>(result, "Value"));
         Assert.AreEqual((byte)0xA5, GetPropertyValue<byte>(result, "Tail"));
 
-        var wrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var exception = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [0x4E, 0x4F, 0x20, 0x20, 0xA5]));
-        Assert.IsNotNull(wrapper.InnerException);
-        Assert.IsInstanceOfType<BinaryParseException>(wrapper.InnerException);
-        Assert.AreEqual(ParseErrorCode.ValidationFailed, ((BinaryParseException)wrapper.InnerException).ErrorCode);
+        Assert.AreEqual(ParseErrorCode.ValidationFailed, exception.ErrorCode);
     }
 
     [TestMethod]
@@ -158,20 +149,14 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
         var valid = InvokeInterpret(interpreter, [0xAA, 0x55, 0x02]);
         Assert.AreEqual((byte)2, GetPropertyValue<byte>(valid, "Kind"));
 
-        var signatureWrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var signatureException = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [0xAA, 0x54, 0x02]));
-        Assert.IsNotNull(signatureWrapper.InnerException);
-        Assert.IsInstanceOfType<BinaryParseException>(signatureWrapper.InnerException);
-        var signatureException = (BinaryParseException)signatureWrapper.InnerException;
         Assert.AreEqual(ParseErrorCode.ValidationFailed, signatureException.ErrorCode);
         Assert.AreEqual("Signature", signatureException.FieldName);
         Assert.AreEqual(2, signatureException.Position);
 
-        var kindWrapper = Assert.ThrowsExactly<TargetInvocationException>(
+        var kindException = Assert.ThrowsExactly<BinaryParseException>(
             () => InvokeInterpret(interpreter, [0xAA, 0x55, 0x03]));
-        Assert.IsNotNull(kindWrapper.InnerException);
-        Assert.IsInstanceOfType<BinaryParseException>(kindWrapper.InnerException);
-        var kindException = (BinaryParseException)kindWrapper.InnerException;
         Assert.AreEqual(ParseErrorCode.ValidationFailed, kindException.ErrorCode);
         Assert.AreEqual("Kind", kindException.FieldName);
         Assert.AreEqual(3, kindException.Position);
@@ -229,7 +214,7 @@ public sealed class DiagnosticBinary042BitAlignmentValidationTests : BinaryInter
         Assert.IsNotEmpty(envelope.Actions);
     }
 
-    private static object CompileFromSchemaText(string schemaText, string schemaName)
+    private object CompileFromSchemaText(string schemaText, string schemaName)
     {
         var lexer = new Lexer(schemaText, true);
         var parser = new SchemaParser(lexer);

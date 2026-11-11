@@ -3,7 +3,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 
 namespace Musoq.Evaluator.Tests.IR;
 
-[TestClass]
+[global::Musoq.Tests.Common.CultureTestClass]
 public sealed class CardinalityFactPlanningTextTests : BasicEntityTestBase
 {
     [TestMethod]
