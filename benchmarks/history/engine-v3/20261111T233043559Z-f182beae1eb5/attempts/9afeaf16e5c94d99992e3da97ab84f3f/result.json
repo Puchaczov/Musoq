@@ -1,0 +1,30 @@
+{
+  "caseId": "B28_BinarySubstream-compilation-cold-Table-ContractFixture",
+  "startedUtc": "2026-11-12T05:06:30.8465126+00:00",
+  "finishedUtc": "2026-11-12T05:07:09.7588869+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 1849509400,
+  "medianNanoseconds": 1848132600,
+  "standardDeviationNanoseconds": 9448720.024577782,
+  "confidenceLowerNanoseconds": 1831443681.6399221,
+  "confidenceUpperNanoseconds": 1867575118.3600779,
+  "sampleCount": 8,
+  "allocatedBytesPerOperation": null,
+  "gen0Collections": null,
+  "gen1Collections": null,
+  "gen2Collections": null,
+  "gcOperations": null,
+  "rawReports": [
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/Musoq.Benchmarks.ColdCompilationBenchmark-report-full.json",
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/measured-process-13080-237653b822f7469fa27bb82714f3758a.json",
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/measured-process-16144-0ad48fc3535b43e88ce644c987a55afc.json",
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/measured-process-29240-ef181659eb5b4bbb8871a61261485e0a.json",
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/measured-process-42488-505da55fa4bf408e9db295ddbedc91b2.json",
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/measured-process-43788-cab5c92740f24676b4f22a8bd5989b20.json",
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/measured-process-44192-ef323b59dccb477d8163cebd5861a9e4.json",
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/measured-process-54916-9d631245bf024ed68158023e7f87dfd6.json",
+    "raw/9afeaf16e5c94d99992e3da97ab84f3f/measured-process-60752-a642ec506435405e81b1aa00ef7854d8.json"
+  ],
+  "attemptId": "9afeaf16e5c94d99992e3da97ab84f3f"
+}

@@ -1,0 +1,24 @@
+{
+  "caseId": "B31_TextCaptures-compilation-warm-Table-ContractFixture",
+  "startedUtc": "2026-11-12T05:43:33.4027698+00:00",
+  "finishedUtc": "2026-11-12T05:45:11.0856728+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 7013742.317708333,
+  "medianNanoseconds": 6922723.4375,
+  "standardDeviationNanoseconds": 469142.1613204368,
+  "confidenceLowerNanoseconds": 6900584.330513669,
+  "confidenceUpperNanoseconds": 7126900.304902997,
+  "sampleCount": 192,
+  "allocatedBytesPerOperation": 4544551,
+  "gen0Collections": 2,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 32,
+  "rawReports": [
+    "raw/d43c655b90c84390a7bc47917005a42a/Musoq.Benchmarks.WarmCompilationBenchmark-report-full.json",
+    "raw/d43c655b90c84390a7bc47917005a42a/measured-process-18296-42a10998ee0346aa95df3ca4cae30c1d.json",
+    "raw/d43c655b90c84390a7bc47917005a42a/measured-process-31980-98baa02809ec452b8f2a00608e3dcc2f.json"
+  ],
+  "attemptId": "d43c655b90c84390a7bc47917005a42a"
+}

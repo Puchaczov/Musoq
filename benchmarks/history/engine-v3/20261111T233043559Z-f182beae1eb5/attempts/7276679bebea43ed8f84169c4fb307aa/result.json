@@ -1,0 +1,24 @@
+{
+  "caseId": "B24_Enums-execution-Table-Medium",
+  "startedUtc": "2026-11-12T04:26:43.2773106+00:00",
+  "finishedUtc": "2026-11-12T04:28:00.4389683+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 179738.7654622396,
+  "medianNanoseconds": 179699.76806640625,
+  "standardDeviationNanoseconds": 4450.804834985736,
+  "confidenceLowerNanoseconds": 177399.4428015582,
+  "confidenceUpperNanoseconds": 182078.08812292098,
+  "sampleCount": 45,
+  "allocatedBytesPerOperation": 427402,
+  "gen0Collections": 29,
+  "gen1Collections": 6,
+  "gen2Collections": 0,
+  "gcOperations": 4096,
+  "rawReports": [
+    "raw/7276679bebea43ed8f84169c4fb307aa/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/7276679bebea43ed8f84169c4fb307aa/measured-process-38348-e6df58d929e54ae49f61065f970bba4e.json",
+    "raw/7276679bebea43ed8f84169c4fb307aa/measured-process-68724-87179cffc30d48a1bb6265f99e31d755.json"
+  ],
+  "attemptId": "7276679bebea43ed8f84169c4fb307aa"
+}

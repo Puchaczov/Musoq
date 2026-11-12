@@ -1,0 +1,24 @@
+{
+  "caseId": "B07_NullableCompositeJoin-execution-Table-Small",
+  "startedUtc": "2026-11-12T01:13:09.4715086+00:00",
+  "finishedUtc": "2026-11-12T01:14:34.4331548+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 70778.44721806514,
+  "medianNanoseconds": 70908.33129882812,
+  "standardDeviationNanoseconds": 2436.3918683844486,
+  "confidenceLowerNanoseconds": 69827.98747149475,
+  "confidenceUpperNanoseconds": 71728.90696463552,
+  "sampleCount": 77,
+  "allocatedBytesPerOperation": 162977,
+  "gen0Collections": 23,
+  "gen1Collections": 1,
+  "gen2Collections": 0,
+  "gcOperations": 8192,
+  "rawReports": [
+    "raw/6a1cfd7399e3442eac1219dd9c9623c9/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/6a1cfd7399e3442eac1219dd9c9623c9/measured-process-23576-1f26b9c241964f9aaacb25b5508961a3.json",
+    "raw/6a1cfd7399e3442eac1219dd9c9623c9/measured-process-57040-4ec113ad0618472993977b48bbb59cc8.json"
+  ],
+  "attemptId": "6a1cfd7399e3442eac1219dd9c9623c9"
+}

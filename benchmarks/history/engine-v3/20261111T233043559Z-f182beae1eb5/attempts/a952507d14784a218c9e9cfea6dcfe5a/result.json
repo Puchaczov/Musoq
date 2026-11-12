@@ -1,0 +1,24 @@
+{
+  "caseId": "B15_RankingOffset-execution-Table-Small",
+  "startedUtc": "2026-11-12T03:09:25.2835992+00:00",
+  "finishedUtc": "2026-11-12T03:11:02.3809554+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 73539.0954864159,
+  "medianNanoseconds": 73297.6806640625,
+  "standardDeviationNanoseconds": 3539.424567053125,
+  "confidenceLowerNanoseconds": 72261.78392905969,
+  "confidenceUpperNanoseconds": 74816.40704377211,
+  "sampleCount": 89,
+  "allocatedBytesPerOperation": 193849,
+  "gen0Collections": 28,
+  "gen1Collections": 3,
+  "gen2Collections": 0,
+  "gcOperations": 8192,
+  "rawReports": [
+    "raw/a952507d14784a218c9e9cfea6dcfe5a/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/a952507d14784a218c9e9cfea6dcfe5a/measured-process-53892-63488029be8340c8b67d990cce1d8195.json",
+    "raw/a952507d14784a218c9e9cfea6dcfe5a/measured-process-61312-6557a7f6d4cb43e8b8e2ba7ac938b332.json"
+  ],
+  "attemptId": "a952507d14784a218c9e9cfea6dcfe5a"
+}

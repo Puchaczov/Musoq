@@ -1,0 +1,24 @@
+{
+  "caseId": "B22_Recursive-execution-Table-Large",
+  "startedUtc": "2026-11-12T04:11:01.3674165+00:00",
+  "finishedUtc": "2026-11-12T04:12:54.8577573+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 11409576.06707317,
+  "medianNanoseconds": 11401864.84375,
+  "standardDeviationNanoseconds": 421709.8510150599,
+  "confidenceLowerNanoseconds": 11250551.791242352,
+  "confidenceUpperNanoseconds": 11568600.342903988,
+  "sampleCount": 82,
+  "allocatedBytesPerOperation": 18517548,
+  "gen0Collections": 10,
+  "gen1Collections": 9,
+  "gen2Collections": 9,
+  "gcOperations": 64,
+  "rawReports": [
+    "raw/ca18130547fd404aa0ae9898affe756b/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/ca18130547fd404aa0ae9898affe756b/measured-process-57584-012a45f43a86484b9df583470a7e968e.json",
+    "raw/ca18130547fd404aa0ae9898affe756b/measured-process-9576-73d5b72a512040228d92c43f1f851811.json"
+  ],
+  "attemptId": "ca18130547fd404aa0ae9898affe756b"
+}

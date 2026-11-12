@@ -1,0 +1,20 @@
+{
+  "processId": 50712,
+  "capturedUtc": "2026-11-12T04:37:21.3878354+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B26_AcceptedPredicate",
+  "sql": "select r.Id as Id from bench.planned() r where r.Name like \u0027item-1%\u0027 order by r.Id",
+  "inputCount": 1000
+}

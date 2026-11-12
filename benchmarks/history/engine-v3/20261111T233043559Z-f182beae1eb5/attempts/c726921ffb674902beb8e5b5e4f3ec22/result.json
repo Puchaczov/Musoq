@@ -1,0 +1,24 @@
+{
+  "caseId": "B27_BinaryHeader-artifact-load-Table-ContractFixture",
+  "startedUtc": "2026-11-12T04:58:47.2826056+00:00",
+  "finishedUtc": "2026-11-12T05:00:07.2354525+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 1756244.9497767857,
+  "medianNanoseconds": 1785954.296875,
+  "standardDeviationNanoseconds": 119795.3398308294,
+  "confidenceLowerNanoseconds": 1707030.2705915363,
+  "confidenceUpperNanoseconds": 1805459.628962035,
+  "sampleCount": 70,
+  "allocatedBytesPerOperation": 1004753,
+  "gen0Collections": 5,
+  "gen1Collections": 1,
+  "gen2Collections": 1,
+  "gcOperations": 256,
+  "rawReports": [
+    "raw/c726921ffb674902beb8e5b5e4f3ec22/Musoq.Benchmarks.ArtifactLoadBenchmark-report-full.json",
+    "raw/c726921ffb674902beb8e5b5e4f3ec22/measured-process-40576-d8e1b36a58244b60864f7c852b28005a.json",
+    "raw/c726921ffb674902beb8e5b5e4f3ec22/measured-process-58216-f4cc915052fd41329db2c7ea30b112c6.json"
+  ],
+  "attemptId": "c726921ffb674902beb8e5b5e4f3ec22"
+}
