@@ -92,7 +92,10 @@ public sealed partial class CSharpRenderer
 
     private void SetTableRowCarrier(FinalOutputPlan output)
     {
-        if (output.ReturnsOwnedRows)
-            _context.SetTableViaRowsResult(output.Result with { RowTypeName = output.TableRowTypeName });
+        if (!output.ReturnsOwnedRows)
+            return;
+
+        var result = _context.TableViaRowsResult ?? output.Result;
+        _context.SetTableViaRowsResult(result with { RowTypeName = output.TableRowTypeName });
     }
 }

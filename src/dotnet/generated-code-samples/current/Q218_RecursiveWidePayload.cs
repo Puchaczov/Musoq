@@ -180,7 +180,7 @@ namespace GeneratedSample_Q218_RecursiveWidePayload
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            return QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Id", typeof(int), 0), new Column("Depth", typeof(int), 1), new Column("A", typeof(int), 2), new Column("B", typeof(int), 3), new Column("C", typeof(int), 4), new Column("D", typeof(int), 5), new Column("E", typeof(int), 6), new Column("F", typeof(int), 7), new Column("Name", typeof(string), 8), new Column("Flag", typeof(bool), 9), new Column("Amount", typeof(decimal?), 10), new Column("Code", typeof(string), 11) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            return QueryRows.DeferredTable<ResultShape0>("resultSorted", __columns_compiled_result_0, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
         }
 
         private IEnumerable<ResultShape0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)

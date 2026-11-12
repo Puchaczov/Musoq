@@ -4,6 +4,14 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.18
+
+See the curated release notes for [Musoq Core Engine 17.0.18](release-notes/v17.0.18.md).
+
+- Preserve portable enum descriptors and source-read types in deferred ordered and window results.
+- Keep static result-column metadata when selecting owned row carriers, and share the complete column constructor with the fallback path.
+- Add in-memory ordered enum regression coverage without changing datasource APIs, query strategy, or runtime contract versions.
+
 ## 17.0.17
 
 See the curated release notes for [Musoq Core Engine 17.0.17](release-notes/v17.0.17.md).

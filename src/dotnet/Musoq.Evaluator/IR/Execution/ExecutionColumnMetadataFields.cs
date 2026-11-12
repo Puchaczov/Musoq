@@ -16,10 +16,4 @@ internal static class ExecutionColumnMetadataFields
             GeneratedTypeName = field.GeneratedTypeName,
         };
     }
-
-    public static Type RequireClrTypeForLegacyCodeGeneration(ExecutionColumnMetadataField field)
-    {
-        ArgumentNullException.ThrowIfNull(field);
-        return field.Type.ResolveClrType();
-    }
 }
