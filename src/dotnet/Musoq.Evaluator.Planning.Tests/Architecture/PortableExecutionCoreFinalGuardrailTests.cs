@@ -89,23 +89,8 @@ public sealed class PortableExecutionCoreFinalGuardrailTests
                 "LegacyCodeGenerationSyntaxFactory.cs"
             )
         );
-        var executionMetadataCompatibility = File.ReadAllText(
-            Path.Combine(
-                repositoryRoot,
-                "src",
-                "dotnet",
-                "Musoq.Evaluator",
-                "IR",
-                "Execution",
-                "ExecutionColumnMetadataFields.cs"
-            )
-        );
         Assert.IsFalse(Regex.IsMatch(legacyCodeGeneration, @"\.ClrType\b", RegexOptions.CultureInvariant));
-        StringAssert.Contains(
-            legacyCodeGeneration,
-            "ExecutionColumnMetadataFields.RequireClrTypeForLegacyCodeGeneration"
-        );
-        StringAssert.Contains(executionMetadataCompatibility, "return field.Type.ResolveClrType();");
+        StringAssert.Contains(legacyCodeGeneration, "ExecutionSyntaxFactory.CreateColumnCreation(field)");
     }
 
     [TestMethod]

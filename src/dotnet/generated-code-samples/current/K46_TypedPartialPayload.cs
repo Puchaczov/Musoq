@@ -128,7 +128,7 @@ namespace GeneratedSample_K46_TypedPartialPayload
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("Position", typeof(int), 0), new Column("ParsedFields", typeof(Musoq.Generated.Interpreters.Packet), 1), new Column("ErrorField", typeof(string), 2), new Column("BytesConsumed", typeof(int), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultShape0>("resultSorted", __columns_compiled_result_2, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
             _ = __musoqMaterializedTable.Count;
             return __musoqMaterializedTable;
         }

@@ -8,33 +8,8 @@ namespace Musoq.Targets.CSharpClr.Rendering.CodeGeneration;
 
 internal static class LegacyCodeGenerationSyntaxFactory
 {
-    public static ExpressionSyntax CreateColumnCreation(ExecutionColumnMetadataField field)
-    {
-        return SyntaxFactory
-            .ObjectCreationExpression(SyntaxFactory.IdentifierName(nameof(Column)))
-            .WithArgumentList(
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SeparatedList([
-                        SyntaxFactory.Argument(CreateStringLiteral(field.Name)),
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.TypeOfExpression(
-                                field.GeneratedTypeName is { } generatedType
-                                    ? SyntaxFactory.ParseTypeName(generatedType)
-                                    : CreateTypeOfTypeSyntax(
-                                        ExecutionColumnMetadataFields.RequireClrTypeForLegacyCodeGeneration(field)
-                                    )
-                            )
-                        ),
-                        SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(
-                                SyntaxKind.NumericLiteralExpression,
-                                SyntaxFactory.Literal(field.Index)
-                            )
-                        ),
-                    ])
-                )
-            );
-    }
+    public static ExpressionSyntax CreateColumnCreation(ExecutionColumnMetadataField field) =>
+        ExecutionSyntaxFactory.CreateColumnCreation(field);
 
     public static ArrayCreationExpressionSyntax CreateArrayCreation(
         string elementTypeName,

@@ -115,7 +115,7 @@ namespace GeneratedSample_Q182_BenchmarkCompilationComplexMaterialized
         public event QueryProgressEventHandler QueryProgress;
         public Table Run(CancellationToken token)
         {
-            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultShape0>("resultSorted", new Column[] { new Column("City", typeof(string), 0), new Column("Country", typeof(string), 1), new Column("Population", typeof(decimal), 2), new Column("CityCountry", typeof(string), 3) }, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
+            var __musoqMaterializedTable = QueryRows.DeferredTable<ResultShape0>("resultSorted", __columns_compiled_result_1, (queryToken) => ComputeRows_compiled_0(Provider, SourceRuntimeSettingsBySourceContextId, SourceExecutionPlans, Logger, queryToken), token);
             _ = __musoqMaterializedTable.Count;
             return __musoqMaterializedTable;
         }
