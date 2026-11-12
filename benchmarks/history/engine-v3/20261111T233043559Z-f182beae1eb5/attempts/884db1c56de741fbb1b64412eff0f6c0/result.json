@@ -1,0 +1,24 @@
+{
+  "caseId": "B08_SemiJoin-execution-Table-Medium",
+  "startedUtc": "2026-11-12T01:44:56.5998715+00:00",
+  "finishedUtc": "2026-11-12T01:46:30.622842+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 262742.7887906733,
+  "medianNanoseconds": 263485.0830078125,
+  "standardDeviationNanoseconds": 10393.313173473725,
+  "confidenceLowerNanoseconds": 259160.34727585284,
+  "confidenceUpperNanoseconds": 266325.23030549375,
+  "sampleCount": 97,
+  "allocatedBytesPerOperation": 448082,
+  "gen0Collections": 15,
+  "gen1Collections": 3,
+  "gen2Collections": 0,
+  "gcOperations": 2048,
+  "rawReports": [
+    "raw/884db1c56de741fbb1b64412eff0f6c0/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/884db1c56de741fbb1b64412eff0f6c0/measured-process-29788-8f6869831ee74a76b722c6e1a47ed903.json",
+    "raw/884db1c56de741fbb1b64412eff0f6c0/measured-process-63808-d93412ddb5454632bfe95e7e62b3458b.json"
+  ],
+  "attemptId": "884db1c56de741fbb1b64412eff0f6c0"
+}

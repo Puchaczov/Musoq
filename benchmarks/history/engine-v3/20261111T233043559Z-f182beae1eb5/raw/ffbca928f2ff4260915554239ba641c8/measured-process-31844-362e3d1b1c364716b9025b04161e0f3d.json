@@ -1,0 +1,20 @@
+{
+  "processId": 31844,
+  "capturedUtc": "2026-11-12T05:26:58.5042126+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B29_BinaryRepeat",
+  "sql": "binary Repeated { Kind: byte, Value: int le, Count: byte, Tail: byte repeat until eof }; select r.Id as Id, Length(p.Tail) as Count\r\nfrom bench.rows() r\r\ncross apply Interpret\u003CRepeated\u003E(r.Payload) p\r\norder by r.Id",
+  "inputCount": 1000
+}

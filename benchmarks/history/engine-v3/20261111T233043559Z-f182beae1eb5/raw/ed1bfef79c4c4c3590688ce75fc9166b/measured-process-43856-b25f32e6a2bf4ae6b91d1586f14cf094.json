@@ -1,0 +1,20 @@
+{
+  "processId": 43856,
+  "capturedUtc": "2026-11-12T04:19:45.9735109+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B23_Parameters",
+  "sql": "param(minimum: int = 1); select r.Id as Id\r\nfrom bench.rows() r\r\nwhere r.Id \u003E= $minimum\r\norder by r.Id",
+  "inputCount": 1000
+}

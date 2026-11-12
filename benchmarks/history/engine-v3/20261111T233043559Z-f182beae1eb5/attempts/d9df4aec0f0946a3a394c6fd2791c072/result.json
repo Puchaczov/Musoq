@@ -1,0 +1,24 @@
+{
+  "caseId": "B28_BinarySwitch-execution-Table-Medium",
+  "startedUtc": "2026-11-12T05:18:06.725081+00:00",
+  "finishedUtc": "2026-11-12T05:20:07.4035445+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 1714319.319058642,
+  "medianNanoseconds": 1713105.078125,
+  "standardDeviationNanoseconds": 61869.4414748154,
+  "confidenceLowerNanoseconds": 1690834.1090288952,
+  "confidenceUpperNanoseconds": 1737804.529088389,
+  "sampleCount": 81,
+  "allocatedBytesPerOperation": 3832126,
+  "gen0Collections": 26,
+  "gen1Collections": 12,
+  "gen2Collections": 4,
+  "gcOperations": 512,
+  "rawReports": [
+    "raw/d9df4aec0f0946a3a394c6fd2791c072/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/d9df4aec0f0946a3a394c6fd2791c072/measured-process-14524-454c1c8c17a64bb1a9b57a2df3dc78b8.json",
+    "raw/d9df4aec0f0946a3a394c6fd2791c072/measured-process-57220-42ed17d90c064c4ea4c6e925e00bbe5f.json"
+  ],
+  "attemptId": "d9df4aec0f0946a3a394c6fd2791c072"
+}

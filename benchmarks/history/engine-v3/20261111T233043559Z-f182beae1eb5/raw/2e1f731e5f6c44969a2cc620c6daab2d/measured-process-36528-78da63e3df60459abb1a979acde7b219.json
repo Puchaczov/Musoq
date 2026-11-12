@@ -1,0 +1,20 @@
+{
+  "processId": 36528,
+  "capturedUtc": "2026-11-12T00:29:38.8631687+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B03_StableScalarReuse",
+  "sql": "select r.Id as Id, StableWork(r.Text) as First, StableWork(r.Text) as Second from perf.rows() r",
+  "inputCount": 100000
+}

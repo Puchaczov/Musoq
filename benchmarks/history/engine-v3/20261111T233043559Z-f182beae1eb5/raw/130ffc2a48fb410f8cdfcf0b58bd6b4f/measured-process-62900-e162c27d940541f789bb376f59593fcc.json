@@ -1,0 +1,20 @@
+{
+  "processId": 62900,
+  "capturedUtc": "2026-11-12T05:07:30.6243416+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B28_BinarySubstream",
+  "sql": "binary Body { Value: int le };\r\nbinary Packet {\r\n    Kind: byte,\r\n    Body: substream[4] as Body exact,\r\n    Count: byte,\r\n    Tail: byte[Count]\r\n};\r\nselect r.Id as Id, p.Body.Value as Value\r\nfrom bench.rows() r\r\ncross apply Interpret\u003CPacket\u003E(r.Payload) p\r\norder by r.Id",
+  "inputCount": 4
+}

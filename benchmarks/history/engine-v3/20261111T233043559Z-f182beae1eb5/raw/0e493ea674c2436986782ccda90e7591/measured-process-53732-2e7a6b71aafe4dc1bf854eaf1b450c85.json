@@ -1,0 +1,20 @@
+{
+  "processId": 53732,
+  "capturedUtc": "2026-11-12T04:22:29.9347819+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B23_StructuredInput",
+  "sql": "with inputs as (select r.Id as Id, r.Amount as Amount\r\nfrom bench.rows() r\r\nwhere r.Id % 2 = 1) select s.Id as Id, s.Amount as Amount\r\nfrom bench.structured(items: inputs) s\r\norder by s.Id",
+  "inputCount": 10000
+}

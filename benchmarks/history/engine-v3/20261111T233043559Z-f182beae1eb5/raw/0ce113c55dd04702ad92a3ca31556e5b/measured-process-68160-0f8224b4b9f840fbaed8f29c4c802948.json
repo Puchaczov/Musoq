@@ -1,0 +1,20 @@
+{
+  "processId": 68160,
+  "capturedUtc": "2026-11-12T06:33:50.7645236+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "X08_PacketAnalytics",
+  "sql": "binary Body { Value: int le };\r\nbinary Packet {\r\n    Kind: byte,\r\n    Body: substream[4] as Body exact,\r\n    Count: byte,\r\n    Tail: byte[Count]\r\n};\r\ntext Entry { Level: until \u0027|\u0027, Number: until \u0027|\u0027, Label: rest }; select t.Level as Level, Sum(p.Body.Value::long) as Total, Count(*) as Count\nfrom bench.rows() r\ncross apply Interpret\u003CPacket\u003E(r.Payload) p\ncross apply p.Tail b\ncross apply Parse\u003CEntry\u003E(r.Text) t\ninner join bench.lookup() d on r.Key = d.Key\ngroup by t.Level\norder by t.Level",
+  "inputCount": 1000
+}

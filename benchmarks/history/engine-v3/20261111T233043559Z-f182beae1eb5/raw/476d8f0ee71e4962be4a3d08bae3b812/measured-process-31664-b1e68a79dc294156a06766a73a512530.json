@@ -1,0 +1,20 @@
+{
+  "processId": 31664,
+  "capturedUtc": "2026-11-12T00:41:17.3259864+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B04_Patterns",
+  "sql": "select r.Id as Id\r\nfrom bench.rows() r\r\nwhere r.Name like \u0027%em-_\u0027 and r.Name rlike r\u0027item-[02]$\u0027\r\norder by r.Id",
+  "inputCount": 1000
+}

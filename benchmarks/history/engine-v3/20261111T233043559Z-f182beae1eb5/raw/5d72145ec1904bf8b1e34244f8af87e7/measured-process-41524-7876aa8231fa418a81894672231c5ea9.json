@@ -1,0 +1,20 @@
+{
+  "processId": 41524,
+  "capturedUtc": "2026-11-12T05:01:20.4745036+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "suiteInformationalVersion": "17.0.17\u002Bf182beae1eb5a54145be811d19240e1cc7aee856",
+  "source": {
+    "commit": "f182beae1eb5a54145be811d19240e1cc7aee856",
+    "branch": "release/17.0.17",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B27_BinaryHeader",
+  "sql": "binary Header {\r\n    Kind: byte,\r\n    Value: int le,\r\n    Count: byte,\r\n    Tail: byte[Count]\r\n};\r\nselect r.Id as Id, h.Value as Value, h.Kind as Kind\r\nfrom bench.rows() r\r\ncross apply Interpret\u003CHeader\u003E(r.Payload) h\r\norder by r.Id",
+  "inputCount": 100000
+}
