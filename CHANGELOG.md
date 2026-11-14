@@ -35,7 +35,7 @@ See the curated full-train release notes for [Musoq 17.0.16-beta.1](release-note
 - Fix a shared type-hint-cache test race and deferred-result cleanup in incremental-rename tests, standardize package output under .artifacts, and make package manifests portable between CI jobs.
 - Bundle target assemblies and symbols from the selected build output so isolated release packing cannot include stale files from another layout.
 - Make generated sample tests independent of host culture and restore maintainability coverage for the split evaluator test projects.
-- Expand the SQL language tour and SQLite interpretation examples. Downstream dependency upgrades and CLI manual projections remain separate work.
+- Expand the SQL language tour and SQLite interpretation examples.
 
 ## 17.0.16-alpha.1
 
@@ -210,7 +210,7 @@ See the curated package release notes for [Musoq.Evaluator](release-notes/evalua
 ### Compatibility and verification
 
 - This is a package-specific alpha release for `Musoq.Evaluator` and `Musoq.Converter`. `Musoq.Parser`, `Musoq.Plugins`, and `Musoq.Schema` remain at `17.0.9-alpha.1`; no full-train compatibility break was found.
-- Release validation, the Release build, the complete solution test gate, package packing, and selected-package smoke tests passed. The Cloud-owned CLI manual check remained current with 89 chapters and 25 checks; no manual update was required.
+- Release validation, the Release build, the complete solution test gate, package packing, and selected-package smoke tests passed.
 
 ## 17.0.9-alpha.1
 
@@ -470,7 +470,6 @@ See [release-notes/v17.0.3-alpha.1.md](release-notes/v17.0.3-alpha.1.md) for the
 
 - Expanded the corpus to 229 current generated-code samples and 13 profiled samples, with 68 supported recursive result contracts, 51 unsupported diagnostic contracts, computed pair coverage, Roslyn shape checks, and scoped mutation checks.
 - Added six-tier performance gates over three cohorts for eight handwritten-equivalent scenarios, full-mode and overhead regression, recursive compilation, and ordinary CTE regression.
-- Added CLI/server recursive limit transport and hard ceilings through run, inspect, scalar execution, watch, queues, and compiled-query caching.
 
 ## 17.0.2-alpha.3
 

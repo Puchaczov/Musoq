@@ -8,10 +8,15 @@ public static class CampaignCli
         var json = arguments.Contains("--json", StringComparer.Ordinal);
         try
         {
+            if (arguments is ["--compare-readme", var scriptPath])
+            {
+                ReadmeComparison.Write(scriptPath, output);
+                return 0;
+            }
             if (arguments.Length == 0 || arguments.Contains("--help", StringComparer.Ordinal))
             {
                 Console.WriteLine(
-                    "--action Run|List|Status|Verify|Latest --mode Local|Official --filter <glob> --size <count> --job Short|Dry|Default --machine-profile <name> --output <directory> --resume <directory> --run-directory <directory> --history-root <directory> --json --include-retired (Local measurement or List) --in-process (local Dry only)"
+                    "--action Run|List|Status|Verify|Latest --mode Local|Official --filter <glob> --size <count> --job Short|Dry|Default --machine-profile <name> --output <directory> --resume <directory> --run-directory <directory> --history-root <directory> --json --include-retired (Local measurement or List) --in-process (local Dry only); --compare-readme <script.sql>"
                 );
                 return 0;
             }

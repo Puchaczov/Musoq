@@ -1,16 +1,16 @@
 # Musoq
 
-## Liberate SQL from the database.
+## Liberate SQL from database
 
-SQL is too useful to be confined to a database.
+SQL is too useful to be tied to any database.
 
 **Musoq is a SQL query engine for files, logs, Git repositories, APIs, and operating-system resources.** I use it when I have a question about data and don't want to write a script just to answer it. Providers expose that data as typed rows and columns, so there is no need to import it into a database first.
 
-You can also describe the structure of a binary file or text record. At runtime, Musoq generates the parser code that reads it, then exposes the decoded fields as columns in the same query.
+Musoq extends SQL with declarative text and binary layouts, generating parsers as part of query compilation so you can describe a format and query its contents in the same script.
 
-I increasingly use Musoq through agents such as **Codex** and **Claude Code**, with [dedicated Musoq skills](https://github.com/Puchaczov/Musoq.Skills). I ask a question, the agent checks what data and functions are available and writes a query, and I can read, validate, and reuse the SQL. I am shaping Musoq around that way of working.
+I increasingly use the engine through coding agents. I ask a question, the agent writes a query, I can read it, validate, and reuse. I am shaping Musoq around that way of working.
 
-[Examples](#see-it-in-action) · [SQL features](#sql-features-at-a-glance) · [Reusable queries](#from-a-question-to-a-reusable-query) · [Experiments](#experiments-with-musoq) · [How it works](#how-a-query-runs) · [Documentation](#documentation-and-ecosystem)
+[SQL investigations](#keep-the-investigation-in-sql) · [Format discovery](#discover-a-format-then-query-the-files) · [Dogfooding](#using-musoq-to-develop-musoq) · [SQL features](#sql-features-at-a-glance) · [Reusable queries](#from-a-question-to-a-reusable-query) · [Experiments](#experiments-with-musoq) · [How it works](#how-a-query-runs)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![NuGet](https://img.shields.io/badge/NuGet-packages-blue.svg)](https://www.nuget.org/packages?q=musoq)
@@ -18,14 +18,16 @@ I increasingly use Musoq through agents such as **Codex** and **Claude Code**, w
 
 With Musoq, you can:
 
-- **Query data where it is.** Use SQL to filter, group, and join the rows a provider reads from a source.
-- **Describe how to read a format.** Declare the layout of text or binary data, let Musoq generate the parser, and query the decoded fields.
-- **Join records across sources.** Match parsed log events to deployment records, or decoded packet identifiers to a device inventory.
-- **Let an agent check what is available.** It can inspect sources and functions, write a query, and use the results or diagnostics to work out what to ask next.
+- **Query data where it lives.** Read files, logs, repositories, APIs, and system resources as rows and columns.
+- **Search and investigate.** Find patterns, extract fields, and retain source paths and line numbers alongside your findings.
+- **Describe unfamiliar formats.** Declare a text or binary layout, let Musoq generate the parser, and query the decoded fields.
+- **Connect different sources.** Join parsed logs to deployment records, compare inventories, or find records missing from another dataset.
+- **Ask more involved questions.** Calculate running totals, correlate events over time, rank results, and traverse hierarchical relationships using SQL.
+- **Keep the investigation reusable.** Saved parameterized SQL that agent can inspect, refine, and run against new inputs.
 
-## See it in action
+## Keep the investigation in SQL
 
-The examples use Musoq's SQL dialect. The [example collection](docs/examples/readme/README.md) includes runnable queries, inputs, and expected results.
+Many repository and log investigations start with a text search. Musoq's Search provider covers common ripgrep-style tasks: finding matching files and lines, searching several patterns, extracting fields, and counting matches. I can then keep those findings in SQL to compare sets of files, group the results, or join them with other data.
 
 ### Search several patterns, then group the matches
 
@@ -48,7 +50,7 @@ order by Level
 | ERROR | 3 |
 | WARN | 1 |
 
-Requires the **Search provider**. The example collection includes the log fixtures, execution commands, and queries that extract fields from matching lines.
+The synthetic log fixtures are in `docs/examples/readme/fixtures`.
 
 For these two literal patterns, ripgrep plus PowerShell grouping produces the same totals:
 
@@ -58,63 +60,152 @@ rg --no-config -o --no-filename -g '*.log' 'ERROR|WARN' ./docs/examples/readme/f
     Sort-Object Name
 ```
 
-`-o` emits each matching occurrence. `Group-Object` counts them by matched text; the SQL query groups them by pattern label. Here the labels and matched text are both `ERROR` and `WARN`.
+## Discover a format, then query the files
 
-### A decoded length determines the payload size
+Like [Kaitai Struct](https://kaitai.io/), Musoq lets me describe a binary layout declaratively: fields, lengths, byte order, nested records, and conditional structures. The declaration lives alongside the SQL. Musoq generates and compiles the parser on the fly when it compiles the query, then exposes the decoded fields as columns.
 
-Read `Kind` and `Size` from the header, then use `Size` to determine how many payload bytes follow. The decoded fields become queryable columns.
+An agent can start with the part of a format it understands, query sample files, inspect the results, and extend the declaration as it discovers more of the layout. The same declaration can then be applied to every file supplied by a provider, so one query can compare, filter, or aggregate decoded values across a whole collection of files.
+
+The declaration also serves as executable documentation of the format. It records my understanding of the layout and tells Musoq how to read it. As that understanding improves, I can refine the declaration and immediately query the decoded fields across the file collection. The format description and the analysis stay together in the same SQL file.
+
+The binary/text specification is still quite experimental. I added it for investigations where understanding the format and analyzing its contents happen together.
+
+### Find oversized PNG images
+
+Which image assets exceed 2,048 pixels in either dimension? Describe the PNG header, then query every PNG in a directory and its subdirectories.
 
 ```sql
-binary Header {
-    Kind: byte,
-    Size: short le,
-    Payload: byte[Size]
+param(root: string = './images')
+
+binary PngHeader {
+    SignatureStart: ushort be,
+    SignatureEnd: ushort be,
+    SignatureLow: uint be,
+    HeaderLength: uint be,
+    HeaderType: uint be,
+    Width: uint be,
+    Height: uint be
 };
 
-with input as (
-    select FromHexToBytes('010300AABBCC') as Data
-    from system.dual()
-)
+select f.FullPath as Path, p.Width as Width, p.Height as Height
+from os.files($root, true) f
+cross apply TryInterpret<PngHeader>(f.GetFileBytes(24, 0)) p
+where ToLowerInvariant(f.Extension) = '.png'
+  and p.SignatureStart = 0x8950 and p.SignatureEnd = 0x4E47 and p.SignatureLow = 0x0D0A1A0A
+  and p.HeaderLength = 13 and p.HeaderType = 0x49484452
+  and (p.Width > 2048 or p.Height > 2048)
+order by Path
+```
+
+Set `root` to the image directory visible to your Musoq instance. The query reads the first 24 bytes, checks the PNG signature and first chunk, and returns each oversized image's path, width, and height. `TryInterpret` skips headers that cannot be decoded; this checks dimensions, not full PNG integrity or pixel data.
+
+### Find x86 DLLs in an x64 release
+
+Did a 32-bit native DLL slip into an x64 package? Read the DOS header's offset to the PE header, then filter DLLs by their machine type.
+
+```sql
+param(root: string = './release')
+
+binary PeHeader {
+    DosSignature: ushort le,
+    PeOffset: uint le at 0x3C,
+    Signature: uint le at PeOffset,
+    Machine: ushort le
+};
+
+select f.FullPath as Path, 'x86' as Architecture
+from os.files($root, true) f
+cross apply TryInterpret<PeHeader>(f.GetFileBytes(f.Length, 0)) p
+where ToLowerInvariant(f.Extension) = '.dll'
+  and p.DosSignature = 0x5A4D and p.Signature = 0x00004550
+  and p.Machine = 0x014C
+order by Path
+```
+
+Set `root` to your native DLL directory. The query reads file bytes without loading or executing the DLLs and returns x86 headers; `TryInterpret` skips headers it cannot decode. This is a header check, not full executable validation. Use it for native DLLs: managed .NET assemblies, including AnyCPU builds, need additional checks to determine runtime compatibility.
+
+### Inspect a ZIP without extracting it
+
+What is inside a release archive? Query the ZIP's file size and modification time alongside each file's full entry name, original and compressed sizes, and timestamp.
+
+```sql
+param(archive: string = './release.zip')
+
 select
-    h.Kind as Kind,
-    h.Size as Size,
-    Length(h.Payload) as PayloadBytes
-from input i
-cross apply Interpret<Header>(i.Data) h
+    f.FullPath as Archive,
+    f.Length as ArchiveBytes,
+    f.LastWriteTime as ArchiveModified,
+    e.FullName as Entry,
+    e.Length as Bytes,
+    e.CompressedLength as CompressedBytes,
+    e.LastWriteTime as EntryModified
+from os.file($archive) f
+cross join os.zip($archive) e
+order by Entry
 ```
 
-**Result:** `Kind = 1`, `Size = 3`, `PayloadBytes = 3`.
+Set `archive` to a ZIP path visible to your Musoq instance. Each row describes a file inside the archive, with the ZIP's own metadata repeated alongside it. Entry names retain their folder paths; directory-only entries are omitted, and an empty ZIP returns no rows. This example uses the provider's built-in ZIP reader rather than a custom binary declaration.
 
-Requires the **System provider**. Binary declarations also support nested records, arrays, and conditional fields.
+## Performance
 
-The binary/text specification is still quite experimental. I added it because I often work with columns containing text or binary data that I need to analyze. I wanted to describe those formats once and use the description both as documentation and as a parser. The idea takes inspiration from Kaitai Struct: I declare the shape, Musoq generates the parser, and I can query the decoded fields immediately.
+Performance has become one of my main priorities for Musoq. I use it to process growing amounts of data in more formats, and some workloads span dozens of gigabytes. Agents can issue several queries as they investigate a question, so I need the engine to stay fast as that work adds up.
 
-### Parsed text becomes queryable columns
+At that scale, bottlenecks in earlier versions became serious limits on what I could do. That is why I started to track execution time and allocations across versions, and this is why I care about how much work a query repeats and how much intermediate data it creates.
 
-The `Entry` declaration names the fields in each line. `Parse` exposes those fields through `APPLY`, so the query can select `Level` and `Message` and order the result by `Level`.
+### Benchmark trends
 
-```sql
-text Entry {
-    Level: token,
-    _: whitespace,
-    Message: rest
-};
+The charts below follow nine composed synthetic workflows over **100,000 input rows**, using the recorded **17.0.14-alpha.2**, **17.0.15-alpha.1**, and **17.0.17** Official campaigns. All three used the same Intel Core Ultra 9 285K, .NET 10.0.14, and benchmark settings.
 
-select e.Level as Level, e.Message as Message
-from values {
-    (Line: 'INFO ready'),
-    (Line: 'ERROR retry failed')
-} s
-cross apply Parse<Entry>(s.Line) e
-order by Level
-```
+![Execution time across three recorded Musoq versions for nine workflows, including collection pivoting, consolidation, and structured pipelines; lower is better](images/benchmarks/release-execution.svg)
 
-| Level | Message |
+![Managed allocations per query across the same three recorded Musoq versions and nine workflows; lower is better](images/benchmarks/release-allocations.svg)
+
+Queries are compiled before measurement; inputs are synthetic and in memory, and all result rows are consumed. Source I/O and compilation are excluded. Allocations are cumulative managed bytes per query, rather than peak process memory. Results depend on the query, provider, data distribution, and hardware.
+
+<details>
+<summary>17.0.17 workload timings and input-size scaling</summary>
+
+![Mean execution time and managed allocations for six analytics queries over 100,000 input rows](images/benchmarks/execution.svg)
+
+![Execution time at 1,000, 10,000, and 100,000 input rows for sales reporting, joins with windows, log analytics, and packet analytics; both axes use logarithmic scales](images/benchmarks/scaling.svg)
+
+</details>
+
+### How the engine reduces work
+
+Musoq already compiles generated query assemblies with Roslyn's **`OptimizationLevel.Release`**. The .NET JIT then compiles their methods to native code. Release compilation is the starting point. The plan and generated code still determine how much data is read, how much work is repeated, and how much memory is allocated.
+
+The engine currently applies several kinds of optimization:
+
+| Area | Current approach |
 |---|---|
-| ERROR | retry failed |
-| INFO | ready |
+| Process less data | Move filters earlier where semantics allow, prune unused projections, and request supported filtering/projection from capable providers. |
+| Choose suitable operators | Use hash joins for eligible equality conditions and sort-merge strategies for supported range conditions; choose a smaller hash-build input when row-count information supports it. Specialize aggregation by grouping-key shape, stream eligible `UNION ALL` inputs, use hash-based set operations, and bound ordering for eligible `ORDER BY` with `TAKE` or `SKIP`/`TAKE`. |
+| Match text efficiently | Turn eligible `LIKE` and simple `RLIKE` patterns into direct string comparisons; prepare and reuse matchers for other supported patterns. |
+| Share window work | Share partition and ordering-key preparation between compatible windows, and use specialized running or batch evaluation for supported functions and frames. |
+| Reuse stable computations | Fold constant expressions, reuse repeated expressions, and move stable calculations out of loops where their inputs do not change. |
+| Reduce intermediate allocations | Remove unused CTEs, fuse eligible single-use pipelines and read-once CTEs, use compact typed source rows where supported, and provide capacity hints for intermediate collections. Build reusable CTE lookup indexes while producing rows and reuse iteration-independent inputs in eligible recursive queries. |
+| Reduce byte-buffer copying | Plan byte ranges, lengths, and bounded prefixes to avoid unnecessary byte-array copies while preserving required snapshot behavior. |
+| Use parallel execution selectively | Parallelize supported filtering, projection, aggregation, and independent CTE work when compilation options and safety checks permit it. |
+| Reuse compilation work | Reuse parsed query templates, semantic analysis, and compiled artifacts for compatible requests, reducing work before execution. |
 
-This example uses inline input. Text declarations also support more complex formats and tolerant parsing.
+These choices depend on query shape, compilation options, and source contracts.
+
+Planning uses rules and available row-count information. It does not currently perform a global cost-based search over alternative join orders. Providers can supply useful estimates, but files, APIs, and live system resources do not necessarily expose reliable statistics or support reading the same data again.
+
+Musoq also does not automatically cache arbitrary source or plugin calls. A changing file, a volatile field, a nondeterministic function, or a correlated source can make apparently repeated work produce different results. Moving or reusing that work must preserve the query's meaning and the source's evaluation contract.
+
+The current execution model is primarily row-oriented and managed.
+
+The benchmark suite measures execution, first compilation, warmed compilation, and artifact loading separately. I care about both a query I run once to answer a question and one I keep running, so compilation time matters too. I want to try an optimization, measure its time and allocations before and after, and check that the results stay correct.
+
+## Using Musoq to develop Musoq
+
+I also use Musoq on its own development data, from querying its parser sources to checking this README's investigation query against known inputs.
+
+The release-trend charts on this page are another example. Their comparison query uses SQL window functions to find each benchmark's preceding recorded version and calculate changes in execution time and managed allocations. The chart generator validates campaign compatibility and exports the selected JSON measurements to CSV for Musoq to read, then uses the query results to render the SVGs. The comparison inputs, SQL, and results are retained for inspection and reproduction.
+
+This exercises the query engine with its own benchmark results and makes the analysis part of the repository. Using Musoq during development also gives me practical feedback on source discovery, query writing, diagnostics, and result handling.
 
 ## SQL features at a glance
 
@@ -139,7 +230,7 @@ The examples above only show a few parts of the language. Here is a quick overvi
 | Inspect available data | `DESC` for schemas, columns, arguments, and functions; `DESC QUERY` for result metadata. |
 | Parse records | `binary`/`text` declarations; `Interpret`/`Parse` and tolerant `TryInterpret`/`TryParse` through `APPLY`. Still experimental. |
 
-Musoq uses its own SQL dialect. The language specifications below describe the exact syntax and limits.
+Musoq uses its own SQL dialect.
 
 Diagnostic-aware compilation reports likely mistakes, including null-sensitive predicates such as `where Name not in ('Alice', NULL)` and impossible implicit conversions (`MQ5025`).
 
@@ -149,15 +240,21 @@ I want to ask a question, let an agent work through the data, and keep the SQL i
 
 ## Experiments with Musoq
 
-One thing I enjoy about Musoq is how quickly I can try an idea. Here is one of those experiments.
+One thing I enjoy about Musoq is how quickly I can try an idea. These experiments show what an agent can build with SQL and declarative format descriptions.
 
-### Reading SQLite data without the SQLite API
+### Query a SQLite table from the raw database file
 
-Here, an agent uses Musoq's binary format declarations and SQL to extract values from a SQLite table, directly from the file's raw bytes. It does not use the SQLite API.
+Point the [standalone SQL script](docs/examples/experiments/sqlite-page/read-sqlite-table.sql) at a database file and give it a table name. Musoq reads the original bytes, decodes the database header and catalog, finds the table's root page, and follows its page tree to extract all stored rows from a supported rowid table. The decoding uses Musoq's binary declarations and SQL, without a SQLite API or SQLite datasource.
+
+The script accepts `databasePath` and `tableName` as typed query parameters. Supply them through the engine's `CompiledQuery.TypedParameters` API in a host with a filesystem datasource. The bundled input is `docs/examples/experiments/sqlite-page/inputs/telemetry.db`, with table `events`.
+
+Change `databasePath` and `tableName` to choose another database and table. The bundled example decodes all **480 rows** of `events` across ten leaf pages. Each result includes the table name, row ID, stored field values as JSON, and page/cell coordinates.
+
+This experimental reader supports ordinary rowid tables whose record payloads fit on their leaf pages. Use a small, consistent, checkpointed main-database file; the reader loads its pages into memory. Its output represents stored records rather than SQLite's full `SELECT *` semantics: it does not reconstruct column names, schema defaults, generated columns, or affinity conversions. Overflow payloads, WAL/journal replay, virtual tables, and `WITHOUT ROWID` tables are outside its scope. Recursive CTE limits still apply to deep trees and very wide records.
 
 [![Watch the 2:01 walkthrough: reading SQLite rows from raw bytes with Musoq](images/experiments/sqlite-page-preview.png)](images/experiments/sqlite-page.mp4)
 
-Have a look at the full script in the [experiment companion](docs/examples/experiments/sqlite-page/README.md). It takes a database file and table name, finds where the data is stored, and extracts the rows.
+The movie shows how the smaller page reader was built. The standalone script above extends that approach to a parameterized table reader.
 
 ## How a query runs
 
@@ -203,57 +300,17 @@ flowchart TD
     Sources[(Data sources)] -->|Records| Run
 ```
 
-AST means abstract syntax tree; IR means intermediate representation. Roslyn emits an IL assembly, and the .NET runtime handles JIT compilation of its generated methods.
-
 ### Providers supply contracts and records
 
 Each provider tells Musoq which source methods, columns, types, and functions it exposes. Musoq uses that information to resolve field access and function calls. The provider reads the data; Musoq applies the SQL operations to the returned records.
 
 An agent can inspect that information before writing a query. It can check the source methods and their arguments, the returned fields, and the available functions, then write SQL using what it found.
 
-### The engine compiles the operations
-
-Musoq parses SQL, prepares any text or binary schemas, and resolves names and types. It builds and optimizes logical and physical plans, chooses execution strategies, then lowers the plan into Execution IR. After optimizing that IR, it generates C#. Roslyn compiles the code into a .NET assembly. Musoq loads it, creates a runnable query, and binds the source providers before execution.
-
-The runtime handles iteration, joins, grouping, ordering, and intermediate state. This is the work I want it to take care of automatically. I can review the SQL without also having to check another set of loops and indexes written by an agent.
-
-The compiler and runtime check the query against the language rules and provider contracts. I still need to check whether it answers the question I meant to ask.
-
-### Parsed fields join the same query
-
-Text and binary declarations describe how to read a record. `Parse` and `Interpret` expose its fields through `APPLY`, so the rest of the query can use them. A decoded identifier can be a join key; a parsed timestamp can be compared with deployment times; a payload field can be filtered or aggregated.
-
-The language is designed for read-only investigation: reading source data and computing answers from it.
-
-## Performance
-
-Musoq already compiles generated query assemblies with Roslyn's **`OptimizationLevel.Release`**. The .NET JIT then compiles their methods to native code. Release compilation is the starting point. The plan and generated code still determine how much data is read, how much work is repeated, and how much memory is allocated.
-
-The engine currently applies several kinds of optimization:
-
-| Area | Current approach |
-|---|---|
-| Process less data | Move filters earlier where semantics allow, prune unused projections, and request supported filtering/projection from capable providers. |
-| Choose suitable operators | Use hash joins for eligible equality conditions, sort-merge strategies for supported range conditions, and bounded top-N ordering for eligible `ORDER BY`/`TAKE` queries. |
-| Reuse stable computations | Fold constant expressions, reuse repeated expressions, and move stable calculations out of loops where their inputs do not change. |
-| Reduce intermediate allocations | Remove unused CTEs, fuse eligible single-use pipelines and read-once CTEs, and provide capacity hints for intermediate collections. |
-| Use parallel execution selectively | Parallelize supported filtering, projection, aggregation, and independent CTE work when compilation options and safety checks permit it. |
-
-These choices depend on query shape, compilation options, and source contracts.
-
-Planning uses rules and available row-count information. It does not currently perform a global cost-based search over alternative join orders. Providers can supply useful estimates, but files, APIs, and live system resources do not necessarily expose reliable statistics or support reading the same data again.
-
-Musoq also does not automatically cache arbitrary source or plugin calls. A changing file, a volatile field, a nondeterministic function, or a correlated source can make apparently repeated work produce different results. Moving or reusing that work must preserve the query's meaning and the source's evaluation contract.
-
-The current execution model is primarily row-oriented and managed.
-
-The benchmark suite measures execution, first compilation, warmed compilation, and artifact loading separately. I care about both a query I run once to answer a question and one I keep running, so compilation time matters too. I want to try an optimization, measure its time and allocations before and after, and check that the results stay correct.
-
 ## AI Usage
 
 I started Musoq long before LLMs became everyday tools. I had questions about data, and writing Python or other scripts to answer them was tedious. I wanted to express those questions in SQL and let the runtime do the work.
 
-**I don't like writing loops.** I want the runtime to handle iteration and bookkeeping automatically. When I am investigating data, I want to concentrate on the question and the answer.
+I don't like writing loops. I want the runtime to handle iteration and bookkeeping automatically. When I am investigating data, I want to concentrate on the question and the answer.
 
 For a long time, I struggled to give Musoq as much time as I wanted. AI has helped me focus on what the language should do and how its architecture should work, while the model handles much of the detailed implementation.
 
@@ -265,36 +322,21 @@ Many of the questions I return to only need to read data and compute a result. T
 
 ## Current goals
 
-Right now, I want to get out of alpha and release a stable `17.x.y` core engine. The language already does most of what I need, so I am pausing new syntax features for a while and concentrating on stability, correctness, and thorough testing.
+The language already does most of what I need, so I am pausing new syntax features for a while and concentrating on stability, correctness, and thorough testing.
 
-In my own use, the current alpha is already much more stable than the last stable release. I still want to test it more thoroughly before calling it stable.
+In my own use, the engine is stable and agents can use it effectively. It doesn't mean it doesn't have bugs - it does and I am clashing them once they are found. I still need to test it more thoroughly and looking for a way to create a more robust testing framework.
 
-I am also working on the benchmark infrastructure so I can measure individual language features and queries that combine them. Right now, I am focusing on:
+Benchmark infrastructure right now gained a lot of importance. I'm trying to measure the impact of changes and lead the development across performance metrics. Key goals for near future are:
 
-- Measuring execution time and allocations across different query shapes and input sizes.
-- Reducing allocations in the generated code and runtime.
-- Avoiding unnecessary work and checking which changes produce measurable improvements.
+- Reduce allocations in the generated code and runtime.
+- Avoid unnecessary work.
+- Keep the engine saturated with CPU and memory bandwidth.
 
-I also want to find out how far I can get with AI-driven implementation. Tests and measurements will help me decide which changes to keep. There are lots of ideas to try, and testing them properly will take time.
+I also want to find out how far I can get with AI-driven implementation. Extensive tests and measurements lead me to decide which changes to keep. There are lots of ideas to try, and testing them properly will take time.
 
 At some point, I want to try native C++ alongside the managed runtime, vectorization where the row-oriented engine can benefit, and generating IL directly instead of going through C#. There will probably be other approaches I haven't thought of yet or will find in someone's article. Trying them and seeing what works is part of the fun.
 
-Musoq already does most of what I wanted it to do. I really enjoy watching an agent read the specification and documentation, understand what is available, and produce a query I can use. Now I want to make that experience dependable and find out how much further the runtime can go.
-
-## Documentation and ecosystem
-
-- [Core SQL language specification](specs/musoq-core-language-spec.md) — syntax, joins, recursive CTEs, functions, and diagnostics.
-- [Binary and text interpretation](specs/musoq-binary-text-spec.md) — declarative parsing inside SQL.
-- [Data-source providers](https://github.com/Puchaczov/Musoq.DataSources) — the separate provider ecosystem, including Search.
-
-## Development formatting
-
-Restore the pinned CSharpier tool with `dotnet tool restore`, format authored C#/MSBuild files with
-`dotnet csharpier format . --no-cache`, and verify with `dotnet csharpier check .`.
-The shared style uses four spaces, CRLF, and a 120-column wrapping target. VS Code recommends the CSharpier
-extension and enables C#/XML format-on-save; Rider users can select the same local tool integration.
-CI checks formatting on Windows and Linux. Honor `.csharpierignore` so generated samples, imported fixtures,
-resource designer files, benchmark history, and build outputs remain unchanged.
+I really enjoy watching an agent read the specification and documentation of the current version, understand what is available, produce a query and iterate on it.
 
 ## License
 

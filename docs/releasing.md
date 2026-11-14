@@ -79,6 +79,11 @@ checkout and publish only the packages selected from its registry.
 Run the release scripts, build, tests, and package pack before publishing.
 The release gate does not require benchmarks.
 
+When release work includes a new retained, successfully verified Official benchmark train, follow
+[README chart maintenance](../src/dotnet/Musoq.Benchmarks/README.md#refreshing-readme-performance-charts)
+before reporting that benchmark work complete. A release without a new Official campaign keeps the
+recorded chart points. Chart maintenance does not change the exact-commit release qualification gates.
+
 ```powershell
 pwsh -NoProfile -File scripts/release/Test-ReleaseScripts.ps1
 pwsh -NoProfile -File scripts/release/Validate-Release.ps1 -Tag $tag

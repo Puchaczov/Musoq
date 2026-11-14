@@ -92,6 +92,53 @@ Latest chooses one complete, validated Official campaign per engine version. Mac
 metadata remain visible, but do not partition selection. Changes in those values can affect comparisons;
 there is no hardware normalization, fingerprint grouping or aggregate score.
 
+## Refreshing README performance charts
+
+When a new Official benchmark train has been retained and Verify reports `verified: true` with no
+qualification reasons, refresh the [repository README](../../../README.md#performance) charts before
+reporting the benchmark work complete. This is a local documentation maintenance step after collection;
+the read-only Verify/Latest actions themselves do not modify the README or generated SVGs.
+
+1. Use the runner's Latest receipt to identify the selected campaign for the new engine version. Retain
+   the Verify receipt and campaign path. Local, Dry, incomplete, or unverified runs are not chart points.
+2. Choose two to four distinct recorded engine versions in chronological order, including the new train.
+   Keep the existing baseline when compatible and use recent compatible versions for the remaining
+   points. Compare the same exported case definitions, inputs, consumption and job settings, hardware,
+   and runtime environment. The generator allows only SQL line-ending differences outside string
+   literals; do not weaken its compatibility checks or normalize away meaningful differences. If the
+   new campaign cannot join a comparable series, retain the current charts and report the reason;
+   a separate series or new baseline needs an explicit explanation rather than a continuous trend.
+3. Update `DEFAULT_RUN` and `DEFAULT_HISTORY` in the
+   [chart generator](../../../scripts/benchmarks/Generate-ReadmeCharts.py) to the selected retained
+   campaigns, then run it from the repository with Python 3 and the pinned .NET SDK. The generator builds
+   the repository benchmark runner and executes SQL through its engine and CSV example in process.
+   The [comparison SQL](../../../scripts/benchmarks/Compare-ReadmeBenchmarks.sql) uses `LAG` to compute
+   preceding-version changes; Python validates campaign compatibility, exports the selected measurements
+   to CSV, checks returned evidence, and renders the SVGs. Its `--run-directory` and `--history-directories` options
+   can preview a selection, but passing overrides alone does not update the defaults used next time.
+   Regenerate the SVGs under [images/benchmarks](../../../images/benchmarks/) without changing source
+   campaign bundles. Keep the nine selected nonrecursive workflow comparisons and three panels per row;
+   recursive decoding remains excluded. Retain both improvements and regressions.
+   The generator uses repository-owned projects throughout. The CSV, bound SQL, build log, diagnostics,
+   and result JSON are retained under root `.artifacts/benchmarks/readme-charts/`; `--work-directory` selects a new directory
+   under root `.artifacts/` for a reproducible run. Comparison failure stops before any SVG is written;
+   there is no fallback to Python-computed percentages. Keep these files when needed to reproduce a
+   refresh. Focused Python checks live in
+   [Test-ReadmeBenchmarkComparisons.py](../../../scripts/benchmarks/Test-ReadmeBenchmarkComparisons.py).
+   Its `--integration` option also checks the SQL against independently specified increases, decreases,
+   unchanged allocations, and separate benchmark cases through the repository runner.
+4. Update README version labels, campaign links, chart descriptions, input counts, environment details,
+   and the expandable single-version summary to match the selected campaigns. State that time excludes
+   compilation and source I/O, and that allocations are cumulative managed bytes rather than peak memory.
+5. Check plotted values and adjacent-version changes against retained measurements, regenerate to confirm
+   reproducibility, and inspect SVG rendering, units, labels, clipping, and three-column layout at README
+   width. Check affected Markdown links, formatting, and preservation of unrelated edits. Report the
+   selected versions, paths, and checks; distinguish campaign success from a blocked chart refresh.
+
+A new software release without a new verified Official campaign does not create a chart point or require
+a new benchmark run. Refreshing charts does not authorize committing, pushing, publishing, or modifying
+an already-qualified release commit; preserve the release workflow's exact-commit gates.
+
 ## Sizes and expensive cases
 
 Every execution scenario, including typed output, uses Small **1,000**, Medium **10,000** and Large
@@ -177,7 +224,7 @@ assumes one writer and sequential measurement; do not launch overlapping campaig
 
 Status reads checkpoint/session metadata and reports the active process/attempt, last progress, counts,
 resume eligibility and saved resume command. It does not read raw reports and always returns
-`verified: false` and `websiteEligible: false`. Resume checks compatibility and checkpoint evidence.
+`verified: false`. Resume checks compatibility and checkpoint evidence.
 Verify checks completion-marker consistency, finalized attempts, finite metrics, referenced JSON,
 measured-process metadata and Official preflight. Inspection commands never build, run tests or rewrite
 bundles. They require an existing Release runner binary and print its build prerequisite when missing.
@@ -192,9 +239,10 @@ Keep every campaign. Latest selects the latest **validated complete Official cam
 for each engine version, across all machines, runtimes and suite labels. Equal completion times use
 ascending ordinal run ID. Selection is whole-campaign, never per-case. Incomplete or invalid runs do not
 displace valid results. Branch, full commit and hardware remain visible even when versions repeat.
-Only validated complete Official campaigns are website-eligible; Local/Dry campaigns remain ineligible.
-Latest never writes a mutable pointer. Website consumers use the engine version, selected run directory,
-case identity and `measurements.json`.
+Latest requires verified Official campaigns with no qualification reasons; Local/Dry campaigns remain excluded.
+It never writes a mutable pointer. Result consumers use the engine version, selected run directory,
+case identity and `measurements.json`. Inspection receipts describe benchmark state without product-specific
+eligibility fields.
 
 The repository skill is `.agents/skills/musoq-benchmarks/SKILL.md`; it delegates state and verification to
 these commands. It never commits or pushes collected results.

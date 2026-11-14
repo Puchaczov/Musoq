@@ -31,7 +31,7 @@ Follow the repository-wide guide and the measurement contract in README.md.
 - Schema-v3 definitions and finalized attempts are authoritative. Derived views must be recoverable;
   completion markers make finished bundles immutable. Preserve interrupted evidence and attempt IDs.
 - Status/Verify/Latest are read-only. Historical verification must not rely on the current checkout or hardware.
-- Keep the repository running skill thin; structured receipts own compatibility and website eligibility.
+- Keep the repository running skill thin; structured receipts own compatibility and Official campaign qualification.
 
 - Artifact paths must fit the 180-character repository-relative and 240-character absolute budgets, including temporary writes.
 - Keep artifacts free of fingerprints and checksums. Verify checks structure and readable evidence; Latest selects by engine version only.

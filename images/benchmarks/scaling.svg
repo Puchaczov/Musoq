@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-labelledby="title description">
+<title id="title">How execution time scales with input size</title>
+<desc id="description">Mean execution time at 1,000, 10,000 and 100,000 input rows. Both axes use logarithmic scales. Sales reporting: 1,000 rows = 0.022 ms, 10,000 rows = 0.276 ms, 100,000 rows = 4.083 ms. Join + windows: 1,000 rows = 0.324 ms, 10,000 rows = 4.252 ms, 100,000 rows = 45.079 ms. Log analytics: 1,000 rows = 0.092 ms, 10,000 rows = 0.965 ms, 100,000 rows = 12.863 ms. Packet analytics: 1,000 rows = 0.410 ms, 10,000 rows = 6.074 ms, 100,000 rows = 74.637 ms. </desc>
+<rect width="960" height="560" rx="16" fill="#ffffff"/>
+<g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<text x="32.00" y="39.00" font-size="23" fill="#0f172a" text-anchor="start" font-weight="700">How execution time scales with input size</text>
+<text x="32.00" y="65.00" font-size="14" fill="#334155" text-anchor="start" font-weight="400">Musoq 17.0.17 | Synthetic in-memory inputs | Table results fully consumed</text>
+<text x="32.00" y="96.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Mean milliseconds | Lower is better | Both axes logarithmic; lines connect measured points</text>
+<line x1="112.00" y1="438.00" x2="688.00" y2="438.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="96.00" y="442.00" font-size="12" fill="#334155" text-anchor="end" font-weight="400">0.01 ms</text>
+<line x1="112.00" y1="363.00" x2="688.00" y2="363.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="96.00" y="367.00" font-size="12" fill="#334155" text-anchor="end" font-weight="400">0.1 ms</text>
+<line x1="112.00" y1="288.00" x2="688.00" y2="288.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="96.00" y="292.00" font-size="12" fill="#334155" text-anchor="end" font-weight="400">1 ms</text>
+<line x1="112.00" y1="213.00" x2="688.00" y2="213.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="96.00" y="217.00" font-size="12" fill="#334155" text-anchor="end" font-weight="400">10 ms</text>
+<line x1="112.00" y1="138.00" x2="688.00" y2="138.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="96.00" y="142.00" font-size="12" fill="#334155" text-anchor="end" font-weight="400">100 ms</text>
+<line x1="112.00" y1="138.00" x2="112.00" y2="438.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="112.00" y="463.00" font-size="12" fill="#334155" text-anchor="middle" font-weight="400">1,000</text>
+<line x1="400.00" y1="138.00" x2="400.00" y2="438.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="400.00" y="463.00" font-size="12" fill="#334155" text-anchor="middle" font-weight="400">10,000</text>
+<line x1="688.00" y1="138.00" x2="688.00" y2="438.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="688.00" y="463.00" font-size="12" fill="#334155" text-anchor="middle" font-weight="400">100,000</text>
+<text x="400.00" y="487.00" font-size="12" fill="#334155" text-anchor="middle" font-weight="400">Input rows</text>
+<polyline points="112.00,411.74 400.00,329.93 688.00,242.18" fill="none" stroke="#0369a1" stroke-width="2.5"/>
+<circle cx="112.00" cy="411.74" r="4.5" fill="#0369a1"><title>Sales reporting: 1,000 rows, 0.022 ms</title></circle>
+<circle cx="400.00" cy="329.93" r="4.5" fill="#0369a1"><title>Sales reporting: 10,000 rows, 0.276 ms</title></circle>
+<circle cx="688.00" cy="242.18" r="4.5" fill="#0369a1"><title>Sales reporting: 100,000 rows, 4.083 ms</title></circle>
+<line x1="734.00" y1="172.00" x2="754.00" y2="172.00" stroke="#0369a1" stroke-width="3"/>
+<text x="766.00" y="177.00" font-size="13" fill="#334155" text-anchor="start" font-weight="600">Sales reporting</text>
+<text x="766.00" y="197.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">4.08 ms at 100k</text>
+<polyline points="112.00,324.70 400.00,240.86 688.00,163.95" fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+<circle cx="112.00" cy="324.70" r="4.5" fill="#7c3aed"><title>Join + windows: 1,000 rows, 0.324 ms</title></circle>
+<circle cx="400.00" cy="240.86" r="4.5" fill="#7c3aed"><title>Join + windows: 10,000 rows, 4.252 ms</title></circle>
+<circle cx="688.00" cy="163.95" r="4.5" fill="#7c3aed"><title>Join + windows: 100,000 rows, 45.079 ms</title></circle>
+<line x1="734.00" y1="239.00" x2="754.00" y2="239.00" stroke="#7c3aed" stroke-width="3"/>
+<text x="766.00" y="244.00" font-size="13" fill="#334155" text-anchor="start" font-weight="600">Join + windows</text>
+<text x="766.00" y="264.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">45.08 ms at 100k</text>
+<polyline points="112.00,365.65 400.00,289.15 688.00,204.80" fill="none" stroke="#047857" stroke-width="2.5"/>
+<circle cx="112.00" cy="365.65" r="4.5" fill="#047857"><title>Log analytics: 1,000 rows, 0.092 ms</title></circle>
+<circle cx="400.00" cy="289.15" r="4.5" fill="#047857"><title>Log analytics: 10,000 rows, 0.965 ms</title></circle>
+<circle cx="688.00" cy="204.80" r="4.5" fill="#047857"><title>Log analytics: 100,000 rows, 12.863 ms</title></circle>
+<line x1="734.00" y1="306.00" x2="754.00" y2="306.00" stroke="#047857" stroke-width="3"/>
+<text x="766.00" y="311.00" font-size="13" fill="#334155" text-anchor="start" font-weight="600">Log analytics</text>
+<text x="766.00" y="331.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">12.86 ms at 100k</text>
+<polyline points="112.00,317.01 400.00,229.24 688.00,147.53" fill="none" stroke="#be185d" stroke-width="2.5"/>
+<circle cx="112.00" cy="317.01" r="4.5" fill="#be185d"><title>Packet analytics: 1,000 rows, 0.410 ms</title></circle>
+<circle cx="400.00" cy="229.24" r="4.5" fill="#be185d"><title>Packet analytics: 10,000 rows, 6.074 ms</title></circle>
+<circle cx="688.00" cy="147.53" r="4.5" fill="#be185d"><title>Packet analytics: 100,000 rows, 74.637 ms</title></circle>
+<line x1="734.00" y1="373.00" x2="754.00" y2="373.00" stroke="#be185d" stroke-width="3"/>
+<text x="766.00" y="378.00" font-size="13" fill="#334155" text-anchor="start" font-weight="600">Packet analytics</text>
+<text x="766.00" y="398.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">74.64 ms at 100k</text>
+<text x="32.00" y="514.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Execution only; compilation and source I/O excluded.</text>
+<text x="32.00" y="534.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Intel(R) Core(TM) Ultra 9 285K | .NET 10.0.14 | BenchmarkDotNet Official</text>
+</g></svg>

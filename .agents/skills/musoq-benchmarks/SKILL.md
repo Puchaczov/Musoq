@@ -10,7 +10,7 @@ skill directory, even when invoked through a global skill link. Run commands fro
 Read `src/dotnet/Musoq.Benchmarks/README.md` when diagnosing compatibility or artifact problems.
 
 Use `scripts/benchmarks/Run-Benchmarks.ps1` with PowerShell 7. Always request `-Json`; the runner owns
-case selection, job profiles, checkpoints, provenance validation and website eligibility.
+case selection, job profiles, checkpoints, provenance validation and Official campaign qualification.
 Do not reproduce those decisions in ad hoc scripts or infer success from console timings.
 
 ## Choose the requested operation
@@ -24,7 +24,7 @@ Do not reproduce those decisions in ad hoc scripts or infer success from console
 | Monitor | `-Action Status -RunDirectory '<directory>' -Json` |
 | Resume | `-Resume '<directory>' -Json` |
 | Verify completed results | `-Action Verify -RunDirectory '<directory>' -Json` |
-| Find website results | `-Action Latest -Json` |
+| Find validated Official results | `-Action Latest -Json` |
 
 Honor user-supplied filters, sizes and jobs. Omit `-Size` to use the standard size matrix.
 Local `-Size` affects execution only; compilation and artifact-load fixtures remain fixed.
@@ -47,7 +47,8 @@ A tool timeout is not proof the campaign stopped. Inspect the saved directory be
   authorized; otherwise retain the bundle and explain that a new campaign is required.
 - Invalid artifacts: report the affected paths; do not edit evidence, mark cases successful or delete
   attempts. An incomplete campaign can retain diagnostic artifacts and still resume valid progress.
-- Complete: run Verify and report the receipt and result directory.
+- Complete: run Verify and report the receipt and result directory. For a new verified Official train with no qualification reasons, follow [README chart maintenance](../../../src/dotnet/Musoq.Benchmarks/README.md#refreshing-readme-performance-charts)
+  before reporting completion; report an incompatible chart series separately from campaign success.
 
 Management actions do not build or run tests. If the runner binary is absent, perform the exact build
 prerequisite reported by the entrypoint, then retry the management action once.
@@ -60,7 +61,7 @@ Exit codes: `0` completed operation, `1` unexpected runner/build failure, `2` in
 Status can return `2` while a healthy campaign is still running. It reads checkpoint/session metadata
 without checking raw reports and always returns `verified: false`; use Verify for structural validation.
 
-Use `verified`, `websiteEligible` and `reasons` from Verify. Complete Local/Dry results are never official graph points.
+Use `verified`, `mode` and `reasons` from Verify. Complete Local/Dry results are never official graph points.
 Latest selects one entire validated Official campaign per engine version across all machines and runtimes.
 Report the selected directory, version, commit and machine profile; do not merge cases or choose by directory modification time.
 Only schema-v3 bundles are supported. Unsupported formats remain untouched.
@@ -68,6 +69,6 @@ Verify detects missing/malformed evidence and inconsistent metadata. No checksum
 plausible edits to metrics cannot be detected automatically. Path-budget errors require a shorter output or checkout location.
 
 The completion report should state mode, completed/expected counts, commit, machine profile (from the
-manifest), run directory and website eligibility. Distinguish Dry execution checks from performance evidence.
+manifest), run directory and Official campaign qualification. Distinguish Dry execution checks from performance evidence.
 Never change SQL, expected results, source, manifests or job settings to make a campaign pass. Never
 skip Official preflight, automatically commit/push bundles, publish tags or release software.

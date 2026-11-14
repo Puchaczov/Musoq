@@ -13,5 +13,6 @@
     <ItemGroup>
         <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
         <ProjectReference Include="..\Musoq.Benchmarks.Scenarios\Musoq.Benchmarks.Scenarios.csproj" />
+        <ProjectReference Include="..\examples\data-sources\csv\Musoq.Examples.DataSources.Csv.csproj" />
     </ItemGroup>
 </Project>

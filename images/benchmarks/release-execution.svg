@@ -1,0 +1,237 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="974" viewBox="0 0 960 974" role="img" aria-labelledby="title description">
+<title id="title">Execution time across recorded versions</title>
+<desc id="description">100,000 synthetic input rows per query. Independent zero-based panel scales. Lower is better. Sales reporting: 17.0.14-alpha.2 = 4.35 ms; 17.0.15-alpha.1 = 3.93 ms (-9.5% vs preceding version); 17.0.17 = 4.08 ms (+3.8% vs preceding version); Join + windows: 17.0.14-alpha.2 = 57.50 ms; 17.0.15-alpha.1 = 46.43 ms (-19.2% vs preceding version); 17.0.17 = 45.08 ms (-2.9% vs preceding version); Reconciliation: 17.0.14-alpha.2 = 19.08 ms; 17.0.15-alpha.1 = 14.57 ms (-23.6% vs preceding version); 17.0.17 = 14.68 ms (+0.7% vs preceding version); Temporal analysis: 17.0.14-alpha.2 = 31.09 ms; 17.0.15-alpha.1 = 22.93 ms (-26.2% vs preceding version); 17.0.17 = 22.49 ms (-1.9% vs preceding version); Collection pivoting: 17.0.14-alpha.2 = 301.99 ms; 17.0.15-alpha.1 = 12.22 ms (-96.0% vs preceding version); 17.0.17 = 13.03 ms (+6.6% vs preceding version); Consolidation: 17.0.14-alpha.2 = 3.43 ms; 17.0.15-alpha.1 = 3.41 ms (-0.5% vs preceding version); 17.0.17 = 3.39 ms (-0.7% vs preceding version); Log analytics: 17.0.14-alpha.2 = 14.22 ms; 17.0.15-alpha.1 = 11.37 ms (-20.0% vs preceding version); 17.0.17 = 12.86 ms (+13.1% vs preceding version); Packet analytics: 17.0.14-alpha.2 = 99.56 ms; 17.0.15-alpha.1 = 70.13 ms (-29.6% vs preceding version); 17.0.17 = 74.64 ms (+6.4% vs preceding version); Structured pipeline: 17.0.14-alpha.2 = 0.44 ms; 17.0.15-alpha.1 = 0.39 ms (-10.3% vs preceding version); 17.0.17 = 0.40 ms (+1.2% vs preceding version); </desc>
+<rect width="960" height="974" rx="16" fill="#ffffff"/>
+<g font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<text x="32.00" y="39.00" font-size="23" fill="#0f172a" text-anchor="start" font-weight="700">Execution time across recorded versions</text>
+<text x="32.00" y="65.00" font-size="14" fill="#334155" text-anchor="start" font-weight="400">100,000 synthetic input rows | Same workflow definitions, hardware and runtime</text>
+<text x="32.00" y="91.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Lower is better | Green: decrease; red: increase | Each panel has its own zero-based scale</text>
+<rect x="32" y="112" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="48.00" y="137.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Sales reporting</text>
+<text x="48.00" y="155.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Join, aggregate, rank</text>
+<line x1="82.00" y1="258.00" x2="283.00" y2="258.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="262.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.0</text>
+<line x1="82.00" y1="215.50" x2="283.00" y2="215.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="219.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">2.6</text>
+<line x1="82.00" y1="173.00" x2="283.00" y2="173.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="177.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">5.2</text>
+<polyline points="108.00,187.17 195.50,193.89 283.00,191.45" fill="none" stroke="#0369a1" stroke-width="2.5"/>
+<circle cx="108.00" cy="187.17" r="4" fill="#0369a1"/>
+<text x="108.00" y="177.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">4.35 ms</text>
+<text x="108.00" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="108.00" y="295.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="195.50" cy="193.89" r="4" fill="#0369a1"/>
+<text x="195.50" y="183.89" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">3.93 ms</text>
+<text x="195.50" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="195.50" y="295.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="151.75" y="322.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-9.5%</text>
+<text x="151.75" y="339.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="283.00" cy="191.45" r="4" fill="#0369a1"/>
+<text x="283.00" y="181.45" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">4.08 ms</text>
+<text x="283.00" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="239.25" y="322.00" font-size="13" fill="#b91c1c" text-anchor="middle" font-weight="600">+3.8%</text>
+<text x="239.25" y="339.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<rect x="336" y="112" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="352.00" y="137.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Join + windows</text>
+<text x="352.00" y="155.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Join, running + sliding sums</text>
+<line x1="386.00" y1="258.00" x2="587.00" y2="258.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="262.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.0</text>
+<line x1="386.00" y1="215.50" x2="587.00" y2="215.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="219.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">34.5</text>
+<line x1="386.00" y1="173.00" x2="587.00" y2="173.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="177.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">69.0</text>
+<polyline points="412.00,187.17 499.50,200.80 587.00,202.46" fill="none" stroke="#7c3aed" stroke-width="2.5"/>
+<circle cx="412.00" cy="187.17" r="4" fill="#7c3aed"/>
+<text x="412.00" y="177.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">57.50 ms</text>
+<text x="412.00" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="412.00" y="295.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="499.50" cy="200.80" r="4" fill="#7c3aed"/>
+<text x="499.50" y="190.80" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">46.43 ms</text>
+<text x="499.50" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="499.50" y="295.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="455.75" y="322.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-19.2%</text>
+<text x="455.75" y="339.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="587.00" cy="202.46" r="4" fill="#7c3aed"/>
+<text x="587.00" y="192.46" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">45.08 ms</text>
+<text x="587.00" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="543.25" y="322.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-2.9%</text>
+<text x="543.25" y="339.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<rect x="640" y="112" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="656.00" y="137.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Reconciliation</text>
+<text x="656.00" y="155.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Full outer join, classify, group</text>
+<line x1="690.00" y1="258.00" x2="891.00" y2="258.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="262.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.0</text>
+<line x1="690.00" y1="215.50" x2="891.00" y2="215.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="219.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">11.4</text>
+<line x1="690.00" y1="173.00" x2="891.00" y2="173.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="177.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">22.9</text>
+<polyline points="716.00,187.17 803.50,203.89 891.00,203.50" fill="none" stroke="#475569" stroke-width="2.5"/>
+<circle cx="716.00" cy="187.17" r="4" fill="#475569"/>
+<text x="716.00" y="177.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">19.08 ms</text>
+<text x="716.00" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="716.00" y="295.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="803.50" cy="203.89" r="4" fill="#475569"/>
+<text x="803.50" y="193.89" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">14.57 ms</text>
+<text x="803.50" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="803.50" y="295.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="759.75" y="322.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-23.6%</text>
+<text x="759.75" y="339.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="891.00" cy="203.50" r="4" fill="#475569"/>
+<text x="891.00" y="193.50" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">14.68 ms</text>
+<text x="891.00" y="281.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="847.25" y="322.00" font-size="13" fill="#b91c1c" text-anchor="middle" font-weight="600">+0.7%</text>
+<text x="847.25" y="339.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<rect x="32" y="372" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="48.00" y="397.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Temporal analysis</text>
+<text x="48.00" y="415.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">ASOF join, lag, running sum</text>
+<line x1="82.00" y1="518.00" x2="283.00" y2="518.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="522.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.0</text>
+<line x1="82.00" y1="475.50" x2="283.00" y2="475.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="479.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">18.7</text>
+<line x1="82.00" y1="433.00" x2="283.00" y2="433.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="437.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">37.3</text>
+<polyline points="108.00,447.17 195.50,465.76 283.00,466.77" fill="none" stroke="#b45309" stroke-width="2.5"/>
+<circle cx="108.00" cy="447.17" r="4" fill="#b45309"/>
+<text x="108.00" y="437.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">31.09 ms</text>
+<text x="108.00" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="108.00" y="555.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="195.50" cy="465.76" r="4" fill="#b45309"/>
+<text x="195.50" y="455.76" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">22.93 ms</text>
+<text x="195.50" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="195.50" y="555.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="151.75" y="582.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-26.2%</text>
+<text x="151.75" y="599.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="283.00" cy="466.77" r="4" fill="#b45309"/>
+<text x="283.00" y="456.77" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">22.49 ms</text>
+<text x="283.00" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="239.25" y="582.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-1.9%</text>
+<text x="239.25" y="599.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<rect x="336" y="372" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="352.00" y="397.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Collection pivoting</text>
+<text x="352.00" y="415.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Expand collections, join, pivot</text>
+<line x1="386.00" y1="518.00" x2="587.00" y2="518.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="522.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.0</text>
+<line x1="386.00" y1="475.50" x2="587.00" y2="475.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="479.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">181.2</text>
+<line x1="386.00" y1="433.00" x2="587.00" y2="433.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="437.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">362.4</text>
+<polyline points="412.00,447.17 499.50,515.13 587.00,514.94" fill="none" stroke="#6d28d9" stroke-width="2.5"/>
+<circle cx="412.00" cy="447.17" r="4" fill="#6d28d9"/>
+<text x="412.00" y="437.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">301.99 ms</text>
+<text x="412.00" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="412.00" y="555.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="499.50" cy="515.13" r="4" fill="#6d28d9"/>
+<text x="499.50" y="505.13" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">12.22 ms</text>
+<text x="499.50" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="499.50" y="555.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="455.75" y="582.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-96.0%</text>
+<text x="455.75" y="599.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="587.00" cy="514.94" r="4" fill="#6d28d9"/>
+<text x="587.00" y="504.94" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">13.03 ms</text>
+<text x="587.00" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="543.25" y="582.00" font-size="13" fill="#b91c1c" text-anchor="middle" font-weight="600">+6.6%</text>
+<text x="543.25" y="599.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<rect x="640" y="372" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="656.00" y="397.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Consolidation</text>
+<text x="656.00" y="415.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Union, deduplicate, page</text>
+<line x1="690.00" y1="518.00" x2="891.00" y2="518.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="522.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.0</text>
+<line x1="690.00" y1="475.50" x2="891.00" y2="475.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="479.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">2.1</text>
+<line x1="690.00" y1="433.00" x2="891.00" y2="433.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="437.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">4.1</text>
+<polyline points="716.00,447.17 803.50,447.54 891.00,448.04" fill="none" stroke="#0e7490" stroke-width="2.5"/>
+<circle cx="716.00" cy="447.17" r="4" fill="#0e7490"/>
+<text x="716.00" y="437.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">3.43 ms</text>
+<text x="716.00" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="716.00" y="555.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="803.50" cy="447.54" r="4" fill="#0e7490"/>
+<text x="803.50" y="437.54" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">3.41 ms</text>
+<text x="803.50" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="803.50" y="555.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="759.75" y="582.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-0.5%</text>
+<text x="759.75" y="599.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="891.00" cy="448.04" r="4" fill="#0e7490"/>
+<text x="891.00" y="438.04" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">3.39 ms</text>
+<text x="891.00" y="541.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="847.25" y="582.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-0.7%</text>
+<text x="847.25" y="599.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<rect x="32" y="632" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="48.00" y="657.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Log analytics</text>
+<text x="48.00" y="675.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Parse text, filter, aggregate</text>
+<line x1="82.00" y1="778.00" x2="283.00" y2="778.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="782.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.0</text>
+<line x1="82.00" y1="735.50" x2="283.00" y2="735.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="739.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">8.5</text>
+<line x1="82.00" y1="693.00" x2="283.00" y2="693.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="67.00" y="697.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">17.1</text>
+<polyline points="108.00,707.17 195.50,721.34 283.00,713.91" fill="none" stroke="#047857" stroke-width="2.5"/>
+<circle cx="108.00" cy="707.17" r="4" fill="#047857"/>
+<text x="108.00" y="697.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">14.22 ms</text>
+<text x="108.00" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="108.00" y="815.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="195.50" cy="721.34" r="4" fill="#047857"/>
+<text x="195.50" y="711.34" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">11.37 ms</text>
+<text x="195.50" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="195.50" y="815.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="151.75" y="842.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-20.0%</text>
+<text x="151.75" y="859.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="283.00" cy="713.91" r="4" fill="#047857"/>
+<text x="283.00" y="703.91" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">12.86 ms</text>
+<text x="283.00" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="239.25" y="842.00" font-size="13" fill="#b91c1c" text-anchor="middle" font-weight="600">+13.1%</text>
+<text x="239.25" y="859.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<rect x="336" y="632" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="352.00" y="657.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Packet analytics</text>
+<text x="352.00" y="675.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Decode binary + text, expand, join</text>
+<line x1="386.00" y1="778.00" x2="587.00" y2="778.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="782.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.0</text>
+<line x1="386.00" y1="735.50" x2="587.00" y2="735.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="739.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">59.7</text>
+<line x1="386.00" y1="693.00" x2="587.00" y2="693.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="371.00" y="697.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">119.5</text>
+<polyline points="412.00,707.17 499.50,728.11 587.00,724.90" fill="none" stroke="#be185d" stroke-width="2.5"/>
+<circle cx="412.00" cy="707.17" r="4" fill="#be185d"/>
+<text x="412.00" y="697.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">99.56 ms</text>
+<text x="412.00" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="412.00" y="815.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="499.50" cy="728.11" r="4" fill="#be185d"/>
+<text x="499.50" y="718.11" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">70.13 ms</text>
+<text x="499.50" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="499.50" y="815.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="455.75" y="842.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-29.6%</text>
+<text x="455.75" y="859.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="587.00" cy="724.90" r="4" fill="#be185d"/>
+<text x="587.00" y="714.90" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">74.64 ms</text>
+<text x="587.00" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="543.25" y="842.00" font-size="13" fill="#b91c1c" text-anchor="middle" font-weight="600">+6.4%</text>
+<text x="543.25" y="859.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<rect x="640" y="632" width="288" height="244" rx="10" fill="#f8fafc"/>
+<text x="656.00" y="657.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Structured pipeline</text>
+<text x="656.00" y="675.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Grouped input, join, windows</text>
+<line x1="690.00" y1="778.00" x2="891.00" y2="778.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="782.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.000</text>
+<line x1="690.00" y1="735.50" x2="891.00" y2="735.50" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="739.50" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.264</text>
+<line x1="690.00" y1="693.00" x2="891.00" y2="693.00" stroke="#e2e8f0" stroke-width="1"/>
+<text x="675.00" y="697.00" font-size="10" fill="#334155" text-anchor="end" font-weight="400">0.528</text>
+<polyline points="716.00,707.17 803.50,714.49 891.00,713.71" fill="none" stroke="#166534" stroke-width="2.5"/>
+<circle cx="716.00" cy="707.17" r="4" fill="#166534"/>
+<text x="716.00" y="697.17" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">0.44 ms</text>
+<text x="716.00" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.14</text>
+<text x="716.00" y="815.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.2</text>
+<circle cx="803.50" cy="714.49" r="4" fill="#166534"/>
+<text x="803.50" y="704.49" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">0.39 ms</text>
+<text x="803.50" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.15</text>
+<text x="803.50" y="815.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">alpha.1</text>
+<text x="759.75" y="842.00" font-size="13" fill="#047857" text-anchor="middle" font-weight="600">-10.3%</text>
+<text x="759.75" y="859.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<circle cx="891.00" cy="713.71" r="4" fill="#166534"/>
+<text x="891.00" y="703.71" font-size="11" fill="#334155" text-anchor="middle" font-weight="600">0.40 ms</text>
+<text x="891.00" y="801.00" font-size="11" fill="#334155" text-anchor="middle" font-weight="400">17.0.17</text>
+<text x="847.25" y="842.00" font-size="13" fill="#b91c1c" text-anchor="middle" font-weight="600">+1.2%</text>
+<text x="847.25" y="859.00" font-size="10" fill="#334155" text-anchor="middle" font-weight="400">vs previous</text>
+<text x="32.00" y="903.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Measured means; percentage changes are descriptive and do not establish statistical significance.</text>
+<text x="32.00" y="928.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Execution only; compilation and source I/O excluded.</text>
+<text x="32.00" y="948.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Intel(R) Core(TM) Ultra 9 285K | .NET 10.0.14 | BenchmarkDotNet Official</text>
+</g></svg>

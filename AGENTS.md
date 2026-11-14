@@ -14,6 +14,7 @@ The query pipeline is SQL text -> typed AST -> logical plan -> planner decisions
 - For implementation, tests, and helpers, read the [code-quality rules](.claude/rules/code-quality.md), including the reflection policy and performance baseline requirement.
 - Select validation using the [validation policy](.claude/rules/validation.md#validation-by-change-impact); the essentials are repeated below for clients that load only this entry point.
 - Before planner, physical planning, Execution IR, or renderer work, read the [architecture rules](.claude/rules/architecture.md). Query strategy belongs in the planner and explicit IR; renderers faithfully emit its decisions.
+- After a new Official benchmark train is retained and successfully verified, refresh the README performance charts using the [benchmark chart maintenance procedure](src/dotnet/Musoq.Benchmarks/README.md#refreshing-readme-performance-charts). This applies during benchmark completion and release work that includes a new campaign.
 - Consult [troubleshooting](.claude/rules/troubleshooting.md) for build, test, runtime compilation, or environment failures.
 
 Before editing a covered module or its tests, read its `AGENTS.md` and the `DEVELOPMENT.md` it requires. Read them explicitly even when the session starts at repository root; nested instruction discovery depends on the tool and working directory:
@@ -36,6 +37,7 @@ In every plan, the penultimate step must be to re-read `AGENTS.md` and the appli
 
 ## Engineering Constraints
 
+- Keep engine APIs, benchmark receipts, tooling, tests, and release qualification independent of downstream products and sibling checkouts. Reuse repository-owned projects for local capabilities and describe extension points through their public contracts.
 - Reflection is prohibited by default in implementation, tests, and test helpers. Prefer typed APIs, visitors, pattern matching, and explicit fixtures or registries. Existing uses are not precedent; unavoidable exceptions require an explicit, documented justification. Follow the [reflection policy](.claude/rules/code-quality.md#reflection-policy).
 - Start every wave with scoped cleanup and refactoring that supports its upcoming work. Performance and maintainability are acceptance criteria in every wave, not deferred cleanup tasks. Record when no preparatory refactoring is needed and avoid unrelated churn. Follow the [implementation-wave workflow](.claude/rules/multi-session.md#implementation-wave-workflow) and [performance and maintainability criteria](.claude/rules/code-quality.md#performance-and-maintainability).
 

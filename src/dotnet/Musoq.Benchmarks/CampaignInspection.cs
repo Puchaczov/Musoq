@@ -18,7 +18,6 @@ public sealed record CampaignReceipt(
     string? ActiveCase,
     DateTimeOffset LastProgressUtc,
     bool ResumeEligible,
-    bool WebsiteEligible,
     string[] Reasons,
     string? ResumeCommand,
     string EngineVersion,
@@ -56,12 +55,7 @@ public static class CampaignInspection
             receipt.Completed,
             progress.Attempts
         );
-        return receipt with
-        {
-            Verified = true,
-            CompletedUtc = completedUtc,
-            WebsiteEligible = receipt.Mode == "Official" && receipt.Reasons.Length == 0,
-        };
+        return receipt with { Verified = true, CompletedUtc = completedUtc };
     }
 
     private sealed record Progress(CampaignReceipt Receipt, RunManifest Definition, List<Measurement> Attempts);
@@ -124,7 +118,6 @@ public static class CampaignInspection
             activeCase,
             lastProgress,
             !completedRun && !active,
-            false,
             reasons,
             completedRun ? null : resumeCommand,
             definition.Provenance.Build.EngineVersion,
@@ -143,7 +136,7 @@ public static class CampaignInspection
             reasons.Add("Campaign has no completion marker.");
         reasons.AddRange(ReadErrors(directory));
         if (definition.Provenance.Environment.Mode != "Official")
-            reasons.Add("Local campaigns, including Dry checks, are not website-eligible.");
+            reasons.Add("Local campaigns, including Dry checks, are excluded from Official history selection.");
         return reasons.ToArray();
     }
 
@@ -180,7 +173,7 @@ public static class CampaignInspection
             try
             {
                 var receipt = Verify(directory);
-                if (receipt.WebsiteEligible)
+                if (receipt.Verified && receipt.Mode == "Official" && receipt.Reasons.Length == 0)
                     eligible.Add(receipt);
                 else
                     excluded.Add($"{directory}: {string.Join("; ", receipt.Reasons)}");

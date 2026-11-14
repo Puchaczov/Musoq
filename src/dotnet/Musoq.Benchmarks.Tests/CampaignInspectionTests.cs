@@ -29,14 +29,14 @@ public sealed class CampaignInspectionTests
     }
 
     [TestMethod]
-    public void LocalDry_IsCompleteButNeverWebsiteEligible()
+    public void LocalDry_IsVerifiedButExcludedFromLatest()
     {
         using var temporary = new TemporaryDirectory();
         Complete(temporary.Path, CampaignTests.Manifest());
         var receipt = CampaignInspection.Verify(temporary.Path);
         Assert.AreEqual("complete", receipt.Status);
         Assert.IsTrue(receipt.Verified);
-        Assert.IsFalse(receipt.WebsiteEligible);
+        Assert.IsEmpty(CampaignInspection.Latest(temporary.Path).Selected);
         Assert.IsFalse(receipt.ResumeEligible);
     }
 
@@ -50,9 +50,23 @@ public sealed class CampaignInspectionTests
         var latest = CampaignInspection.Latest(temporary.Path);
         Assert.HasCount(1, latest.Selected);
         Assert.AreEqual("second", latest.Selected[0].Source.Commit);
-        Assert.IsTrue(latest.Selected[0].WebsiteEligible);
+        Assert.AreEqual("Official", latest.Selected[0].Mode);
         Assert.IsTrue(latest.Selected[0].Verified);
         Assert.HasCount(1, latest.Excluded);
+    }
+
+    [TestMethod]
+    public void Latest_ExcludesNewerCompletedLocalCampaign()
+    {
+        using var temporary = new TemporaryDirectory();
+        Complete(Path.Combine(temporary.Path, "official"), Official("official"));
+        Complete(Path.Combine(temporary.Path, "local"), CampaignTests.Manifest());
+
+        var latest = CampaignInspection.Latest(temporary.Path);
+
+        Assert.AreEqual("official", latest.Selected.Single().RunId);
+        Assert.HasCount(1, latest.Excluded);
+        StringAssert.Contains(latest.Excluded[0], "excluded from Official history selection");
     }
 
     [TestMethod]
@@ -146,7 +160,6 @@ public sealed class CampaignInspectionTests
             var status = CampaignInspection.Status(temporary.Path);
             Assert.AreEqual(1, status.Completed);
             Assert.IsFalse(status.Verified);
-            Assert.IsFalse(status.WebsiteEligible);
         }
         File.Delete(path);
         Assert.AreEqual(1, CampaignInspection.Status(temporary.Path).Completed);
@@ -160,7 +173,7 @@ public sealed class CampaignInspectionTests
         Complete(temporary.Path, Official("fixture"));
         var metadata = Path.Combine(temporary.Path, "raw", "measured-process-fixture.json");
         var before = File.ReadAllBytes(metadata);
-        Assert.IsTrue(CampaignInspection.Verify(temporary.Path).WebsiteEligible);
+        Assert.IsTrue(CampaignInspection.Verify(temporary.Path).Verified);
         CollectionAssert.AreEqual(before, File.ReadAllBytes(metadata));
     }
 

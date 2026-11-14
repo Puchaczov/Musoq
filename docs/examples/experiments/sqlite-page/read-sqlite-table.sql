@@ -6,7 +6,7 @@
 --
 -- To read another database, pass a JSON object through --params-json, for example:
 --   {"databasePath":"C:/data/example.db","tableName":"events"}
--- The companion README gives a complete PowerShell command. Parameters are values,
+-- The repository README gives a complete PowerShell command. Parameters are values,
 -- not SQL fragments; names containing quotes do not need hand-built SQL escaping.
 --
 -- This extends the movie's small page reader. The agent in that recording was
@@ -50,7 +50,7 @@ PARAM(
 -- bytes actually consumed. & 127 clears a continuation bit. ?? 0 handles absent
 -- optional bytes in expressions without reading them.
 -- Decimal arithmetic is exact for these 64-bit integers. The .0 factors retain
--- that precision through parameter substitution in the tested alpha CLI.
+-- that precision through parameter substitution in the tested alpha execution path.
 -- A raw value above the signed maximum represents a negative two's-complement
 -- rowid; subtracting 2^64 recovers it. Payload lengths/type codes remain positive.
 BINARY Varint {
@@ -162,7 +162,7 @@ BINARY PageBlock {
 -- and reads the file as pages after extracting the header facts.
 -- A *Check byte array consumes zero bytes when its condition is true. A size of
 -- -1 deliberately fails interpretation. This uses the supported parameterized
--- schema path in the tested alpha CLI, whose CHECK serialization is incomplete.
+-- schema path in the tested alpha execution path, whose CHECK serialization is incomplete.
 BINARY Database {
     Signature: byte[16] magic[
         0x53,
@@ -637,7 +637,7 @@ records AS (
 
 -- Inspect candidate varints at every byte of a record's type-code area. The next
 -- CTE chooses only actual boundaries, advancing by each decoded varint's Width.
--- Keeping interpretation outside recursive members supports the tested CLI.
+-- Keeping interpretation outside recursive members keeps execution stages separate.
 codes AS (
     SELECT
         r.PageNumber AS PageNumber,

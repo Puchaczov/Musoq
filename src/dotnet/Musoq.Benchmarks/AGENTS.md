@@ -9,3 +9,4 @@ Read the [repository instructions](../../../AGENTS.md) and the complete [module 
 - Official campaigns use clean source and the complete fixed catalog. Local measurements allow narrow filters and Short/Dry jobs; Dry checks execution rather than performance.
 - Preserve raw attempts, provenance, immutable completed campaigns and the existing resume contract. Never automatically commit or publish results, silently cap inputs, or assert timing in correctness tests.
 - Use the repository runner and keep transient output under .artifacts/. Preserve existing retained evidence and apply the root cleanup policy to task-owned temporary files.
+- After retaining and successfully verifying a new Official train, follow [README chart maintenance](README.md#refreshing-readme-performance-charts) before reporting the benchmark work complete; report a compatibility blocker separately if a comparable series cannot be formed.
