@@ -91,6 +91,8 @@ public partial class TypoAndUxDiagnosticProbeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(5, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["Bob"], ["Charlie"], ["Diana"], ["Eve"]);
     }
 
     [TestMethod]

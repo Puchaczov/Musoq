@@ -90,6 +90,8 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Test1"], ["Test2"]);
     }
 
     [TestMethod]
@@ -105,6 +107,8 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Test1"], ["Test2"]);
     }
 
     [TestMethod]
@@ -220,5 +224,7 @@ public class QueryPipelineIntegrationTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Coalesce(NullableValue, 0)", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [0]);
     }
 }

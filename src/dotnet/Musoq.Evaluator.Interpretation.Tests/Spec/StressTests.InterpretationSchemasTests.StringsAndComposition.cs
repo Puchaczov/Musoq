@@ -52,8 +52,8 @@ public partial class StressTestsInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(1, table.Count);
-        var result = (string)table[0].ReadValue(0);
-        Assert.StartsWith("Hi", result);
+        TableMaterializationTestHelper.AssertColumns(table, ("Text", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Hi\U0001F600!\0"]);
     }
 
     /// <summary>

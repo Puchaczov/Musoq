@@ -149,6 +149,8 @@ public class BetweenTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Medium"], ["Tiny"], ["Huge"]);
     }
 
     [TestMethod]

@@ -37,6 +37,8 @@ public class NonEquiJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], ["A2", "B1"], ["A2", "B2"]);
     }
 
     [TestMethod]
@@ -133,6 +135,8 @@ public class NonEquiJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], ["A1", "B2"]);
     }
 
     [TestMethod]
@@ -164,6 +168,8 @@ public class NonEquiJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], ["A1", "B3"]);
     }
 
     [TestMethod]
@@ -288,6 +294,8 @@ public class NonEquiJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], ["A2", "B3"]);
     }
 
     [TestMethod]
@@ -344,6 +352,8 @@ public class NonEquiJoinTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A1", "B1"], ["A1", "B2"]);
     }
 
     [TestMethod]

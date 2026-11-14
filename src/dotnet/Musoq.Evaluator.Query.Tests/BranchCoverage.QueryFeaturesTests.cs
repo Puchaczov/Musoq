@@ -24,6 +24,8 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(2, result.Count);
+        TableMaterializationTestHelper.AssertColumns(result, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["a"], ["b"]);
     }
 
     [TestMethod]
@@ -42,6 +44,8 @@ public partial class BranchCoverageImprovementTests
         var result = vm.Run();
 
         Assert.AreEqual(4, result.Count);
+        TableMaterializationTestHelper.AssertColumns(result, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["a"], ["b"], ["a"], ["b"]);
     }
 
     [TestMethod]

@@ -206,6 +206,8 @@ public partial class StressTestsInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Code", typeof(string)), ("Number", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["ERR", "404"], ["ERR", "500"]);
     }
 
     #endregion

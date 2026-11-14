@@ -262,6 +262,8 @@ public partial class AutomaticNumericTypeInferenceTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Item A"], ["Item B"], ["Item C"]);
     }
 
     [TestMethod]

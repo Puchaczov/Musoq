@@ -396,6 +396,8 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Self.Array", typeof(int[])));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [new int[] { 0, 1, 2 }]);
     }
 
     [TestMethod]
@@ -411,6 +413,8 @@ public class SingleSchemaOperationsTests : BasicEntityTestBase
         Assert.AreEqual(typeof(int[]), table.Columns.ElementAt(0).ColumnType);
 
         Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Self.Self.Array", typeof(int[])));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [new int[] { 0, 1, 2 }]);
     }
 
     [TestMethod]

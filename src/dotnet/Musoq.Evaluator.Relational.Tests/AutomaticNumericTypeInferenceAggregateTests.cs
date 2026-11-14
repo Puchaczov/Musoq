@@ -66,6 +66,12 @@ public class AutomaticNumericTypeInferenceAggregateTests : UnknownQueryTestsBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Category", typeof(string)),
+            ("Sum(ToInt32(Size))", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A", 200], ["B", 300]);
     }
 
     [TestMethod]

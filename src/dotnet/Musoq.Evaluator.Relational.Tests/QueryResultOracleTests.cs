@@ -8,7 +8,7 @@ using Musoq.Evaluator.Tests.Schema.Basic;
 namespace Musoq.Evaluator.Tests;
 
 [global::Musoq.Tests.Common.CultureTestClass]
-public sealed class QueryResultOracleTests : BasicEntityTestBase
+public sealed partial class QueryResultOracleTests : BasicEntityTestBase
 {
     [TestMethod]
     [DataRow(7)]

@@ -260,6 +260,8 @@ public class InTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [100m], [200m]);
     }
 
     #endregion

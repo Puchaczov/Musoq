@@ -37,6 +37,8 @@ public partial class TypoAndUxDiagnosticProbeTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [5L]);
     }
 
     [TestMethod]

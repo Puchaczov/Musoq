@@ -269,6 +269,8 @@ public sealed class DiagnosticREC101EnumContextTests : GenericEntityTestBase
         using var table = compiledQuery.Run(TestContext.CancellationToken);
 
         Assert.HasCount(1, table);
+        TableMaterializationTestHelper.AssertColumns(table, ("Status", typeof(short)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(short)20]);
     }
 
     [TestMethod]

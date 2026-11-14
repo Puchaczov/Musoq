@@ -122,6 +122,8 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "Contains should be case-insensitive");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Hello World"], ["HELLO WORLD"], ["hello world"]);
     }
 
     [TestMethod]
@@ -145,6 +147,8 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "StartsWith should be case-insensitive");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Hello World"], ["HELLO WORLD"], ["hello world"]);
     }
 
     [TestMethod]
@@ -168,6 +172,8 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "EndsWith should be case-insensitive");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Hello World"], ["HELLO WORLD"], ["hello world"]);
     }
 
     [TestMethod]

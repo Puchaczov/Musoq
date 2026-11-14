@@ -41,6 +41,8 @@ public partial class MalformedQueryErrorTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(4, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Bob"], ["Charlie"], ["Diana"], ["Eve"]);
     }
 
     [TestMethod]
@@ -176,6 +178,8 @@ public partial class MalformedQueryErrorTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Count(1)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["London", 2L], ["Paris", 2L], ["Berlin", 1L]);
     }
 
     #endregion

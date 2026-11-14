@@ -410,6 +410,8 @@ public class InterpretationFunctionsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Valid"], ["Also"]);
     }
 
     /// <summary>

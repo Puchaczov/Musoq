@@ -70,6 +70,12 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count, "LIKE should match Greek text case-insensitively");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Η Αθήνα είναι πρωτεύουσα"],
+            ["Η ΑΘΉΝΑ ΕΊΝΑΙ ΠΡΩΤΕΎΟΥΣΑ"]
+        );
     }
 
     [TestMethod]
@@ -93,6 +99,13 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "LIKE should match Istanbul text case-insensitively");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Istanbul is beautiful"],
+            ["ISTANBUL IS BEAUTIFUL"],
+            ["istanbul is beautiful"]
+        );
     }
 
     [TestMethod]
@@ -222,6 +235,8 @@ public partial class StringComparisonConsistencyTests
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count, "DISTINCT should treat different cases as different values (ordinal)");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["hello"], ["Hello"], ["HELLO"]);
     }
 
     [TestMethod]

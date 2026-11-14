@@ -98,6 +98,8 @@ public class TextUntilFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["localhost"], ["example.com"]);
     }
 
     #endregion

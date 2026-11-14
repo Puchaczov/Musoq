@@ -30,5 +30,15 @@ public partial class BinarySpecificationRegressionTests
         );
 
         Assert.AreEqual(count, table.Count);
+        var expectedType = apply == "cross" ? typeof(byte) : typeof(byte?);
+        object?[][] expected =
+            count == 0
+                ? []
+                :
+                [
+                    [null],
+                ];
+        TableMaterializationTestHelper.AssertColumns(table, ("V", expectedType));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, expected);
     }
 }

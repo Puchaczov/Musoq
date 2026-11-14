@@ -75,6 +75,8 @@ public class CompileErrorTests : NegativeTestsBase
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("NameLen", typeof(int?)), ("Count(1)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [5, 2L], [3, 2L], [7, 1L]);
     }
 
     #endregion

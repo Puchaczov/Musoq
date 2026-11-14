@@ -112,6 +112,13 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["cracow", "Poland"],
+            ["warsaw", "Poland"],
+            ["cracow", "Germany"]
+        );
     }
 
     [TestMethod]
@@ -127,6 +134,8 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(4, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A"], ["B"], ["C"], ["D"]);
     }
 
     [TestMethod]
@@ -218,6 +227,8 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("ToUpperInvariant(Name)", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["ABBA"], ["BABBA"]);
     }
 
     [TestMethod]
@@ -236,6 +247,8 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Count(Name)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["ABBA", 3L], ["BABBA", 1L]);
     }
 
     [TestMethod]
@@ -288,6 +301,8 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(3, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Population", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [100m], [200m], [300m]);
     }
 
     [TestMethod]
@@ -329,6 +344,8 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["ABBA"], ["BABBA"]);
     }
 
     [TestMethod]
@@ -344,5 +361,7 @@ public class DistinctTests : BasicEntityTestBase
         var table = vm.Run(TestContext.CancellationToken);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["ABBA"], ["BABBA"]);
     }
 }

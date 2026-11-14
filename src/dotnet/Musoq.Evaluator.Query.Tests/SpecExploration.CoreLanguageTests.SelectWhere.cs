@@ -100,19 +100,8 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
-    }
-
-    [TestMethod]
-    public void Spec_Select_Star_ShouldExpandAllColumns()
-    {
-        var query = "select * from #A.Entities()";
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("Alice")] } };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TokenSource.Token);
-
-        Assert.AreEqual(1, table.Count);
-        Assert.IsGreaterThan(1, table.Columns.Count(), "Star should expand to multiple columns");
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["POLAND"], ["GERMANY"]);
     }
 
     #endregion
@@ -139,6 +128,8 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["b"], ["c"]);
     }
 
     [TestMethod]
@@ -184,6 +175,8 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["a"], ["b"]);
     }
 
     [TestMethod]
@@ -231,6 +224,8 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count, "LIKE should be case-insensitive, matching both 'Alice' and 'MALICE'");
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["MALICE"]);
     }
 
     [TestMethod]
@@ -253,6 +248,8 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["a"], ["c"]);
     }
 
     [TestMethod]
@@ -305,6 +302,8 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["a"], ["c"]);
     }
 
     [TestMethod]
@@ -329,6 +328,8 @@ public partial class SpecExplorationCoreLanguageTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["Carol"]);
     }
 
     [TestMethod]

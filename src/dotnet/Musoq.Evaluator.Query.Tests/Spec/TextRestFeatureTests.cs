@@ -56,6 +56,12 @@ public class TextRestFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Type", typeof(string)), ("Data", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["LOG", "An error occurred"],
+            ["ERR", "Another error here"]
+        );
     }
 
     #endregion

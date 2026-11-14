@@ -382,6 +382,8 @@ public partial class StressTestsInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count); // 100 and 75
+        TableMaterializationTestHelper.AssertColumns(table, ("Value", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [100], [75]);
     }
 
     /// <summary>

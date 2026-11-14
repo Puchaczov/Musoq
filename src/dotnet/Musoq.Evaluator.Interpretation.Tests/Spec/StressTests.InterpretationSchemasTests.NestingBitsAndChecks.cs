@@ -629,6 +629,12 @@ public partial class StressTestsInterpretationSchemasTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)), ("Magic", typeof(int?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["good.bin", unchecked((int)0xDEADBEEF)],
+            ["bad.bin", null]
+        );
     }
 
     /// <summary>

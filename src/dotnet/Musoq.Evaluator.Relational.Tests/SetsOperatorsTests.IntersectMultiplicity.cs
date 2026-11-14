@@ -99,5 +99,15 @@ public partial class SetsOperatorsTests
         );
         using var result = compiled.Run(TestContext.CancellationToken);
         Assert.AreEqual(expectedCount, result.Count);
+        TableMaterializationTestHelper.AssertColumns(result, ("Id", typeof(int)), ("Value", typeof(double)));
+        object?[][] expected =
+            expectedCount == 0
+                ? []
+                :
+                [
+                    [1, double.NaN],
+                    [1, double.NaN],
+                ];
+        TableMaterializationTestHelper.AssertRowsUnordered(result, expected);
     }
 }

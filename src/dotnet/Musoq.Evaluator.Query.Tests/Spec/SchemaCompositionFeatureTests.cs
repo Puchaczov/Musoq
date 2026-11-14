@@ -115,6 +115,13 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Version", typeof(byte)),
+            ("RecordCount", typeof(int)),
+            ("Name", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)1, 2, "Alice"], [(byte)1, 2, "Bob"]);
     }
 
     #endregion
@@ -162,6 +169,8 @@ public class SchemaCompositionFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("First", typeof(int)), ("Second", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1, 3], [3, 1]);
     }
 
     #endregion

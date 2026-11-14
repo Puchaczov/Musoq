@@ -293,6 +293,30 @@ public class JoinIntegrationTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void JoinWithOrderByAndVaryingSecondaryKey_ShouldReturnRowsInOrder()
+    {
+        const string query =
+            "select cities.Country from #A.entities() countries "
+            + "inner join #B.entities() cities on countries.Country = cities.Country "
+            + "order by cities.GetTypeName(cities.Country), cities.Country";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            ["#A"] = [new BasicEntity("Poland", "Krakow"), new BasicEntity("Germany", "Berlin")],
+            ["#B"] =
+            [
+                new BasicEntity("Poland", "Warsaw"),
+                new BasicEntity("Germany", "Berlin"),
+                new BasicEntity("Poland", "Lodz"),
+            ],
+        };
+
+        var table = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("Country", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Germany"], ["Poland"], ["Poland"]);
+    }
+
+    [TestMethod]
     public void JoinWithExceptTest()
     {
         const string query = (

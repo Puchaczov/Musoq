@@ -254,6 +254,50 @@ public class StarTests : BasicEntityTestBase
 
         Assert.AreEqual("Money", table.Columns.ElementAt(13).ColumnName);
         Assert.AreEqual("Month", table.Columns.ElementAt(14).ColumnName);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(System.DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(System.DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [
+                "",
+                "",
+                null,
+                0m,
+                50m,
+                "january",
+                default(System.DateTime),
+                0,
+                null,
+                "",
+                "",
+                null,
+                0m,
+                150m,
+                "january",
+                default(System.DateTime),
+                0,
+                null,
+            ]
+        );
     }
 
     [TestMethod]
@@ -279,6 +323,50 @@ public class StarTests : BasicEntityTestBase
 
         Assert.AreEqual("Money", table.Columns.ElementAt(13).ColumnName);
         Assert.AreEqual("Month", table.Columns.ElementAt(14).ColumnName);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(System.DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?)),
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(System.DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [
+                "",
+                "",
+                null,
+                0m,
+                50m,
+                "january",
+                default(System.DateTime),
+                0,
+                null,
+                "",
+                "",
+                null,
+                0m,
+                150m,
+                "january",
+                default(System.DateTime),
+                0,
+                null,
+            ]
+        );
     }
 
     [TestMethod]

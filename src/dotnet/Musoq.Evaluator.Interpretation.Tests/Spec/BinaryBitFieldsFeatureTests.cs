@@ -150,6 +150,17 @@ public class BinaryBitFieldsFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Readable", typeof(byte)),
+            ("Writable", typeof(byte)),
+            ("Executable", typeof(byte))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [(byte)1, (byte)1, (byte)0],
+            [(byte)1, (byte)1, (byte)1]
+        );
     }
 
     #endregion

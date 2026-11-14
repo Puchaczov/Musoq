@@ -31,6 +31,22 @@ public partial class HashOptionalSchemaComprehensiveTests
 
         Assert.IsGreaterThan(0, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(System.DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["Test1", "City1", null, 100m, 0m, "", default(System.DateTime), 0, null]
+        );
     }
 
     [TestMethod]

@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
@@ -44,6 +45,8 @@ public partial class MalformedQueryErrorTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(5, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("PersonName", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, ["Alice"], ["Bob"], ["Charlie"], ["Diana"], ["Eve"]);
     }
 
     [TestMethod]
@@ -69,6 +72,8 @@ public partial class MalformedQueryErrorTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(5, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["Bob"], ["Charlie"], ["Diana"], ["Eve"]);
     }
 
     [TestMethod]
@@ -177,6 +182,8 @@ public partial class MalformedQueryErrorTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(5, table.Count);
+        Assert.AreEqual(typeof(string), table.Columns.Single().ColumnType);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["ALICE"], ["ALICE"], ["BOB"], ["CHARLIE"], ["EVE"]);
     }
 
     [TestMethod]
@@ -186,6 +193,8 @@ public partial class MalformedQueryErrorTests
         var table = vm.Run(TokenSource.Token);
 
         Assert.AreEqual(5, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Alice"], ["Alice"], ["Bob"], ["Charlie"], ["Eve"]);
     }
 
     #endregion

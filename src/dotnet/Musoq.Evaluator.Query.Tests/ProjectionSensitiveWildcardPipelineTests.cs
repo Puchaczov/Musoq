@@ -166,5 +166,21 @@ public sealed partial class ProjectionSensitiveWildcardTests
 
         Assert.AreEqual(9, table.Columns.Count());
         Assert.AreEqual(1, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Name", typeof(string)),
+            ("City", typeof(string)),
+            ("Country", typeof(string)),
+            ("Population", typeof(decimal)),
+            ("Money", typeof(decimal)),
+            ("Month", typeof(string)),
+            ("Time", typeof(System.DateTime)),
+            ("Id", typeof(int)),
+            ("NullableValue", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["", "", null, 10m, 50m, "Ada", default(System.DateTime), 0, null]
+        );
     }
 }

@@ -90,6 +90,8 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Test1"], ["Test2"]);
     }
 
     [TestMethod]
@@ -112,6 +114,8 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("City", typeof(string)), ("Count(City)", typeof(long)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Warsaw", 2L], ["London", 1L]);
     }
 
     [TestMethod]
@@ -191,6 +195,8 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Test1"], ["Test2"]);
     }
 
     [TestMethod]
@@ -206,6 +212,8 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["Test"], ["Other"]);
     }
 
     [TestMethod]
@@ -222,6 +230,8 @@ public class HashOptionalSchemaTests : BasicEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(table, ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["First"], ["Second"]);
     }
 
     [TestMethod]

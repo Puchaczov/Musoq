@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tests.Schema.Generic;
@@ -93,6 +94,8 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(typeof(long), table.Columns.Single().ColumnType);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [255L]);
     }
 
     [TestMethod]
@@ -105,6 +108,8 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(typeof(long), table.Columns.Single().ColumnType);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [5L]);
     }
 
     [TestMethod]
@@ -117,6 +122,8 @@ public class NumericLiteralValidationTests : GenericEntityTestBase
         var table = vm.Run();
 
         Assert.AreEqual(1, table.Count);
+        Assert.AreEqual(typeof(long), table.Columns.Single().ColumnType);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [63L]);
     }
 
     #endregion

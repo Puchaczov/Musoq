@@ -14,6 +14,43 @@ namespace Musoq.Evaluator.Tests;
 public class LargeDataJoinTests : MultiSchemaTestBase
 {
     [TestMethod]
+    public void InnerHashJoin_SmallDuplicateAndUnmatchedInputs_ShouldReturnExactPairs()
+    {
+        const string query =
+            "select first.FirstItem, second.FirstItem from #schema.first() first inner join #schema.second() second on first.FirstItem = second.FirstItem";
+        FirstEntity[] first =
+        [
+            new() { FirstItem = "b" },
+            new() { FirstItem = "missing" },
+            new() { FirstItem = "a" },
+            new() { FirstItem = "a" },
+        ];
+        SecondEntity[] second = [new() { FirstItem = "a" }, new() { FirstItem = "b" }, new() { FirstItem = "a" }];
+
+        using var compiled = CreateAndRunVirtualMachine(
+            query,
+            first,
+            second,
+            new CompilationOptions(useHashJoin: true)
+        );
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("FirstItem", typeof(string)),
+            ("FirstItem", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            ["b", "b"],
+            ["a", "a"],
+            ["a", "a"],
+            ["a", "a"],
+            ["a", "a"]
+        );
+    }
+
+    [TestMethod]
     public void InnerJoin_LargeDataset_ShouldWorkCorrectly()
     {
         const int size = 10000;

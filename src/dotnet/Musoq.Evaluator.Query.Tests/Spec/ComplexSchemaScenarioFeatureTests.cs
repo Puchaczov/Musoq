@@ -254,6 +254,13 @@ public class ComplexSchemaScenarioFeatureTests
         var table = vm.Run(CancellationToken.None);
 
         Assert.AreEqual(2, table.Count);
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Base", typeof(int)),
+            ("Doubled", typeof(int)),
+            ("Quadrupled", typeof(int))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [5, 10, 20], [10, 20, 40]);
     }
 
     #endregion

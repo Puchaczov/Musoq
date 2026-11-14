@@ -174,20 +174,6 @@ public partial class StarModifierTests
         Assert.AreEqual(50m, table[0].ReadValues()[populationIdx]);
     }
 
-    [TestMethod]
-    public void WhenStarNoModifiers_ShouldExpandNormally()
-    {
-        const string query = "select * from #A.entities() a";
-
-        var sources = new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", [new BasicEntity("january", 50m)] } };
-
-        var vm = CreateAndRunVirtualMachine(query, sources);
-        var table = vm.Run(TestContext.CancellationToken);
-
-        Assert.AreEqual(1, table.Count);
-        Assert.AreEqual(9, table.Columns.Count());
-    }
-
     // ============================================================================
     // Parser syntax error tests — mistyped star modifiers
     // ============================================================================
