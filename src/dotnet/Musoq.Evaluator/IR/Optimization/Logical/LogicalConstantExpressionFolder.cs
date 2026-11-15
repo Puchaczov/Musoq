@@ -10,6 +10,12 @@ internal sealed partial class LogicalConstantExpressionFolder(
     IReadOnlyDictionary<string, ScriptVariableDefinition>? knownValues = null
 ) : IrExpressionVisitor<IrExpression>
 {
+    protected override IrExpression VisitMemberAccess(MemberAccess node)
+    {
+        var receiver = Visit(node.Receiver);
+        return ReferenceEquals(receiver, node.Receiver) ? node : node with { Receiver = receiver };
+    }
+
     public int FoldedExpressions { get; private set; }
 
     protected override IrExpression VisitColumnRef(ColumnRef node) => node;

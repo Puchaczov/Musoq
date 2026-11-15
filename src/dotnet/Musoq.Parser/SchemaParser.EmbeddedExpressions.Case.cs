@@ -10,6 +10,7 @@ public partial class SchemaParser
         PeekNextTokenType()
             is TokenType.Equality
                 or TokenType.Diff
+                or TokenType.Is
                 or TokenType.Greater
                 or TokenType.GreaterEqual
                 or TokenType.Less

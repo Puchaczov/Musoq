@@ -15,23 +15,7 @@ internal static class GeneratedScalarGenericBinding
     {
         if (!method.IsConstructedGenericMethod || !method.GetGenericArguments().Any(RequiresGeneratedSpecialization))
             return ImmutableDictionary<int, string>.Empty;
-        return ResolveNames(
-            method,
-            arguments
-                .Select(static argument =>
-                    argument switch
-                    {
-                        ExecutionFieldRead read => read.GeneratedTypeName,
-                        ExecutionScriptParameterRead read => read.GeneratedTypeName,
-                        ExecutionScriptVariableRead read => read.GeneratedTypeName,
-                        ExecutionMethodCall call => call.GeneratedResultTypeName,
-                        ExecutionStructuralRecord record => record.GeneratedTypeName,
-                        ExecutionStructuralArray { GeneratedElementTypeName: { } elementName } => elementName + "[]",
-                        _ => null,
-                    }
-                )
-                .ToArray()
-        );
+        return ResolveNames(method, arguments.Select(ExecutionGeneratedTypeName.For).ToArray());
     }
 
     internal static IReadOnlyDictionary<int, string> ResolveNames(
@@ -67,6 +51,13 @@ internal static class GeneratedScalarGenericBinding
         if (type.IsArray)
             return RequiresGeneratedSpecialization(type.GetElementType()!);
         return type.IsGenericType && type.GetGenericArguments().Any(RequiresGeneratedSpecialization);
+    }
+
+    internal static bool HasGeneratedParameter(Type parameter, IReadOnlyDictionary<int, string> names)
+    {
+        while (parameter.IsArray)
+            parameter = parameter.GetElementType()!;
+        return parameter.IsGenericParameter && names.ContainsKey(parameter.GenericParameterPosition);
     }
 
     private static void BindGeneratedType(Type template, string name, ImmutableDictionary<int, string>.Builder names)

@@ -1,4 +1,6 @@
+using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Schema;
 
 namespace Musoq.Evaluator.IR.Analysis;
 
@@ -70,13 +72,23 @@ internal static class IrExpressionNullSemantics
         {
             if (branch.Condition is Literal { Value: false })
                 continue;
-            if (CanBeNull(branch.Result))
+            if (CanBeNull(branch.Result) && !IsPresentUnder(branch.Result, branch.Condition, true))
                 return typeof(Nullable<>).MakeGenericType(returnType);
             if (branch.Condition is Literal { Value: true })
                 return returnType;
         }
-        return elseExpression is null || CanBeNull(elseExpression)
+        return
+            elseExpression is null
+            || CanBeNull(elseExpression)
+                && !branches.Any(branch => IsPresentUnder(elseExpression, branch.Condition, false))
             ? typeof(Nullable<>).MakeGenericType(returnType)
             : returnType;
     }
+
+    private static bool IsPresentUnder(IrExpression value, IrExpression condition, bool conditionIsTrue) =>
+        value is ColumnRef { Stability: ColumnStability.Stable } column
+        && condition is IsNullCheck { Expression: ColumnRef checkedColumn } check
+        && check.IsNegated == conditionIsTrue
+        && string.Equals(column.Alias, checkedColumn.Alias, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(column.ColumnName, checkedColumn.ColumnName, StringComparison.OrdinalIgnoreCase);
 }

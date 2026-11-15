@@ -54,6 +54,9 @@ internal static class BinarySchemaExpressionTypes
                 return Resolve(((UnaryNode)expression).Expression, fields, registry);
             case CaseNode choice:
                 return ResolveCase(choice, fields, registry);
+            case IsNullNode predicate:
+                Resolve(predicate.Expression, fields, registry);
+                return typeof(bool);
             case CastNode cast:
                 Resolve(cast.Expression, fields, registry);
                 return BinarySchemaStrictCasts.Resolve(cast).ReturnType;

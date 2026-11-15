@@ -37,7 +37,7 @@ public static partial class ExecutionExpressionConverter
         IReadOnlyDictionary<Type, ExecutionVariable>? methodTargets
     )
     {
-        var converted = expression switch
+        return expression switch
         {
             SubqueryExpression subquery => SubqueryExecutionLowering.Convert(
                 subquery,
@@ -86,13 +86,14 @@ public static partial class ExecutionExpressionConverter
                 strictCast.TargetTypeName,
                 strictCast.ReturnType
             ),
-            ArrayAccess arrayAccess => ExecutionIndexedAccessBinding.Bind(
-                new ExecutionArrayAccess(
-                    Convert(arrayAccess.Array, sourceShapes, cteTableIndexes, methodTargets),
-                    Convert(arrayAccess.Index, sourceShapes, cteTableIndexes, methodTargets),
-                    arrayAccess.ElementType,
-                    arrayAccess.ReturnType
-                )
+            ArrayAccess arrayAccess => ComputedValueBinding.Index(
+                arrayAccess,
+                Convert(arrayAccess.Array, sourceShapes, cteTableIndexes, methodTargets),
+                Convert(arrayAccess.Index, sourceShapes, cteTableIndexes, methodTargets)
+            ),
+            MemberAccess member => ComputedValueBinding.Member(
+                member,
+                Convert(member.Receiver, sourceShapes, cteTableIndexes, methodTargets)
             ),
             RowPresence rowPresence => ConvertRowPresence(rowPresence, sourceShapes),
             IsNullCheck isNull => new ExecutionIsNullCheck(
@@ -152,7 +153,5 @@ public static partial class ExecutionExpressionConverter
             ),
             _ => throw Unsupported(expression, "no execution expression lowering is registered"),
         };
-
-        return converted;
     }
 }

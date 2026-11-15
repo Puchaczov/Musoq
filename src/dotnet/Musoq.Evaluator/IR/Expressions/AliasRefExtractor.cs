@@ -5,6 +5,8 @@ namespace Musoq.Evaluator.IR.Expressions;
 
 public sealed partial class AliasRefExtractor : IrExpressionVisitor<IReadOnlyList<string>>
 {
+    protected override IReadOnlyList<string> VisitMemberAccess(MemberAccess node) => Visit(node.Receiver);
+
     private readonly HashSet<string> _aliases = new(StringComparer.OrdinalIgnoreCase);
 
     public static IReadOnlyList<string> Extract(IrExpression expression)

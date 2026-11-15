@@ -37,6 +37,7 @@ public partial class Parser
     private Node ComposeArithmeticExpression(int minPrecedence, bool allowPostfixCasts = true)
     {
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Expression, Current);
+        var expressionStart = Current.Span.Start;
         var left = allowPostfixCasts ? ComposePostfixExpression(minPrecedence) : ComposeBaseTypes(minPrecedence);
         if (IsNumericToken(Current) && !IsAttachedSignedNumeric(Current))
         {
@@ -56,9 +57,16 @@ public partial class Parser
 
         while (
             GetArithmeticPrecedence(Current.TokenType) >= minPrecedence
-            || allowPostfixCasts && Current.TokenType == TokenType.DoubleColon
+            || allowPostfixCasts && Current.TokenType is TokenType.DoubleColon or TokenType.LeftSquareBracket
         )
         {
+            if (Current.TokenType == TokenType.LeftSquareBracket)
+            {
+                left.WithSpan(new TextSpan(expressionStart, Current.Span.Start - expressionStart));
+                left = ComposeIndexAccess(left);
+                continue;
+            }
+
             if (Current.TokenType == TokenType.DoubleColon)
             {
                 left = ComposePostfixExpression(minPrecedence, left);

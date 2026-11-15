@@ -23,8 +23,12 @@ internal static class InterpretationPropertyBinding
             AccessColumnNode column => column.IntendedTypeName,
             AccessObjectArrayNode array => array.IntendedTypeName,
             DotNode dot => dot.IntendedTypeName,
+            ArrayIndexNode indexed => ArrayElementTypeName(GetIntendedTypeName(indexed.Array)),
             _ => null,
         };
+
+    private static string? ArrayElementTypeName(string? name) =>
+        name?.EndsWith("[]", StringComparison.Ordinal) == true ? name[..^2] : null;
 
     internal static DotNode BindDynamicDotNode(
         Node root,

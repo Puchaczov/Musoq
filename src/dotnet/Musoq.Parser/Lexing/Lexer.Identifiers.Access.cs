@@ -106,17 +106,6 @@ public sealed partial class Lexer
             }
         }
 
-        position = innerStart;
-        while (position < Input.Length && IsKeyAccessVarChar(Input[position]))
-            position++;
-
-        if (position > innerStart && position < Input.Length && Input[position] == ']')
-        {
-            Position = position + 1;
-            token = new KeyAccessToken(name, Input[innerStart..position], new TextSpan(start, Position - start));
-            return true;
-        }
-
         return false;
     }
 
@@ -134,28 +123,5 @@ public sealed partial class Lexer
     private static bool IsKeyAccessConstChar(char value)
     {
         return value is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9';
-    }
-
-    private static bool IsKeyAccessVarChar(char value)
-    {
-        return value
-            is >= 'a'
-                and <= 'z'
-                or >= 'A'
-                and <= 'Z'
-                or >= '0'
-                and <= '9'
-                or '_'
-                or ' '
-                or '\t'
-                or '\r'
-                or '\n'
-                or '+'
-                or '-'
-                or '*'
-                or '/'
-                or '%'
-                or '('
-                or ')';
     }
 }

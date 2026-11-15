@@ -342,6 +342,7 @@ internal sealed partial class BinarySchemaParentBindings
         {
             BinaryNode binary => [binary.Left, binary.Right],
             UnaryNode unary => [unary.Expression],
+            IsNullNode predicate => [predicate.Expression],
             CastNode cast => [cast.Expression],
             CaseNode choice => choice
                 .WhenThenPairs.SelectMany(pair => new[] { pair.When, pair.Then })

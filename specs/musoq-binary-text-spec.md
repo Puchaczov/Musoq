@@ -456,6 +456,9 @@ binary Outer {
 - Indexing a collection through a record, such as `outer.Body.Items[1].Value`,
   consumes one collection dimension. Subsequent member binding uses the element
   record shape; indexing a primitive array yields its primitive element type.
+  SQL queries may also use integer expressions, such as
+  `outer.Items[outer.Position + 1].Value`, with the source-array rules in
+  [Core language specification, section 21.1](musoq-core-language-spec.md#211-array-indexing).
   Each index is retained when several appear in one path, for example
   `outer.Items[1].Body.Values[0]`. Conditional records inside those indexed
   elements preserve the same NULL propagation as non-indexed records.
@@ -1585,6 +1588,9 @@ CASE selects only the first TRUE WHEN branch; FALSE and UNKNOWN select no branch
 Only the selected result expression is evaluated; omitted ELSE returns NULL. Simple
 CASE uses ordinary core equality, including its null rules. Result branches use
 core compatible-type rules. NOT, AND and OR preserve core three-valued logic.
+`IS NULL` and `IS NOT NULL` return a non-null Boolean, including for absent
+conditional scalar, record and array fields. They are valid in computed values,
+guards, checks and repeat conditions.
 Computed arithmetic uses the core numeric promotion rules: small integral
 operands produce `int`, lifted to `int?` when an operand can be absent.
 Integer literals in schema expressions preserve the explicit core type suffixes

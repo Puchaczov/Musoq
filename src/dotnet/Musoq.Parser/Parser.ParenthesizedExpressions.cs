@@ -28,10 +28,12 @@ public partial class Parser
         }
 
         var expression = ComposeOperations();
-        ConsumeClosingParenthesis(
+        var closing = ConsumeClosingParenthesis(
             DiagnosticCode.MQ2010_MissingClosingParenthesis,
             "A grouped expression is missing its closing parenthesis."
         );
+        if (Current.TokenType == TokenType.LeftSquareBracket)
+            expression.WithSpan(opening.Span.Through(closing.Span));
         return expression;
     }
 

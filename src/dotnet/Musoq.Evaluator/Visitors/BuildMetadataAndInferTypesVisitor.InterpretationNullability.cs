@@ -17,7 +17,14 @@ public partial class BuildMetadataAndInferTypesVisitor
     }
 
     private bool IsNullableInterpretationExpression(Node node) =>
-        node is DotNode { IsNullSafePath: true } || _nullableInterpretationRecords.Contains(node);
+        node is DotNode { IsNullSafePath: true }
+        || _nullableInterpretationRecords.Contains(node)
+        || node is ArrayIndexNode indexed
+            && (
+                IsNullableInterpretationExpression(indexed.Array)
+                || indexed.ReturnType?.IsValueType == false
+                    && !string.IsNullOrEmpty(InterpretationPropertyBinding.GetIntendedTypeName(indexed))
+            );
 
     private DotNode PreserveInterpretationPathNullability(DotNode node)
     {

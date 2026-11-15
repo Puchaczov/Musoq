@@ -265,7 +265,7 @@ public sealed partial class Lexer
             Position++;
             return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));
         }
-        if (_significantTokenType is TokenType.ParameterReference or TokenType.RightSquareBracket)
+        if (IsExpressionIndexStart(start))
         {
             Position++;
             return AssignToken(new LeftSquareBracketToken(new TextSpan(start, 1)));

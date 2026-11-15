@@ -142,6 +142,8 @@ internal static partial class LogicalCteUsageFacts
 
     private sealed partial class CteTableRefCollector : IrExpressionVisitor<IReadOnlyList<string>>
     {
+        protected override IReadOnlyList<string> VisitMemberAccess(MemberAccess node) => Visit(node.Receiver);
+
         private readonly List<string> _references = [];
 
         public static IReadOnlyList<string> Collect(IrExpression expression)

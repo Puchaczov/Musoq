@@ -259,6 +259,9 @@ public partial class InterpreterCodeGenerator
                 CollectFieldRefsFromExpression(binary.Left, localNames, outerRefs);
                 CollectFieldRefsFromExpression(binary.Right, localNames, outerRefs);
                 break;
+            case IsNullNode predicate:
+                CollectFieldRefsFromExpression(predicate.Expression, localNames, outerRefs);
+                break;
         }
     }
 

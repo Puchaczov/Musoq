@@ -112,6 +112,8 @@ internal static partial class SourceInteractionPlanner
             case ArrayAccess access:
                 return CollectArgumentReferences(access.Array, aliases)
                     | CollectArgumentReferences(access.Index, aliases);
+            case MemberAccess member:
+                return CollectArgumentReferences(member.Receiver, aliases);
             default:
                 return true;
         }

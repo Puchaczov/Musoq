@@ -4,6 +4,12 @@ namespace Musoq.Evaluator.IR.Expressions;
 
 public abstract partial class ExpressionArrayRewriter : IrExpressionVisitor<IrExpression>
 {
+    protected override IrExpression VisitMemberAccess(MemberAccess node)
+    {
+        var receiver = Visit(node.Receiver);
+        return ReferenceEquals(receiver, node.Receiver) ? node : node with { Receiver = receiver };
+    }
+
     protected IrExpression[] RewriteExpressions(IReadOnlyList<IrExpression> expressions, out bool changed)
     {
         ArgumentNullException.ThrowIfNull(expressions);

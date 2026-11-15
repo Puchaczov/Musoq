@@ -6894,6 +6894,16 @@ Full Unicode support across all operations including LIKE, GROUP BY, ORDER BY, a
 
 Typed collection parameters and collection `let` values also support indexing (`$values[index]`). The result retains the declared element type, including nullable elements, and uses the same zero-based, modular negative-index and safe out-of-bounds rules below. Parameter indexing reads the collection captured for the current execution.
 
+Source arrays accept integer expressions in brackets, including qualified columns,
+arithmetic, function calls and parameters: `r.Items[r.Position + 1]` or
+`r.Items[$position]`. Attach the opening bracket to the receiver. The collection
+and index execute once, in that order, even for a null or empty collection.
+The index must have type `int`; coalesce a nullable integer when needed, such as
+`r.Items[ToInt32(r.Position) ?? 0]`. Each index consumes one array dimension and
+retains the element type through subsequent members and CTE projections, as in
+`r.Records[r.Position].Value`. Literal indexes, quoted dictionary keys and
+bracketed SQL identifiers retain their existing syntax.
+
 Array elements are accessed with bracket notation (0-based):
 
 ```sql

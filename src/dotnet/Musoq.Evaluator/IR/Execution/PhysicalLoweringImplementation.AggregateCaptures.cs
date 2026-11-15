@@ -178,6 +178,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 CollectAggregateFinalSourceColumns(arrayAccess.Array, columns, groupKeys);
                 CollectAggregateFinalSourceColumns(arrayAccess.Index, columns, groupKeys);
                 break;
+            case MemberAccess member:
+                CollectAggregateFinalSourceColumns(member.Receiver, columns, groupKeys);
+                break;
         }
     }
 

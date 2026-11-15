@@ -27,6 +27,7 @@ internal static class IrExpressionTraversal
             or BinaryOp
             or UnaryOp
             or ArrayAccess
+            or MemberAccess
             or IsNullCheck
             or InCheck
             or CollectionInCheck
@@ -64,6 +65,9 @@ internal static class IrExpressionTraversal
             case ArrayAccess arrayAccess:
                 yield return arrayAccess.Array;
                 yield return arrayAccess.Index;
+                yield break;
+            case MemberAccess member:
+                yield return member.Receiver;
                 yield break;
             case IsNullCheck isNull:
                 yield return isNull.Expression;

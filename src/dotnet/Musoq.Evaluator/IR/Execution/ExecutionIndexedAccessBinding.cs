@@ -30,15 +30,18 @@ internal static class ExecutionIndexedAccessBinding
             null,
             access.ReturnType,
             null
-        );
+        )
+        {
+            InterpretationShape = access.InterpretationShape,
+        };
     }
 
     private static ExecutionMethodCall? BindGeneratedArray(ExecutionArrayAccess access)
     {
         if (
-            access.Array is not ExecutionFieldRead { GeneratedTypeName: { } typeName }
+            ExecutionGeneratedTypeName.For(access.Array) is not { } typeName
             || !typeName.EndsWith("[]", StringComparison.Ordinal)
-            || access.Array.ReturnType.ResolveClrType() != typeof(object[])
+            || !GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(access.Array.ReturnType.ResolveClrType())
             || access.Index.ReturnType.ResolveClrType() != typeof(int)
         )
             return null;
@@ -58,6 +61,7 @@ internal static class ExecutionIndexedAccessBinding
         {
             GeneratedGenericArguments = bindings,
             GeneratedResultTypeName = GeneratedScalarGenericBinding.ResolveResult(method, bindings),
+            InterpretationShape = access.InterpretationShape,
         };
     }
 

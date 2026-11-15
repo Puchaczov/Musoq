@@ -30,6 +30,7 @@ public abstract class IrExpressionVisitor<T>
             AggregateRef node => VisitAggregateRef(node),
             WindowFunctionRef node => VisitWindowFunctionRef(node),
             ArrayAccess node => VisitArrayAccess(node),
+            MemberAccess node => VisitMemberAccess(node),
             CteTableRef node => VisitCteTableRef(node),
             CteCollectionInput node => VisitCteCollectionInput(node),
             StructuralRecordLiteral node => VisitStructuralRecordLiteral(node),
@@ -65,6 +66,9 @@ public abstract class IrExpressionVisitor<T>
     protected abstract T VisitAggregateRef(AggregateRef node);
     protected abstract T VisitWindowFunctionRef(WindowFunctionRef node);
     protected abstract T VisitArrayAccess(ArrayAccess node);
+
+    protected virtual T VisitMemberAccess(MemberAccess node) => throw UnsupportedShape.Of("IR member access");
+
     protected abstract T VisitCteTableRef(CteTableRef node);
 
     protected virtual T VisitCteCollectionInput(CteCollectionInput node) =>

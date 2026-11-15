@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
@@ -13,6 +12,11 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed class IrExpressionTraversalFactsTests
 {
     [TestMethod]
+    /// <remarks>
+    /// Reflection exception: enumerate IR type definitions to detect new nodes omitted from explicit fixtures.
+    /// A registry comparison would miss a node omitted from both registries. This finite inventory runs once
+    /// per suite, outside engine hot paths, and performs no private member discovery or invocation.
+    /// </remarks>
     public void KnownExpressionKinds_ShouldCoverEveryConcreteIrExpression()
     {
         var samples = CreateSamples();
@@ -124,6 +128,7 @@ public sealed class IrExpressionTraversalFactsTests
             [typeof(IsNullCheck)] = new IsNullCheck(column, IsNegated: false, typeof(bool)),
             [typeof(Literal)] = literal,
             [typeof(MethodCall)] = methodCall,
+            [typeof(MemberAccess)] = new MemberAccess(column, "Length", typeof(int)),
             [typeof(PatternMatch)] = new PatternMatch(
                 textLiteral,
                 new Literal("a%", typeof(string)),
@@ -148,12 +153,8 @@ public sealed class IrExpressionTraversalFactsTests
 
     private static MethodCall CreateMethodCall()
     {
-        var method = typeof(IrExpressionTraversalFactsTests).GetMethod(
-            nameof(StableMethod),
-            BindingFlags.Public | BindingFlags.Static
-        )!;
-
-        return new MethodCall(method, [new Literal("alpha", typeof(string))], null, typeof(string));
+        Func<string, string> method = StableMethod;
+        return new MethodCall(method.Method, [new Literal("alpha", typeof(string))], null, typeof(string));
     }
 
     public static string StableMethod(string value) => value;

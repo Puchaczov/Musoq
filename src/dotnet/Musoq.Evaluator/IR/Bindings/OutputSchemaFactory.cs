@@ -27,6 +27,8 @@ internal static class OutputSchemaFactory
     {
         if (expression is ColumnRef column)
             return column.GeneratedTypeName;
+        if (expression is MemberAccess member)
+            return member.GeneratedTypeName;
         if (
             expression is ArrayAccess array
             && ResolveIntendedTypeName(array.Array) is { } arrayType

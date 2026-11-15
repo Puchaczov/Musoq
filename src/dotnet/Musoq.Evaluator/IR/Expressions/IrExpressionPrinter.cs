@@ -5,6 +5,8 @@ namespace Musoq.Evaluator.IR.Expressions;
 
 public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
 {
+    protected override string VisitMemberAccess(MemberAccess node) => $"{Visit(node.Receiver)}.{node.MemberName}";
+
     public static string Print(IrExpression expression)
     {
         var printer = new IrExpressionPrinter();

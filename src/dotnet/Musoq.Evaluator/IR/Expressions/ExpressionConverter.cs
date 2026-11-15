@@ -166,6 +166,9 @@ public sealed partial class ExpressionConverter
 
     private IrExpression ConvertDotAccess(DotNode node)
     {
+        if (HasComputedReceiver(node.Root))
+            return ConvertComputedMember(node);
+
         if (node.Expression is AccessObjectKeyNode keyAccess && keyAccess.PropertyInfo != null)
             return BuildIndexedAccess(
                 node,

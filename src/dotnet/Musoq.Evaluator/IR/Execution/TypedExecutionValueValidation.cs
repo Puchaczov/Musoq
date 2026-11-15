@@ -154,11 +154,10 @@ internal static class TypedExecutionValueValidation
                     .Where(static item => item.GetCustomAttribute<InjectTypeAttribute>() == null)
                     .ElementAt(index)
                 : parameter;
-            var generatedParameter =
-                definitionParameter.ParameterType.IsGenericParameter
-                && call.GeneratedGenericArguments.ContainsKey(
-                    definitionParameter.ParameterType.GenericParameterPosition
-                );
+            var generatedParameter = GeneratedScalarGenericBinding.HasGeneratedParameter(
+                definitionParameter.ParameterType,
+                call.GeneratedGenericArguments
+            );
             var closedInterpretationArgument =
                 definitionParameter.ParameterType.ContainsGenericParameters
                 && index < call.Arguments.Count

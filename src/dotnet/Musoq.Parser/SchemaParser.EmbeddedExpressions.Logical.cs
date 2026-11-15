@@ -45,6 +45,13 @@ public partial class SchemaParser
 
         switch (Current.TokenType)
         {
+            case TokenType.Is:
+                Consume(TokenType.Is);
+                var negated = Current.TokenType == TokenType.Not;
+                if (negated)
+                    Consume(TokenType.Not);
+                var end = ConsumeAndGetToken(TokenType.Null);
+                return new IsNullNode(left, negated).WithSpan(left.Span.Through(end.Span));
             case TokenType.Equality:
                 Consume(TokenType.Equality);
                 return new EqualityNode(left, ComposeBitwiseOrExpression());

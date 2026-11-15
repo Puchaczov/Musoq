@@ -5,7 +5,7 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private Node ComposeParameterIndexAccess(Node expression)
+    private Node ComposeIndexAccess(Node expression)
     {
         while (Current.TokenType == TokenType.LeftSquareBracket)
         {

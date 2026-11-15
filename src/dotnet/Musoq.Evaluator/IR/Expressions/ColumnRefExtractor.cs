@@ -4,6 +4,8 @@ namespace Musoq.Evaluator.IR.Expressions;
 
 public sealed partial class ColumnRefExtractor : IrExpressionVisitor<IReadOnlyList<ColumnRef>>
 {
+    protected override IReadOnlyList<ColumnRef> VisitMemberAccess(MemberAccess node) => Visit(node.Receiver);
+
     private readonly List<ColumnRef> _columns = [];
 
     public static IReadOnlyList<ColumnRef> Extract(IrExpression expression)

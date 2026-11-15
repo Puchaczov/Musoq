@@ -114,6 +114,7 @@ public partial class InterpreterCodeGenerator
         {
             WhenNode or ThenNode or ElseNode => GenerateConditionExpression(((UnaryNode)condition).Expression),
             CaseNode choice => GenerateCaseExpression(choice),
+            IsNullNode predicate => GenerateNullPredicate(predicate),
             CastNode cast => GenerateStrictCastExpression(cast),
             NullNode => "null",
             NotNode { Expression: NullNode } => "(!((bool?)null))",

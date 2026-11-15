@@ -21,6 +21,7 @@ public static partial class ExecutionExpressionConverter
             typeof(MethodCall),
             typeof(StrictCast),
             typeof(ArrayAccess),
+            typeof(MemberAccess),
             typeof(StructuralRecordLiteral),
             typeof(StructuralArrayLiteral),
             typeof(StructuralConversion),

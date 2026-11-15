@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Nodes;
-using Musoq.Schema.Helpers;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -11,7 +10,8 @@ internal static class CaseExpressionBinding
         CaseNode source,
         IReadOnlyList<(Node When, Node Then)> branches,
         Node otherwise,
-        IReadOnlyList<Type> resultTypes
+        IReadOnlyList<Type> resultTypes,
+        Func<AccessColumnNode, bool> isStableColumn
     )
     {
         var common = SemanticTypeInferenceService.FindGreatestCommonSubtype(resultTypes);
@@ -19,12 +19,13 @@ internal static class CaseExpressionBinding
         var hasNullableSubquery =
             branches.Any(static pair => SubqueryBindingScope.ContainsNullableSubquery(pair.Then))
             || SubqueryBindingScope.ContainsNullableSubquery(otherwise);
-        var type =
-            !hasLiteralNull
-            && !hasNullableSubquery
-            && resultTypes.Any(static type => type.GetUnderlyingNullable() is not null)
-                ? common
-                : BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(common);
+        var type = common;
+        if (
+            hasLiteralNull
+            || hasNullableSubquery
+            || CaseExpressionNullability.HasNullableResult(branches, otherwise, isStableColumn)
+        )
+            type = BuildMetadataAndInferTypesVisitorUtilities.MakeTypeNullable(common);
         var expression = new CaseNode(branches.ToArray(), otherwise, type).CopySpansFrom(source);
         if (!hasLiteralNull)
             return expression;

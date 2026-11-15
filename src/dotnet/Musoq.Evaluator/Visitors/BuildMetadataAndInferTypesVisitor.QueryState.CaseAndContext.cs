@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
@@ -42,12 +43,39 @@ public partial class BuildMetadataAndInferTypesVisitor
             _diagnostics.NullSuspiciousTypes.Add(elseNode.ReturnType ?? typeof(object));
         }
 
-        var result = CaseExpressionBinding.Bind(node, whenThenPairs, elseNode, _diagnostics.NullSuspiciousTypes);
+        var result = CaseExpressionBinding.Bind(
+            node,
+            whenThenPairs,
+            elseNode,
+            _diagnostics.NullSuspiciousTypes,
+            HasStableOptionalCaseSource
+        );
 
         if (enumType != null)
             MarkEnumExpression(result, enumType);
         PushSemanticNode(result);
         _diagnostics.NullSuspiciousTypes.Clear();
+    }
+
+    private bool HasStableOptionalCaseSource(AccessColumnNode column)
+    {
+        var identifier = _semanticState.Subqueries.HasCurrentProcessedQueryId()
+            ? _sourceBinding.CurrentScope[MetaAttributes.ProcessedQueryId]
+            : column.Alias;
+        var scope = _sourceBinding.CurrentScope;
+        while (scope != null)
+        {
+            if (
+                scope.ScopeSymbolTable.TryGetSymbol<TableSymbol>(identifier, out var table)
+                && table.ContainsAlias(column.Alias)
+            )
+            {
+                var source = table.GetColumnByAliasAndName(column.Alias, column.Name);
+                return source?.Stability == ColumnStability.Stable && table.CanAliasBeMissing(column.Alias);
+            }
+            scope = scope.Parent;
+        }
+        return false;
     }
 
     public override void Visit(WhenNode node)

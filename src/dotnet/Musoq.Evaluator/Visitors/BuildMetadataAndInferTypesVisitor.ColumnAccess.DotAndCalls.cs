@@ -86,20 +86,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         var isNestedSchemaReference =
             root.ReturnType == typeof(object)
-            && (
-                (
-                    root is AccessColumnNode { IntendedTypeName: not null } accessColRootCheck
-                    && !string.IsNullOrEmpty(accessColRootCheck.IntendedTypeName)
-                )
-                || (
-                    root is AccessObjectArrayNode { IntendedTypeName: not null } arrayRootCheck
-                    && !string.IsNullOrEmpty(arrayRootCheck.IntendedTypeName)
-                )
-                || (
-                    root is DotNode { IntendedTypeName: not null } dotRootCheck
-                    && !string.IsNullOrEmpty(dotRootCheck.IntendedTypeName)
-                )
-            );
+            && !string.IsNullOrEmpty(InterpretationPropertyBinding.GetIntendedTypeName(root));
 
         if (root.ReturnType.IsAssignableTo(typeof(IDynamicMetaObjectProvider)) || isNestedSchemaReference)
         {
