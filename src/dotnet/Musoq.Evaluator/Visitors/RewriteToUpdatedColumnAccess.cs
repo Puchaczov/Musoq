@@ -59,8 +59,8 @@ public class RewriteToUpdatedColumnAccess(IReadOnlyDictionary<string, string> us
         ArgumentNullException.ThrowIfNull(node);
         base.Visit(
             usedTables.TryGetValue(node.SourceAlias, out var alias)
-                ? new Parser.PropertyFromNode(
-                    node.Alias,
+                ? Parser.PropertyFromNode.Copy(
+                    node,
                     alias,
                     node.PropertiesChain.Select(
                             (p, i) =>

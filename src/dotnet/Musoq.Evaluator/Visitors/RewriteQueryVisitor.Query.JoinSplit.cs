@@ -243,7 +243,7 @@ public sealed partial class RewriteQueryVisitor
 
             var hasSubsequentJoin = i < _joinedTables.Count - 1;
             Func<string, string, string> createRightSelectFieldName =
-                current is ApplyFromNode || hasSubsequentJoin
+                current is ApplyFromNode || hasSubsequentJoin || context.GroupBy != null
                     ? (name, alias) => NamingHelper.ToColumnName(alias, name)
                     : (name, _) => name;
 

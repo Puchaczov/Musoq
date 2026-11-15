@@ -1,4 +1,4 @@
-// === Parsed Query ===
+﻿// === Parsed Query ===
 /*
 binary Body { Value: int le };
 binary Packet {
@@ -32,7 +32,7 @@ MultiStatement
     Apply [Cross]
       CteRef [rpb as rpb]
       InterpretSource [#Entry(rpb.r.Text) as t]
-  Project [rpbt.r.Key as r.Key, rpbt.r.Payload as r.Payload, rpbt.r.Text as r.Text, rpbt.p.Body as p.Body, rpbt.p.Tail as p.Tail, rpbt.t.Level as t.Level, d.Key as Key]
+  Project [rpbt.r.Key as r.Key, rpbt.r.Payload as r.Payload, rpbt.r.Text as r.Text, rpbt.p.Body as p.Body, rpbt.p.Tail as p.Tail, rpbt.t.Level as t.Level, d.Key as d.Key]
     Join [Inner] [(rpbt.r.Key = d.Key)]
       CteRef [rpbt as rpbt]
       SchemaScan [#bench.lookup() as d]

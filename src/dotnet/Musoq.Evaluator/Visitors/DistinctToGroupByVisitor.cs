@@ -27,8 +27,9 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
 
         if (select is { IsDistinct: true } && groupBy == null && !ContainsWindowFunction(select))
         {
-            var groupByFields = CreateGroupByFieldsFromSelect(select);
-            groupBy = new GroupByNode(groupByFields, null);
+            groupBy = Array.Exists(select.Fields, static field => field.Expression is AllColumnsNode)
+                ? new GroupByNode([], null, isAll: true)
+                : new GroupByNode(CreateGroupByFieldsFromSelect(select), null);
 
             var newSelectFields = new FieldNode[select.Fields.Length];
             for (var i = 0; i < select.Fields.Length; i++)

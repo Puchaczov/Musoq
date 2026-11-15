@@ -35,9 +35,9 @@ ExecutionPlan [compiled]
       VolatileValue: int <- property VolatileValue
       Middles: LoopInvariantSampleMiddle[] <- property Middles
     SourceEntity [b: LoopInvariantSampleMiddle]
-      Id: int <- property Id
-      Value: int <- property Value
-      VolatileValue: int <- property VolatileValue
+      Id: int? <- property Id
+      Value: int? <- property Value
+      VolatileValue: int? <- property VolatileValue
       Leaves: LoopInvariantSampleLeaf[] <- property Leaves
     Generated [Statement0Row0]
       a.VolatileValue: int <- field a_VolatileValue

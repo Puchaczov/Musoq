@@ -209,7 +209,7 @@ public partial class CloneQueryVisitor
     public override void Visit(PropertyFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain).CopySpansFrom(node));
+        Nodes.Push(Parser.PropertyFromNode.Copy(node).CopySpansFrom(node));
     }
 
     public override void Visit(SchemaMethodFromNode node)

@@ -1,4 +1,4 @@
-// === Parsed Query ===
+﻿// === Parsed Query ===
 /*
 with expanded as (select r.Key as Id, i.Ordinal as Bucket, r.Amount as Amount
 from bench.rows() r
@@ -67,8 +67,8 @@ ExecutionPlan [compiled]
       Amount: decimal <- property Amount
       Items: int[] <- property Items
     SourceEntity [i: int]
-      Value: int <- direct scalar value
-      Ordinal: int <- apply ordinality iOrdinal
+      Value: int? <- direct scalar value
+      Ordinal: int? <- apply ordinality iOrdinal
     Generated [Cte0Statement0Row0]
       r.Key: int <- field r_Key
       r.Amount: decimal <- field r_Amount

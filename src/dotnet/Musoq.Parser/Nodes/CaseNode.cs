@@ -44,9 +44,9 @@ public class CaseNode((Node When, Node Then)[] whenThenNodesPairs, Node elseNode
             builder.Append(pair.When.ToString());
             builder.Append(' ');
             builder.Append(pair.Then.ToString());
+            builder.Append(' ');
         }
 
-        builder.Append(' ');
         builder.Append(Else.ToString());
         builder.Append(' ');
         builder.Append(EndToken.TokenText);

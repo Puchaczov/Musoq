@@ -165,7 +165,7 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(PropertyFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, node.PropertiesChain));
+        Nodes.Push(Parser.PropertyFromNode.Copy(node));
     }
 
     public void Visit(AliasedFromNode node)

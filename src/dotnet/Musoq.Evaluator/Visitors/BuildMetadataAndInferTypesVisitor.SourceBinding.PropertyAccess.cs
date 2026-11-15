@@ -103,7 +103,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                     currentIntendedName = member.IntendedTypeName;
                 }
 
-                PushSemanticNode(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, resolvedChain));
+                PushSemanticNode(
+                    new Parser.PropertyFromNode(node.Alias, node.SourceAlias, resolvedChain)
+                    {
+                        DeclarationScope = _sourceBinding.CurrentScope,
+                    }
+                );
                 return;
             }
         }
@@ -138,7 +143,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
         }
 
-        PushSemanticNode(new Parser.PropertyFromNode(node.Alias, node.SourceAlias, rewrittenChain));
+        PushSemanticNode(
+            new Parser.PropertyFromNode(node.Alias, node.SourceAlias, rewrittenChain)
+            {
+                DeclarationScope = _sourceBinding.CurrentScope,
+            }
+        );
     }
 
     private void RegisterBinaryArrayElementAlias(string? intendedTypeName)

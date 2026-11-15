@@ -7,6 +7,7 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
+using Musoq.Schema;
 using Musoq.Schema.StructuralInputs;
 using IrNodes = Musoq.Evaluator.IR.Logical.Nodes;
 
@@ -183,7 +184,7 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(PropertyFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var schema = BuildOutputSchema(node.Alias);
+        var schema = BuildPropertyOutputSchema(node);
         var columnIndex = ResolvePropertyColumnIndex(node);
         var resultType = node.ReturnType ?? typeof(object);
         _nodeStack.Push(
@@ -218,52 +219,6 @@ public sealed partial class LogicalPlanBuilder
         }
 
         throw UnsupportedShape.Of($"AST node type '{node.GetType().Name}'");
-    }
-
-    private int ResolvePropertyColumnIndex(PropertyFromNode node)
-    {
-        if (!_inferredColumns.TryGetValue(node.SourceAlias, out var sourceColumns))
-            return -1;
-
-        var propertyName = node.PropertiesChain[0].PropertyName;
-
-        foreach (var column in sourceColumns)
-        {
-            if (string.Equals(column.ColumnName, propertyName, StringComparison.OrdinalIgnoreCase))
-                return column.ColumnIndex;
-        }
-
-        return -1;
-    }
-
-    private OutputSchema BuildOutputSchema(params string?[] aliases)
-    {
-        foreach (var alias in aliases)
-        {
-            if (string.IsNullOrWhiteSpace(alias))
-                continue;
-
-            if (!_inferredColumns.TryGetValue(alias, out var columns))
-                continue;
-
-            var schemaColumns = new ColumnSchema[columns.Length];
-            for (var i = 0; i < columns.Length; i++)
-                schemaColumns[i] = new ColumnSchema(
-                    columns[i].ColumnName,
-                    columns[i].ColumnType,
-                    columns[i].ColumnIndex,
-                    columns[i].IntendedTypeName,
-                    columns[i].SourceReadType,
-                    columns[i].EnumType
-                )
-                {
-                    Stability = columns[i].Stability,
-                };
-
-            return new OutputSchema(schemaColumns);
-        }
-
-        return OutputSchema.Empty;
     }
 
     private static IrNodes.JoinKind MapJoinKind(JoinType joinType) =>

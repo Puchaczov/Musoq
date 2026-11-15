@@ -35,7 +35,7 @@ ExecutionPlan [compiled]
       Name: string <- property Name
       Numbers: int[] <- property Numbers
     SourceEntity [n: int]
-      Value: int <- direct scalar value
+      Value: int? <- direct scalar value
     Generated [Statement0Row0]
       i.Name: string <- field i_Name
       n.Value: int? <- field n_Value
