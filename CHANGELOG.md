@@ -4,6 +4,16 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.19
+
+See the curated release notes for [Musoq Core Engine 17.0.19](release-notes/v17.0.19.md).
+
+- Preserve bindings across wildcard projections, joins, CTEs and DISTINCT.
+- Correct CASE and interpreted-record nullability, indexed source arguments, computed members and generic scalar bindings.
+- Clarify language and interpretation specifications and strengthen query regression coverage.
+- Add retained-campaign README benchmark comparison tooling.
+- Publish seven aligned stable packages with datasource ABI compatibility validation.
+
 ## 17.0.18
 
 See the curated release notes for [Musoq Core Engine 17.0.18](release-notes/v17.0.18.md).
