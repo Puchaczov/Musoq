@@ -97,8 +97,6 @@ where ToLowerInvariant(f.Extension) = '.png'
 order by Path
 ```
 
-Set `root` to the image directory visible to your Musoq instance. The query reads the first 24 bytes, checks the PNG signature and first chunk, and returns each oversized image's path, width, and height. `TryInterpret` skips headers that cannot be decoded; this checks dimensions, not full PNG integrity or pixel data.
-
 ### Find x86 DLLs in an x64 release
 
 Did a 32-bit native DLL slip into an x64 package? Read the DOS header's offset to the PE header, then filter DLLs by their machine type.
@@ -122,8 +120,6 @@ where ToLowerInvariant(f.Extension) = '.dll'
 order by Path
 ```
 
-Set `root` to your native DLL directory. The query reads file bytes without loading or executing the DLLs and returns x86 headers; `TryInterpret` skips headers it cannot decode. This is a header check, not full executable validation. Use it for native DLLs: managed .NET assemblies, including AnyCPU builds, need additional checks to determine runtime compatibility.
-
 ### Inspect a ZIP without extracting it
 
 What is inside a release archive? Query the ZIP's file size and modification time alongside each file's full entry name, original and compressed sizes, and timestamp.
@@ -143,8 +139,6 @@ from os.file($archive) f
 cross join os.zip($archive) e
 order by Entry
 ```
-
-Set `archive` to a ZIP path visible to your Musoq instance. Each row describes a file inside the archive, with the ZIP's own metadata repeated alongside it. Entry names retain their folder paths; directory-only entries are omitted, and an empty ZIP returns no rows. This example uses the provider's built-in ZIP reader rather than a custom binary declaration.
 
 ## Performance
 
@@ -198,14 +192,6 @@ Musoq also does not automatically cache arbitrary source or plugin calls. A chan
 The current execution model is primarily row-oriented and managed.
 
 The benchmark suite measures execution, first compilation, warmed compilation, and artifact loading separately. I care about both a query I run once to answer a question and one I keep running, so compilation time matters too. I want to try an optimization, measure its time and allocations before and after, and check that the results stay correct.
-
-## Using Musoq to develop Musoq
-
-I also use Musoq on its own development data, from querying its parser sources to checking this README's investigation query against known inputs.
-
-The release-trend charts on this page are another example. Their comparison query uses SQL window functions to find each benchmark's preceding recorded version and calculate changes in execution time and managed allocations. The chart generator validates campaign compatibility and exports the selected JSON measurements to CSV for Musoq to read, then uses the query results to render the SVGs. The comparison inputs, SQL, and results are retained for inspection and reproduction.
-
-This exercises the query engine with its own benchmark results and makes the analysis part of the repository. Using Musoq during development also gives me practical feedback on source discovery, query writing, diagnostics, and result handling.
 
 ## SQL features at a glance
 
