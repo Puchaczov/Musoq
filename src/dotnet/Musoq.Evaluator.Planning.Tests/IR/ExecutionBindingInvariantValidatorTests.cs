@@ -5,7 +5,7 @@ using Musoq.Evaluator.IR.Execution;
 namespace Musoq.Evaluator.Tests.IR;
 
 [TestClass]
-public sealed class ExecutionBindingInvariantValidatorTests
+public sealed partial class ExecutionBindingInvariantValidatorTests
 {
     [TestMethod]
     public void Validate_WhenKnownFieldHasNoAccessStrategy_ShouldRejectBeforeRendering()

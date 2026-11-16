@@ -9,7 +9,7 @@ namespace Musoq.Evaluator.IR.Execution;
 /// must never have to guess how a field is read when the field belongs to a
 /// known row shape.
 /// </summary>
-internal static class ExecutionBindingInvariantValidator
+internal static partial class ExecutionBindingInvariantValidator
 {
     public static void Validate(ExecutionPlan plan)
     {
@@ -27,44 +27,7 @@ internal static class ExecutionBindingInvariantValidator
                 StringComparer.OrdinalIgnoreCase
             );
 
-        foreach (var fieldRead in ExecutionIrAnalysis.CollectExpressions<ExecutionFieldRead>(plan.Body))
-        {
-            if (
-                string.IsNullOrWhiteSpace(fieldRead.Alias)
-                || !shapesByAlias.TryGetValue(fieldRead.Alias, out var shapes)
-            )
-                continue;
-
-            var accessStrategy = fieldRead.AccessStrategy;
-            if (accessStrategy == null)
-            {
-                if (shapes.Any(shape => IsUnresolvedIndexedField(shape, fieldRead.FieldName)))
-                {
-                    throw new InvalidOperationException(
-                        $"Execution binding invariant violated: field '{fieldRead.Alias}.{fieldRead.FieldName}' "
-                            + "belongs to a known row carrier but has no access strategy. Lowering must resolve the "
-                            + "carrier-specific binding before rendering."
-                    );
-                }
-
-                continue;
-            }
-
-            foreach (var shape in shapes)
-            {
-                if (
-                    TryFindField(shape, fieldRead.FieldName, out var field)
-                    && !IsCompatible(field.AccessStrategy, accessStrategy)
-                )
-                {
-                    throw new InvalidOperationException(
-                        $"Execution binding invariant violated: field '{fieldRead.Alias}.{fieldRead.FieldName}' "
-                            + $"uses '{accessStrategy.GetType().Name}' for carrier '{shape.GetType().Name}', "
-                            + $"but its declared binding is '{field.AccessStrategy.GetType().Name}'."
-                    );
-                }
-            }
-        }
+        ValidateBlockBindings(plan.Body, shapesByAlias, new SourceBindingScope(null));
 
         foreach (var sourceScan in ExecutionIrAnalysis.FlattenNodes(plan.Body).OfType<ExecutionSourceScan>())
         {
@@ -72,6 +35,37 @@ internal static class ExecutionBindingInvariantValidator
                 continue;
 
             ValidateQueryRowTransfer(sourceScan, transfer);
+        }
+    }
+
+    private static void ValidateFieldRead(ExecutionFieldRead fieldRead, IReadOnlyList<RowShape> shapes)
+    {
+        var accessStrategy = fieldRead.AccessStrategy;
+        if (accessStrategy == null)
+        {
+            if (shapes.Any(shape => IsUnresolvedIndexedField(shape, fieldRead.FieldName)))
+                throw new InvalidOperationException(
+                    $"Execution binding invariant violated: field '{fieldRead.Alias}.{fieldRead.FieldName}' "
+                        + "belongs to a known row carrier but has no access strategy. Lowering must resolve the "
+                        + "carrier-specific binding before rendering."
+                );
+
+            return;
+        }
+
+        foreach (var shape in shapes)
+        {
+            if (
+                TryFindField(shape, fieldRead.FieldName, out var field)
+                && !IsCompatible(field.AccessStrategy, accessStrategy)
+            )
+            {
+                throw new InvalidOperationException(
+                    $"Execution binding invariant violated: field '{fieldRead.Alias}.{fieldRead.FieldName}' "
+                        + $"uses '{accessStrategy.GetType().Name}' for carrier '{shape.GetType().Name}', "
+                        + $"but its declared binding is '{field.AccessStrategy.GetType().Name}'."
+                );
+            }
         }
     }
 

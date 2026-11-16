@@ -163,6 +163,7 @@ namespace GeneratedSample_Q344_StructuredSetCteArgument
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 List<Cte0LeftRow0> cte0Left = null!;
                 List<Cte0RightRow0> cte0Right = null!;
+                List<Cte0LeftRow0> cte0 = null!;
                 try
                 {
                     OnPhaseChanged("compiled:left", QueryPhase.Begin);
@@ -198,7 +199,7 @@ namespace GeneratedSample_Q344_StructuredSetCteArgument
                     }
 
                     OnPhaseChanged("compiled:right", QueryPhase.End);
-                    var cte0 = new List<Cte0LeftRow0>(cte0Left.Count + cte0Right.Count);
+                    cte0 = new List<Cte0LeftRow0>(cte0Left.Count + cte0Right.Count);
                     foreach (var cte0LeftRow in cte0Left)
                     {
                         cte0.Add(cte0LeftRow);

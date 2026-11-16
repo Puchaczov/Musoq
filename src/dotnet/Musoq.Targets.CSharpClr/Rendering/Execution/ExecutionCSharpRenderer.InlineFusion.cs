@@ -86,7 +86,12 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var begin = RenderNode(nodes[beginIndex], context).ToArray();
         var bodyNodes = nodes.Skip(beginIndex + 1).Take(endIndex - beginIndex - 1).ToArray();
-        var hoistedTables = bodyNodes.OfType<ExecutionCreateTable>().ToArray();
+        var hoistedTables = bodyNodes
+            .OfType<ExecutionCreateTable>()
+            .Select(static create => create.Table)
+            .Concat(bodyNodes.OfType<ExecutionSetOperation>().Select(static operation => operation.Target))
+            .DistinctBy(static table => table.Name, StringComparer.Ordinal)
+            .ToArray();
         var hoistedLibraries = bodyNodes.OfType<ExecutionCreateAggregateLibrary>().ToArray();
         var hoistedObjects = bodyNodes.OfType<ExecutionCreateObject>().ToArray();
         var hoistedStoredRowsCaches = ExecutionPhaseScopeStoredRowsHoister.Find(
@@ -150,20 +155,19 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private LocalDeclarationStatementSyntax CreateHoistedTableDeclaration(
-        ExecutionCreateTable createTable,
+        ExecutionVariable table,
         ExecutionRenderContext context
     )
     {
         TypeSyntax type =
-            TryGetFinalShapeSourceBuffer(createTable.Table.Name, context, out var finalShapeBuffer)
+            TryGetFinalShapeSourceBuffer(table.Name, context, out var finalShapeBuffer)
                 ? CreateListTypeSyntax(finalShapeBuffer.ShapeTypeName)
-            : TryGetTypedRowBufferShape(createTable.Table.Name, context, out var rowShape)
-                ? CreateListTypeSyntax(rowShape.TypeName)
+            : TryGetTypedRowBufferShape(table.Name, context, out var rowShape) ? CreateListTypeSyntax(rowShape.TypeName)
             : CreateTypeSyntax(typeof(Table));
 
         return CreateLocalDeclaration(
             type,
-            createTable.Table.Name,
+            table.Name,
             SyntaxFactory.PostfixUnaryExpression(
                 SyntaxKind.SuppressNullableWarningExpression,
                 SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
@@ -173,7 +177,7 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static StatementSyntax RewriteHoistedDeclaration(
         StatementSyntax statement,
-        IReadOnlyList<ExecutionCreateTable> hoistedTables,
+        IReadOnlyList<ExecutionVariable> hoistedTables,
         IReadOnlyList<ExecutionCreateAggregateLibrary> hoistedLibraries,
         IReadOnlyList<ExecutionCreateObject> hoistedObjects
     )
@@ -183,7 +187,7 @@ public sealed partial class ExecutionCSharpRenderer
             || declaration.Declaration.Variables is not [var variable]
             || variable.Initializer is not { Value: var initializer }
             || !hoistedTables.Any(table =>
-                string.Equals(table.Table.Name, variable.Identifier.ValueText, StringComparison.Ordinal)
+                string.Equals(table.Name, variable.Identifier.ValueText, StringComparison.Ordinal)
             )
                 && !hoistedLibraries.Any(library =>
                     string.Equals(library.Library.Name, variable.Identifier.ValueText, StringComparison.Ordinal)

@@ -236,6 +236,7 @@ namespace GeneratedSample_Q273_SpecCoreCorrelatedScalarSetOperation
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
                 Musoq.Evaluator.Tables.Table cte0Left = null!;
                 Musoq.Evaluator.Tables.Table cte0Right = null!;
+                Musoq.Evaluator.Tables.Table cte0 = null!;
                 try
                 {
                     OnPhaseChanged("compiled:left", QueryPhase.Begin);
@@ -390,7 +391,7 @@ namespace GeneratedSample_Q273_SpecCoreCorrelatedScalarSetOperation
                     }
 
                     OnPhaseChanged("compiled:right", QueryPhase.End);
-                    var cte0 = new Table("cte0", __columns_compiled_cte0Left_1);
+                    cte0 = new Table("cte0", __columns_compiled_cte0Left_1);
                     var cte0Keys = new HashSet<ValueTuple<string, string>>(cte0Left.Rows.Count + cte0Right.Rows.Count);
                     foreach (var cte0LeftRow in EvaluationHelper.CastGeneratedRows<Cte0LeftRow0>(cte0Left.Rows))
                     {
