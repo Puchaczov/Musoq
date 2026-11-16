@@ -36,17 +36,22 @@ internal sealed partial class PhysicalLoweringImplementation
             )
         );
 
+        var shapes = CreateAggregateResultShapes(
+            completion.SourceShapes,
+            completion.Aggregate.Group.Plan,
+            completion.ResultShape
+        );
+        if (completion.FinalProjection != null)
+            shapes = [.. shapes, completion.FinalProjection.RowShape];
+
         return CompleteTableBuild(
-            CreateAggregateResultShapes(
-                completion.SourceShapes,
-                completion.Aggregate.Group.Plan,
-                completion.ResultShape
-            ),
+            shapes,
             nodes,
             completion.ResultTable,
             completion.ResultShape,
             completion.PostOperations,
-            completion.IsDistinct
+            completion.IsDistinct,
+            completion.FinalProjection
         );
     }
 

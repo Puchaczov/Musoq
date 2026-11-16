@@ -70,9 +70,20 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var aggregateScopeName = CreateAggregateScopeName(resultTableName, scopeAggregateVariables);
         var currentGroup = CreateAggregateGroupVariable(aggregateScopeName, "group");
-        var outputFields = NormalizeProjectedFieldIndexes(pipeline.Project.Fields);
-        var resultShape = CreateGeneratedShape(resultShapeName, outputFields);
-        var resultTable = new ExecutionVariable(resultTableName, typeof(object));
+        var projectionAttempt = CreateAggregatePostOperationProjection(
+            resultTableName,
+            resultShapeName,
+            NormalizeProjectedFieldIndexes(pipeline.Project.Fields),
+            pipeline.PostOperations,
+            sourceLookup
+        );
+        if (!projectionAttempt.IsBuilt)
+            return TableBuildResult.Unsupported(projectionAttempt.UnsupportedReason);
+
+        var projection = projectionAttempt.Value;
+        var outputFields = projection.MaterializedFields;
+        var resultShape = projection.WorkingShape;
+        var resultTable = projection.WorkingTable;
         var rootGroup = CreateAggregateGroupVariable(aggregateScopeName, "rootGroup");
         var groupsToFinalize = CreateAggregateGroupVariable(aggregateScopeName, "groupsToFinalize");
         var finalGroup = CreateAggregateGroupVariable(aggregateScopeName, "finalGroup");
@@ -88,7 +99,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 pipeline.Bindings,
                 outputFields,
                 pipeline.HavingPredicate,
-                pipeline.PostOperations,
+                projection.PostOperations,
                 finalizationGroupKeys,
                 currentGroup,
                 finalGroup,
@@ -160,8 +171,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 groupsToFinalize,
                 finalGroup,
                 finalBlock.Value,
-                pipeline.PostOperations,
-                pipeline.Project.IsDistinct
+                projection.PostOperations,
+                pipeline.Project.IsDistinct,
+                projection.FinalProjection
             )
         );
     }

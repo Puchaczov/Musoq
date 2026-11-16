@@ -96,7 +96,8 @@ internal sealed record AggregateTableCompletion(
     ExecutionVariable FinalGroup,
     ExecutionBlock FinalBlock,
     IReadOnlyList<PostOperation> PostOperations,
-    bool IsDistinct
+    bool IsDistinct,
+    TableProjection? FinalProjection = null
 );
 
 internal sealed record AggregateSetBuildResult(

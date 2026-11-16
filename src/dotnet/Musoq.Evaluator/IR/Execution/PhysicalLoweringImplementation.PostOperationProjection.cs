@@ -46,4 +46,18 @@ internal sealed partial class PhysicalLoweringImplementation
             ? null
             : unsupportedReason;
     }
+
+    private LoweringAttempt<PostOperationProjection> CreateAggregatePostOperationProjection(
+        string resultTableName,
+        string resultShapeName,
+        ProjectedField[] publicFields,
+        IReadOnlyList<PostOperation> postOperations,
+        IReadOnlyDictionary<string, RowShape> sourceLookup
+    )
+    {
+        return new PostOperationProjectionPlanner(
+            (name, fields, _) => CreateGeneratedShape(name, fields),
+            ValidateHiddenSortFieldPruning
+        ).Create(resultTableName, resultShapeName, publicFields, postOperations, sourceLookup);
+    }
 }

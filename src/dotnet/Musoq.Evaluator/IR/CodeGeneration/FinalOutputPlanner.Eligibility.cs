@@ -103,6 +103,13 @@ internal static partial class FinalOutputPlanner
         if (block.Nodes.OfType<ExecutionSetOperation>().Any(setOperation => setOperation.Target.Name == finalTableName))
             return true;
 
+        if (
+            block
+                .Nodes.OfType<ExecutionProjectTable>()
+                .Any(project => project.Target.Name == finalTableName && project.FieldIndexes.Count == columnCount)
+        )
+            return true;
+
         return block.Nodes.Any(node => IsSupportedFinalShapePostOperation(node, finalTableName));
     }
 

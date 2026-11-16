@@ -23,6 +23,24 @@ public sealed partial class ExecutionCSharpRenderer
                     )
             )
             .ToArray();
+        if (IsFinalShapeTarget(project.Target, context))
+            return
+            [
+                StatementEmitter.CreateForeach(
+                    rowVariableName,
+                    CreateTableRowsRead(project.Source.Name),
+                    StatementEmitter.CreateBlock(
+                        CreateFinalShapeOutputStatement(
+                            CreateFinalShapeCreation(
+                                context.Session.FinalShapeYieldSink!.ShapeTypeName,
+                                rowValues.Select(SyntaxFactory.Argument)
+                            ),
+                            context
+                        )
+                    )
+                ),
+            ];
+
         var rowCreation =
             project.RowShape.Contexts.Count == 0
             || !GeneratedRowTypeUsesContextConstructor(project.RowShape.TypeName, context)

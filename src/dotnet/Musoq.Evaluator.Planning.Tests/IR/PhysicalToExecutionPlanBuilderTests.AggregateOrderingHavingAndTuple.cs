@@ -1,5 +1,7 @@
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -7,6 +9,41 @@ namespace Musoq.Evaluator.Tests.IR;
 
 public sealed partial class PhysicalToExecutionPlanBuilderTests
 {
+    [TestMethod]
+    public void Build_WhenGroupedOrderKeyIsNotProjected_ShouldRetainHiddenKeyUntilFinalProjection()
+    {
+        var key = new ColumnRef("p", "Age", typeof(int));
+        var aggregate = new PhysicalSingleKeyAggregateNode(
+            key,
+            "p.Age",
+            typeof(int),
+            [CreateCountBinding()],
+            CreateScan()
+        );
+        var project = new PhysicalProjectNode(
+            [
+                new ProjectedField(
+                    "NextAge",
+                    new BinaryOp(BinaryOpKind.Add, key, new Literal(1, typeof(int)), typeof(int)),
+                    0
+                ),
+            ],
+            aggregate
+        );
+        var sort = new PhysicalSortNode([new OrderField(key, Descending: false)], project);
+
+        var plan = RequireExecutionPlan(CreateSerialBuilder().Build(sort, "GroupedHiddenOrderKey"));
+
+        var ordering = CollectNodes<ExecutionSortTable>(plan.Body).Single();
+        var projection = CollectNodes<ExecutionProjectTable>(plan.Body).Single();
+        Assert.AreEqual("__sortKey0", ordering.Keys.Single().FieldName);
+        Assert.AreEqual(ordering.Target, projection.Source);
+        CollectionAssert.AreEqual(new[] { 0 }, projection.FieldIndexes.ToArray());
+        Assert.HasCount(1, projection.RowShape.Fields);
+        Assert.AreEqual("NextAge", projection.RowShape.Fields[0].Name);
+        Assert.IsEmpty(projection.RowShape.Contexts);
+    }
+
     [TestMethod]
     public void Build_WhenPlanHasSingleKeyAggregateWithAggregateOrderBy_ShouldReturnSortedAggregateExecutionPlan()
     {
