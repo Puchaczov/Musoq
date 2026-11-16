@@ -51,10 +51,10 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
 
         join = joins.Pop();
         join.Source.Accept(this);
+        var sourceIdentifier = ResolveSourceIdentifier(join.Source);
         join.With.Accept(this);
 
-        var sourceId = join.Source is ApplyFromNode ? MetaAttributes.ProcessedQueryId : join.Source.Id;
-        var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[sourceId]);
+        var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(sourceIdentifier);
         var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[join.With.Id]);
         secondTableSymbol = ApplyOrdinalityIfNeeded(join, Scope[join.With.Id], secondTableSymbol);
 
@@ -62,7 +62,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         if (MakesLeftSideNullable(join.JoinType))
         {
             firstTableSymbol = firstTableSymbol.MakeNullableIfPossible();
-            Scope.ScopeSymbolTable.UpdateSymbol(Scope[sourceId], firstTableSymbol);
+            Scope.ScopeSymbolTable.UpdateSymbol(sourceIdentifier, firstTableSymbol);
         }
 
         if (MakesRightSideNullable(join.JoinType))
@@ -71,7 +71,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
             Scope.ScopeSymbolTable.UpdateSymbol(Scope[join.With.Id], secondTableSymbol);
         }
 
-        var id = $"{Scope[sourceId]}{Scope[join.With.Id]}";
+        var id = $"{sourceIdentifier}{Scope[join.With.Id]}";
 
         Scope.ScopeSymbolTable.AddSymbol(id, firstTableSymbol.MergeSymbols(secondTableSymbol));
         Scope[MetaAttributes.ProcessedQueryId] = id;
@@ -135,11 +135,11 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
         apply = applies.Pop();
         apply.Source.Accept(this);
 
-        var sourceId = apply.Source is JoinFromNode ? MetaAttributes.ProcessedQueryId : apply.Source.Id;
-        SetApplyInputSource(Scope[sourceId]);
+        var sourceIdentifier = ResolveSourceIdentifier(apply.Source);
+        SetApplyInputSource(sourceIdentifier);
         apply.With.Accept(this);
 
-        var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[sourceId]);
+        var firstTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(sourceIdentifier);
         var secondTableSymbol = Scope.ScopeSymbolTable.GetSymbol<TableSymbol>(Scope[apply.With.Id]);
         secondTableSymbol = ApplyOrdinalityIfNeeded(apply, Scope[apply.With.Id], secondTableSymbol);
 
@@ -155,7 +155,7 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor
                 throw new InvalidOperationException($"Unsupported apply type '{apply.ApplyType}'.");
         }
 
-        var id = $"{Scope[sourceId]}{Scope[apply.With.Id]}";
+        var id = $"{sourceIdentifier}{Scope[apply.With.Id]}";
 
         Scope.ScopeSymbolTable.AddSymbol(
             id,

@@ -4,6 +4,17 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.20
+
+See the curated release notes for [Musoq Core Engine 17.0.20](release-notes/v17.0.20.md).
+
+- Preserve typed grouping keys through ordering and paging when result projections format or hide those keys.
+- Resolve interpreted collection fields against the active alias scope across CTEs and UNION branches.
+- Keep nested aggregate UNION results available outside generated query phase blocks.
+- Correct composite APPLY source resolution when interpretation is combined with scalar subqueries.
+- Preserve nullable-index diagnostics and datasource public contracts, with reduced query regressions and unchanged-provider binary checks.
+- Publish seven aligned stable packages with datasource ABI validation against the preceding published same-major versions.
+
 ## 17.0.19
 
 See the curated release notes for [Musoq Core Engine 17.0.19](release-notes/v17.0.19.md).

@@ -1,11 +1,23 @@
 using System.Linq;
+using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.From;
 
 namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesTraverseVisitor
 {
+    private string ResolveSourceIdentifier(FromNode source)
+    {
+        return source switch
+        {
+            ExpressionFromNode expression => ResolveSourceIdentifier(expression.Expression),
+            JoinFromNode or ApplyFromNode or JoinNode or ApplyNode => Scope[MetaAttributes.ProcessedQueryId],
+            _ => Scope[source.Id],
+        };
+    }
+
     private static TableSymbol CreateJoinOutputSymbol(
         JoinType joinType,
         string outputId,

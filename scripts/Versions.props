@@ -1,11 +1,11 @@
 <Project>
     <PropertyGroup>
-        <MusoqParserVersion>17.0.19</MusoqParserVersion>
-        <MusoqFormatterVersion>17.0.19</MusoqFormatterVersion>
-        <MusoqPluginsVersion>17.0.19</MusoqPluginsVersion>
-        <MusoqSchemaVersion>17.0.19</MusoqSchemaVersion>
-        <MusoqEvaluatorVersion>17.0.19</MusoqEvaluatorVersion>
-        <MusoqConverterVersion>17.0.19</MusoqConverterVersion>
-        <MusoqBenchmarksScenariosVersion>17.0.19</MusoqBenchmarksScenariosVersion>
+        <MusoqParserVersion>17.0.20</MusoqParserVersion>
+        <MusoqFormatterVersion>17.0.20</MusoqFormatterVersion>
+        <MusoqPluginsVersion>17.0.20</MusoqPluginsVersion>
+        <MusoqSchemaVersion>17.0.20</MusoqSchemaVersion>
+        <MusoqEvaluatorVersion>17.0.20</MusoqEvaluatorVersion>
+        <MusoqConverterVersion>17.0.20</MusoqConverterVersion>
+        <MusoqBenchmarksScenariosVersion>17.0.20</MusoqBenchmarksScenariosVersion>
     </PropertyGroup>
 </Project>

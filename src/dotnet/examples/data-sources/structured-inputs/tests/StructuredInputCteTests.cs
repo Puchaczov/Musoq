@@ -76,7 +76,8 @@ public sealed class StructuredInputCteTests
             inspection.ExecutionPlanText,
             "StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0LeftRow0>]"
         );
-        StringAssert.Contains(inspection.GeneratedCSharpCode, "var cte0 = new List<Cte0LeftRow0>");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "List<Cte0LeftRow0> cte0 = null!;");
+        StringAssert.Contains(inspection.GeneratedCSharpCode, "cte0 = new List<Cte0LeftRow0>");
         StringAssert.Contains(inspection.GeneratedCSharpCode, "new Cte0LeftRow0((string)cte0RightRow.Id");
         Assert.IsFalse(
             inspection.GeneratedCSharpCode.Contains("CastGeneratedRows<Cte0LeftRow0>", StringComparison.Ordinal)
