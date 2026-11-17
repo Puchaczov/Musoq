@@ -14,12 +14,17 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static MemberDeclarationSyntax CreateOrderRecordComparerClass(ExecutionCreateBoundedRecordList orderRecords)
     {
-        return CreateOrderRecordComparerClass(orderRecords.RecordShape, orderRecords.Keys);
+        return CreateOrderRecordComparerClass(
+            orderRecords.RecordShape,
+            orderRecords.Keys,
+            orderRecords.UsesSingleRecordBuffer
+        );
     }
 
     private static MemberDeclarationSyntax CreateOrderRecordComparerClass(
         GeneratedRecordShape recordShape,
-        IReadOnlyList<ExecutionOrderField> keys
+        IReadOnlyList<ExecutionOrderField> keys,
+        bool emitSingleRecordBuffer = false
     )
     {
         var typeName = CreateOrderRecordComparerTypeName(recordShape);
@@ -43,10 +48,48 @@ public sealed partial class ExecutionCSharpRenderer
 
         body.Add("        return left.__ordinal.CompareTo(right.__ordinal);");
         body.Add("    }");
+        if (emitSingleRecordBuffer)
+            body.Add(EmitSingleRecordBuffer(recordTypeName));
         body.Add("}");
 
         return SyntaxFactory.ParseMemberDeclaration(string.Join(Environment.NewLine, body))!;
     }
+
+    private static string EmitSingleRecordBuffer(string recordTypeName) =>
+        $$"""
+            public struct SingleRecordBuffer
+            {
+                private {{recordTypeName}} _best;
+                private bool _hasRecord;
+
+                public int Count { get; private set; }
+
+                public void Add({{recordTypeName}} candidate)
+                {
+                    Count++;
+                    if (!_hasRecord || Instance.Compare(candidate, _best) < 0)
+                    {
+                        _best = candidate;
+                        _hasRecord = true;
+                    }
+                }
+
+                public Enumerator GetEnumerator() => new Enumerator(_best, _hasRecord);
+
+                public struct Enumerator({{recordTypeName}} record, bool hasRecord)
+                {
+                    private bool _pending = hasRecord;
+                    public {{recordTypeName}} Current => record;
+
+                    public bool MoveNext()
+                    {
+                        var pending = _pending;
+                        _pending = false;
+                        return pending;
+                    }
+                }
+            }
+            """;
 
     private static string CreateOrderRecordComparisonExpression(FieldBinding field, Type keyType)
     {

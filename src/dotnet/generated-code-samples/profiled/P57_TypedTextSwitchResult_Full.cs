@@ -544,13 +544,24 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new Arm();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Payload");
-                var __musoqReadResult0 = base.ReadRestStatus(data, fieldName: "Payload");
-                if (!__musoqReadResult0.Succeeded)
+                string _payload;
+                if ((uint)ParsePosition <= (uint)data.Length)
                 {
-                    return global::Musoq.Schema.Interpreters.ParseAttempt<Arm>.Failed(__parsedValue, __musoqReadResult0.Failure!);
+                    _payload = data[ParsePosition..].ToString();
+                    ParsePosition = data.Length;
+                }
+                else
+                {
+                    var __musoqReadResult1 = base.ReadRestStatus(data, fieldName: "Payload");
+                    if (!__musoqReadResult1.Succeeded)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<Arm>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                    }
+
+                    var __musoqDelimitedFallback0 = __musoqReadResult1.Value!;
+                    _payload = __musoqDelimitedFallback0;
                 }
 
-                var _payload = __musoqReadResult0.Value!;
                 __parsedValue.Payload = _payload;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Arm>.Success(__parsedValue);

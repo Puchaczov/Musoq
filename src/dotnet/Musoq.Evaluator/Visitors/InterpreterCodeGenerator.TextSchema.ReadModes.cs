@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -16,6 +17,50 @@ public partial class InterpreterCodeGenerator
             $"base.ExpectLiteralStatus(ref {_textInputName}, \"{escapedLiteral}\", fieldName: \"{fieldName}\"{modifierArgs})",
             isDiscard
         );
+    }
+
+    private string GenerateDirectDelimitedRead(BoundTextField field)
+    {
+        var value = field.LocalVariableName;
+        var fallback = NextStatusName("__musoqDelimitedFallback");
+        var read = GenerateTextFieldReadCode(field.Source, fallback, false);
+        var builder = new StringBuilder();
+        builder.AppendLine($"string {value};");
+        if (field.Source.FieldType == TextFieldType.Until)
+            AppendDirectUntilRead(builder, value, field.Source.PrimaryValue![0]);
+        else
+        {
+            builder.AppendLine("if ((uint)ParsePosition <= (uint)data.Length)");
+            builder.AppendLine("{");
+            builder.AppendLine($"    {value} = data[ParsePosition..].ToString();");
+            builder.AppendLine("    ParsePosition = data.Length;");
+            builder.AppendLine("}");
+        }
+
+        builder.AppendLine("else");
+        builder.AppendLine("{");
+        builder.Append(Indent(read, 1));
+        builder.AppendLine($"    {value} = {fallback};");
+        builder.AppendLine("}");
+        return builder.ToString();
+    }
+
+    private void AppendDirectUntilRead(StringBuilder builder, string value, char delimiter)
+    {
+        var remaining = NextStatusName("__musoqRemainingText");
+        var index = NextStatusName("__musoqDelimiterIndex");
+        builder.AppendLine(
+            $"var {remaining} = (uint)ParsePosition <= (uint)data.Length ? data[ParsePosition..] : default;"
+        );
+        builder.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"var {index} = {remaining}.IndexOf('\\u{(int)delimiter:X4}');"
+        );
+        builder.AppendLine($"if ({index} >= 0)");
+        builder.AppendLine("{");
+        builder.AppendLine($"    {value} = {remaining}[..{index}].ToString();");
+        builder.AppendLine($"    ParsePosition += {index} + 1;");
+        builder.AppendLine("}");
     }
 
     private string GenerateUntilCode(TextFieldDefinitionNode field, string localVar, bool isDiscard)

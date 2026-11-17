@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 using Musoq.Schema;
+using Musoq.Schema.Diagnostics;
 
 namespace Musoq.Evaluator;
 
@@ -84,8 +85,14 @@ public sealed class QueryRunContext
         }
     }
 
+    private DataSourceWarningCollector? _dataSourceWarnings;
+
     /// <summary>Warnings are isolated to this query execution.</summary>
-    public Musoq.Schema.Diagnostics.DataSourceWarningCollector DataSourceWarnings { get; init; } = new();
+    public DataSourceWarningCollector DataSourceWarnings
+    {
+        get => LazyInitializer.EnsureInitialized(ref _dataSourceWarnings);
+        init => _dataSourceWarnings = value;
+    }
 
     public IReadOnlyDictionary<
         string,
@@ -136,7 +143,7 @@ public sealed class QueryRunContext
         )
         {
             TypedParameters = options.TypedParameters,
-            DataSourceWarnings = options.DataSourceWarnings ?? new(),
+            _dataSourceWarnings = options.DataSourceWarnings,
         };
     }
 
@@ -150,7 +157,7 @@ public sealed class QueryRunContext
         QueryProgressOptions? queryProgressOptions,
         object sender,
         string queryId,
-        Musoq.Schema.Diagnostics.DataSourceWarningCollector? dataSourceWarnings = null
+        DataSourceWarningCollector? dataSourceWarnings = null
     )
     {
         ArgumentNullException.ThrowIfNull(binding);
@@ -174,7 +181,7 @@ public sealed class QueryRunContext
             queryProgressOptions
         )
         {
-            DataSourceWarnings = dataSourceWarnings ?? new(),
+            _dataSourceWarnings = dataSourceWarnings,
         };
     }
 

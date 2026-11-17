@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.CodeGeneration;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Optimization.Execution;
 
@@ -59,6 +60,7 @@ internal static class SubqueryExecutionLowering
         )
         {
             Comparison = expression.Comparison,
+            StreamsScalar = planning.StreamsScalar && SupportsScalarStream(plan),
             CteBindings = ExecutionIrCollections.Freeze(shapes.Subqueries.Get(expression.Identifier)),
             CapturedCteValues = ExecutionIrCollections.Freeze(
                 shapes.Subqueries.Get(expression.Identifier).Select(static binding => binding.Capture).ToArray()
@@ -72,5 +74,22 @@ internal static class SubqueryExecutionLowering
                     .ToArray()
             ),
         };
+    }
+
+    private static bool SupportsScalarStream(ExecutionPlan plan)
+    {
+        if (!TableViaRowsResultInfoResolver.TryResolveRenderPlan(plan, out var renderPlan))
+            return false;
+
+        var output = renderPlan.FinalSinkPlans.TableOutput;
+        if (!output.IsSupported || output.BufferFinalRows || output.OwnedBuffer is not null)
+            return false;
+
+        var tableName = renderPlan.ResultInfo.TableName;
+        var appends = ExecutionIrAnalysis
+            .FlattenNodes(plan.Body)
+            .OfType<ExecutionAppendRow>()
+            .Where(append => append.Table.Name == tableName);
+        return appends.Take(2).ToArray() is [{ Values.Count: 1 }];
     }
 }

@@ -17,4 +17,6 @@ public sealed record BoundTextInterpretationPlan
 
     /// <summary>Gets the fields in declaration order.</summary>
     public required IReadOnlyList<BoundTextField> Fields { get; init; }
+
+    internal bool UsesDirectDelimitedReads { get; init; }
 }

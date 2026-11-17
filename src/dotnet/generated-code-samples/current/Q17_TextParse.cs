@@ -368,33 +368,70 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new LogLine();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Timestamp");
-                var __musoqReadResult0 = base.ReadUntilStatus(data, " ", fieldName: "Timestamp");
-                if (!__musoqReadResult0.Succeeded)
+                string _timestamp;
+                var __musoqRemainingText2 = (uint)ParsePosition <= (uint)data.Length ? data[ParsePosition..] : default;
+                var __musoqDelimiterIndex3 = __musoqRemainingText2.IndexOf('\u0020');
+                if (__musoqDelimiterIndex3 >= 0)
                 {
-                    return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult0.Failure!);
+                    _timestamp = __musoqRemainingText2[..__musoqDelimiterIndex3].ToString();
+                    ParsePosition += __musoqDelimiterIndex3 + 1;
+                }
+                else
+                {
+                    var __musoqReadResult1 = base.ReadUntilStatus(data, " ", fieldName: "Timestamp");
+                    if (!__musoqReadResult1.Succeeded)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                    }
+
+                    var __musoqDelimitedFallback0 = __musoqReadResult1.Value!;
+                    _timestamp = __musoqDelimitedFallback0;
                 }
 
-                var _timestamp = __musoqReadResult0.Value!;
                 __parsedValue.Timestamp = _timestamp;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Level");
-                var __musoqReadResult1 = base.ReadUntilStatus(data, " ", fieldName: "Level");
-                if (!__musoqReadResult1.Succeeded)
+                string _level;
+                var __musoqRemainingText6 = (uint)ParsePosition <= (uint)data.Length ? data[ParsePosition..] : default;
+                var __musoqDelimiterIndex7 = __musoqRemainingText6.IndexOf('\u0020');
+                if (__musoqDelimiterIndex7 >= 0)
                 {
-                    return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult1.Failure!);
+                    _level = __musoqRemainingText6[..__musoqDelimiterIndex7].ToString();
+                    ParsePosition += __musoqDelimiterIndex7 + 1;
+                }
+                else
+                {
+                    var __musoqReadResult5 = base.ReadUntilStatus(data, " ", fieldName: "Level");
+                    if (!__musoqReadResult5.Succeeded)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult5.Failure!);
+                    }
+
+                    var __musoqDelimitedFallback4 = __musoqReadResult5.Value!;
+                    _level = __musoqDelimitedFallback4;
                 }
 
-                var _level = __musoqReadResult1.Value!;
                 __parsedValue.Level = _level;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("Message");
-                var __musoqReadResult2 = base.ReadRestStatus(data, fieldName: "Message");
-                if (!__musoqReadResult2.Succeeded)
+                string _message;
+                if ((uint)ParsePosition <= (uint)data.Length)
                 {
-                    return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult2.Failure!);
+                    _message = data[ParsePosition..].ToString();
+                    ParsePosition = data.Length;
+                }
+                else
+                {
+                    var __musoqReadResult9 = base.ReadRestStatus(data, fieldName: "Message");
+                    if (!__musoqReadResult9.Succeeded)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Failed(__parsedValue, __musoqReadResult9.Failure!);
+                    }
+
+                    var __musoqDelimitedFallback8 = __musoqReadResult9.Value!;
+                    _message = __musoqDelimitedFallback8;
                 }
 
-                var _message = __musoqReadResult2.Value!;
                 __parsedValue.Message = _message;
                 base.RecordParsedFieldSlot(2);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Success(__parsedValue);

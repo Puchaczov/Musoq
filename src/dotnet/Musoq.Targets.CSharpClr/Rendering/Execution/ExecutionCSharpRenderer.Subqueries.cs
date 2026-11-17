@@ -39,7 +39,8 @@ public sealed partial class ExecutionCSharpRenderer
                     final.TableName,
                     shapeName,
                     final.Shape.Fields,
-                    isSubqueryHelper: true
+                    isSubqueryHelper: true,
+                    scalarField: query.StreamsScalar ? final.Shape.Fields[0] : null
                 );
             else
                 method = RenderMethod(query.Plan, SubqueryMethodName(query.Identifier), query.Identifier, context);
@@ -78,7 +79,10 @@ public sealed partial class ExecutionCSharpRenderer
         if (!TableViaRowsResultInfoResolver.TryResolveRenderPlan(query.Plan, out var output))
             throw new NotSupportedException("Subquery result does not expose a native row result.");
         var nativeRows = HasNativeSubqueryRows(query.Plan);
-        var rowType = nativeRows ? output.FinalSinkPlans.TableOutput.RowTypeName : "global::Musoq.Evaluator.Tables.Row";
+        var rowType =
+            query.StreamsScalar ? CreateTypeSyntax(final.Shape.Fields[0].Type).ToString()
+            : nativeRows ? output.FinalSinkPlans.TableOutput.RowTypeName
+            : "global::Musoq.Evaluator.Tables.Row";
         var arguments = new List<ExpressionSyntax>(CreateRuntimeHelperArguments(SubqueryRuntimeContext()));
         arguments.AddRange(SubqueryScriptCaptures(query.Plan).Select(CreateCapturedLocalArgument));
         arguments.AddRange(query.Bindings.Select(binding => RenderExpression(binding, context)));
@@ -106,11 +110,7 @@ public sealed partial class ExecutionCSharpRenderer
         {
             var valueType = query.Kind == SubqueryResultKind.Scalar ? query.ReturnType : final.Shape.Fields[0].Type;
             typeArguments.Add(CreateTypeSyntax(valueType).ToString());
-            var field = final.Shape.Fields[0];
-            var read = $"row.{(field.AccessStrategy as GeneratedFieldAccess)?.FieldName ?? field.Name}";
-            if (!nativeRows)
-                read = $"row.GetValue<{CreateTypeSyntax(field.Type)}>(0)";
-            callArguments.Add(SyntaxFactory.ParseExpression($"static row => ({CreateTypeSyntax(valueType)}){read}"));
+            callArguments.Add(RenderSubqueryRead(query, final.Shape.Fields[0], valueType, nativeRows));
             if (query.Kind is SubqueryResultKind.In or SubqueryResultKind.Any or SubqueryResultKind.All)
                 callArguments.Add(RenderSubqueryComparison(query, valueType, context));
         }
@@ -122,6 +122,22 @@ public sealed partial class ExecutionCSharpRenderer
                 )
             )
             .WithArgumentList(CreateArgumentList(callArguments));
+    }
+
+    private static ExpressionSyntax RenderSubqueryRead(
+        ExecutionSubquery query,
+        FieldBinding field,
+        ExecutionTypeRef valueType,
+        bool nativeRows
+    )
+    {
+        if (query.StreamsScalar)
+            return SyntaxFactory.ParseExpression("static value => value");
+
+        var read = nativeRows
+            ? $"row.{(field.AccessStrategy as GeneratedFieldAccess)?.FieldName ?? field.Name}"
+            : $"row.GetValue<{CreateTypeSyntax(field.Type)}>(0)";
+        return SyntaxFactory.ParseExpression($"static row => ({CreateTypeSyntax(valueType)}){read}");
     }
 
     private ExpressionSyntax RenderSubqueryComparison(

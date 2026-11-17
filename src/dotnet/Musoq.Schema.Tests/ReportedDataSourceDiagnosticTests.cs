@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema.Diagnostics;
+using Musoq.Schema.Optimization;
 
 namespace Musoq.Schema.Tests;
 
@@ -440,6 +442,51 @@ public sealed class ReportedDataSourceDiagnosticTests
         var before = GC.GetAllocatedBytesForCurrentThread();
         ExerciseReporterBinding(collector, identity);
         Assert.AreEqual(0L, GC.GetAllocatedBytesForCurrentThread() - before);
+    }
+
+    [TestMethod]
+    public void ReporterCache_ConcurrentSourcesAndOperations_RetainAttribution()
+    {
+        var collector = new DataSourceWarningCollector();
+        var first = new SourceIdentity("#csv", "file", "left", "a");
+        var second = new SourceIdentity("#csv", "file", "right", "b");
+        var warning = new DataSourceDiagnostic(
+            "CSV.SKIPPED",
+            "format",
+            DataSourceDiagnosticSeverity.Warning,
+            "Skipped"
+        );
+
+        Parallel.Invoke(
+            () => Parallel.For(0, 20, _ => collector.ForSource(first)(warning)),
+            () => Parallel.For(0, 20, _ => collector.ForSource(second)(warning)),
+            () => Parallel.For(0, 20, _ => collector.ForSource(first, "metadata")(warning))
+        );
+
+        var reports = collector
+            .Snapshot()
+            .Select(report =>
+                (
+                    report.Arguments["sourceContextId"],
+                    report.Arguments["operation"],
+                    report.Arguments["occurrenceCount"]
+                )
+            )
+            .ToArray();
+        CollectionAssert.AreEquivalent(
+            new[] { ("left", "read", "20"), ("right", "read", "20"), ("left", "metadata", "20") },
+            reports
+        );
+    }
+
+    [TestMethod]
+    public void ReporterCache_ValueEqualIdentities_ShareTheSameCallback()
+    {
+        var collector = new DataSourceWarningCollector();
+        var identity = new SourceIdentity("#csv", "file", "left", "a");
+        var reporter = collector.ForSource(identity);
+
+        Assert.AreSame(reporter, collector.ForSource(identity with { }));
     }
 
     private static void ExerciseReporterBinding(

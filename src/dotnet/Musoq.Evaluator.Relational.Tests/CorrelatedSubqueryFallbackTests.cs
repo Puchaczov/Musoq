@@ -41,6 +41,26 @@ public sealed class CorrelatedSubqueryFallbackTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void ScalarTakeOne_ShouldKeepFirstRowOnTieAndReturnNullWhenEmpty()
+    {
+        const string query =
+            "select o.Id, (select i.Name from #B.entities() i where i.Id > o.Id "
+            + "order by i.Id desc take 1) as Value from #A.entities() o order by o.Id";
+        var sources = Sources();
+        sources["#B"] =
+        [
+            new BasicEntity("smaller") { Id = 2 },
+            new BasicEntity("first") { Id = 3 },
+            new BasicEntity("second") { Id = 3 },
+        ];
+
+        using var compiled = CreateAndRunVirtualMachine(query, sources);
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [1, "first"], [2, "first"], [4, null]);
+    }
+
+    [TestMethod]
     public void ScalarFallbackWithTwoRows_ShouldUseTheExistingCardinalityDiagnostic()
     {
         const string query =

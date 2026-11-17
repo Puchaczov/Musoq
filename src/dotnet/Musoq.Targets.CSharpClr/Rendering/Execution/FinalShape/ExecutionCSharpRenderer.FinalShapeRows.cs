@@ -18,7 +18,8 @@ public sealed partial class ExecutionCSharpRenderer
         bool useQueryRunContext = false,
         bool includeProfileRecorderParameter = false,
         FinalOutputPlan? outputPlan = null,
-        bool isSubqueryHelper = false
+        bool isSubqueryHelper = false,
+        FieldBinding? scalarField = null
     )
     {
         ArgumentNullException.ThrowIfNull(plan);
@@ -59,7 +60,9 @@ public sealed partial class ExecutionCSharpRenderer
                 plan.Body,
                 session.TypedStoredTableResults
             );
-            var sinkTypeName = outputPlan.RowTypeName;
+            var sinkTypeName = scalarField is null
+                ? outputPlan.RowTypeName
+                : CreateTypeSyntax(scalarField.Type).ToString();
             session.DirectSortedRowBufferSources = outputPlan.SortedRowBufferSources;
             var finalShapeBufferName =
                 outputPlan.OwnedBuffer?.SourceName ?? (outputPlan.BufferFinalRows ? "__musoqFinalShapeRows" : null);
@@ -70,7 +73,8 @@ public sealed partial class ExecutionCSharpRenderer
                 finalShapeBufferName,
                 CreateFinalShapeSourceBuffers(outputPlan, shapeFields),
                 outputPlan.UsesGeneratedRow,
-                outputPlan.OwnedBuffer
+                outputPlan.OwnedBuffer,
+                scalarField
             );
             session.SingleKeyAggregateUpdateHelpersByBlock = CollectSingleKeyAggregateUpdateHelpersByBlock(plan.Body);
             session.EnumerableTraversalHelpersByBlock = Enumerable

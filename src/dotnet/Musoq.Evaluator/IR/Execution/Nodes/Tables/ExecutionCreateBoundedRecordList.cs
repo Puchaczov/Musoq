@@ -21,4 +21,6 @@ public sealed record ExecutionCreateBoundedRecordList : ExecutionNode
     public GeneratedRecordShape RecordShape { get; init; }
     public IReadOnlyList<ExecutionOrderField> Keys { get; init; }
     public ExecutionOrderRecordSelection Selection { get; init; }
+
+    internal bool UsesSingleRecordBuffer => Selection is ExecutionTakeOrderRecordSelection { Count.Constant: 1 };
 }
