@@ -10,6 +10,17 @@ public static class FixtureCatalog
     >(StringComparer.Ordinal)
     {
         ["standard"] = new(StandardFixture.Prepare, StandardFixture.Requirements, StandardDataProfiles.Distribution),
+        ["numeric-batch"] = new(
+            NumericBatchWorkloads.Prepare,
+            VectorizationScenarios.Requirements,
+            s =>
+                $"Type {s.DataProfileId}; Id=0..N-1; Reading=Id%64, nullable readings are null every fifth row, bounds 2 and 15; independently shuffled join input."
+        ),
+        ["vectorization"] = new(
+            VectorizationScenarios.Prepare,
+            VectorizationScenarios.Requirements,
+            VectorizationScenarios.Distribution
+        ),
         ["performance"] = new(
             PerformanceFixture.Prepare,
             PerformanceFixture.Requirements,

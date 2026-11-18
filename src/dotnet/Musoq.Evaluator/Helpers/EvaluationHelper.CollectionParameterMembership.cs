@@ -10,6 +10,9 @@ public static partial class EvaluationHelper
         if (value is null)
             return false;
 
+        if (values is CapturedInt32Collection integers && value is int key)
+            return integers.Matches(key);
+
         var comparer = EqualityComparer<T>.Default;
         for (var index = 0; index < values.Count; index++)
         {
@@ -25,6 +28,9 @@ public static partial class EvaluationHelper
         ArgumentNullException.ThrowIfNull(values);
         if (value is null)
             return false;
+
+        if (values is CapturedInt32Collection integers && value is int key)
+            return !integers.Matches(key);
 
         var comparer = EqualityComparer<T>.Default;
         for (var index = 0; index < values.Count; index++)

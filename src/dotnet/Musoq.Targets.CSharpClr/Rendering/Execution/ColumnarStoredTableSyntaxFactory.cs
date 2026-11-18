@@ -68,26 +68,32 @@ internal static class ColumnarStoredTableSyntaxFactory
     {
         var typeName = CreateBufferTypeName(result.TableIndex);
         var fields = result.RowShape.Fields.OrderBy(static field => field.OutputIndex).ToArray();
+        var numeric = result.NumericConsumer != null;
+        var columnModifiers = numeric
+            ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+            : SyntaxFactory.TokenList(
+                SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
+            );
         var members = new List<MemberDeclarationSyntax>();
+        if (result.NumericConsumer is StoredNumericFilter filter)
+            members.Add(StoredNumericMaskSyntax.Create(filter.Predicate, "Match"));
+        if (result.NumericConsumer is StoredNumericAggregates { GlobalGroup: not null } aggregates)
+            members.AddRange(StoredAggregateReductionSyntax.CreateMembers(aggregates));
         for (var index = 0; index < fields.Length; index++)
         {
             members.Add(
                 SyntaxFactory
                     .FieldDeclaration(
                         SyntaxFactory
-                            .VariableDeclaration(CreateColumnTypeSyntax(fields[index].Type.RequireClrType()))
+                            .VariableDeclaration(CreateColumnTypeSyntax(fields[index].Type.RequireClrType(), numeric))
                             .WithVariables(
                                 SyntaxFactory.SingletonSeparatedList(
                                     SyntaxFactory.VariableDeclarator(CreateColumnName(index))
                                 )
                             )
                     )
-                    .WithModifiers(
-                        SyntaxFactory.TokenList(
-                            SyntaxFactory.Token(SyntaxKind.PublicKeyword),
-                            SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)
-                        )
-                    )
+                    .WithModifiers(columnModifiers)
             );
         }
 
@@ -100,7 +106,9 @@ internal static class ColumnarStoredTableSyntaxFactory
                                 SyntaxKind.SimpleAssignmentExpression,
                                 SyntaxFactory.IdentifierName(CreateColumnName(index)),
                                 SyntaxFactory
-                                    .ObjectCreationExpression(CreateColumnTypeSyntax(field.Type.RequireClrType()))
+                                    .ObjectCreationExpression(
+                                        CreateColumnTypeSyntax(field.Type.RequireClrType(), numeric)
+                                    )
                                     .WithArgumentList(CreateArgumentList(SyntaxFactory.IdentifierName("capacity")))
                             )
                         )
@@ -358,9 +366,9 @@ internal static class ColumnarStoredTableSyntaxFactory
             )
         );
 
-    private static TypeSyntax CreateColumnTypeSyntax(Type elementType) =>
+    private static TypeSyntax CreateColumnTypeSyntax(Type elementType, bool numeric) =>
         SyntaxFactory
-            .GenericName(SyntaxFactory.Identifier("StoredTableColumn"))
+            .GenericName(SyntaxFactory.Identifier(numeric ? "StoredNumericColumn" : "StoredTableColumn"))
             .WithTypeArgumentList(
                 SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(elementType)))
             );

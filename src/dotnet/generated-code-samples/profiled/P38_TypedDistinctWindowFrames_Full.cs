@@ -44,8 +44,8 @@ ExecutionPlan [compiled]
     SourceScan [ko3iko: LibraryExecutionEntity] -> ko3ikoRows
     MaterializeChunked [ko3ikoRows -> resultWindowRows]
     ComputeSumDistinctWindowKernel[BoundedRows] [resultSumDistincts0 <- resultWindowRows value ko3iko.Integral order by ko3iko.Position ASC frame rows between 2 preceding and current row]
-    ComputeAvgDistinctWindowKernel[BoundedRows] [resultAvgDistincts1 <- resultWindowRows value ko3iko.Integral order by ko3iko.Position ASC frame rows between 2 preceding and current row]
-    ComputeCountDistinctWindowKernel[BoundedRows] [resultCountDistincts2 <- resultWindowRows value ko3iko.Integral order by ko3iko.Position ASC frame rows between 2 preceding and current row]
+    ComputeAvgDistinctWindowKernel[BoundedRows] [resultAvgDistincts1 <- resultWindowRows value ko3iko.Integral order by ko3iko.Position ASC frame rows between 2 preceding and current row] shared values resultSumDistincts0BatchValues
+    ComputeCountDistinctWindowKernel[BoundedRows] [resultCountDistincts2 <- resultWindowRows value ko3iko.Integral order by ko3iko.Position ASC frame rows between 2 preceding and current row] shared values resultSumDistincts0BatchValues
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Position: ko3iko.Position, Total: resultSumDistincts0[windowIndex], Average: resultAvgDistincts1[windowIndex], Values: resultCountDistincts2[windowIndex])]
@@ -180,13 +180,6 @@ namespace GeneratedSample_P38_TypedDistinctWindowFrames_Full
                 }
 
                 var resultAvgDistincts1 = new decimal? [resultWindowRows.Count];
-                var resultAvgDistincts1BatchValues = new int? [resultWindowRows.Count];
-                for (int resultAvgDistincts1CaptureIndex = 0; resultAvgDistincts1CaptureIndex < resultWindowRows.Count; ++resultAvgDistincts1CaptureIndex)
-                {
-                    Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[resultAvgDistincts1CaptureIndex];
-                    resultAvgDistincts1BatchValues[resultAvgDistincts1CaptureIndex] = (int?)ko3iko.Integral;
-                }
-
                 for (int resultAvgDistincts1PartitionSetIndex = 0; resultAvgDistincts1PartitionSetIndex < resultSumDistincts0Partitions.PartitionCount; ++resultAvgDistincts1PartitionSetIndex)
                 {
                     var resultAvgDistincts1PartitionStart = resultSumDistincts0Partitions.GetStart(resultAvgDistincts1PartitionSetIndex);
@@ -203,7 +196,7 @@ namespace GeneratedSample_P38_TypedDistinctWindowFrames_Full
                         for (var resultAvgDistincts1FrameIndex = Math.Max(0, resultAvgDistincts1FrameStart); resultAvgDistincts1FrameIndex <= resultAvgDistincts1FrameEnd && resultAvgDistincts1FrameIndex < resultAvgDistincts1PartitionCount; resultAvgDistincts1FrameIndex++)
                         {
                             var resultAvgDistincts1CurrentIndex = resultAvgDistincts1PartitionIndices[resultAvgDistincts1PartitionStart + resultAvgDistincts1FrameIndex];
-                            Musoq.Plugins.AverageDistinctKernel<int, decimal>.Set(ref resultAvgDistincts1State, (int?)resultAvgDistincts1BatchValues[resultAvgDistincts1CurrentIndex]);
+                            Musoq.Plugins.AverageDistinctKernel<int, decimal>.Set(ref resultAvgDistincts1State, (int?)resultSumDistincts0BatchValues[resultAvgDistincts1CurrentIndex]);
                         }
 
                         resultAvgDistincts1[resultAvgDistincts1OutputIndex] = Musoq.Plugins.AverageDistinctKernel<int, decimal>.Get(in resultAvgDistincts1State);
@@ -211,13 +204,6 @@ namespace GeneratedSample_P38_TypedDistinctWindowFrames_Full
                 }
 
                 var resultCountDistincts2 = new long[resultWindowRows.Count];
-                var resultCountDistincts2BatchValues = new int? [resultWindowRows.Count];
-                for (int resultCountDistincts2CaptureIndex = 0; resultCountDistincts2CaptureIndex < resultWindowRows.Count; ++resultCountDistincts2CaptureIndex)
-                {
-                    Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[resultCountDistincts2CaptureIndex];
-                    resultCountDistincts2BatchValues[resultCountDistincts2CaptureIndex] = (int?)ko3iko.Integral;
-                }
-
                 for (int resultCountDistincts2PartitionSetIndex = 0; resultCountDistincts2PartitionSetIndex < resultSumDistincts0Partitions.PartitionCount; ++resultCountDistincts2PartitionSetIndex)
                 {
                     var resultCountDistincts2PartitionStart = resultSumDistincts0Partitions.GetStart(resultCountDistincts2PartitionSetIndex);
@@ -234,7 +220,7 @@ namespace GeneratedSample_P38_TypedDistinctWindowFrames_Full
                         for (var resultCountDistincts2FrameIndex = Math.Max(0, resultCountDistincts2FrameStart); resultCountDistincts2FrameIndex <= resultCountDistincts2FrameEnd && resultCountDistincts2FrameIndex < resultCountDistincts2PartitionCount; resultCountDistincts2FrameIndex++)
                         {
                             var resultCountDistincts2CurrentIndex = resultCountDistincts2PartitionIndices[resultCountDistincts2PartitionStart + resultCountDistincts2FrameIndex];
-                            Musoq.Plugins.CountDistinctNullableAggregateKernel<int>.Set(ref resultCountDistincts2State, (int?)resultCountDistincts2BatchValues[resultCountDistincts2CurrentIndex]);
+                            Musoq.Plugins.CountDistinctNullableAggregateKernel<int>.Set(ref resultCountDistincts2State, (int?)resultSumDistincts0BatchValues[resultCountDistincts2CurrentIndex]);
                         }
 
                         resultCountDistincts2[resultCountDistincts2OutputIndex] = Musoq.Plugins.CountDistinctNullableAggregateKernel<int>.Get(in resultCountDistincts2State);
@@ -361,13 +347,6 @@ namespace GeneratedSample_P38_TypedDistinctWindowFrames_Full
                     __op16Scope.Dispose();
                     var __op17Scope = profileRecorder?.BeginOperatorValue(__op17Handle) ?? OperatorProfileValueScope.None;
                     var resultAvgDistincts1 = new decimal? [resultWindowRows.Count];
-                    var resultAvgDistincts1BatchValues = new int? [resultWindowRows.Count];
-                    for (int resultAvgDistincts1CaptureIndex = 0; resultAvgDistincts1CaptureIndex < resultWindowRows.Count; ++resultAvgDistincts1CaptureIndex)
-                    {
-                        Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[resultAvgDistincts1CaptureIndex];
-                        resultAvgDistincts1BatchValues[resultAvgDistincts1CaptureIndex] = (int?)ko3iko.Integral;
-                    }
-
                     for (int resultAvgDistincts1PartitionSetIndex = 0; resultAvgDistincts1PartitionSetIndex < resultSumDistincts0Partitions.PartitionCount; ++resultAvgDistincts1PartitionSetIndex)
                     {
                         var resultAvgDistincts1PartitionStart = resultSumDistincts0Partitions.GetStart(resultAvgDistincts1PartitionSetIndex);
@@ -384,7 +363,7 @@ namespace GeneratedSample_P38_TypedDistinctWindowFrames_Full
                             for (var resultAvgDistincts1FrameIndex = Math.Max(0, resultAvgDistincts1FrameStart); resultAvgDistincts1FrameIndex <= resultAvgDistincts1FrameEnd && resultAvgDistincts1FrameIndex < resultAvgDistincts1PartitionCount; resultAvgDistincts1FrameIndex++)
                             {
                                 var resultAvgDistincts1CurrentIndex = resultAvgDistincts1PartitionIndices[resultAvgDistincts1PartitionStart + resultAvgDistincts1FrameIndex];
-                                Musoq.Plugins.AverageDistinctKernel<int, decimal>.Set(ref resultAvgDistincts1State, (int?)resultAvgDistincts1BatchValues[resultAvgDistincts1CurrentIndex]);
+                                Musoq.Plugins.AverageDistinctKernel<int, decimal>.Set(ref resultAvgDistincts1State, (int?)resultSumDistincts0BatchValues[resultAvgDistincts1CurrentIndex]);
                             }
 
                             resultAvgDistincts1[resultAvgDistincts1OutputIndex] = Musoq.Plugins.AverageDistinctKernel<int, decimal>.Get(in resultAvgDistincts1State);
@@ -394,13 +373,6 @@ namespace GeneratedSample_P38_TypedDistinctWindowFrames_Full
                     __op17Scope.Dispose();
                     var __op18Scope = profileRecorder?.BeginOperatorValue(__op18Handle) ?? OperatorProfileValueScope.None;
                     var resultCountDistincts2 = new long[resultWindowRows.Count];
-                    var resultCountDistincts2BatchValues = new int? [resultWindowRows.Count];
-                    for (int resultCountDistincts2CaptureIndex = 0; resultCountDistincts2CaptureIndex < resultWindowRows.Count; ++resultCountDistincts2CaptureIndex)
-                    {
-                        Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[resultCountDistincts2CaptureIndex];
-                        resultCountDistincts2BatchValues[resultCountDistincts2CaptureIndex] = (int?)ko3iko.Integral;
-                    }
-
                     for (int resultCountDistincts2PartitionSetIndex = 0; resultCountDistincts2PartitionSetIndex < resultSumDistincts0Partitions.PartitionCount; ++resultCountDistincts2PartitionSetIndex)
                     {
                         var resultCountDistincts2PartitionStart = resultSumDistincts0Partitions.GetStart(resultCountDistincts2PartitionSetIndex);
@@ -417,7 +389,7 @@ namespace GeneratedSample_P38_TypedDistinctWindowFrames_Full
                             for (var resultCountDistincts2FrameIndex = Math.Max(0, resultCountDistincts2FrameStart); resultCountDistincts2FrameIndex <= resultCountDistincts2FrameEnd && resultCountDistincts2FrameIndex < resultCountDistincts2PartitionCount; resultCountDistincts2FrameIndex++)
                             {
                                 var resultCountDistincts2CurrentIndex = resultCountDistincts2PartitionIndices[resultCountDistincts2PartitionStart + resultCountDistincts2FrameIndex];
-                                Musoq.Plugins.CountDistinctNullableAggregateKernel<int>.Set(ref resultCountDistincts2State, (int?)resultCountDistincts2BatchValues[resultCountDistincts2CurrentIndex]);
+                                Musoq.Plugins.CountDistinctNullableAggregateKernel<int>.Set(ref resultCountDistincts2State, (int?)resultSumDistincts0BatchValues[resultCountDistincts2CurrentIndex]);
                             }
 
                             resultCountDistincts2[resultCountDistincts2OutputIndex] = Musoq.Plugins.CountDistinctNullableAggregateKernel<int>.Get(in resultCountDistincts2State);

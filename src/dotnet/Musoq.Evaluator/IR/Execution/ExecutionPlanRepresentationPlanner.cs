@@ -14,6 +14,14 @@ internal static class ExecutionPlanRepresentationPlanner
         ArgumentNullException.ThrowIfNull(plan);
 
         var discovered = TypedStoredTableResultResolver.Resolve(plan);
+        var duplicateShapes =
+            discovered.Count > 1
+                ? discovered
+                    .Values.GroupBy(static result => result.RowShape.TypeName, StringComparer.Ordinal)
+                    .Where(static group => group.Skip(1).Any())
+                    .Select(static group => group.Key)
+                    .ToHashSet(StringComparer.Ordinal)
+                : null;
         var structuralConsumers = ExecutionIrAnalysis
             .CollectExpressions<ExecutionCteCollectionInput>(plan.Body)
             .Where(static input => input.Rows is ExecutionStoredTableRows)
@@ -24,23 +32,34 @@ internal static class ExecutionPlanRepresentationPlanner
                 ? plan.StoredTableRepresentations
                 : discovered
                     .OrderBy(static pair => pair.Key)
-                    .Select(pair => new ExecutionStoredTableRepresentationPlan(
-                        pair.Key,
-                        pair.Value.RowShape,
-                        kind: StoredTableColumnarBufferEligibility.CanUseWindowBuffer(
-                            plan,
-                            pair.Key,
-                            pair.Value.RowShape
-                        )
-                            ? ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer
-                            : ExecutionStoredTableRepresentationKind.GeneratedRowList,
-                        ownership: SelectOwnership(
+                    .Select(pair =>
+                    {
+                        var numeric =
+                            duplicateShapes?.Contains(pair.Value.RowShape.TypeName) == true
+                                ? null
+                                : StoredNumericConsumer.TryPlan(plan, pair.Key, pair.Value.RowShape);
+                        return new ExecutionStoredTableRepresentationPlan(
                             pair.Key,
                             pair.Value.RowShape,
-                            plan.Body,
-                            structuralConsumers.TryGetValue(pair.Key, out var consumers) ? consumers : []
+                            kind: numeric != null
+                            || StoredTableColumnarBufferEligibility.CanUseWindowBuffer(
+                                plan,
+                                pair.Key,
+                                pair.Value.RowShape
+                            )
+                                ? ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer
+                                : ExecutionStoredTableRepresentationKind.GeneratedRowList,
+                            ownership: SelectOwnership(
+                                pair.Key,
+                                pair.Value.RowShape,
+                                plan.Body,
+                                structuralConsumers.TryGetValue(pair.Key, out var consumers) ? consumers : []
+                            )
                         )
-                    ))
+                        {
+                            NumericConsumer = numeric,
+                        };
+                    })
                     .ToArray();
         var membershipParameters = ExecutionIrAnalysis
             .CollectExpressions<ExecutionCollectionInCheck>(plan.Body)

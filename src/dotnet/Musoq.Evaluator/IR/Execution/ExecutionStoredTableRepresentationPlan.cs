@@ -43,9 +43,19 @@ public sealed record ExecutionStoredTableRepresentationPlan
 
     public ExecutionStructuralPreparationLifetime Lifetime { get; }
 
+    internal StoredNumericConsumer? NumericConsumer { get; init; }
+
     public string Fingerprint =>
         $"table={TableIndex};kind={Kind};row={RowShape.TypeName};"
         + $"fields={string.Join(',', RowShape.Fields.Select(static rowField =>
             $"{rowField.Name}:{rowField.Type.StableId}:{rowField.Nullability}:{rowField.AccessStrategy}"))};"
-        + $"ownership={Ownership};lifetime={Lifetime}";
+        + $"ownership={Ownership};lifetime={Lifetime}"
+        + (
+            NumericConsumer switch
+            {
+                StoredNumericFilter => ";filter=numeric-batch",
+                StoredNumericAggregates => ";aggregate=numeric-columns",
+                _ => string.Empty,
+            }
+        );
 }

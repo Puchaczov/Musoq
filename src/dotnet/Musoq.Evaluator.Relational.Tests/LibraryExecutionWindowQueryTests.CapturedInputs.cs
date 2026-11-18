@@ -9,6 +9,19 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class LibraryExecutionWindowQueryTests
 {
     [TestMethod]
+    public void TwoBoundedWindows_EvaluateVolatileInputsIndependently()
+    {
+        const string frame = " over (order by Position rows between 1 preceding and current row)";
+        var query =
+            $"select Sum(NextValue()){frame} as Total, FirstValue(NextValue()){frame} as First from #schema.first()";
+        VolatileWindowRow[] input = [new(1), new(2), new(3)];
+        using var compiled = CreateAndRunVirtualMachine<VolatileWindowRow, VolatileWindowLibrary>(query, input);
+        using var result = compiled.Run(TestContext.CancellationToken);
+        Assert.HasCount(3, result.ToArray());
+        CollectionAssert.AreEqual(new[] { 2, 2, 2 }, input.Select(row => row.ValueCalls).ToArray());
+    }
+
+    [TestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public void BoundedWindow_WhenArgumentsAreVolatile_ShouldCaptureEachEligibleRowOnce(bool filtered)

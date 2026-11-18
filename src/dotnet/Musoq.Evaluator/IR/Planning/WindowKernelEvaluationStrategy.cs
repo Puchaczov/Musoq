@@ -1,4 +1,3 @@
-using System.Reflection;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Parser.Nodes;
 using Musoq.Plugins;
@@ -8,9 +7,8 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal static class WindowKernelEvaluationStrategy
 {
-    public static bool UseRunningPeers(WindowRegistration registration)
+    public static bool UseRunningPeers(WindowRegistration registration, WindowFunctionAttribute? declaration)
     {
-        var declaration = registration.Function?.GetCustomAttribute<WindowFunctionAttribute>();
         if (
             registration.OrderKeys.Length == 0
             || declaration?.KernelType is null
@@ -28,11 +26,8 @@ internal static class WindowKernelEvaluationStrategy
                 };
     }
 
-    public static bool CaptureInputs(WindowRegistration registration)
+    public static bool CaptureInputs(WindowRegistration registration, WindowFunctionAttribute? declaration)
     {
-        if (UseRunningPeers(registration))
-            return false;
-        var declaration = registration.Function?.GetCustomAttribute<WindowFunctionAttribute>();
         if (
             declaration?.KernelType is null
             || declaration.ContextType is not null

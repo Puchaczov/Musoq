@@ -38,6 +38,23 @@ internal sealed class CollectionParameterSlot<T>(IReadOnlyList<T>? values) : Typ
             captured[index] = Values[index];
         }
         cancellationToken.ThrowIfCancellationRequested();
+        if (typeof(T) == typeof(int) && captured is int[] integers)
+            return new CollectionParameterSlot<int>(new CapturedInt32Collection(integers));
+
         return new CollectionParameterSlot<T>(new ReadOnlyCollection<T>(captured));
+    }
+}
+
+internal sealed class CapturedInt32Collection(int[] values) : ReadOnlyCollection<int>(values)
+{
+    internal bool Matches(int value)
+    {
+        var integers = (int[])Items;
+        return integers.Length switch
+        {
+            0 => false,
+            1 => integers[0] == value,
+            _ => integers.AsSpan().Contains(value),
+        };
     }
 }

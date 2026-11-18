@@ -82,7 +82,7 @@ public sealed partial class FixtureSchema : SchemaBase
 
 public sealed class FixtureTable : ISchemaTable
 {
-    private FixtureTable(Type rowType, ISchemaColumn[] columns)
+    internal FixtureTable(Type rowType, ISchemaColumn[] columns)
     {
         Columns = columns;
         Metadata = new(rowType);

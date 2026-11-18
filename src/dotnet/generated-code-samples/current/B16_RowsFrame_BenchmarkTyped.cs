@@ -42,7 +42,7 @@ ExecutionPlan [compiled]
     SourceScan [r: BenchmarkSampleRow] -> rRows
     MaterializeChunked [rRows -> resultWindowRows]
     ComputeSumWindowKernel[BoundedRows] [resultSums0 <- resultWindowRows value r.Amount order by r.Id ASC frame rows between 1 preceding and current row]
-    ComputeFirstValueWindow [resultFirstValues1 <- resultWindowRows value r.Amount order by r.Id ASC frame rows between 1 preceding and current row]
+    ComputeFirstValueWindow [resultFirstValues1 <- resultWindowRows value r.Amount order by r.Id ASC frame rows between 1 preceding and current row] shared values resultSums0BatchValues
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, r in resultWindowRows]
       AppendShape [result <- ResultShape0(Id: r.Id, Total: resultSums0[windowIndex], First: resultFirstValues1[windowIndex])]
@@ -185,13 +185,6 @@ namespace GeneratedSample_B16_RowsFrame_BenchmarkTyped
                     }
                 }
 
-                var resultFirstValues1Values = new decimal? [resultWindowRows.Count];
-                for (int resultFirstValues1ExtractionIndex = 0; resultFirstValues1ExtractionIndex < resultWindowRows.Count; ++resultFirstValues1ExtractionIndex)
-                {
-                    Musoq.Evaluator.Tests.BenchmarkSampleRow r = resultWindowRows[resultFirstValues1ExtractionIndex];
-                    resultFirstValues1Values[resultFirstValues1ExtractionIndex] = (decimal?)((decimal?)r.Amount);
-                }
-
                 var resultFirstValues1 = new decimal? [resultWindowRows.Count];
                 for (int resultFirstValues1Partition = 0; resultFirstValues1Partition < resultSums0Partitions.PartitionCount; ++resultFirstValues1Partition)
                 {
@@ -205,7 +198,7 @@ namespace GeneratedSample_B16_RowsFrame_BenchmarkTyped
                         var resultFirstValues1Current = resultFirstValues1Indices[resultFirstValues1Start + resultFirstValues1Position];
                         var resultFirstValues1FrameStart = Math.Max(0, resultFirstValues1Position - 1);
                         var resultFirstValues1FrameEnd = resultFirstValues1Position;
-                        var resultFirstValues1Context = new Musoq.Plugins.WindowFrameContext<decimal?>(resultFirstValues1Values, new System.ReadOnlySpan<int>(resultFirstValues1Indices, resultFirstValues1Start, resultFirstValues1Count), resultFirstValues1Position, resultFirstValues1FrameStart, resultFirstValues1FrameEnd, token);
+                        var resultFirstValues1Context = new Musoq.Plugins.WindowFrameContext<decimal?>(resultSums0BatchValues, new System.ReadOnlySpan<int>(resultFirstValues1Indices, resultFirstValues1Start, resultFirstValues1Count), resultFirstValues1Position, resultFirstValues1FrameStart, resultFirstValues1FrameEnd, token);
                         resultFirstValues1[resultFirstValues1Current] = Musoq.Plugins.FirstValueKernel<decimal>.Get(in resultFirstValues1Context);
                     }
                 }

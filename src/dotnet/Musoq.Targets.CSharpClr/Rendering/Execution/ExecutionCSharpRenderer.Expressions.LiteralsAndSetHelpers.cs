@@ -52,7 +52,7 @@ public sealed partial class ExecutionCSharpRenderer
         };
     }
 
-    private static ExpressionSyntax RenderLiteral(ExecutionConstantValue value)
+    internal static ExpressionSyntax RenderLiteral(ExecutionConstantValue value)
     {
         if (value.Kind == ExecutionConstantKind.FloatingPoint)
         {

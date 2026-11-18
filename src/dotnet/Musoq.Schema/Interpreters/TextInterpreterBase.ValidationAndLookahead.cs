@@ -62,18 +62,21 @@ public abstract partial class TextInterpreterBase<TOut>
     {
         if (string.Equals(open, close, StringComparison.Ordinal))
             return text.IndexOf(close.AsSpan());
+        if (text.Length < 16 && open.Length == 1 && close.Length == 1)
+            return FindShortBalancedClose(text, open[0], close[0]);
 
         var depth = 1;
         var pos = 0;
+        var lastCandidate = 0;
 
-        while (pos < text.Length && depth > 0)
+        while (pos < text.Length)
         {
-            var remaining = text.Slice(pos);
-
+            var remaining = text[pos..];
             if (remaining.StartsWith(open.AsSpan()))
             {
                 depth++;
                 pos += open.Length;
+                lastCandidate = pos;
             }
             else if (remaining.StartsWith(close.AsSpan()))
             {
@@ -81,13 +84,37 @@ public abstract partial class TextInterpreterBase<TOut>
                 if (depth == 0)
                     return pos;
                 pos += close.Length;
+                lastCandidate = pos;
             }
             else
             {
                 pos++;
+                // Stay scalar around adjacent delimiters. Search ahead once plain text forms a run.
+                if (pos - lastCandidate >= 4 && text.Length - pos >= 16)
+                {
+                    var offset = text[pos..].IndexOfAny(open[0], close[0]);
+                    if (offset < 0)
+                        return -1;
+                    pos += offset;
+                    lastCandidate = pos;
+                }
             }
         }
 
+        return -1;
+    }
+
+    private static int FindShortBalancedClose(ReadOnlySpan<char> text, char open, char close)
+    {
+        var depth = 1;
+        for (var index = 0; index < text.Length; index++)
+        {
+            var character = text[index];
+            if (character == open)
+                depth++;
+            else if (character == close && --depth == 0)
+                return index;
+        }
         return -1;
     }
 

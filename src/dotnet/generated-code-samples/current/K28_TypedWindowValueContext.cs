@@ -48,8 +48,8 @@ ExecutionPlan [compiled]
     SourceScan [ko3iko: LibraryExecutionEntity] -> ko3ikoRows
     MaterializeChunked [ko3ikoRows -> resultWindowRows]
     ComputeFirstValueWindow [resultFirstValues0 <- resultWindowRows value ko3iko.Amount partition by ko3iko.Partition order by ko3iko.Position ASC frame rows between 1 preceding and current row]
-    ComputeNthValueWindow [resultNthValues1 <- resultWindowRows value ko3iko.Amount partition by ko3iko.Partition order by ko3iko.Position ASC frame range between unbounded preceding and current row args ko3iko.Position]
-    ComputeLagWindow [resultLags2 <- resultWindowRows value ko3iko.Amount partition by ko3iko.Partition order by ko3iko.Position ASC frame range between unbounded preceding and current row args 1, 0]
+    ComputeNthValueWindow [resultNthValues1 <- resultWindowRows value ko3iko.Amount partition by ko3iko.Partition order by ko3iko.Position ASC frame range between unbounded preceding and current row args ko3iko.Position] shared values resultFirstValues0Values
+    ComputeLagWindow [resultLags2 <- resultWindowRows value ko3iko.Amount partition by ko3iko.Partition order by ko3iko.Position ASC frame range between unbounded preceding and current row args 1, 0] shared values resultFirstValues0Values
     ComputeNtileWindow [resultNtiles3 <- resultWindowRows value 2 partition by ko3iko.Partition order by ko3iko.Position ASC]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
@@ -160,12 +160,10 @@ namespace GeneratedSample_K28_TypedWindowValueContext
                     }
                 }
 
-                var resultNthValues1Values = new decimal? [resultWindowRows.Count];
                 var resultNthValues1Argument0 = new int[resultWindowRows.Count];
                 for (int resultNthValues1ExtractionIndex = 0; resultNthValues1ExtractionIndex < resultWindowRows.Count; ++resultNthValues1ExtractionIndex)
                 {
                     Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[resultNthValues1ExtractionIndex];
-                    resultNthValues1Values[resultNthValues1ExtractionIndex] = (decimal?)(decimal?)ko3iko.Amount;
                     resultNthValues1Argument0[resultNthValues1ExtractionIndex] = (int)(int)ko3iko.Position;
                 }
 
@@ -182,18 +180,16 @@ namespace GeneratedSample_K28_TypedWindowValueContext
                         var resultNthValues1Current = resultNthValues1Indices[resultNthValues1Start + resultNthValues1Position];
                         var resultNthValues1FrameStart = 0;
                         var resultNthValues1FrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultFirstValues0OrderKeys, resultNthValues1Indices, resultNthValues1Start, resultNthValues1Count, resultNthValues1Position);
-                        var resultNthValues1Context = new Musoq.Plugins.WindowFrameContext<decimal?>(resultNthValues1Values, new System.ReadOnlySpan<int>(resultNthValues1Indices, resultNthValues1Start, resultNthValues1Count), resultNthValues1Position, resultNthValues1FrameStart, resultNthValues1FrameEnd, token);
+                        var resultNthValues1Context = new Musoq.Plugins.WindowFrameContext<decimal?>(resultFirstValues0Values, new System.ReadOnlySpan<int>(resultNthValues1Indices, resultNthValues1Start, resultNthValues1Count), resultNthValues1Position, resultNthValues1FrameStart, resultNthValues1FrameEnd, token);
                         resultNthValues1[resultNthValues1Current] = Musoq.Plugins.NthValueKernel<decimal>.Get(in resultNthValues1Context, resultNthValues1Argument0[resultNthValues1Current]);
                     }
                 }
 
-                var resultLags2Values = new decimal? [resultWindowRows.Count];
                 var resultLags2Argument0 = new int[resultWindowRows.Count];
                 var resultLags2Argument1 = new decimal? [resultWindowRows.Count];
                 for (int resultLags2ExtractionIndex = 0; resultLags2ExtractionIndex < resultWindowRows.Count; ++resultLags2ExtractionIndex)
                 {
                     Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity ko3iko = resultWindowRows[resultLags2ExtractionIndex];
-                    resultLags2Values[resultLags2ExtractionIndex] = (decimal?)(decimal?)ko3iko.Amount;
                     resultLags2Argument0[resultLags2ExtractionIndex] = (int)(int)1;
                     resultLags2Argument1[resultLags2ExtractionIndex] = (decimal?)(decimal?)0;
                 }
@@ -211,7 +207,7 @@ namespace GeneratedSample_K28_TypedWindowValueContext
                         var resultLags2Current = resultLags2Indices[resultLags2Start + resultLags2Position];
                         var resultLags2FrameStart = 0;
                         var resultLags2FrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultFirstValues0OrderKeys, resultLags2Indices, resultLags2Start, resultLags2Count, resultLags2Position);
-                        var resultLags2Context = new Musoq.Plugins.WindowFrameContext<decimal?>(resultLags2Values, new System.ReadOnlySpan<int>(resultLags2Indices, resultLags2Start, resultLags2Count), resultLags2Position, resultLags2FrameStart, resultLags2FrameEnd, token);
+                        var resultLags2Context = new Musoq.Plugins.WindowFrameContext<decimal?>(resultFirstValues0Values, new System.ReadOnlySpan<int>(resultLags2Indices, resultLags2Start, resultLags2Count), resultLags2Position, resultLags2FrameStart, resultLags2FrameEnd, token);
                         resultLags2[resultLags2Current] = Musoq.Plugins.LagKernel<decimal>.Get(in resultLags2Context, resultLags2Argument0[resultLags2Current], resultLags2Argument1[resultLags2Current]);
                     }
                 }

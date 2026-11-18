@@ -51,6 +51,18 @@ Filters are case-insensitive globs over case IDs or benchmark class names. `-Out
 directory. Resumes restore the saved mode, filter, size, machine profile and job. Conflicting overrides are rejected. Commands never commit, push or change branches.
 Do not overlap measurements with builds, tests or other heavy work.
 
+## Local vectorization workloads
+
+Use the Local filter `V_*` to select the experimental execution matrix, or select one case such as
+`V_In32_1-execution*`. The normal Local and Official catalogs retain their existing workloads.
+The matrix exercises collection-parameter membership, nested text fields, window capture, and
+filtered projections and aggregates over streamed rows and joined intermediates. Membership IDs
+encode the number of parameter keys and the target hit percentage. Empty allowlists always miss.
+
+```powershell
+./scripts/benchmarks/Run-Benchmarks.ps1 -Mode Local -Filter 'V_In32_1-execution*' -Size 100000 -Job Short -Json
+```
+
 ## Measurement boundaries
 
 - Execution prepares data and compilation in setup, then consumes every row/column through typed visitors

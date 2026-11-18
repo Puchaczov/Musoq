@@ -5,15 +5,21 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal static class StoredTableColumnarBufferEligibility
 {
-    public static bool CanUseWindowBuffer(ExecutionPlan plan, int tableIndex, GeneratedRowShape rowShape)
+    internal static bool HasColumnarProducer(
+        ExecutionPlan plan,
+        int tableIndex,
+        GeneratedRowShape rowShape,
+        out ExecutionNode[] nodes
+    )
     {
         ArgumentNullException.ThrowIfNull(plan);
         ArgumentNullException.ThrowIfNull(rowShape);
 
+        nodes = [];
         if (!HasSupportedRowShape(rowShape))
             return false;
 
-        var nodes = ExecutionIrAnalysis.FlattenNodes(plan.Body).ToArray();
+        nodes = ExecutionIrAnalysis.FlattenNodes(plan.Body).ToArray();
         var stores = nodes.OfType<ExecutionStoreTable>().Where(store => store.TableIndex == tableIndex).ToArray();
         if (stores.Length != 1)
             return false;
@@ -34,7 +40,12 @@ internal static class StoredTableColumnarBufferEligibility
         var build = StoredTableBuildDiscovery
             .Collect(plan.Body)
             .SingleOrDefault(candidate => candidate.TableIndex == tableIndex);
-        if (build == null || !HasDirectScalarAppends(build, rowShape))
+        return build != null && HasDirectScalarAppends(build, rowShape);
+    }
+
+    public static bool CanUseWindowBuffer(ExecutionPlan plan, int tableIndex, GeneratedRowShape rowShape)
+    {
+        if (!HasColumnarProducer(plan, tableIndex, rowShape, out var nodes))
             return false;
 
         var materializations = nodes

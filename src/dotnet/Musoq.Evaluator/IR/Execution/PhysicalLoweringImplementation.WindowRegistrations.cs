@@ -86,6 +86,7 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         MarkSharedWindowOrderKeys(computations);
+        BindSharedWindowValues(computations);
         return LoweringAttempt<IReadOnlyList<WindowComputationBuildResult>>.Built(computations);
     }
 

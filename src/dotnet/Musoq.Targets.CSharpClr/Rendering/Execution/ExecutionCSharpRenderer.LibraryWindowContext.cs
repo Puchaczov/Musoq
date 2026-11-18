@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -14,7 +13,7 @@ public sealed partial class ExecutionCSharpRenderer
             window.ContextBuffers
             ?? throw new InvalidOperationException("Typed window context storage must be selected before rendering.");
         var buffers = new LibraryWindowContextBuffers(
-            capture.Values,
+            capture.SharedValues ?? capture.Values,
             capture.Arguments,
             capture.RangeKeys,
             capture.OrderKeyValues,
@@ -30,13 +29,16 @@ public sealed partial class ExecutionCSharpRenderer
             statements.Add(CreateLibraryWindowKeyDeclaration(partitionKeys!, window.Buffer));
         if (orderKeys is { ShouldExtract: true })
             statements.Add(CreateLibraryWindowKeyDeclaration(orderKeys, window.Buffer));
-        foreach (var buffer in new[] { buffers.Values }.Concat(buffers.Arguments))
+        if (capture.SharedValues is null)
+            statements.Add(CreateLibraryWindowArrayDeclaration(buffers.Values, window.Buffer));
+        foreach (var buffer in buffers.Arguments)
             statements.Add(CreateLibraryWindowArrayDeclaration(buffer, window.Buffer));
         if (rangeKeys is not null)
             statements.Add(CreateLibraryWindowArrayDeclaration(rangeKeys, window.Buffer));
         if (buffers.OrderKeyValues is { } orderValues)
             statements.Add(CreateLibraryWindowArrayDeclaration(orderValues, window.Buffer));
-        statements.Add(CreateLibraryWindowExtraction(window, buffers, partitionKeys, orderKeys));
+        if (CreateLibraryWindowExtraction(window, buffers, partitionKeys, orderKeys) is { } extraction)
+            statements.Add(extraction);
         AddWindowPartitionDeclarations(statements, window.Partitions, partitionKeys?.Variable, window.Buffer);
         if (orderKeys is not null)
             AddWindowSortedPartitionDeclarations(statements, window.SortedPartitions, window.Partitions, orderKeys);
@@ -69,7 +71,7 @@ public sealed partial class ExecutionCSharpRenderer
             CreateSizedArrayCreation(GetArrayElementType(array), CreateBufferCountExpression(source))
         );
 
-    private StatementSyntax CreateLibraryWindowExtraction(
+    private StatementSyntax? CreateLibraryWindowExtraction(
         ExecutionComputePluginWindow window,
         LibraryWindowContextBuffers buffers,
         ExecutionWindowKeyArray? partitionKeys,
@@ -78,7 +80,6 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var index = new ExecutionVariable($"{window.Results.Name}ExtractionIndex", typeof(int));
         var statements = new List<StatementSyntax>();
-        statements.AddRange(CreateIndexedItemDeclarations(window.Item, window.Buffer, index, window.RowAccessMode));
         if (partitionKeys is { ShouldExtract: true })
             statements.Add(
                 CreateWindowKeyArrayAssignment(
@@ -119,14 +120,15 @@ public sealed partial class ExecutionCSharpRenderer
                     GetArrayElementType(rangeKeys)
                 )
             );
-        statements.Add(
-            CreateArrayAssignment(
-                buffers.Values.Name,
-                index.Name,
-                CastIfNeeded(RenderExpression(window.Value), GetArrayElementType(buffers.Values)),
-                GetArrayElementType(buffers.Values)
-            )
-        );
+        if (window.ContextBuffers!.SharedValues is null)
+            statements.Add(
+                CreateArrayAssignment(
+                    buffers.Values.Name,
+                    index.Name,
+                    CastIfNeeded(RenderExpression(window.Value), GetArrayElementType(buffers.Values)),
+                    GetArrayElementType(buffers.Values)
+                )
+            );
         for (var argument = 0; argument < buffers.Arguments.Count; argument++)
         {
             var target = buffers.Arguments[argument];
@@ -139,6 +141,12 @@ public sealed partial class ExecutionCSharpRenderer
                 )
             );
         }
+        if (statements.Count == 0)
+            return null;
+        statements.InsertRange(
+            0,
+            CreateIndexedItemDeclarations(window.Item, window.Buffer, index, window.RowAccessMode)
+        );
         return CreateIndexedForLoop(index.Name, window.Buffer, StatementEmitter.CreateBlock(statements));
     }
 

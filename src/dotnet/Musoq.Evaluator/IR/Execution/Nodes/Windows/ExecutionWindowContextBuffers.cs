@@ -24,6 +24,7 @@ public sealed record ExecutionWindowContextBuffers
     }
 
     public ExecutionVariable Values { get; }
+    internal ExecutionVariable? SharedValues { get; init; }
     public IReadOnlyList<ExecutionVariable> Arguments { get; }
     public ExecutionVariable? RangeKeys { get; }
     public ExecutionVariable? OrderKeyValues { get; }

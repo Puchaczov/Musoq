@@ -385,13 +385,13 @@ public static partial class ExecutionPlanPrinter
             case ExecutionComputePluginWindow plugin:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}{FormatPluginNodeName(plugin.FunctionName)} [{FormatWindowComputationTarget(plugin)} value {FormatExpression(plugin.Value)}{FormatPartition(plugin.PartitionKey)}{FormatOptionalWindowOrderKeys(plugin.OrderKeys)}{FormatWindowFrame(plugin.Frame)}{FormatPluginArguments(plugin.Arguments)}]"
+                    $"{prefix}{FormatPluginNodeName(plugin.FunctionName)} [{FormatWindowComputationTarget(plugin)} value {FormatExpression(plugin.Value)}{FormatPartition(plugin.PartitionKey)}{FormatOptionalWindowOrderKeys(plugin.OrderKeys)}{FormatWindowFrame(plugin.Frame)}{FormatPluginArguments(plugin.Arguments)}]{FormatSharedWindowValues(plugin.ContextBuffers?.SharedValues)}"
                 );
                 break;
             case ExecutionWindowAggregateKernel kernel:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}{FormatWindowAggregateKernelNodeName(kernel.Descriptor)} [{FormatWindowComputationTarget(kernel)} value {FormatExpression(kernel.Value)}{FormatPartition(kernel.PartitionKey)}{FormatOptionalWindowOrderKeys(kernel.OrderKeys)}{FormatWindowFrame(kernel.Frame)}]"
+                    $"{prefix}{FormatWindowAggregateKernelNodeName(kernel.Descriptor)} [{FormatWindowComputationTarget(kernel)} value {FormatExpression(kernel.Value)}{FormatPartition(kernel.PartitionKey)}{FormatOptionalWindowOrderKeys(kernel.OrderKeys)}{FormatWindowFrame(kernel.Frame)}]{FormatSharedWindowValues(kernel.SharedValues)}"
                 );
                 break;
             case ExecutionCreateHash createHash:

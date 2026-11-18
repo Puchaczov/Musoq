@@ -54,6 +54,9 @@ public sealed record ExecutionWindowAggregateKernel : ExecutionNode
 
     public ExecutionExpression Value { get; init; }
 
+    internal ExecutionVariable? SharedValues { get; init; }
+    internal string CapturedValuesName => SharedValues?.Name ?? $"{Results.Name}BatchValues";
+
     private IReadOnlyList<ExecutionExpression> _libraryArguments = [];
 
     public IReadOnlyList<ExecutionExpression> LibraryArguments

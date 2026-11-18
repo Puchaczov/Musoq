@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
@@ -227,6 +228,84 @@ public sealed class ScriptParameterBinderTests
 
         Assert.AreEqual(DiagnosticCode.MQ7006_UnknownScriptParameter, ex.Code);
         Assert.AreEqual("Script parameter 'extra' was provided but is not declared.", ex.Message);
+    }
+
+    [TestMethod]
+    public void IntegerMembership_RemainsIsolatedAcrossMutationAndRebinding()
+    {
+        var source = Enumerable.Repeat(-7, 128).ToArray();
+        source[127] = int.MinValue;
+        var parameters = new TypedParameterValues();
+        parameters.SetCollection("ids", source);
+        var first = ScriptParameterBinder.GetRequiredCollection<int>(
+            ExecutionState.Capture(parameters.Capture()),
+            "ids"
+        );
+        source[127] = int.MaxValue;
+        parameters.SetCollection("ids", new[] { int.MaxValue });
+        var second = ScriptParameterBinder.GetRequiredCollection<int>(
+            ExecutionState.Capture(parameters.Capture()),
+            "ids"
+        );
+
+        Parallel.For(
+            0,
+            256,
+            i =>
+            {
+                var key = i % 2 == 0 ? int.MinValue : int.MaxValue;
+                Assert.AreEqual(i % 2 == 0, EvaluationHelper.CollectionParameterContains(key, first));
+                Assert.AreEqual(i % 2 == 0, EvaluationHelper.CollectionParameterNotContains(key, second));
+            }
+        );
+        Assert.IsTrue(EvaluationHelper.CollectionParameterContains(-7, first));
+        Assert.IsFalse(EvaluationHelper.CollectionParameterNotContains(-7, first));
+    }
+
+    [TestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(7)]
+    [DataRow(33)]
+    [DataRow(129)]
+    public void IntegerMembership_HandlesEveryPositionAndMissingKeys(int count)
+    {
+        var keys = Enumerable.Range(0, count).Select(i => i * 13 - 71).ToArray();
+        var captured = ScriptParameterBinder.GetRequiredCollection<int>(
+            Capture(slots => slots.SetCollection("ids", keys)),
+            "ids"
+        );
+
+        foreach (var key in keys.Append(int.MinValue).Append(int.MaxValue))
+        {
+            var expected = Array.IndexOf(keys, key) >= 0;
+            Assert.AreEqual(expected, EvaluationHelper.CollectionParameterContains(key, captured));
+            Assert.AreEqual(!expected, EvaluationHelper.CollectionParameterNotContains(key, captured));
+        }
+    }
+
+    [TestMethod]
+    public void UnsignedIntegerCollection_PreservesItsDeclaredType()
+    {
+        var captured = ScriptParameterBinder.GetRequiredCollection<uint>(
+            Capture(slots => slots.SetCollection<uint>("ids", [0u, uint.MaxValue])),
+            "ids"
+        );
+        Assert.IsTrue(EvaluationHelper.CollectionParameterContains(uint.MaxValue, captured));
+        Assert.IsTrue(EvaluationHelper.CollectionParameterNotContains(1u, captured));
+    }
+
+    [TestMethod]
+    public void NullableIntegerMembership_PreservesUnknownForNegation()
+    {
+        var values = ScriptParameterBinder.GetRequiredCollection<int?>(
+            Capture(slots => slots.SetCollection<int?>("ids", [7, null])),
+            "ids"
+        );
+        Assert.IsTrue(EvaluationHelper.CollectionParameterContains<int?>(7, values));
+        Assert.IsFalse(EvaluationHelper.CollectionParameterContains<int?>(8, values));
+        Assert.IsFalse(EvaluationHelper.CollectionParameterNotContains<int?>(8, values));
+        Assert.IsFalse(EvaluationHelper.CollectionParameterNotContains<int?>(null, values));
     }
 
     private static ExecutionState Capture(Action<TypedParameterValues> configure)

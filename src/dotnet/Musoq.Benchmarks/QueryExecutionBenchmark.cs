@@ -14,7 +14,7 @@ public class QueryExecutionBenchmark
 {
     private CompiledQuery _query = null!;
     private readonly Consumer _consumer = new();
-    public IEnumerable<string> Scenarios => ScenarioCatalog.All.Select(scenario => scenario.Id);
+    public virtual IEnumerable<string> Scenarios => ScenarioCatalog.All.Select(scenario => scenario.Id);
 
     [ParamsSource(nameof(Scenarios))]
     public string ScenarioId { get; set; } = "B01_Scan";
@@ -36,6 +36,8 @@ public class QueryExecutionBenchmark
             BenchmarkLogger.Instance,
             ExecutionSettings.Create(scenario, count)
         );
+        if (scenario.MembershipIds is { } keys)
+            _query.TypedParameters.SetCollection("ids", keys);
     }
 
     [Benchmark]
@@ -59,6 +61,11 @@ public class QueryExecutionBenchmark
     {
         public void Visit<T>(int columnIndex, in T value) => consumer.Consume(value);
     }
+}
+
+public class VectorizationBenchmark : QueryExecutionBenchmark
+{
+    public override IEnumerable<string> Scenarios => VectorizationScenarios.All.Select(scenario => scenario.Id);
 }
 
 public sealed class BenchmarkLogger : ILoggerResolver

@@ -112,9 +112,9 @@ ExecutionPlan [compiled]
     Materialize [_cteRowResults.Slot0 -> resultWindowRows]
     ComputeRowNumberWindow [resultRowNumbers0 <- resultWindowRows partition by joined.Partition order by joined.Position ASC qualify <= 5]
     ComputeSumWindowKernel[BoundedRows] [resultSums1 <- resultWindowRows value joined.Value partition by joined.Partition order by joined.Position ASC frame rows between 2 preceding and 1 following]
-    ComputeAvgWindowKernel[BoundedRows] [resultAvgs2 <- resultWindowRows value joined.Value partition by joined.Partition order by joined.Position ASC frame rows between 2 preceding and 1 following]
-    ComputeCountWindowKernel[BoundedRows] [resultCounts3 <- resultWindowRows value joined.Value partition by joined.Partition order by joined.Position ASC frame rows between 2 preceding and 1 following]
-    ComputeLagWindow [resultLags4 <- resultWindowRows value joined.Value partition by joined.Partition order by joined.Position ASC frame range between unbounded preceding and current row args 1, NULL]
+    ComputeAvgWindowKernel[BoundedRows] [resultAvgs2 <- resultWindowRows value joined.Value partition by joined.Partition order by joined.Position ASC frame rows between 2 preceding and 1 following] shared values resultSums1BatchValues
+    ComputeCountWindowKernel[BoundedRows] [resultCounts3 <- resultWindowRows value joined.Value partition by joined.Partition order by joined.Position ASC frame rows between 2 preceding and 1 following] shared values resultSums1BatchValues
+    ComputeLagWindow [resultLags4 <- resultWindowRows value joined.Value partition by joined.Partition order by joined.Position ASC frame range between unbounded preceding and current row args 1, NULL] shared values resultSums1BatchValues
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, joined in resultWindowRows]
       If [((resultRowNumbers0[windowIndex] > 0) AND (resultRowNumbers0[windowIndex] <= 5))]
@@ -254,13 +254,6 @@ namespace GeneratedSample_K76_NativeJoinedFramesQualify
                 }
 
                 var resultAvgs2 = new decimal? [resultWindowRows.Count];
-                var resultAvgs2BatchValues = new int? [resultWindowRows.Count];
-                for (int resultAvgs2CaptureIndex = 0; resultAvgs2CaptureIndex < resultWindowRows.Count; ++resultAvgs2CaptureIndex)
-                {
-                    Cte0Row0 joined = resultWindowRows[resultAvgs2CaptureIndex];
-                    resultAvgs2BatchValues[resultAvgs2CaptureIndex] = (int?)joined.Value;
-                }
-
                 for (int resultAvgs2PartitionSetIndex = 0; resultAvgs2PartitionSetIndex < resultRowNumbers0Partitions.PartitionCount; ++resultAvgs2PartitionSetIndex)
                 {
                     var resultAvgs2PartitionStart = resultRowNumbers0Partitions.GetStart(resultAvgs2PartitionSetIndex);
@@ -277,7 +270,7 @@ namespace GeneratedSample_K76_NativeJoinedFramesQualify
                         for (var resultAvgs2FrameIndex = Math.Max(0, resultAvgs2FrameStart); resultAvgs2FrameIndex <= resultAvgs2FrameEnd && resultAvgs2FrameIndex < resultAvgs2PartitionCount; resultAvgs2FrameIndex++)
                         {
                             var resultAvgs2CurrentIndex = resultAvgs2PartitionIndices[resultAvgs2PartitionStart + resultAvgs2FrameIndex];
-                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref resultAvgs2State, (int?)resultAvgs2BatchValues[resultAvgs2CurrentIndex]);
+                            Musoq.Plugins.AverageKernel<int, decimal>.Set(ref resultAvgs2State, (int?)resultSums1BatchValues[resultAvgs2CurrentIndex]);
                         }
 
                         resultAvgs2[resultAvgs2OutputIndex] = Musoq.Plugins.AverageKernel<int, decimal>.Get(in resultAvgs2State);
@@ -285,13 +278,6 @@ namespace GeneratedSample_K76_NativeJoinedFramesQualify
                 }
 
                 var resultCounts3 = new long[resultWindowRows.Count];
-                var resultCounts3BatchValues = new int? [resultWindowRows.Count];
-                for (int resultCounts3CaptureIndex = 0; resultCounts3CaptureIndex < resultWindowRows.Count; ++resultCounts3CaptureIndex)
-                {
-                    Cte0Row0 joined = resultWindowRows[resultCounts3CaptureIndex];
-                    resultCounts3BatchValues[resultCounts3CaptureIndex] = (int?)joined.Value;
-                }
-
                 for (int resultCounts3PartitionSetIndex = 0; resultCounts3PartitionSetIndex < resultRowNumbers0Partitions.PartitionCount; ++resultCounts3PartitionSetIndex)
                 {
                     var resultCounts3PartitionStart = resultRowNumbers0Partitions.GetStart(resultCounts3PartitionSetIndex);
@@ -308,20 +294,18 @@ namespace GeneratedSample_K76_NativeJoinedFramesQualify
                         for (var resultCounts3FrameIndex = Math.Max(0, resultCounts3FrameStart); resultCounts3FrameIndex <= resultCounts3FrameEnd && resultCounts3FrameIndex < resultCounts3PartitionCount; resultCounts3FrameIndex++)
                         {
                             var resultCounts3CurrentIndex = resultCounts3PartitionIndices[resultCounts3PartitionStart + resultCounts3FrameIndex];
-                            Musoq.Plugins.CountNullableAggregateKernel<int>.Set(ref resultCounts3State, (int?)resultCounts3BatchValues[resultCounts3CurrentIndex]);
+                            Musoq.Plugins.CountNullableAggregateKernel<int>.Set(ref resultCounts3State, (int?)resultSums1BatchValues[resultCounts3CurrentIndex]);
                         }
 
                         resultCounts3[resultCounts3OutputIndex] = Musoq.Plugins.CountNullableAggregateKernel<int>.Get(in resultCounts3State);
                     }
                 }
 
-                var resultLags4Values = new int? [resultWindowRows.Count];
                 var resultLags4Argument0 = new int[resultWindowRows.Count];
                 var resultLags4Argument1 = new int? [resultWindowRows.Count];
                 for (int resultLags4ExtractionIndex = 0; resultLags4ExtractionIndex < resultWindowRows.Count; ++resultLags4ExtractionIndex)
                 {
                     Cte0Row0 joined = resultWindowRows[resultLags4ExtractionIndex];
-                    resultLags4Values[resultLags4ExtractionIndex] = (int?)(int?)joined.Value;
                     resultLags4Argument0[resultLags4ExtractionIndex] = (int)(int)1;
                     resultLags4Argument1[resultLags4ExtractionIndex] = (int?)(int?)null;
                 }
@@ -339,7 +323,7 @@ namespace GeneratedSample_K76_NativeJoinedFramesQualify
                         var resultLags4Current = resultLags4Indices[resultLags4Start + resultLags4Position];
                         var resultLags4FrameStart = 0;
                         var resultLags4FrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultRowNumbers0OrderKeys, resultLags4Indices, resultLags4Start, resultLags4Count, resultLags4Position);
-                        var resultLags4Context = new Musoq.Plugins.WindowFrameContext<int?>(resultLags4Values, new System.ReadOnlySpan<int>(resultLags4Indices, resultLags4Start, resultLags4Count), resultLags4Position, resultLags4FrameStart, resultLags4FrameEnd, token);
+                        var resultLags4Context = new Musoq.Plugins.WindowFrameContext<int?>(resultSums1BatchValues, new System.ReadOnlySpan<int>(resultLags4Indices, resultLags4Start, resultLags4Count), resultLags4Position, resultLags4FrameStart, resultLags4FrameEnd, token);
                         resultLags4[resultLags4Current] = Musoq.Plugins.LagKernel<int>.Get(in resultLags4Context, resultLags4Argument0[resultLags4Current], resultLags4Argument1[resultLags4Current]);
                     }
                 }

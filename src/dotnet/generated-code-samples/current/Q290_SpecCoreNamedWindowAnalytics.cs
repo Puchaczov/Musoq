@@ -43,8 +43,8 @@ ExecutionPlan [compiled]
     MaterializeChunked [ko3ikoRows -> resultWindowRows]
     ComputeNtileWindow [resultNtiles0 <- resultWindowRows value 2 order by ko3iko.Name ASC]
     ComputeFirstValueWindow [resultFirstValues1 <- resultWindowRows value ko3iko.Name order by ko3iko.Name ASC frame range between unbounded preceding and current row]
-    ComputeLastValueWindow [resultLastValues2 <- resultWindowRows value ko3iko.Name order by ko3iko.Name ASC frame range between unbounded preceding and current row]
-    ComputeNthValueWindow [resultNthValues3 <- resultWindowRows value ko3iko.Name order by ko3iko.Name ASC frame range between unbounded preceding and current row args 1]
+    ComputeLastValueWindow [resultLastValues2 <- resultWindowRows value ko3iko.Name order by ko3iko.Name ASC frame range between unbounded preceding and current row] shared values resultFirstValues1Values
+    ComputeNthValueWindow [resultNthValues3 <- resultWindowRows value ko3iko.Name order by ko3iko.Name ASC frame range between unbounded preceding and current row args 1] shared values resultFirstValues1Values
     ComputeMinWindowKernel[BoundedRows] [resultMins4 <- resultWindowRows value ko3iko.Population order by ko3iko.Name ASC frame range between unbounded preceding and current row]
     ComputeMaxWindowKernel[BoundedRows] [resultMaxs5 <- resultWindowRows value ko3iko.Population order by ko3iko.Name ASC frame range between unbounded preceding and current row]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
@@ -181,13 +181,6 @@ namespace GeneratedSample_Q290_SpecCoreNamedWindowAnalytics
                     }
                 }
 
-                var resultLastValues2Values = new string[resultWindowRows.Count];
-                for (int resultLastValues2ExtractionIndex = 0; resultLastValues2ExtractionIndex < resultWindowRows.Count; ++resultLastValues2ExtractionIndex)
-                {
-                    Musoq.Evaluator.Tests.Schema.Basic.BasicEntity ko3iko = resultWindowRows[resultLastValues2ExtractionIndex];
-                    resultLastValues2Values[resultLastValues2ExtractionIndex] = (string)(string)ko3iko.Name;
-                }
-
                 var resultLastValues2 = new string[resultWindowRows.Count];
                 for (int resultLastValues2Partition = 0; resultLastValues2Partition < resultNtiles0Partitions.PartitionCount; ++resultLastValues2Partition)
                 {
@@ -201,17 +194,15 @@ namespace GeneratedSample_Q290_SpecCoreNamedWindowAnalytics
                         var resultLastValues2Current = resultLastValues2Indices[resultLastValues2Start + resultLastValues2Position];
                         var resultLastValues2FrameStart = 0;
                         var resultLastValues2FrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultNtiles0OrderKeys, resultLastValues2Indices, resultLastValues2Start, resultLastValues2Count, resultLastValues2Position);
-                        var resultLastValues2Context = new Musoq.Plugins.WindowFrameContext<string>(resultLastValues2Values, new System.ReadOnlySpan<int>(resultLastValues2Indices, resultLastValues2Start, resultLastValues2Count), resultLastValues2Position, resultLastValues2FrameStart, resultLastValues2FrameEnd, token);
+                        var resultLastValues2Context = new Musoq.Plugins.WindowFrameContext<string>(resultFirstValues1Values, new System.ReadOnlySpan<int>(resultLastValues2Indices, resultLastValues2Start, resultLastValues2Count), resultLastValues2Position, resultLastValues2FrameStart, resultLastValues2FrameEnd, token);
                         resultLastValues2[resultLastValues2Current] = Musoq.Plugins.LastReferenceValueKernel<string>.Get(in resultLastValues2Context);
                     }
                 }
 
-                var resultNthValues3Values = new string[resultWindowRows.Count];
                 var resultNthValues3Argument0 = new int[resultWindowRows.Count];
                 for (int resultNthValues3ExtractionIndex = 0; resultNthValues3ExtractionIndex < resultWindowRows.Count; ++resultNthValues3ExtractionIndex)
                 {
                     Musoq.Evaluator.Tests.Schema.Basic.BasicEntity ko3iko = resultWindowRows[resultNthValues3ExtractionIndex];
-                    resultNthValues3Values[resultNthValues3ExtractionIndex] = (string)(string)ko3iko.Name;
                     resultNthValues3Argument0[resultNthValues3ExtractionIndex] = (int)(int)1;
                 }
 
@@ -228,7 +219,7 @@ namespace GeneratedSample_Q290_SpecCoreNamedWindowAnalytics
                         var resultNthValues3Current = resultNthValues3Indices[resultNthValues3Start + resultNthValues3Position];
                         var resultNthValues3FrameStart = 0;
                         var resultNthValues3FrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultNtiles0OrderKeys, resultNthValues3Indices, resultNthValues3Start, resultNthValues3Count, resultNthValues3Position);
-                        var resultNthValues3Context = new Musoq.Plugins.WindowFrameContext<string>(resultNthValues3Values, new System.ReadOnlySpan<int>(resultNthValues3Indices, resultNthValues3Start, resultNthValues3Count), resultNthValues3Position, resultNthValues3FrameStart, resultNthValues3FrameEnd, token);
+                        var resultNthValues3Context = new Musoq.Plugins.WindowFrameContext<string>(resultFirstValues1Values, new System.ReadOnlySpan<int>(resultNthValues3Indices, resultNthValues3Start, resultNthValues3Count), resultNthValues3Position, resultNthValues3FrameStart, resultNthValues3FrameEnd, token);
                         resultNthValues3[resultNthValues3Current] = Musoq.Plugins.NthReferenceValueKernel<string>.Get(in resultNthValues3Context, resultNthValues3Argument0[resultNthValues3Current]);
                     }
                 }

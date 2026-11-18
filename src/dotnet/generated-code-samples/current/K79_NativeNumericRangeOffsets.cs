@@ -40,7 +40,7 @@ ExecutionPlan [compiled]
     SourceScan [ko3iko: CoverageRow] -> ko3ikoRows
     MaterializeChunked [ko3ikoRows -> resultWindowRows]
     ComputeSumWindowKernel[BoundedRows] [resultSums0 <- resultWindowRows value ko3iko.Value order by ko3iko.Value ASC frame range between 2 preceding and 1 following]
-    ComputeCountWindowKernel[BoundedRows] [resultCounts1 <- resultWindowRows value ko3iko.Value order by ko3iko.Value ASC frame range between 2 preceding and 1 following]
+    ComputeCountWindowKernel[BoundedRows] [resultCounts1 <- resultWindowRows value ko3iko.Value order by ko3iko.Value ASC frame range between 2 preceding and 1 following] shared values resultSums0BatchValues
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Position: ko3iko.Position, Total: resultSums0[windowIndex], Present: resultCounts1[windowIndex])]
@@ -167,13 +167,6 @@ namespace GeneratedSample_K79_NativeNumericRangeOffsets
                 }
 
                 var resultCounts1 = new long[resultWindowRows.Count];
-                var resultCounts1BatchValues = new int? [resultWindowRows.Count];
-                for (int resultCounts1CaptureIndex = 0; resultCounts1CaptureIndex < resultWindowRows.Count; ++resultCounts1CaptureIndex)
-                {
-                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[resultCounts1CaptureIndex];
-                    resultCounts1BatchValues[resultCounts1CaptureIndex] = (int?)ko3iko.Value;
-                }
-
                 for (int resultCounts1PartitionSetIndex = 0; resultCounts1PartitionSetIndex < resultSums0Partitions.PartitionCount; ++resultCounts1PartitionSetIndex)
                 {
                     var resultCounts1PartitionStart = resultSums0Partitions.GetStart(resultCounts1PartitionSetIndex);
@@ -190,7 +183,7 @@ namespace GeneratedSample_K79_NativeNumericRangeOffsets
                         for (var resultCounts1FrameIndex = Math.Max(0, resultCounts1FrameStart); resultCounts1FrameIndex <= resultCounts1FrameEnd && resultCounts1FrameIndex < resultCounts1PartitionCount; resultCounts1FrameIndex++)
                         {
                             var resultCounts1CurrentIndex = resultCounts1PartitionIndices[resultCounts1PartitionStart + resultCounts1FrameIndex];
-                            Musoq.Plugins.CountNullableAggregateKernel<int>.Set(ref resultCounts1State, (int?)resultCounts1BatchValues[resultCounts1CurrentIndex]);
+                            Musoq.Plugins.CountNullableAggregateKernel<int>.Set(ref resultCounts1State, (int?)resultSums0BatchValues[resultCounts1CurrentIndex]);
                         }
 
                         resultCounts1[resultCounts1OutputIndex] = Musoq.Plugins.CountNullableAggregateKernel<int>.Get(in resultCounts1State);

@@ -15,5 +15,7 @@ public sealed record Scenario(
     string DataProfileId = "default"
 )
 {
+    public IReadOnlyList<int>? MembershipIds { get; init; }
+
     public override string ToString() => Id;
 }

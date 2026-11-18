@@ -282,6 +282,12 @@ public sealed partial class ExecutionCSharpRenderer
             ? rowAccess
             : SyntaxFactory.CastExpression(itemType, rowAccess);
         var itemDeclaration = CreateLocalDeclaration(itemType, forEach.Item.Name, itemInitializer);
+        var batch = RenderStoredNumericConsumer(forEach, rowsVariable, indexVariable.Name, itemDeclaration, context);
+        if (batch != null)
+        {
+            statements = rowsDeclaration == null ? [batch] : [rowsDeclaration, batch];
+            return true;
+        }
         var bodyStatements = new List<StatementSyntax> { itemDeclaration };
         if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Insert(

@@ -60,6 +60,52 @@ public sealed class DiagnosticText050TextReaderTests
     }
 
     [TestMethod]
+    [DataRow(0)]
+    [DataRow(15)]
+    [DataRow(16)]
+    [DataRow(17)]
+    [DataRow(1024)]
+    public void ReadBetween_Nested_SharedLeadingCharacterPreservesContentAndPosition(int prefixLength)
+    {
+        var interpreter = new TestTextInterpreter();
+        var content = new string('x', prefixLength) + "<x<+nested</";
+        var text = "<+" + content + "</tail";
+
+        var result = interpreter.TestReadBetween(text.AsSpan(), "<+", "</", nested: true, fieldName: "Value");
+
+        Assert.AreEqual(content, result);
+        Assert.AreEqual(text.Length - 4, interpreter.Position);
+        Assert.AreEqual("tail", interpreter.TestReadRest(text.AsSpan()));
+    }
+
+    [TestMethod]
+    public void ReadBetween_Nested_OpeningDelimiterTakesPrecedenceOverItsClosingPrefix()
+    {
+        var interpreter = new TestTextInterpreter();
+        var content = new string('x', 64) + "[+inner[";
+        var text = "[+" + content + "[tail";
+
+        Assert.AreEqual(content, interpreter.TestReadBetween(text.AsSpan(), "[+", "[", nested: true));
+        Assert.AreEqual("tail", interpreter.TestReadRest(text.AsSpan()));
+    }
+
+    [TestMethod]
+    public void ReadBetween_Nested_LongUnterminatedFieldPreservesDiagnosticOffset()
+    {
+        var interpreter = new TestTextInterpreter();
+        interpreter.SetPosition(2);
+        var text = "xx<+" + new string('x', 1024) + "<";
+
+        var error = Assert.ThrowsExactly<ParseException>(() =>
+            interpreter.TestReadBetween(text.AsSpan(), "<+", "</", nested: true, fieldName: "Value")
+        );
+
+        Assert.AreEqual(ParseErrorCode.DelimiterNotFound, error.ErrorCode);
+        Assert.AreEqual(4, error.Position);
+        Assert.AreEqual("Value", error.FieldName);
+    }
+
+    [TestMethod]
     public void ReadBetween_Nested_WhenDelimitersAreEqual_ShouldUseFirstClosingDelimiter()
     {
         var interpreter = new TestTextInterpreter();
