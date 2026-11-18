@@ -62,7 +62,8 @@ public sealed partial class CSharpRenderer
             ? precomputedRenderPlan.FinalSinkPlans.TableDirectProjection
             : null;
         var omitFinalShapeClass =
-            tableDirectSink?.IsAccepted == true
+            _context.InstrumentationMode == QueryInstrumentationMode.Disabled
+            && tableDirectSink?.IsAccepted == true
             && (_context.ResultMode is QueryResultMode.Table or QueryResultMode.TableViaRows)
             && tableDirectSink.ProjectionLoop?.CanUseParallel == false
             && tableDirectSink.ProjectionLoop?.OptionalProjectionBody != null;

@@ -11,19 +11,23 @@ internal static class ChunkedLoopSyntaxFactory
         ExecutionVariable item,
         ExpressionSyntax sourceExpression,
         string breakTarget,
-        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements
+        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements,
+        Func<string, string, StatementSyntax, StatementSyntax>? prepareChunk = null
     )
     {
         var chunkVariableName = CreateIdentifierCandidate($"{item.Name}Chunk", 0);
         var indexVariableName = CreateIdentifierCandidate($"{item.Name}Index", 0);
 
-        var loop = StatementEmitter.CreateForeach(
-            chunkVariableName,
-            sourceExpression,
-            TryCreateFastPathItemType(item, out var itemType)
-                ? CreateChunkFastPathStatement(itemType, chunkVariableName, indexVariableName, createBodyStatements)
-                : CreateGenericChunkLoop(chunkVariableName, indexVariableName, createBodyStatements)
-        );
+        StatementSyntax body = TryCreateFastPathItemType(item, out var itemType)
+            ? CreateChunkFastPathStatement(itemType, chunkVariableName, indexVariableName, createBodyStatements)
+            : CreateGenericChunkLoop(chunkVariableName, indexVariableName, createBodyStatements);
+        var inputName = chunkVariableName;
+        if (prepareChunk != null)
+        {
+            inputName = CreateIdentifierCandidate($"{chunkVariableName}Input", 0);
+            body = prepareChunk(inputName, chunkVariableName, body);
+        }
+        var loop = StatementEmitter.CreateForeach(inputName, sourceExpression, body);
 
         var exitsLogicalLoop = loop.DescendantNodes()
             .OfType<GotoStatementSyntax>()

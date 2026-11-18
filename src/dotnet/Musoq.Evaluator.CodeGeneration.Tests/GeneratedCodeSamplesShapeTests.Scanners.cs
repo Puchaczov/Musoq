@@ -331,7 +331,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         }
 
         var directLoopPattern =
-            $@"foreach \(var {Regex.Escape(expectation.Alias)}Chunk in [A-Za-z0-9_]*{Regex.Escape(expectation.Alias)}Rows\)";
+            $@"foreach \(var {Regex.Escape(expectation.Alias)}Chunk(?:Input)? in [A-Za-z0-9_]*{Regex.Escape(expectation.Alias)}Rows\)";
         if (Regex.IsMatch(content, directLoopPattern))
             return true;
 

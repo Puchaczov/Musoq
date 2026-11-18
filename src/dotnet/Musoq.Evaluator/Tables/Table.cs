@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Musoq.Schema;
 
@@ -19,7 +18,6 @@ public partial class Table : IReadOnlyCollection<Row>, IReadOnlyTable, IDisposab
         _columnsByIndex = new Dictionary<int, Column>();
         _columnsByName = new Dictionary<string, List<Column>>();
         _guard = new object();
-        _pendingRows = new ConcurrentQueue<Row>();
         _pendingDirectRowShards = null;
         _pendingDirectRowCount = 0;
         _hasPendingRows = false;

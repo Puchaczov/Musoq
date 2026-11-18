@@ -123,7 +123,7 @@ namespace GeneratedSample_Q354_StructuredNumericOverload
             var oRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Examples.DataSources.StructuredInputs.OverloadRow>(oRowsSource.Chunks, __musoqProgressContext, "o:1") : oRowsSource.Chunks;
             var __musoqTableSourceRows = oRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Examples.DataSources.StructuredInputs.OverloadRow, ResultRow0>(__musoqTableSourceRows, (o) => true, (o) => new ResultRow0(o.Kind, o.Value, o.Count), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Examples.DataSources.StructuredInputs.OverloadRow, ResultRow0>(__musoqTableSourceRows, (o) => new ResultRow0(o.Kind, o.Value, o.Count), token), token, onCompleted: () =>
             {
                 try
                 {

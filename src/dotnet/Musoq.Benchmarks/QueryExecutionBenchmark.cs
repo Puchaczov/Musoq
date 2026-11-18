@@ -73,6 +73,11 @@ public class ExecutionPlanBenchmark : QueryExecutionBenchmark
     public override IEnumerable<string> Scenarios => ExecutionPlanScenarios.All.Select(scenario => scenario.Id);
 }
 
+public class BasicQueryBenchmark : QueryExecutionBenchmark
+{
+    public override IEnumerable<string> Scenarios => BasicQueryScenarios.All.Select(scenario => scenario.Id);
+}
+
 public sealed class BenchmarkLogger : ILoggerResolver
 {
     public static BenchmarkLogger Instance { get; } = new();

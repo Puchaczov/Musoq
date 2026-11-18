@@ -21,13 +21,16 @@ public partial class Table
                     var materializer = _deferredMaterializer;
                     _deferredMaterializer = null;
                     materializer?.Invoke(this);
-                    while (_pendingRows.TryDequeue(out var row))
+                    while (_pendingRows?.TryDequeue(out var row) == true)
                         _rows.Add(row);
                     FlushPendingDirectRows();
                 }
                 finally
                 {
                     _hasPendingRows = false;
+                    // A writer can enqueue after the drain and publish its flag before this reset.
+                    if (_pendingRows is { IsEmpty: false })
+                        _hasPendingRows = true;
                     lease = DetachLifetimeLease();
                 }
             }

@@ -79,7 +79,71 @@ public sealed class TypedSelectShapeOutputTests
         Assert.IsFalse(result.HasFinalSinkRejectionDiagnostics);
     }
 
+    [TestMethod]
+    public void FilteredTypedProjection_ShouldReadOutputOnlyForMatchesAndRetainDefaultStruct()
+    {
+        const string sql = "select Id, Payload from #A.entities() where Id >= 0";
+        var rows = new[] { new[] { new GuardedInput(-1), new GuardedInput(0), new GuardedInput(2) } };
+        var result = MusoqApi.CompileAndRun<GuardedInput, GuardedOutput>(sql, rows, CancellationToken.None).ToArray();
+        CollectionAssert.AreEqual(new[] { default(GuardedOutput), new GuardedOutput(2, "accepted") }, result);
+        var inspection = MusoqApi.Query(sql).Source<GuardedInput>("#A", "entities").InspectTyped<GuardedOutput>();
+        Assert.AreEqual(TypedGeneratedRowsKind.DirectRows, inspection.RowsKind);
+    }
+
+    [TestMethod]
+    public void FilteredReferenceProjection_ShouldRetainNullMembersAndSkipAnEntireRejectedChunk()
+    {
+        const string sql = "select Id, Payload from #A.entities() where Id >= 0";
+        var rows = new[] { new[] { new GuardedInput(-7) }, new[] { new GuardedInput(0) } };
+        var result = MusoqApi.CompileAndRun<GuardedInput, ReferenceOutput>(sql, rows, CancellationToken.None).ToArray();
+        CollectionAssert.AreEqual(new[] { new ReferenceOutput(0, null) }, result);
+    }
+
+    [TestMethod]
+    public void FilteredProjection_ShouldObserveCancellationWhileRejectingALargeChunk()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var reads = 0;
+        var input = new CancelInput(() =>
+        {
+            if (++reads == 1)
+                cancellation.Cancel();
+            return 1;
+        });
+        var chunks = new[] { Enumerable.Repeat(input, 8192).ToArray() };
+        Assert.Throws<System.OperationCanceledException>(() =>
+            MusoqApi
+                .CompileAndRun<CancelInput, GuardedOutput>(
+                    "select Id, 'unused' as Payload from #A.entities() where Id < 0",
+                    chunks,
+                    cancellation.Token
+                )
+                .ToArray()
+        );
+        Assert.IsTrue(reads is > 0 and <= 1024);
+    }
+
+    public sealed class CancelInput(System.Func<int> readId)
+    {
+        public int Id => readId();
+    }
+
     public sealed record TypedInput(string Name, int Age);
+
+    public sealed record GuardedInput(int Id)
+    {
+        public string? Payload =>
+            Id switch
+            {
+                < 0 => throw new System.InvalidOperationException("Projection read a rejected source row."),
+                0 => null,
+                _ => "accepted",
+            };
+    }
+
+    public readonly record struct GuardedOutput(int Id, string? Payload);
+
+    public sealed record ReferenceOutput(int Id, string? Payload);
 
     public sealed record ConstructorOutput(string Name, int Age);
 

@@ -87,9 +87,9 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         var simpleSelect = samples["Q01_SimpleSelectWhere.cs"].Content;
         var groupedSort = samples["Q07_GroupByHavingOrderBy.cs"].Content;
 
-        Assert.Contains("private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(", simpleSelect);
-        Assert.Contains("yield return new ResultRow0(ko3iko.Name, population);", simpleSelect);
-        Assert.Contains("yield return __musoqShapeRow;", simpleSelect);
+        Assert.Contains("private IEnumerable<ResultRow0> ComputeRows_compiled_0(", simpleSelect);
+        Assert.Contains("return new ResultRow0(ko3iko.Name, population);", simpleSelect);
+        Assert.Contains("TableProjectionRows.ProjectOptionalRowsSerial", simpleSelect);
         Assert.DoesNotContain("private Table ComputeTable_compiled_0(", simpleSelect);
         Assert.Contains("result.Add(new ResultShape0(", groupedSort);
         Assert.Contains(EnsureCapacityPattern, groupedSort);
@@ -189,7 +189,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             "OnPhaseChanged(\"compiled\", QueryPhase.Select);",
             StringComparison.Ordinal
         );
-        var loopIndex = generatedCode.IndexOf("foreach (var ko3ikoChunk in ko3ikoRows)", StringComparison.Ordinal);
+        var projectionIndex = generatedCode.IndexOf(
+            "TableProjectionRows.ProjectOptionalRowsSerial",
+            StringComparison.Ordinal
+        );
 
         Assert.IsGreaterThanOrEqualTo(0, beginIndex);
         Assert.IsLessThan(fromIndex, beginIndex);
@@ -197,7 +200,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.IsLessThan(rowsIndex, sourceIndex);
         Assert.IsLessThan(whereIndex, rowsIndex);
         Assert.IsLessThan(selectIndex, whereIndex);
-        Assert.IsLessThan(loopIndex, selectIndex);
+        Assert.IsLessThan(projectionIndex, selectIndex);
     }
 
     [TestMethod]
@@ -227,8 +230,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         );
         Assert.AreEqual(2, CountOccurrences(whereSelect, "ScriptParameterBinder.Get"));
         Assert.Contains("Operators.SqlCompare<string, string>(ko3iko.Country, paramCountry", whereSelect);
-        Assert.Contains("yield return new ResultRow0(ko3iko.Name, population, paramCountry);", whereSelect);
-        Assert.Contains("yield return __musoqShapeRow;", whereSelect);
+        Assert.Contains("return new ResultRow0(ko3iko.Name, population, paramCountry);", whereSelect);
+        Assert.DoesNotContain("new ResultShape0(", whereSelect);
 
         Assert.Contains(
             "var paramFlag = ScriptParameterBinder.GetOptional<bool>(__musoqExecutionState, \"flag\", true);",

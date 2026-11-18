@@ -15,7 +15,10 @@ internal sealed class FixtureInputs(Dictionary<string, FixtureRows> sources)
         var lookup = FixtureData.Rows(3);
         var sources = new Dictionary<string, FixtureRows>(StringComparer.OrdinalIgnoreCase)
         {
-            ["rows"] = new(StandardDataProfiles.Rows(count, payloadValueOffset, profile)),
+            ["rows"] = new(
+                StandardDataProfiles.Rows(count, payloadValueOffset, profile),
+                profile == StandardDataProfile.SmallChunks ? 32 : 4096
+            ),
             ["skewed"] = new(
                 FixtureData
                     .Rows(count, payloadValueOffset)

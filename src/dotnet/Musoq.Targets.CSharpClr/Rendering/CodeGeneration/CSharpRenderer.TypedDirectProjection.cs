@@ -78,6 +78,18 @@ public sealed partial class CSharpRenderer
                 )
             );
         }
+        else if (projectionLoop.OptionalProjectionBody is { } body)
+        {
+            statements.Add(
+                executionRenderer.RenderSerialProjectionLoop(
+                    projectionLoop,
+                    body,
+                    SyntaxFactory.IdentifierName(sourceRowsName),
+                    row => CreateTypedProjection(binding, executionRenderer, row, renderContext),
+                    renderContext
+                )
+            );
+        }
         else
         {
             statements.Add(
@@ -313,12 +325,21 @@ public sealed partial class CSharpRenderer
         ExecutionRenderContext? renderContext = null
     )
     {
-        var values = projectionLoop
-            .AppendRow.Values.Select(value => RenderFinalSinkExpression(executionRenderer, value.Value, renderContext))
-            .ToArray();
-
-        return CreateSourceLambda(projectionLoop.Source, binding.CreateOutputExpression(values));
+        return CreateSourceLambda(
+            projectionLoop.Source,
+            CreateTypedProjection(binding, executionRenderer, projectionLoop.AppendRow, renderContext)
+        );
     }
+
+    private static ExpressionSyntax CreateTypedProjection(
+        TypedOutputBinding binding,
+        ExecutionCSharpRenderer renderer,
+        ExecutionAppendRow row,
+        ExecutionRenderContext? context
+    ) =>
+        binding.CreateOutputExpression(
+            row.Values.Select(value => RenderFinalSinkExpression(renderer, value.Value, context)).ToArray()
+        );
 
     private static ParenthesizedLambdaExpressionSyntax CreateSourceLambda(
         ExecutionVariable source,

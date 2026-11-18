@@ -30,8 +30,15 @@ public static class BenchmarkRegistrations
     internal static BenchmarkRegistration ExecutionPlans { get; } =
         new(typeof(ExecutionPlanBenchmark), "execution", "Table");
 
+    internal static BenchmarkRegistration BasicQueries { get; } =
+        new(typeof(BasicQueryBenchmark), "execution", "Table");
+    internal static BenchmarkRegistration BasicTyped { get; } =
+        new(typeof(BasicTypedProjectionBenchmark), "execution", "Typed");
+
     public static BenchmarkRegistration For(Type type) =>
         type == ExecutionPlans.Type ? ExecutionPlans
+        : type == BasicQueries.Type ? BasicQueries
+        : type == BasicTyped.Type ? BasicTyped
         : type == Vectorization.Type ? Vectorization
         : All.Single(item => item.Type == type);
 

@@ -347,6 +347,30 @@ public sealed class QueryRowsRuntimeTests
     }
 
     [TestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void DeferredTable_ShouldReportFactoryAndEnumerationFailuresAtFirstAccess(bool failInFactory)
+    {
+        var failure = new InvalidOperationException("Source failed");
+        using var table = QueryRows.DeferredTable(
+            "result",
+            [new Column("Value", typeof(string), 0)],
+            _ => failInFactory ? throw failure : Rows(),
+            CancellationToken.None
+        );
+
+        var error = Assert.Throws<QueryExecutionException>(() => _ = table.Count);
+        Assert.AreSame(failure, error.InnerException);
+        Assert.AreEqual("RowEnumeration", error.ExecutionPhase);
+
+        IEnumerable<TestRow> Rows()
+        {
+            yield return new TestRow("first");
+            throw failure;
+        }
+    }
+
+    [TestMethod]
     public void DeferredTable_WhenCancelledBeforeFirstAccess_ShouldThrowAtMaterialization()
     {
         using var cancellation = new CancellationTokenSource();
@@ -455,6 +479,178 @@ public sealed class QueryRowsRuntimeTests
             rows,
             [new RowOrderKey(row => row.ReadValue(keyIndex), descending, nullOrdering)]
         );
+    }
+
+    [TestMethod]
+    public void OptionalTableProjection_RespectsCovariantSliceAndCustomChunkOrder()
+    {
+        object[] items = new string[] { "outside", "first", "skip", "last", "outside" };
+        IReadOnlyList<object>[] chunks =
+        [
+            new Musoq.Schema.DataSources.RowChunk<object>(items, 1, 3),
+            new List<object> { "tail" },
+        ];
+        var rows = TableProjectionRows.ProjectOptionalRowsSerial<object, TestRow>(
+            chunks,
+            value => Equals(value, "skip") ? null! : new TestRow(value),
+            default
+        );
+        using var table = QueryRows.MaterializeTable("result", [new Column("Value", typeof(string), 0)], rows);
+        CollectionAssert.AreEqual(
+            new[] { "first", "last", "tail" },
+            table.Select(row => (string)row.ReadValue(0)).ToArray()
+        );
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void OptionalTableProjection_ObservesCancellationInsideARejectedChunk(bool useArray)
+    {
+        using var cancellation = new CancellationTokenSource();
+        IReadOnlyList<int> chunk = useArray ? new int[8192] : new List<int>(new int[8192]);
+        var reads = 0;
+        var rows = TableProjectionRows.ProjectOptionalRowsSerial<int, TestRow>(
+            new[] { chunk },
+            _ =>
+            {
+                if (++reads == 1)
+                    cancellation.Cancel();
+                return null!;
+            },
+            cancellation.Token
+        );
+        using var table = new Table("result", [new Column("Value", typeof(int), 0)]);
+        Assert.Throws<OperationCanceledException>(() => ((ITableRowBatchSource<TestRow>)rows).AddTo(table));
+        Assert.IsTrue(reads is > 0 and <= 1024);
+        Assert.AreEqual(0, table.Count);
+    }
+
+    [TestMethod]
+    public void ConcurrentAppendsToNewTable_RetainEveryRow()
+    {
+        using var table = new Table("result", [new Column("Value", typeof(int), 0)]);
+        System.Threading.Tasks.Parallel.For(0, 1024, index => table.AddUnchecked(new TestRow(index)));
+        CollectionAssert.AreEquivalent(
+            Enumerable.Range(0, 1024).ToArray(),
+            table.Select(row => (int)row.ReadValue(0)).ToArray()
+        );
+    }
+
+    [TestMethod]
+    public void OneToOneTableProjection_ConsumesLazyChunksInOrder()
+    {
+        var table = new Table("result", [new Column("Value", typeof(int), 0)]);
+        var rows = TableProjectionRows.ProjectRowsSerial<int, TestRow>(Chunks(), value => new TestRow(value), default);
+        ((ITableRowBatchSource<TestRow>)rows).AddTo(table);
+        Assert.AreEqual(3, table.Count);
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, table.Select(row => (int)row.ReadValue(0)).ToArray());
+
+        IEnumerable<IReadOnlyList<int>> Chunks()
+        {
+            yield return new[] { 1, 2 };
+            Assert.AreEqual(2, table.Count);
+            yield return Array.Empty<int>();
+            yield return new Musoq.Schema.DataSources.RowChunk<int>(new[] { 99, 3, 99 }, 1, 1);
+        }
+    }
+
+    [TestMethod]
+    public void OneToOneTableProjection_PreservesFirstProjectionErrorBeforeAccessingAnotherChunk()
+    {
+        var table = new Table("result", [new Column("Value", typeof(int), 0)]);
+        IReadOnlyList<int>[] chunks = [new[] { 1 }, new UnreadableChunk()];
+        var rows = TableProjectionRows.ProjectRowsSerial<int, TestRow>(
+            chunks,
+            _ => throw new FormatException("project"),
+            default
+        );
+        Assert.Throws<FormatException>(() => ((ITableRowBatchSource<TestRow>)rows).AddTo(table));
+        Assert.AreEqual(0, table.Count);
+    }
+
+    [TestMethod]
+    public void OneToOneTableProjection_UsesSingleGuardedSourceReadAndPreservesArraySlices()
+    {
+        var source = new StoredSource();
+        var chunks = Musoq.Schema.DataSources.DataSourceLifecycle.Read(source, "schema", "rows", "r", "r:1");
+        using var lease = new System.IO.MemoryStream();
+        using var table = QueryRows.DeferredTable<TestRow>(
+            "result",
+            [new Column("Value", typeof(int), 0)],
+            token =>
+                TableProjectionRows.ProjectRowsSerial<int, TestRow>(
+                    chunks,
+                    value =>
+                    {
+                        Assert.IsTrue(lease.CanRead, "The query lease must remain active throughout projection.");
+                        return new TestRow(value);
+                    },
+                    token
+                ),
+            default
+        );
+        Assert.IsTrue(table.TryAttachLifetimeLease(lease));
+        CollectionAssert.AreEqual(new[] { 2, 3, 4 }, table.Select(row => (int)row.ReadValue(0)).ToArray());
+        Assert.IsFalse(lease.CanRead);
+        Assert.AreEqual(1, source.Reads);
+    }
+
+    private sealed class StoredSource : Musoq.Schema.DataSources.RowSource<int>
+    {
+        public int Reads { get; private set; }
+        public override IEnumerable<IReadOnlyList<int>> Chunks
+        {
+            get
+            {
+                Reads++;
+                return new IReadOnlyList<int>[]
+                {
+                    new Musoq.Schema.DataSources.RowChunk<int>(new[] { 1, 2, 3 }, 1, 2),
+                    Array.Empty<int>(),
+                    new[] { 4 },
+                };
+            }
+        }
+    }
+
+    private sealed class UnreadableChunk : IReadOnlyList<int>
+    {
+        public int Count => throw new InvalidOperationException();
+        public int this[int index] => throw new InvalidOperationException();
+
+        public IEnumerator<int> GetEnumerator() => throw new InvalidOperationException();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+    [TestMethod]
+    public void SmallOrderedBuffer_PreservesStableTiesAcrossOffsetAndNullKeys()
+    {
+        (int? Key, int Id)[] input = [(4, 0), (4, 1), (3, 2), (2, 3), (2, 4), (null, 5), (null, 6), (2, 7)];
+        var comparer = Comparer<(int? Key, int Id)>.Create((a, b) => Nullable.Compare(a.Key, b.Key));
+        var selected = new EvaluationHelper.SmallBoundedTopRecordList<(int? Key, int Id)>(1, 3, comparer);
+        foreach (var row in input)
+            selected.Add(row);
+        CollectionAssert.AreEqual(new[] { 6, 3, 4 }, selected.Select(row => row.Id).ToArray());
+    }
+
+    [TestMethod]
+    [DataRow(0, 2)]
+    [DataRow(5, 4)]
+    [DataRow(11, 21)]
+    public void SmallOrderedBuffer_MatchesStableSortAsInputGrows(int skip, int take)
+    {
+        var input = Enumerable.Range(0, 75).Select(i => (Key: (i * 7) % 11, Id: i)).ToArray();
+        var comparer = Comparer<(int Key, int Id)>.Create((a, b) => b.Key.CompareTo(a.Key));
+        foreach (var count in new[] { 0, skip, skip + take - 1, skip + take, input.Length })
+        {
+            var buffer = new EvaluationHelper.SmallBoundedTopRecordList<(int Key, int Id)>(skip, take, comparer);
+            foreach (var row in input.Take(count))
+                buffer.Add(row);
+            var expected = input.Take(count).OrderByDescending(row => row.Key).Skip(skip).Take(take).ToArray();
+            CollectionAssert.AreEqual(expected, buffer.ToArray());
+        }
     }
 
     private sealed class TestRow : Row

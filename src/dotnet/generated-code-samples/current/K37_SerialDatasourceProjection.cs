@@ -96,7 +96,7 @@ namespace GeneratedSample_K37_SerialDatasourceProjection
             var __resultLibraryBase0 = new Musoq.Plugins.LibraryBase();
             var __musoqTableSourceRows = ko3ikoRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0((string)__resultLibraryBase0.ToUpper(ko3iko.Partition)), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => new ResultRow0((string)__resultLibraryBase0.ToUpper(ko3iko.Partition)), token), token, onCompleted: () =>
             {
                 try
                 {

@@ -61,7 +61,9 @@ public sealed partial class CSharpRenderer
                 CreateSourceTypeSyntax(projectionLoop.Source),
                 SyntaxFactory.ParseTypeName(resultInfo.RowTypeName),
                 sourceRowsName,
-                CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
+                projectionLoop.Predicate == null && ExecutionRowStreams.IsChunked(projectionLoop.SourceRows)
+                    ? null
+                    : CreatePredicateLambda(executionRenderer, projectionLoop, renderContext),
                 CreateTableProjectionLambda(executionRenderer, projectionLoop, renderContext)
             )
         );

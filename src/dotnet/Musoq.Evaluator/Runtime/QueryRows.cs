@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Tables;
 
 namespace Musoq.Evaluator.Runtime;
@@ -103,12 +102,15 @@ public static class QueryRows
         {
             try
             {
-                var rows = new QueryTableEnumerable<TRow>(rowsFactory, cancellationToken);
+                // The Table already owns the one-shot materialization lifetime.
+                using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var rows = rowsFactory(cancellation.Token);
+                ArgumentNullException.ThrowIfNull(rows);
                 AddRowsToTable(target, rows);
             }
-            catch (ScriptParameterBindingException ex)
+            catch (Exception ex)
             {
-                throw QueryExecutionException.ForScriptParameterBinding(ex);
+                throw ExecutionFailureConverter.Convert("RowEnumeration", ex);
             }
         });
 
@@ -125,7 +127,7 @@ public static class QueryRows
         }
 
         if (rows.TryGetNonEnumeratedCount(out var count))
-            table.EnsureCapacity(count);
+            table.EnsureAdditionalDirectRowCapacity(count);
 
         foreach (var row in rows)
             table.AddDirect(row);

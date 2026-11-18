@@ -111,7 +111,7 @@ namespace GeneratedSample_Q320_SpecTableReadModifiers
             var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.SpecificationReadModifiersEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
             var __musoqTableSourceRows = ko3ikoRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.SpecificationReadModifiersEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0(ko3iko.InvoiceNo, ko3iko.CustomerName, ko3iko.Total, ko3iko.Attachment), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.SpecificationReadModifiersEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => new ResultRow0(ko3iko.InvoiceNo, ko3iko.CustomerName, ko3iko.Total, ko3iko.Attachment), token), token, onCompleted: () =>
             {
                 try
                 {

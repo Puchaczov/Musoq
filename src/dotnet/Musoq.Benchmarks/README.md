@@ -51,6 +51,11 @@ Filters are case-insensitive globs over case IDs or benchmark class names. `-Out
 directory. Resumes restore the saved mode, filter, size, machine profile and job. Conflicting overrides are rejected. Commands never commit, push or change branches.
 Do not overlap measurements with builds, tests or other heavy work.
 
+## Local basic query workloads
+
+The Local filter `BQ_*` measures basic projection, filter selectivity, bounded ordering, paging and counting.
+Projection cases have matching Table and typed outputs. Use `BQ_*-execution-Table-*` for Table-only runs.
+
 ## Local vectorization workloads
 
 Use the Local filter `V_*` to select the experimental execution matrix, or select one case such as

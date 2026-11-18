@@ -206,7 +206,8 @@ public static class DataSourceLifecycle
             throw DataSourceLifecycleException.ForRead(schemaName, sourceName, alias, sourceContextId, exception);
         }
 
-        return ReadCore(chunks, schemaName, sourceName, alias, sourceContextId);
+        var guarded = ReadCore(chunks, schemaName, sourceName, alias, sourceContextId);
+        return chunks is IReadOnlyList<T>[] stored ? new StoredSourceChunks<T>(stored, guarded) : guarded;
     }
 
     public static IAsyncEnumerable<IReadOnlyList<T>> ReadAsync<T>(

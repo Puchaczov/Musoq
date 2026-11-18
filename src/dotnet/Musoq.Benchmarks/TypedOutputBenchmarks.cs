@@ -17,7 +17,7 @@ public abstract class TypedOutputBenchmark<T>
 {
     private CompiledTypedQuery<T> _query = null!;
     private readonly Consumer _consumer = new();
-    public string ScenarioId => BenchmarkRegistrations.TypedScenario<T>();
+    public virtual string ScenarioId { get; set; } = BenchmarkRegistrations.TypedScenario<T>();
     public IEnumerable<string> Sizes => BenchmarkSizes.Labels;
 
     [ParamsSource(nameof(Sizes))]
@@ -52,6 +52,14 @@ public abstract class TypedOutputBenchmark<T>
 }
 
 public class TypedProjectionBenchmark : TypedOutputBenchmark<ProjectionOutput> { }
+
+public class BasicTypedProjectionBenchmark : TypedOutputBenchmark<ProjectionOutput>
+{
+    public IEnumerable<string> Scenarios => BasicQueryScenarios.Projections.Select(scenario => scenario.Id);
+
+    [ParamsSource(nameof(Scenarios))]
+    public override string ScenarioId { get; set; } = "BQ_Project";
+}
 
 public class TypedGroupBenchmark : TypedOutputBenchmark<GroupOutput> { }
 

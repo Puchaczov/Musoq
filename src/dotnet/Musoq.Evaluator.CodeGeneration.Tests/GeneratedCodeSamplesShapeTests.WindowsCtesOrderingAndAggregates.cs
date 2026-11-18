@@ -408,7 +408,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             sample
         );
         Assert.Contains(
-            "var resultOrderRecords = new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(5, ResultRow0WithSortKeysComparer.Instance);",
+            "var resultOrderRecords = new EvaluationHelper.SmallBoundedTopRecordList<ResultRow0WithSortKeys>(5, ResultRow0WithSortKeysComparer.Instance)",
             sample
         );
         Assert.Contains(

@@ -70,6 +70,11 @@ public static class CampaignCases
         var types = Types;
         if (
             !options.Official
+            && options.Filter.StartsWith(BasicQueryScenarios.Prefix, StringComparison.OrdinalIgnoreCase)
+        )
+            types = [.. types, BenchmarkRegistrations.BasicQueries.Type, BenchmarkRegistrations.BasicTyped.Type];
+        if (
+            !options.Official
             && options.Filter.StartsWith(VectorizationScenarios.Prefix, StringComparison.OrdinalIgnoreCase)
         )
             types = [.. types, BenchmarkRegistrations.Vectorization.Type];

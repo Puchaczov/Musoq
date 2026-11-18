@@ -61,10 +61,12 @@ public sealed partial class ExecutionCSharpRenderer
             ),
         };
 
+        var helper = createList.UsesSmallOrderedBuffer
+            ? nameof(EvaluationHelper.SmallBoundedTopRecordList<int>)
+            : nameof(EvaluationHelper.BoundedTopRecordList<int>);
         var listType = SyntaxFactory.ParseTypeName(
-            $"{nameof(EvaluationHelper)}.BoundedTopRecordList<{createList.RecordShape.TypeName}>"
+            $"{nameof(EvaluationHelper)}.{helper}<{createList.RecordShape.TypeName}>"
         );
-
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             createList.List.Name,
