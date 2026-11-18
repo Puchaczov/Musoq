@@ -42,6 +42,8 @@ public sealed record ExecutionComputeRankingWindow : ExecutionNode
     public ExecutionExpression? PartitionKey { get; init; }
     public IReadOnlyList<ExecutionWindowOrderKey> OrderKeys { get; init; }
     public ExecutionRankingWindowFunction Function { get; init; }
+    internal ExecutionVariable? WinnerPositions { get; init; }
+
     public ExecutionVariable Results { get; init; }
     public ExecutionWindowKeyArray? PartitionKeyArray { get; init; }
     public ExecutionWindowKeyArray? OrderKeyArray { get; init; }

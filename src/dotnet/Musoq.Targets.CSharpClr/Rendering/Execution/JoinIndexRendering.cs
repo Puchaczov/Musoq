@@ -18,11 +18,13 @@ public sealed partial class ExecutionCSharpRenderer
     {
         return GeneratedIndexSyntaxFactory.CreateIndexDeclaration(
             createHash.Hash.Name,
-            CreateHashTypeSyntax(
-                createHash.KeyType.RequireClrType(),
-                createHash.RowType.RequireClrType(),
-                createHash.GeneratedRowTypeName
-            ),
+            createHash.TracksMaximum
+                ? CreateGroupDictionaryTypeSyntax(createHash.KeyType, CreateTypeSyntax(createHash.RowType))
+                : CreateHashTypeSyntax(
+                    createHash.KeyType.RequireClrType(),
+                    createHash.RowType.RequireClrType(),
+                    createHash.GeneratedRowTypeName
+                ),
             createHash.CapacityHint == null ? null : RenderCapacityHint(createHash.CapacityHint, context)
         );
     }

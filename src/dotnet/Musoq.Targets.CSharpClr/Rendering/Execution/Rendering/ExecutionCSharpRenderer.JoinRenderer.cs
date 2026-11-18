@@ -28,6 +28,10 @@ public sealed partial class ExecutionCSharpRenderer
                     renderer.RenderCreateAsOfIndex(createAsOfIndex, renderContext),
                 ],
                 ExecutionAsOfProbe asOfProbe => [renderer.RenderAsOfProbe(asOfProbe, renderContext)],
+                ExecutionCreateRangeIndex { UsesInputOrdinals: true } index => renderer.RenderOrdinalRangeIndex(
+                    index,
+                    renderContext
+                ),
                 ExecutionCreateRangeIndex createRangeIndex =>
                 [
                     renderer.RenderCreateRangeIndex(createRangeIndex, renderContext),

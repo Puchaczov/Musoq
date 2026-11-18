@@ -35,7 +35,7 @@ PhysicalMultiStatement
   PhysicalSort [i.Name]
     PhysicalProject [i.Name as Name, inm.Avg(n.Value) as ValueAvg, inm.Min(n.Value) as ValueMin, inm.Max(n.Value) as ValueMax]
       PhysicalQualify [(WindowRef(0) <= 1)]
-        PhysicalWindow [RowNumber(idx:0; order: Avg(inm.Avg(n.Value)) DESC, Min(inm.Min(n.Value)), Max(inm.Max(n.Value)) DESC)]
+        PhysicalWindow [RowNumber(idx:0; order: Avg(inm.Avg(n.Value)) DESC, Min(inm.Min(n.Value)), Max(inm.Max(n.Value)) DESC) bounded winners]
           PhysicalMaterialize
             PhysicalCteRef [inmScore as inmScore]
 */
@@ -92,9 +92,9 @@ ExecutionPlan [compiled]
         AppendRow [statement0 <- Statement0Row0(i.Name: statement0FinalGroup.i.Name, inm.Max(n.Value): inm.Max(n.Value), inm.Min(n.Value): inm.Min(n.Value), inm.Avg(n.Value): inm.Avg(n.Value))]
     StoreTable [statement0 -> _cteRowResults.Slot0: List<Statement0Row0>]
     Materialize [_cteRowResults.Slot0 -> resultWindowRows]
-    ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by inmScore.inm.Avg(n.Value) DESC, inmScore.inm.Min(n.Value) ASC, inmScore.inm.Max(n.Value) DESC qualify <= 1]
+    ComputeRowNumberWindow [resultRowNumbers <- resultWindowRows order by inmScore.inm.Avg(n.Value) DESC, inmScore.inm.Min(n.Value) ASC, inmScore.inm.Max(n.Value) DESC qualify <= 1] [bounded winners]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
-    ForEachIndexed [windowIndex, inmScore in resultWindowRows]
+    ForEachIndexed [windowIndex, inmScore in resultWindowRows] [positions: resultRowNumbersWinnerPositions]
       If [((resultRowNumbers[windowIndex] > 0) AND (resultRowNumbers[windowIndex] <= 1))]
         AppendShape [result <- ResultShape0(Name: inmScore.i.Name, ValueAvg: inmScore.inm.Avg(n.Value), ValueMin: inmScore.inm.Min(n.Value), ValueMax: inmScore.inm.Max(n.Value))]
     SortOwnedBuffer [result by Name ASC, stable sequence __musoqSequence]
@@ -181,31 +181,89 @@ namespace GeneratedSample_Q75_ChainedApplyGroupedAggregateQualifyWindow
                 var resultRowNumbersOrderKeys = new WindowResultRowNumbersOrderKeysKey[resultWindowRows.Count];
                 ExtractResultRowNumbersWindowKeys(resultWindowRows, resultRowNumbersOrderKeys);
                 var resultRowNumbersPartitions = WindowFunctionHelpers.ResolvePartitionSet(resultWindowRows.Count);
-                WindowFunctionHelpers.SortStructPartitionSetInPlace(resultRowNumbersPartitions, resultRowNumbersOrderKeys, false);
-                var resultRowNumbers = new long[resultWindowRows.Count];
-                for (int resultRowNumbersPartitionSetIndex = 0; resultRowNumbersPartitionSetIndex < resultRowNumbersPartitions.PartitionCount; ++resultRowNumbersPartitionSetIndex)
+                static long[] resultRowNumbersWinnerPositionsSelect<TKey>(Musoq.Evaluator.Helpers.WindowPartitionSet partitions, TKey[] keys, long bound, System.Threading.CancellationToken cancellation, out int[] positions)
+                    where TKey : struct, IComparable<TKey>
                 {
-                    var resultRowNumbersPartitionStart = resultRowNumbersPartitions.GetStart(resultRowNumbersPartitionSetIndex);
-                    var resultRowNumbersPartitionCount = resultRowNumbersPartitions.GetLength(resultRowNumbersPartitionSetIndex);
-                    var resultRowNumbersPartitionIndices = resultRowNumbersPartitions.Indices;
-                    var resultRowNumbersPartitionLimit = (int)System.Math.Min((long)resultRowNumbersPartitionCount, 1L);
-                    for (int resultRowNumbersPartitionIndex = 0; resultRowNumbersPartitionIndex < resultRowNumbersPartitionLimit; ++resultRowNumbersPartitionIndex)
+                    int limit = (int)Math.Clamp(bound, 0L, (long)int.MaxValue);
+                    int total = 0;
+                    for (int p = 0; p < partitions.PartitionCount; p++)
+                        total += Math.Min(limit, partitions.GetLength(p));
+                    var ranks = new long[total];
+                    bool allSelected = total == keys.Length;
+                    var selected = allSelected ? Array.Empty<int>() : new int[total];
+                    positions = selected;
+                    if (total == 0)
+                        return ranks;
+                    int next = 0;
+                    var comparer = Comparer<int>.Create((a, b) => keys[a].CompareTo(keys[b]));
+                    int[] indices = partitions.Indices;
+                    for (int p = 0; p < partitions.PartitionCount; p++)
                     {
-                        var resultRowNumbersCurrentIndex = resultRowNumbersPartitionIndices[resultRowNumbersPartitionStart + resultRowNumbersPartitionIndex];
-                        var resultRowNumbersContext = new Musoq.Plugins.WindowRankingContext(resultRowNumbersPartitionIndex, 0, 0, 0L, resultRowNumbersPartitionCount, token);
-                        resultRowNumbers[resultRowNumbersCurrentIndex] = Musoq.Plugins.RowNumberKernel.Get(in resultRowNumbersContext);
+                        if ((p & 1023) == 0)
+                            cancellation.ThrowIfCancellationRequested();
+                        int start = partitions.GetStart(p);
+                        int length = partitions.GetLength(p);
+                        if (length <= limit)
+                        {
+                            if (length == 2)
+                            {
+                                int first = indices[start];
+                                int second = indices[start + 1];
+                                bool reverse = keys[first].CompareTo(keys[second]) > 0;
+                                Record(first, reverse ? 2 : 1);
+                                Record(second, reverse ? 1 : 2);
+                            }
+                            else
+                            {
+                                if (length > 2)
+                                    Array.Sort(indices, start, length, comparer);
+                                for (int i = 0; i < length; i++)
+                                    Record(indices[start + i], i + 1L);
+                            }
+
+                            continue;
+                        }
+
+                        var best = new Musoq.Evaluator.Helpers.EvaluationHelper.BoundedTopRecordList<int>(limit, comparer);
+                        for (int i = 0; i < length; i++)
+                        {
+                            if ((i & 1023) == 0)
+                                cancellation.ThrowIfCancellationRequested();
+                            best.Add(indices[start + i]);
+                        }
+
+                        long rank = 0;
+                        foreach (int input in best)
+                        {
+                            Record(input, ++rank);
+                        }
+                    }
+
+                    if (!allSelected)
+                        Array.Sort(selected, ranks);
+                    return ranks;
+                    void Record(int input, long rank)
+                    {
+                        if (allSelected)
+                            ranks[input] = rank;
+                        else
+                        {
+                            ranks[next] = rank;
+                            selected[next++] = input;
+                        }
                     }
                 }
 
-                var result = new List<ResultShape0>(resultWindowRows.Count);
-                for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
+                var resultRowNumbers = resultRowNumbersWinnerPositionsSelect(resultRowNumbersPartitions, resultRowNumbersOrderKeys, 1L, token, out var resultRowNumbersWinnerPositions);
+                var result = new List<ResultShape0>(resultRowNumbers.Length);
+                for (int windowIndex = 0; windowIndex < resultRowNumbers.Length; ++windowIndex)
                 {
                     if ((windowIndex & 1023) == 0)
                     {
                         token.ThrowIfCancellationRequested();
                     }
 
-                    Statement0Row0 inmScore = resultWindowRows[windowIndex];
+                    Statement0Row0 inmScore = resultWindowRows[resultRowNumbersWinnerPositions.Length == 0 ? windowIndex : resultRowNumbersWinnerPositions[windowIndex]];
                     if ((((long)resultRowNumbers[windowIndex] > 0L) && ((long)resultRowNumbers[windowIndex] <= 1)))
                     {
                         result.Add(new ResultShape0(inmScore.i_Name, inmScore.inm_Avg_n_Value_, inmScore.inm_Min_n_Value_, inmScore.inm_Max_n_Value_) { __musoqSequence = result.Count });

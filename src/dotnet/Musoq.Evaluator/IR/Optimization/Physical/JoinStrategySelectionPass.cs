@@ -88,7 +88,10 @@ internal sealed class JoinStrategySelectionPass : IPhysicalOptimizationPass
                 strategy.HashJoin.Residual,
                 left,
                 right
-            ),
+            )
+            {
+                GroupMaximum = GroupMaximumSelection.Select(join.Kind, right, strategy.HashJoin),
+            },
             JoinStrategyKind.SortMergeJoin => new PhysicalSortMergeJoinNode(
                 join.Kind,
                 strategy.SortMergeJoin!.LeftKey,

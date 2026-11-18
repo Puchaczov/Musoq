@@ -10,6 +10,11 @@ public static class FixtureCatalog
     >(StringComparer.Ordinal)
     {
         ["standard"] = new(StandardFixture.Prepare, StandardFixture.Requirements, StandardDataProfiles.Distribution),
+        ["execution-plans"] = new(
+            ExecutionPlanScenarios.Prepare,
+            ExecutionPlanScenarios.Requirements,
+            s => s.Description
+        ),
         ["numeric-batch"] = new(
             NumericBatchWorkloads.Prepare,
             VectorizationScenarios.Requirements,

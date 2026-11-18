@@ -61,7 +61,10 @@ internal static class PhysicalProjectionBoundaryClassifier
                         join.Residual,
                         rewrittenLeft,
                         rewrittenRight
-                    );
+                    )
+                    {
+                        GroupMaximum = join.GroupMaximum,
+                    };
                 return true;
             default:
                 kind = default;

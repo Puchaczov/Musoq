@@ -62,6 +62,10 @@ internal sealed partial class PhysicalLoweringImplementation
             context.QualifyUpperBound
         )
         {
+            WinnerPositions =
+                registration.SelectBoundedWinners && context.QualifyUpperBound.HasValue
+                    ? new ExecutionVariable(results.Name + "WinnerPositions", typeof(int[]))
+                    : null,
             LibraryGet = CreateRankingLibraryOperation(registration),
             RequiresPeerMetadata = RankingWindowMetadata.RequiresPeerMetadata(registration),
             UseIntegerOrderIndex = registration.UseIntegerOrderIndex,

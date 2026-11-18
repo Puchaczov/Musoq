@@ -8,6 +8,7 @@ internal static class GeneratedSubqueryContract
     public const string DerivedTablePrefix = "_dt_";
     public const string ScalarMaterializationPrefix = "_sm_";
     public const string ValueColumnSuffix = "_value";
+    public const string GreaterAllKeySuffix = "_greater_all_key";
     public const string KeyColumnSuffix = "_key";
     public const string CorrelationColumnMarker = "_corr_";
 

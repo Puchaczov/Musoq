@@ -13,5 +13,9 @@ public sealed record PhysicalHashJoinNode(
     PhysicalNode Right
 ) : PhysicalNode(JoinKindSemantics.SelectOutputSchema(Kind, Left.OutputSchema, Right.OutputSchema))
 {
+    internal GroupMaximumSummary? GroupMaximum { get; init; }
+
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Left, Right];
 }
+
+internal sealed record GroupMaximumSummary(ColumnRef Probe, ColumnRef Build);

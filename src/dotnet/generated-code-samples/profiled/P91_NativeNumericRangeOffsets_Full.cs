@@ -39,8 +39,8 @@ ExecutionPlan [compiled]
     PhaseBoundary [From]
     SourceScan [ko3iko: CoverageRow] -> ko3ikoRows
     MaterializeChunked [ko3ikoRows -> resultWindowRows]
-    ComputeSumWindowKernel[BoundedRows] [resultSums0 <- resultWindowRows value ko3iko.Value order by ko3iko.Value ASC frame range between 2 preceding and 1 following]
-    ComputeCountWindowKernel[BoundedRows] [resultCounts1 <- resultWindowRows value ko3iko.Value order by ko3iko.Value ASC frame range between 2 preceding and 1 following] shared values resultSums0BatchValues
+    ComputeSumWindowKernel[BoundedRows] [resultSums0 <- resultWindowRows value ko3iko.Value order by ko3iko.Value ASC frame range between 2 preceding and 1 following] [reuse peer frame] [bounds: resultSums0]
+    ComputeCountWindowKernel[BoundedRows] [resultCounts1 <- resultWindowRows value ko3iko.Value order by ko3iko.Value ASC frame range between 2 preceding and 1 following] shared values resultSums0BatchValues [reuse peer frame] [bounds: resultSums0]
     CreateShapeRows [result: ResultShape0 from ResultRow0]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
       AppendShape [result <- ResultShape0(Position: ko3iko.Position, Total: resultSums0[windowIndex], Present: resultCounts1[windowIndex])]
@@ -133,6 +133,8 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                 var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultWindowRows = EvaluationHelper.MaterializeChunkedRowsList(ko3ikoRows);
+                var resultSums0FrameStarts = new int[resultWindowRows.Count];
+                var resultSums0FrameEnds = new int[resultWindowRows.Count];
                 var resultSums0OrderKeys = new WindowResultSums0OrderKeysKey[resultWindowRows.Count];
                 var resultSums0RangeKeys = new int? [resultWindowRows.Count];
                 for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
@@ -162,8 +164,18 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                     for (int resultSums0PartitionIndex = 0; resultSums0PartitionIndex < resultSums0PartitionCount; ++resultSums0PartitionIndex)
                     {
                         var resultSums0OutputIndex = resultSums0PartitionIndices[resultSums0PartitionStart + resultSums0PartitionIndex];
-                        var resultSums0FrameStart = WindowFunctionHelpers.ResolveRangeFrameStart(resultSums0RangeKeys, resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex, -2, false, true);
-                        var resultSums0FrameEnd = WindowFunctionHelpers.ResolveRangeFrameEnd(resultSums0RangeKeys, resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex, 1, false, true);
+                        if (resultSums0PartitionIndex > 0)
+                        {
+                            var resultSums0PreviousPeer = resultSums0PartitionIndices[resultSums0PartitionStart + resultSums0PartitionIndex - 1];
+                            if (resultSums0RangeKeys[resultSums0PreviousPeer] == resultSums0RangeKeys[resultSums0OutputIndex])
+                            {
+                                resultSums0[resultSums0OutputIndex] = resultSums0[resultSums0PreviousPeer];
+                                continue;
+                            }
+                        }
+
+                        var resultSums0FrameStart = resultSums0FrameStarts[resultSums0OutputIndex] = WindowFunctionHelpers.ResolveRangeFrameStart(resultSums0RangeKeys, resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex, -2, false, true);
+                        var resultSums0FrameEnd = resultSums0FrameEnds[resultSums0OutputIndex] = WindowFunctionHelpers.ResolveRangeFrameEnd(resultSums0RangeKeys, resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex, 1, false, true);
                         Musoq.Plugins.SumAggregateKernel<int>.Reset(ref resultSums0State);
                         for (var resultSums0FrameIndex = Math.Max(0, resultSums0FrameStart); resultSums0FrameIndex <= resultSums0FrameEnd && resultSums0FrameIndex < resultSums0PartitionCount; resultSums0FrameIndex++)
                         {
@@ -173,13 +185,6 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
 
                         resultSums0[resultSums0OutputIndex] = Musoq.Plugins.SumAggregateKernel<int>.Get(in resultSums0State);
                     }
-                }
-
-                var resultCounts1RangeKeys = new int? [resultWindowRows.Count];
-                for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
-                {
-                    Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[windowIndex];
-                    resultCounts1RangeKeys[windowIndex] = (int?)resultSums0OrderKeys[windowIndex].RawValues;
                 }
 
                 var resultCounts1 = new long[resultWindowRows.Count];
@@ -193,8 +198,18 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                     for (int resultCounts1PartitionIndex = 0; resultCounts1PartitionIndex < resultCounts1PartitionCount; ++resultCounts1PartitionIndex)
                     {
                         var resultCounts1OutputIndex = resultCounts1PartitionIndices[resultCounts1PartitionStart + resultCounts1PartitionIndex];
-                        var resultCounts1FrameStart = WindowFunctionHelpers.ResolveRangeFrameStart(resultCounts1RangeKeys, resultSums0OrderKeys, resultCounts1PartitionIndices, resultCounts1PartitionStart, resultCounts1PartitionCount, resultCounts1PartitionIndex, -2, false, true);
-                        var resultCounts1FrameEnd = WindowFunctionHelpers.ResolveRangeFrameEnd(resultCounts1RangeKeys, resultSums0OrderKeys, resultCounts1PartitionIndices, resultCounts1PartitionStart, resultCounts1PartitionCount, resultCounts1PartitionIndex, 1, false, true);
+                        if (resultCounts1PartitionIndex > 0)
+                        {
+                            var resultCounts1PreviousPeer = resultCounts1PartitionIndices[resultCounts1PartitionStart + resultCounts1PartitionIndex - 1];
+                            if (resultSums0RangeKeys[resultCounts1PreviousPeer] == resultSums0RangeKeys[resultCounts1OutputIndex])
+                            {
+                                resultCounts1[resultCounts1OutputIndex] = resultCounts1[resultCounts1PreviousPeer];
+                                continue;
+                            }
+                        }
+
+                        var resultCounts1FrameStart = resultSums0FrameStarts[resultCounts1OutputIndex];
+                        var resultCounts1FrameEnd = resultSums0FrameEnds[resultCounts1OutputIndex];
                         Musoq.Plugins.CountNullableAggregateKernel<int>.Reset(ref resultCounts1State);
                         for (var resultCounts1FrameIndex = Math.Max(0, resultCounts1FrameStart); resultCounts1FrameIndex <= resultCounts1FrameEnd && resultCounts1FrameIndex < resultCounts1PartitionCount; resultCounts1FrameIndex++)
                         {
@@ -282,6 +297,8 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                     __op14Scope.AddOutputRows(resultWindowRows.Count);
                     __op14Scope.Dispose();
                     var __op15Scope = profileRecorder?.BeginOperatorValue(__op15Handle) ?? OperatorProfileValueScope.None;
+                    var resultSums0FrameStarts = new int[resultWindowRows.Count];
+                    var resultSums0FrameEnds = new int[resultWindowRows.Count];
                     var resultSums0OrderKeys = new WindowResultSums0OrderKeysKey[resultWindowRows.Count];
                     var resultSums0RangeKeys = new int? [resultWindowRows.Count];
                     for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
@@ -311,8 +328,18 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                         for (int resultSums0PartitionIndex = 0; resultSums0PartitionIndex < resultSums0PartitionCount; ++resultSums0PartitionIndex)
                         {
                             var resultSums0OutputIndex = resultSums0PartitionIndices[resultSums0PartitionStart + resultSums0PartitionIndex];
-                            var resultSums0FrameStart = WindowFunctionHelpers.ResolveRangeFrameStart(resultSums0RangeKeys, resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex, -2, false, true);
-                            var resultSums0FrameEnd = WindowFunctionHelpers.ResolveRangeFrameEnd(resultSums0RangeKeys, resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex, 1, false, true);
+                            if (resultSums0PartitionIndex > 0)
+                            {
+                                var resultSums0PreviousPeer = resultSums0PartitionIndices[resultSums0PartitionStart + resultSums0PartitionIndex - 1];
+                                if (resultSums0RangeKeys[resultSums0PreviousPeer] == resultSums0RangeKeys[resultSums0OutputIndex])
+                                {
+                                    resultSums0[resultSums0OutputIndex] = resultSums0[resultSums0PreviousPeer];
+                                    continue;
+                                }
+                            }
+
+                            var resultSums0FrameStart = resultSums0FrameStarts[resultSums0OutputIndex] = WindowFunctionHelpers.ResolveRangeFrameStart(resultSums0RangeKeys, resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex, -2, false, true);
+                            var resultSums0FrameEnd = resultSums0FrameEnds[resultSums0OutputIndex] = WindowFunctionHelpers.ResolveRangeFrameEnd(resultSums0RangeKeys, resultSums0OrderKeys, resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount, resultSums0PartitionIndex, 1, false, true);
                             Musoq.Plugins.SumAggregateKernel<int>.Reset(ref resultSums0State);
                             for (var resultSums0FrameIndex = Math.Max(0, resultSums0FrameStart); resultSums0FrameIndex <= resultSums0FrameEnd && resultSums0FrameIndex < resultSums0PartitionCount; resultSums0FrameIndex++)
                             {
@@ -326,13 +353,6 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
 
                     __op15Scope.Dispose();
                     var __op16Scope = profileRecorder?.BeginOperatorValue(__op16Handle) ?? OperatorProfileValueScope.None;
-                    var resultCounts1RangeKeys = new int? [resultWindowRows.Count];
-                    for (int windowIndex = 0; windowIndex < resultWindowRows.Count; ++windowIndex)
-                    {
-                        Musoq.Evaluator.Tests.LibraryExecutionCoverageQueryTestsFixtures.CoverageRow ko3iko = resultWindowRows[windowIndex];
-                        resultCounts1RangeKeys[windowIndex] = (int?)resultSums0OrderKeys[windowIndex].RawValues;
-                    }
-
                     var resultCounts1 = new long[resultWindowRows.Count];
                     for (int resultCounts1PartitionSetIndex = 0; resultCounts1PartitionSetIndex < resultSums0Partitions.PartitionCount; ++resultCounts1PartitionSetIndex)
                     {
@@ -344,8 +364,18 @@ namespace GeneratedSample_P91_NativeNumericRangeOffsets_Full
                         for (int resultCounts1PartitionIndex = 0; resultCounts1PartitionIndex < resultCounts1PartitionCount; ++resultCounts1PartitionIndex)
                         {
                             var resultCounts1OutputIndex = resultCounts1PartitionIndices[resultCounts1PartitionStart + resultCounts1PartitionIndex];
-                            var resultCounts1FrameStart = WindowFunctionHelpers.ResolveRangeFrameStart(resultCounts1RangeKeys, resultSums0OrderKeys, resultCounts1PartitionIndices, resultCounts1PartitionStart, resultCounts1PartitionCount, resultCounts1PartitionIndex, -2, false, true);
-                            var resultCounts1FrameEnd = WindowFunctionHelpers.ResolveRangeFrameEnd(resultCounts1RangeKeys, resultSums0OrderKeys, resultCounts1PartitionIndices, resultCounts1PartitionStart, resultCounts1PartitionCount, resultCounts1PartitionIndex, 1, false, true);
+                            if (resultCounts1PartitionIndex > 0)
+                            {
+                                var resultCounts1PreviousPeer = resultCounts1PartitionIndices[resultCounts1PartitionStart + resultCounts1PartitionIndex - 1];
+                                if (resultSums0RangeKeys[resultCounts1PreviousPeer] == resultSums0RangeKeys[resultCounts1OutputIndex])
+                                {
+                                    resultCounts1[resultCounts1OutputIndex] = resultCounts1[resultCounts1PreviousPeer];
+                                    continue;
+                                }
+                            }
+
+                            var resultCounts1FrameStart = resultSums0FrameStarts[resultCounts1OutputIndex];
+                            var resultCounts1FrameEnd = resultSums0FrameEnds[resultCounts1OutputIndex];
                             Musoq.Plugins.CountNullableAggregateKernel<int>.Reset(ref resultCounts1State);
                             for (var resultCounts1FrameIndex = Math.Max(0, resultCounts1FrameStart); resultCounts1FrameIndex <= resultCounts1FrameEnd && resultCounts1FrameIndex < resultCounts1PartitionCount; resultCounts1FrameIndex++)
                             {

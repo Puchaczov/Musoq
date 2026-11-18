@@ -447,7 +447,8 @@ public sealed partial class ExecutionCSharpRenderer
                 forEachIndexed.Item,
                 forEachIndexed.Source,
                 forEachIndexed.Index,
-                forEachIndexed.RowAccessMode
+                forEachIndexed.RowAccessMode,
+                forEachIndexed.WinnerPositions
             )
         );
         bodyStatements.AddRange(
@@ -461,7 +462,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return CreateIndexedForLoop(
             forEachIndexed.Index.Name,
-            forEachIndexed.Source,
+            forEachIndexed.WinnerRanks ?? forEachIndexed.Source,
             StatementEmitter.CreateBlock(bodyStatements)
         );
     }

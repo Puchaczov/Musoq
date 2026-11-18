@@ -22,9 +22,15 @@ public sealed partial class ExecutionCSharpRenderer
         var body = new List<StatementSyntax>
         {
             CreateStreamingCurrentIndexDeclaration(indices, start, position, outputIndex),
-            CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
+        };
+        if (kernel.ReuseBoundedPeers)
+            body.Add(CreateCopyPreviousPeerResult(kernel, indices, start, position, outputIndex));
+        body.Add(
+            CreateFrameBoundDeclaration(
+                kernel,
                 frameStart,
+                "FrameStarts",
+                outputIndex,
                 WindowRangeFrameSyntax.CreateAggregateFrameStartExpressionForKernel(
                     kernel,
                     frame.Start,
@@ -33,10 +39,14 @@ public sealed partial class ExecutionCSharpRenderer
                     position,
                     count
                 )
-            ),
-            CreateLocalDeclaration(
-                SyntaxFactory.IdentifierName("var"),
+            )
+        );
+        body.Add(
+            CreateFrameBoundDeclaration(
+                kernel,
                 frameEnd,
+                "FrameEnds",
+                outputIndex,
                 WindowRangeFrameSyntax.CreateAggregateFrameEndExpressionForKernel(
                     kernel,
                     frame.End,
@@ -45,17 +55,21 @@ public sealed partial class ExecutionCSharpRenderer
                     position,
                     count
                 )
-            ),
+            )
+        );
+        body.Add(
             SyntaxFactory.ExpressionStatement(
                 CreateKernelStateResetInvocation(kernel.Descriptor.LibraryKernel!.ResetMethod.RequireClrMethod(), state)
-            ),
-            CreateLibraryWindowFrameAccumulation(kernel, indices, start, count, frameStart, frameEnd),
+            )
+        );
+        body.Add(CreateLibraryWindowFrameAccumulation(kernel, indices, start, count, frameStart, frameEnd));
+        body.Add(
             CreateWindowResultAssignment(
                 kernel.Results.Name,
                 SyntaxFactory.IdentifierName(outputIndex),
                 CreateLibraryWindowResult(kernel)
-            ),
-        };
+            )
+        );
         return CreatePartitionIndexedForLoop(position, count, StatementEmitter.CreateBlock(body));
     }
 

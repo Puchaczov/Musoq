@@ -38,7 +38,15 @@ internal static class QuantifiedFilterPredicate
             predicate = CreateAnyQuantifiedPredicate(left, node.Comparison, right);
         var where = query.Where is null ? predicate : new AndNode(query.Where.Expression, predicate);
         var body = new QueryNode(
-            new SelectNode([new FieldNode(new IntegerNode(1), 0, "_quantified_key")]),
+            new SelectNode([
+                new FieldNode(
+                    new IntegerNode(1),
+                    0,
+                    node.Quantifier == TokenType.All && node.Comparison == TokenType.Greater
+                        ? GeneratedSubqueryContract.GreaterAllKeySuffix
+                        : "_quantified_key"
+                ),
+            ]),
             query.From,
             new WhereNode(where),
             null,

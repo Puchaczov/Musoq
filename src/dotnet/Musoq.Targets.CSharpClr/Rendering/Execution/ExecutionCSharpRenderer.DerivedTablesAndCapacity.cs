@@ -155,7 +155,7 @@ public sealed partial class ExecutionCSharpRenderer
                 SyntaxKind.NumericLiteralExpression,
                 SyntaxFactory.Literal(constant.Capacity)
             ),
-            ExecutionCollectionCountCapacityHint collection => CreateCollectionCountRead(collection.Collection.Name),
+            ExecutionCollectionCountCapacityHint collection => CreateBufferCountExpression(collection.Collection),
             ExecutionTryGetNonEnumeratedCountCapacityHint enumerable => CreateTryGetNonEnumeratedCountCapacityRead(
                 enumerable.Collection.Name,
                 enumerable.CountVariableName

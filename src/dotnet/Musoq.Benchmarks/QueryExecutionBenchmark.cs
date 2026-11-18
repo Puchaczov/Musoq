@@ -68,6 +68,11 @@ public class VectorizationBenchmark : QueryExecutionBenchmark
     public override IEnumerable<string> Scenarios => VectorizationScenarios.All.Select(scenario => scenario.Id);
 }
 
+public class ExecutionPlanBenchmark : QueryExecutionBenchmark
+{
+    public override IEnumerable<string> Scenarios => ExecutionPlanScenarios.All.Select(scenario => scenario.Id);
+}
+
 public sealed class BenchmarkLogger : ILoggerResolver
 {
     public static BenchmarkLogger Instance { get; } = new();

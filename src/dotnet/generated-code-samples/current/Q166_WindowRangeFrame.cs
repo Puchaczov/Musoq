@@ -36,7 +36,7 @@ ExecutionPlan [compiled]
     PhaseBoundary [From]
     SourceScan [ko3iko: BasicEntity] -> ko3ikoRows
     MaterializeChunked [ko3ikoRows -> resultWindowRows]
-    ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value ko3iko.Population order by ko3iko.Population ASC frame range between 100 preceding and current row]
+    ComputeSumWindowKernel[BoundedRows] [resultSums <- resultWindowRows value ko3iko.Population order by ko3iko.Population ASC frame range between 100 preceding and current row] [reuse peer frame]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     PhaseBoundary [Select]
     ForEachIndexed [windowIndex, ko3iko in resultWindowRows]
@@ -138,35 +138,29 @@ namespace GeneratedSample_Q166_WindowRangeFrame
                     var resultSumsPartitionIndices = resultSumsPartitions.Indices;
                     Musoq.Plugins.SumAggregateKernel<decimal>.State resultSumsState = default(Musoq.Plugins.SumAggregateKernel<decimal>.State)!;
                     Musoq.Plugins.SumAggregateKernel<decimal>.Reset(ref resultSumsState);
+                    for (int resultSumsPartitionIndex = 0; resultSumsPartitionIndex < resultSumsPartitionCount; ++resultSumsPartitionIndex)
                     {
-                        var resultSumsBatchStarts = new int[resultSumsPartitionCount];
-                        var resultSumsBatchEnds = new int[resultSumsPartitionCount];
-                        for (int resultSumsBatchPosition = 0; resultSumsBatchPosition < resultSumsPartitionCount; ++resultSumsBatchPosition)
+                        var resultSumsOutputIndex = resultSumsPartitionIndices[resultSumsPartitionStart + resultSumsPartitionIndex];
+                        if (resultSumsPartitionIndex > 0)
                         {
-                            if ((resultSumsBatchPosition & 1023) == 0)
-                                token.ThrowIfCancellationRequested();
-                            resultSumsBatchStarts[resultSumsBatchPosition] = WindowFunctionHelpers.ResolveRangeFrameStart(resultSumsRangeKeys, resultSumsOrderKeys, resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount, resultSumsBatchPosition, -100, false, true);
-                            resultSumsBatchEnds[resultSumsBatchPosition] = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultSumsOrderKeys, resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount, resultSumsBatchPosition);
-                        }
-
-                        var resultSumsBatchContext = new Musoq.Plugins.WindowBatchContext<decimal?, decimal?>(resultSumsBatchValues, new System.ReadOnlySpan<int>(resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount), resultSumsBatchStarts, resultSumsBatchEnds, resultSums, token);
-                        if (!Musoq.Plugins.DecimalSumWindowBatch.TryEvaluate(in resultSumsBatchContext))
-                        {
-                            for (int resultSumsPartitionIndex = 0; resultSumsPartitionIndex < resultSumsPartitionCount; ++resultSumsPartitionIndex)
+                            var resultSumsPreviousPeer = resultSumsPartitionIndices[resultSumsPartitionStart + resultSumsPartitionIndex - 1];
+                            if (resultSumsRangeKeys[resultSumsPreviousPeer] == resultSumsRangeKeys[resultSumsOutputIndex])
                             {
-                                var resultSumsOutputIndex = resultSumsPartitionIndices[resultSumsPartitionStart + resultSumsPartitionIndex];
-                                var resultSumsFrameStart = WindowFunctionHelpers.ResolveRangeFrameStart(resultSumsRangeKeys, resultSumsOrderKeys, resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount, resultSumsPartitionIndex, -100, false, true);
-                                var resultSumsFrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultSumsOrderKeys, resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount, resultSumsPartitionIndex);
-                                Musoq.Plugins.SumAggregateKernel<decimal>.Reset(ref resultSumsState);
-                                for (var resultSumsFrameIndex = Math.Max(0, resultSumsFrameStart); resultSumsFrameIndex <= resultSumsFrameEnd && resultSumsFrameIndex < resultSumsPartitionCount; resultSumsFrameIndex++)
-                                {
-                                    var resultSumsCurrentIndex = resultSumsPartitionIndices[resultSumsPartitionStart + resultSumsFrameIndex];
-                                    Musoq.Plugins.SumAggregateKernel<decimal>.Set(ref resultSumsState, (decimal?)resultSumsBatchValues[resultSumsCurrentIndex]);
-                                }
-
-                                resultSums[resultSumsOutputIndex] = Musoq.Plugins.SumAggregateKernel<decimal>.Get(in resultSumsState);
+                                resultSums[resultSumsOutputIndex] = resultSums[resultSumsPreviousPeer];
+                                continue;
                             }
                         }
+
+                        var resultSumsFrameStart = WindowFunctionHelpers.ResolveRangeFrameStart(resultSumsRangeKeys, resultSumsOrderKeys, resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount, resultSumsPartitionIndex, -100, false, true);
+                        var resultSumsFrameEnd = WindowFunctionHelpers.ResolveRangePeerFrameEnd(resultSumsOrderKeys, resultSumsPartitionIndices, resultSumsPartitionStart, resultSumsPartitionCount, resultSumsPartitionIndex);
+                        Musoq.Plugins.SumAggregateKernel<decimal>.Reset(ref resultSumsState);
+                        for (var resultSumsFrameIndex = Math.Max(0, resultSumsFrameStart); resultSumsFrameIndex <= resultSumsFrameEnd && resultSumsFrameIndex < resultSumsPartitionCount; resultSumsFrameIndex++)
+                        {
+                            var resultSumsCurrentIndex = resultSumsPartitionIndices[resultSumsPartitionStart + resultSumsFrameIndex];
+                            Musoq.Plugins.SumAggregateKernel<decimal>.Set(ref resultSumsState, (decimal?)resultSumsBatchValues[resultSumsCurrentIndex]);
+                        }
+
+                        resultSums[resultSumsOutputIndex] = Musoq.Plugins.SumAggregateKernel<decimal>.Get(in resultSumsState);
                     }
                 }
 

@@ -136,6 +136,8 @@ internal static class PlanPrinterHelpers
                 sb.Append(", ");
             AppendWindowRegistration(sb, registrations[i]);
         }
+        if (registrations is [{ SelectBoundedWinners: true }])
+            sb.Append(" bounded winners");
     }
 
     public static void AppendWindowRegistration(StringBuilder sb, WindowRegistration registration)

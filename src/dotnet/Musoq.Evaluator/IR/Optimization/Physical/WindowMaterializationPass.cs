@@ -1,3 +1,4 @@
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.IR.Physical.Rewriting;
@@ -24,16 +25,27 @@ internal sealed class WindowMaterializationPass : IPhysicalOptimizationPass
 
     private static PhysicalNode Rewrite(PhysicalNode node, PhysicalOptimizationState state)
     {
+        if (node is PhysicalQualifyFilterNode { Input: PhysicalWindowNode qualified } qualify)
+        {
+            var planned = RewriteWindow(qualified, state, qualify.Predicate);
+            return ReferenceEquals(planned, qualified)
+                ? qualify
+                : new PhysicalQualifyFilterNode(qualify.Predicate, planned);
+        }
         if (node is PhysicalWindowNode window)
             return RewriteWindow(window, state);
 
         return PhysicalPlanRewriter.RewriteChildren(node, child => Rewrite(child, state));
     }
 
-    private static PhysicalNode RewriteWindow(PhysicalWindowNode window, PhysicalOptimizationState state)
+    private static PhysicalNode RewriteWindow(
+        PhysicalWindowNode window,
+        PhysicalOptimizationState state,
+        IrExpression? qualify = null
+    )
     {
         var input = Rewrite(window.Input, state);
-        var registrations = WindowExecutionStrategy.Select(window.Registrations);
+        var registrations = WindowExecutionStrategy.Select(window.Registrations, qualify);
         state.AddDecision(
             new PlanningDecision(
                 PlanningDecisionCategory.WindowStrategy,

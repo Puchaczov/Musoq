@@ -54,6 +54,9 @@ public sealed record ExecutionWindowAggregateKernel : ExecutionNode
 
     public ExecutionExpression Value { get; init; }
 
+    internal bool ReuseBoundedPeers { get; init; }
+    internal ExecutionVariable? BoundariesOwner { get; init; }
+
     internal ExecutionVariable? SharedValues { get; init; }
     internal string CapturedValuesName => SharedValues?.Name ?? $"{Results.Name}BatchValues";
 

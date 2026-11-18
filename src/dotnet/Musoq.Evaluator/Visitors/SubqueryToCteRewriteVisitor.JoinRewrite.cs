@@ -153,7 +153,10 @@ public partial class SubqueryToCteRewriteVisitor
         List<CteInnerExpressionNode> cteInnerExpressions
     )
     {
-        var cteColumnName = GeneratedSubqueryContract.CreateKeyColumnName(cteName);
+        var cteColumnName = subqueryBody
+            is QueryNode { Select.Fields: [{ FieldName: GeneratedSubqueryContract.GreaterAllKeySuffix }] }
+            ? cteName + GeneratedSubqueryContract.GreaterAllKeySuffix
+            : GeneratedSubqueryContract.CreateKeyColumnName(cteName);
         var leftSide = new IntegerNode(1);
         Node cteBody;
         Node? correlationJoinExpression = null;

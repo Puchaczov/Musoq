@@ -63,7 +63,9 @@ internal static class TypedBufferSyntax
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             SyntaxFactory.IdentifierName(buffer.Name),
-            SyntaxFactory.IdentifierName("Count")
+            SyntaxFactory.IdentifierName(
+                buffer.Type.Descriptor.Kind == ExecutionPortableTypeKind.Array ? "Length" : "Count"
+            )
         );
     }
 

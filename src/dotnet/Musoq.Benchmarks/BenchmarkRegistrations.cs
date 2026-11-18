@@ -27,8 +27,13 @@ public static class BenchmarkRegistrations
     internal static BenchmarkRegistration Vectorization { get; } =
         new(typeof(VectorizationBenchmark), "execution", "Table");
 
+    internal static BenchmarkRegistration ExecutionPlans { get; } =
+        new(typeof(ExecutionPlanBenchmark), "execution", "Table");
+
     public static BenchmarkRegistration For(Type type) =>
-        type == Vectorization.Type ? Vectorization : All.Single(item => item.Type == type);
+        type == ExecutionPlans.Type ? ExecutionPlans
+        : type == Vectorization.Type ? Vectorization
+        : All.Single(item => item.Type == type);
 
     public static string TypedScenario<T>() => All.Single(item => item.OutputType == typeof(T)).ScenarioId!;
 }

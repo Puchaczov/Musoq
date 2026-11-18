@@ -13,6 +13,8 @@ public sealed record ExecutionHashAdd(
     ExecutionKeyBuildNullHandling NullHandling = ExecutionKeyBuildNullHandling.Continue
 ) : ExecutionNode
 {
+    internal bool TracksMaximum { get; init; }
+
     internal ExecutionHashAdd(
         ExecutionVariable hash,
         ExecutionExpression key,

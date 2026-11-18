@@ -14,12 +14,12 @@ SELECT a.City
 Cte
   Definition [_sq_1]
     MultiStatement
-      Project [1 as _sq_1_key, b.Country as _sq_1_corr_0, b.Population as _sq_1_corr_1]
+      Project [1 as _sq_1_greater_all_key, b.Country as _sq_1_corr_0, b.Population as _sq_1_corr_1]
         SchemaScan [#B.entities() as b]
   Query
     MultiStatement
       Project [a.City as City]
-        Join [LeftAntiSemi] [((1 = _sq_1._sq_1_key) AND ((_sq_1._sq_1_corr_0 = a.Country) AND ((a.Population IS NULL OR _sq_1._sq_1_corr_1 IS NULL) OR (a.Population <= _sq_1._sq_1_corr_1))))]
+        Join [LeftAntiSemi] [((1 = _sq_1._sq_1_greater_all_key) AND ((_sq_1._sq_1_corr_0 = a.Country) AND ((a.Population IS NULL OR _sq_1._sq_1_corr_1 IS NULL) OR (a.Population <= _sq_1._sq_1_corr_1))))]
           SchemaScan [#A.entities() as a]
           CteRef [_sq_1 as _sq_1]
 */
@@ -29,12 +29,12 @@ Cte
 PhysicalCte
   Definition [_sq_1]
     PhysicalMultiStatement
-      PhysicalProject [1 as _sq_1_key, b.Country as _sq_1_corr_0, b.Population as _sq_1_corr_1]
+      PhysicalProject [1 as _sq_1_greater_all_key, b.Country as _sq_1_corr_0, b.Population as _sq_1_corr_1]
         PhysicalSchemaScan [#B.entities() as b]
   Query
     PhysicalMultiStatement
       PhysicalProject [a.City as City]
-        PhysicalHashJoin [LeftAntiSemi] [build: _sq_1._sq_1_key, _sq_1._sq_1_corr_0] [probe: 1, a.Country] [residual: ((a.Population IS NULL OR _sq_1._sq_1_corr_1 IS NULL) OR (a.Population <= _sq_1._sq_1_corr_1))]
+        PhysicalHashJoin [LeftAntiSemi] [build: _sq_1._sq_1_greater_all_key, _sq_1._sq_1_corr_0] [probe: 1, a.Country] [group maximum] [residual: ((a.Population IS NULL OR _sq_1._sq_1_corr_1 IS NULL) OR (a.Population <= _sq_1._sq_1_corr_1))]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_sq_1 as _sq_1]
 */
@@ -50,10 +50,8 @@ ExecutionPlan [compiled]
     SourceEntity [b: BasicEntity]
       Country: string <- property Country
       Population: decimal <- property Population
-    HashPayload [_sq_1HashPayload0]
-      _sq_1_corr_1: decimal <- field _sq_1_corr_1
     TableRow [_sq_1]
-      _sq_1_key: int <- field _sq_1_key
+      _sq_1_greater_all_key: int <- field _sq_1_greater_all_key
       _sq_1_corr_0: string <- field _sq_1_corr_0
       _sq_1_corr_1: decimal <- field _sq_1_corr_1
     Generated [ResultRow0]
@@ -67,23 +65,19 @@ ExecutionPlan [compiled]
     SourceScan [a: BasicEntity] -> aRows
     SourceScan [b: BasicEntity] -> cte0_bRows
     CreateShapeRows [result: ResultRow0 from ResultRow0]
-    CreateHash [_sq_1Hash: ValueTuple<int, string> -> Row]
+    CreateGroupMaximum [_sq_1Hash: ValueTuple<int, string> -> decimal]
     ChunkedForEach [b in cte0_bRows]
       Let [key0: int = 1]
       Let [key1: string = b.Country]
       ContinueIf [(key1 = NULL)]
       Let [key: ValueTuple<int, string> = (key0, key1)]
-      CreateHashPayload [_sq_1 <- _sq_1HashPayload0(_sq_1_corr_1: b.Population)]
-      HashAdd [_sq_1Hash[key] += _sq_1]
+      Let [_sq_1HashValue: decimal = b.Population]
+      UpdateGroupMaximum [_sq_1Hash[key] += _sq_1HashValue]
     PhaseBoundary [Select]
     ChunkedForEach [a in aRows]
-      HashProbe [_sq_1Hash[(1, a.Country)] -> _sq_1HashMatches] [match: _sq_1HashHasMatch]
-        ForEach [_sq_1 in _sq_1HashMatches]
-          Let [population: decimal = a.Population]
-          Let [_sq_1_corr_1: decimal = _sq_1._sq_1_corr_1]
-          If [((population IS NULL OR _sq_1_corr_1 IS NULL) OR (population <= _sq_1_corr_1))]
-            Assign [_sq_1HashHasMatch = TRUE]
-            Break
+      HashProbe [_sq_1Hash[(1, a.Country)] -> _sq_1HashMaximum] [match: _sq_1HashHasMatch]
+        Let [_sq_1HashProbe: decimal = a.Population]
+        Assign [_sq_1HashHasMatch = (_sq_1HashProbe <= _sq_1HashMaximum)]
       HashProbeNoMatch
         AppendShape [result <- ResultRow0(City: a.City)]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
@@ -168,7 +162,7 @@ namespace GeneratedSample_Q142_CorrelatedAllSubquery
                 var __cte0_bSchema = provider.GetSchema("#B");
                 var cte0_bRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>.Open(__cte0_bSchema, "entities", new SourceExecutionContext("b:2", sourceExecutionPlans["b:2"], token, __schemaColumns_compiled_b_1, sourceRuntimeSettingsBySourceContextId["b:2"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["b:2"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var cte0_bRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(cte0_bRowsSource.Chunks, __musoqProgressContext, "b:2") : cte0_bRowsSource.Chunks;
-                var _sq_1Hash = new Dictionary<ValueTuple<int, string>, HashJoinBucket<_sq_1HashPayload0>>();
+                var _sq_1Hash = new Dictionary<ValueTuple<int, string>, decimal>();
                 foreach (var bChunk in cte0_bRows)
                 {
                     if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> bChunkView)
@@ -192,16 +186,12 @@ namespace GeneratedSample_Q142_CorrelatedAllSubquery
                                 }
 
                                 ValueTuple<int, string> key = (key0, key1);
-                                _sq_1HashPayload0 _sq_1 = new _sq_1HashPayload0(b.Population);
+                                decimal _sq_1HashValue = b.Population;
                                 {
                                     ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(_sq_1Hash, key, out var matchesExists);
-                                    if (!matchesExists)
+                                    if (!matchesExists || _sq_1HashValue > matches)
                                     {
-                                        matches = new HashJoinBucket<_sq_1HashPayload0>(_sq_1);
-                                    }
-                                    else
-                                    {
-                                        matches.Add(_sq_1);
+                                        matches = _sq_1HashValue;
                                     }
                                 }
                             }
@@ -228,16 +218,12 @@ namespace GeneratedSample_Q142_CorrelatedAllSubquery
                                 }
 
                                 ValueTuple<int, string> key = (key0, key1);
-                                _sq_1HashPayload0 _sq_1 = new _sq_1HashPayload0(b.Population);
+                                decimal _sq_1HashValue = b.Population;
                                 {
                                     ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(_sq_1Hash, key, out var matchesExists);
-                                    if (!matchesExists)
+                                    if (!matchesExists || _sq_1HashValue > matches)
                                     {
-                                        matches = new HashJoinBucket<_sq_1HashPayload0>(_sq_1);
-                                    }
-                                    else
-                                    {
-                                        matches.Add(_sq_1);
+                                        matches = _sq_1HashValue;
                                     }
                                 }
                             }
@@ -262,16 +248,12 @@ namespace GeneratedSample_Q142_CorrelatedAllSubquery
                         }
 
                         ValueTuple<int, string> key = (key0, key1);
-                        _sq_1HashPayload0 _sq_1 = new _sq_1HashPayload0(b.Population);
+                        decimal _sq_1HashValue = b.Population;
                         {
                             ref var matches = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(_sq_1Hash, key, out var matchesExists);
-                            if (!matchesExists)
+                            if (!matchesExists || _sq_1HashValue > matches)
                             {
-                                matches = new HashJoinBucket<_sq_1HashPayload0>(_sq_1);
-                            }
-                            else
-                            {
-                                matches.Add(_sq_1);
+                                matches = _sq_1HashValue;
                             }
                         }
                     }
@@ -297,19 +279,10 @@ namespace GeneratedSample_Q142_CorrelatedAllSubquery
                                 var key0 = 1;
                                 var key1 = a.Country;
                                 var key = (key0, key1);
-                                if (key1 != null && _sq_1Hash.TryGetValue(key, out var _sq_1HashMatches))
+                                if (key1 != null && _sq_1Hash.TryGetValue(key, out var _sq_1HashMaximum))
                                 {
-                                    foreach (var _sq_1 in _sq_1HashMatches)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                        decimal population = a.Population;
-                                        decimal _sq_1_corr_1 = _sq_1._sq_1_corr_1;
-                                        if ((((population == null) || (_sq_1_corr_1 == null)) || (population <= _sq_1_corr_1)))
-                                        {
-                                            _sq_1HashHasMatch = true;
-                                            break;
-                                        }
-                                    }
+                                    decimal _sq_1HashProbe = a.Population;
+                                    _sq_1HashHasMatch = (_sq_1HashProbe <= _sq_1HashMaximum);
                                 }
 
                                 if (!_sq_1HashHasMatch)
@@ -336,19 +309,10 @@ namespace GeneratedSample_Q142_CorrelatedAllSubquery
                                 var key0 = 1;
                                 var key1 = a.Country;
                                 var key = (key0, key1);
-                                if (key1 != null && _sq_1Hash.TryGetValue(key, out var _sq_1HashMatches))
+                                if (key1 != null && _sq_1Hash.TryGetValue(key, out var _sq_1HashMaximum))
                                 {
-                                    foreach (var _sq_1 in _sq_1HashMatches)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                        decimal population = a.Population;
-                                        decimal _sq_1_corr_1 = _sq_1._sq_1_corr_1;
-                                        if ((((population == null) || (_sq_1_corr_1 == null)) || (population <= _sq_1_corr_1)))
-                                        {
-                                            _sq_1HashHasMatch = true;
-                                            break;
-                                        }
-                                    }
+                                    decimal _sq_1HashProbe = a.Population;
+                                    _sq_1HashHasMatch = (_sq_1HashProbe <= _sq_1HashMaximum);
                                 }
 
                                 if (!_sq_1HashHasMatch)
@@ -373,19 +337,10 @@ namespace GeneratedSample_Q142_CorrelatedAllSubquery
                         var key0 = 1;
                         var key1 = a.Country;
                         var key = (key0, key1);
-                        if (key1 != null && _sq_1Hash.TryGetValue(key, out var _sq_1HashMatches))
+                        if (key1 != null && _sq_1Hash.TryGetValue(key, out var _sq_1HashMaximum))
                         {
-                            foreach (var _sq_1 in _sq_1HashMatches)
-                            {
-                                token.ThrowIfCancellationRequested();
-                                decimal population = a.Population;
-                                decimal _sq_1_corr_1 = _sq_1._sq_1_corr_1;
-                                if ((((population == null) || (_sq_1_corr_1 == null)) || (population <= _sq_1_corr_1)))
-                                {
-                                    _sq_1HashHasMatch = true;
-                                    break;
-                                }
-                            }
+                            decimal _sq_1HashProbe = a.Population;
+                            _sq_1HashHasMatch = (_sq_1HashProbe <= _sq_1HashMaximum);
                         }
 
                         if (!_sq_1HashHasMatch)
@@ -455,15 +410,6 @@ namespace GeneratedSample_Q142_CorrelatedAllSubquery
             public override void VisitColumns<TVisitor>(ref TVisitor visitor)
             {
                 global::Musoq.Evaluator.Tables.TypedColumnVisit.Apply(0, this.City, ref visitor);
-            }
-        }
-
-        private readonly struct _sq_1HashPayload0
-        {
-            public readonly decimal _sq_1_corr_1;
-            public _sq_1HashPayload0(decimal _sq_1_corr_1)
-            {
-                this._sq_1_corr_1 = _sq_1_corr_1;
             }
         }
     }

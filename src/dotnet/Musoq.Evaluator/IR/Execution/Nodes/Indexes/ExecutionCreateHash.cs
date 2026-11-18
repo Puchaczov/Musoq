@@ -8,6 +8,8 @@ public sealed record ExecutionCreateHash(
     string? GeneratedRowTypeName = null
 ) : ExecutionNode
 {
+    internal bool TracksMaximum { get; init; }
+
     internal ExecutionCreateHash(
         ExecutionVariable hash,
         Type keyType,

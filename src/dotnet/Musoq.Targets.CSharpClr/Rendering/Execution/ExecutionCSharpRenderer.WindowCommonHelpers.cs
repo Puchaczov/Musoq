@@ -11,12 +11,26 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionVariable item,
         ExecutionVariable source,
         ExecutionVariable index,
-        ExecutionRowAccessMode accessMode
+        ExecutionRowAccessMode accessMode,
+        ExecutionVariable? positions = null
     )
     {
         var itemAccess = CreateElementAccess(
             SyntaxFactory.IdentifierName(source.Name),
-            SyntaxFactory.IdentifierName(index.Name)
+            positions == null
+                ? SyntaxFactory.IdentifierName(index.Name)
+                : SyntaxFactory.ConditionalExpression(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.EqualsExpression,
+                        CreateBufferCountExpression(positions),
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(0))
+                    ),
+                    SyntaxFactory.IdentifierName(index.Name),
+                    CreateElementAccess(
+                        SyntaxFactory.IdentifierName(positions.Name),
+                        SyntaxFactory.IdentifierName(index.Name)
+                    )
+                )
         );
 
         if (accessMode == ExecutionRowAccessMode.Direct)

@@ -205,6 +205,67 @@ public partial class SubqueryTests
         Assert.Contains("PhysicalHashJoin [LeftAntiSemi]", inspection.PhysicalPlanText);
     }
 
+    [TestMethod]
+    public void GreaterAllPerGroupPreservesNullsEmptyGroupsAndStrictMaximum()
+    {
+        const string query =
+            "select a.Name from #A.entities() a where a.NullableValue > all (select b.NullableValue from #B.entities() b where a.Country = b.Country)";
+        var sources = new Dictionary<string, IEnumerable<BasicEntity>>
+        {
+            ["#A"] =
+            [
+                new BasicEntity
+                {
+                    Name = "above",
+                    Country = "values",
+                    NullableValue = 4,
+                },
+                new BasicEntity
+                {
+                    Name = "equal",
+                    Country = "values",
+                    NullableValue = 3,
+                },
+                new BasicEntity
+                {
+                    Name = "unknown",
+                    Country = "values",
+                    NullableValue = null,
+                },
+                new BasicEntity
+                {
+                    Name = "poison",
+                    Country = "null",
+                    NullableValue = 8,
+                },
+                new BasicEntity
+                {
+                    Name = "empty",
+                    Country = "missing",
+                    NullableValue = null,
+                },
+                new BasicEntity
+                {
+                    Name = "unknown key",
+                    Country = null,
+                    NullableValue = null,
+                },
+            ],
+            ["#B"] =
+            [
+                new BasicEntity { Country = "values", NullableValue = 1 },
+                new BasicEntity { Country = "values", NullableValue = 3 },
+                new BasicEntity { Country = "values", NullableValue = 2 },
+                new BasicEntity { Country = "null", NullableValue = null },
+                new BasicEntity { Country = "null", NullableValue = 1 },
+                new BasicEntity { Country = null, NullableValue = 3 },
+            ],
+        };
+        var result = CreateAndRunVirtualMachine(query, sources).Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["above"], ["empty"], ["unknown key"]);
+        Assert.Contains("CreateGroupMaximum", CompileSubqueryForInspection(query).OptimizedExecutionPlanText);
+    }
+
     private static Dictionary<string, IEnumerable<BasicEntity>> CreateQuantifiedSources()
     {
         return new Dictionary<string, IEnumerable<BasicEntity>>

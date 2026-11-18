@@ -65,6 +65,11 @@ encode the number of parameter keys and the target hit percentage. Empty allowli
 
 ## Measurement boundaries
 
+The Local filter `EP_*` selects paired distributions for correlated ALL, full outer inequality
+joins, bounded RANGE frames, and partitioned top-two queries. Use 1,000, 2,000 and 4,000
+rows for the first three families, and `EP_Rank*` at 100,000 rows for ranking.
+The dense join applies eight fixed thresholds to every observation.
+
 - Execution prepares data and compilation in setup, then consumes every row/column through typed visitors
   and disposes table results. Typed counterparts enumerate their typed results.
 - Structured sources forward the records materialized by SQL argument binding; they generate no synthetic

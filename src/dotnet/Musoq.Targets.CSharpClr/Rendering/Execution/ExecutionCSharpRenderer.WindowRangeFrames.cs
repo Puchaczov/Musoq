@@ -140,7 +140,7 @@ internal static class WindowRangeFrameSyntax
 
     internal static string GetAggregateRangeKeysName(ExecutionWindowAggregateKernel kernel)
     {
-        return $"{kernel.Results.Name}RangeKeys";
+        return $"{(kernel.BoundariesOwner ?? kernel.Results).Name}RangeKeys";
     }
 
     internal static ExpressionSyntax CreatePluginWindowFrameExpression(

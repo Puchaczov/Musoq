@@ -73,6 +73,11 @@ public static class CampaignCases
             && options.Filter.StartsWith(VectorizationScenarios.Prefix, StringComparison.OrdinalIgnoreCase)
         )
             types = [.. types, BenchmarkRegistrations.Vectorization.Type];
+        if (
+            !options.Official
+            && options.Filter.StartsWith(ExecutionPlanScenarios.Prefix, StringComparison.OrdinalIgnoreCase)
+        )
+            types = [.. types, BenchmarkRegistrations.ExecutionPlans.Type];
         foreach (var type in types)
         {
             var job = CreateJob(options, type);
