@@ -1,0 +1,20 @@
+{
+  "processId": 41548,
+  "capturedUtc": "2026-11-18T23:18:40.8940352+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "suiteInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "source": {
+    "commit": "958c2027274756a22654c7e12f8f321643497fd5",
+    "branch": null,
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B01_Scan",
+  "sql": "select r.Id as Id, r.Name as Name from bench.rows() r order by r.Id",
+  "inputCount": 4
+}

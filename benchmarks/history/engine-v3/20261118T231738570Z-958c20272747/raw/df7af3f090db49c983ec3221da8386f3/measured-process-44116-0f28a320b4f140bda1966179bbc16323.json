@@ -1,0 +1,20 @@
+{
+  "processId": 44116,
+  "capturedUtc": "2026-11-19T03:01:52.5400339+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "suiteInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "source": {
+    "commit": "958c2027274756a22654c7e12f8f321643497fd5",
+    "branch": null,
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B19_KeyedUnion",
+  "sql": "select r.Key as Id, r.Name as Name\r\nfrom bench.rows() r\r\nunion (Id) select d.Key as Id, \u0027dimension\u0027 as Name\r\nfrom bench.lookup() d\r\norder by Id",
+  "inputCount": 100000
+}

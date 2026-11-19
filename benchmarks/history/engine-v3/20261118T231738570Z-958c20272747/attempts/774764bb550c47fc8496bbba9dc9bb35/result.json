@@ -1,0 +1,24 @@
+{
+  "caseId": "X04_TemporalAnalytics-execution-Table-Large",
+  "startedUtc": "2026-11-19T04:53:42.6654416+00:00",
+  "finishedUtc": "2026-11-19T04:55:31.8403179+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 21710876.768092107,
+  "medianNanoseconds": 21700145.3125,
+  "standardDeviationNanoseconds": 798897.2879666069,
+  "confidenceLowerNanoseconds": 21397007.606940348,
+  "confidenceUpperNanoseconds": 22024745.929243866,
+  "sampleCount": 76,
+  "allocatedBytesPerOperation": 28602104,
+  "gen0Collections": 7,
+  "gen1Collections": 6,
+  "gen2Collections": 5,
+  "gcOperations": 32,
+  "rawReports": [
+    "raw/774764bb550c47fc8496bbba9dc9bb35/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/774764bb550c47fc8496bbba9dc9bb35/measured-process-25536-7090007442734dd9a948d74978b58fd3.json",
+    "raw/774764bb550c47fc8496bbba9dc9bb35/measured-process-58248-60d5032bca3c4c9f882e8ac51722e198.json"
+  ],
+  "attemptId": "774764bb550c47fc8496bbba9dc9bb35"
+}

@@ -19,10 +19,11 @@ from ReadmeBenchmarkComparisons import prepare_comparisons
 
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_RUN = ROOT / "benchmarks/history/engine-v3/20261111T233043559Z-f182beae1eb5"
+DEFAULT_RUN = ROOT / "benchmarks/history/engine-v3/20261118T231738570Z-958c20272747"
 DEFAULT_HISTORY = [
     ROOT / "benchmarks/history/engine-v3/20261028T235933572Z-507c7340ade4",
     ROOT / "benchmarks/history/engine-v3/20261101T001222673Z-6e583af1577e",
+    ROOT / "benchmarks/history/engine-v3/20261111T233043559Z-f182beae1eb5",
     DEFAULT_RUN,
 ]
 WORKLOADS = [

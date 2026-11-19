@@ -1,0 +1,20 @@
+{
+  "processId": 48036,
+  "capturedUtc": "2026-11-19T03:15:02.512931+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "suiteInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "source": {
+    "commit": "958c2027274756a22654c7e12f8f321643497fd5",
+    "branch": null,
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B21_CteReuse",
+  "sql": "with totals as (select r.Key as Id, Sum(r.Amount) as Total\r\nfrom bench.rows() r\r\ngroup by r.Key) select a.Id as Id, a.Total \u002B b.Total as Total\r\nfrom totals a\r\ninner join totals b on a.Id = b.Id\r\norder by a.Id",
+  "inputCount": 1000
+}

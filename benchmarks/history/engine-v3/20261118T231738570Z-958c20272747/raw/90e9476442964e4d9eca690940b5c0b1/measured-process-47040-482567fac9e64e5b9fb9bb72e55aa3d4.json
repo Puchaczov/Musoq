@@ -1,0 +1,20 @@
+{
+  "processId": 47040,
+  "capturedUtc": "2026-11-19T05:24:15.489597+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "suiteInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "source": {
+    "commit": "958c2027274756a22654c7e12f8f321643497fd5",
+    "branch": null,
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "X10_StructuredPipeline",
+  "sql": "table MetricsRow { Id: int, Amount: decimal }; couple bench.structured with table MetricsRow as Metrics; with keys as (select r.Key as Id, r.Key \u002B 1d as Amount\nfrom bench.rows() r\ngroup by r.Key) select m.Id as Id, Sum(m.Amount) over (order by m.Id) as Total\nfrom Metrics(items: keys) m\ninner join bench.lookup() d on m.Id = d.Id\norder by m.Id",
+  "inputCount": 1000
+}
