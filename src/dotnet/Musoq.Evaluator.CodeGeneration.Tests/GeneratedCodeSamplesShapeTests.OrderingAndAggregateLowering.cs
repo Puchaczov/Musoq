@@ -242,7 +242,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             sample
         );
         Assert.Contains(
-            "var resultOrderRecords = new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(2, 5, ResultRow0WithSortKeysComparer.Instance);",
+            "var resultOrderRecords = new EvaluationHelper.SmallBoundedTopRecordList<ResultRow0WithSortKeys>(2, 5, ResultRow0WithSortKeysComparer.Instance)",
             sample
         );
         Assert.Contains(
@@ -308,8 +308,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", simple);
         Assert.Contains("Let [population: decimal = ko3iko.Population]", simple);
         Assert.Contains("If [(population > 500000)]", simple);
-        Assert.Contains("yield return new ResultRow0(ko3iko.City, ko3iko.Country, population);", simple);
-        Assert.Contains("yield return __musoqShapeRow;", simple);
+        Assert.Contains("return new ResultRow0(ko3iko.City, ko3iko.Country, population);", simple);
+        Assert.DoesNotContain("new ResultShape0(", simple);
         Assert.DoesNotContain("private Table ComputeTable_compiled_0(", simple);
         Assert.IsFalse(simple.Contains(ParallelFilterProjectLoopPattern, StringComparison.Ordinal));
         Assert.IsFalse(simple.Contains(ParallelProjectionRowsPattern, StringComparison.Ordinal));

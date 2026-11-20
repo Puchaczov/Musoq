@@ -16,10 +16,10 @@ public sealed partial class ExecutionCSharpRenderer
             && string.Equals(appendRow.Table.Name, finalShapeYieldSink.TableName, StringComparison.Ordinal)
         )
         {
-            return CreateFinalShapeOutputStatement(
-                CreateFinalShapeCreation(finalShapeYieldSink.ShapeTypeName, appendRow, context),
-                context
-            );
+            var value = finalShapeYieldSink.ScalarField is { } field
+                ? RenderRowConstructorValue(appendRow.Values[0].Value, field.Type.RequireClrType(), context)
+                : CreateFinalShapeCreation(finalShapeYieldSink.ShapeTypeName, appendRow, context);
+            return CreateFinalShapeOutputStatement(value, context);
         }
 
         if (TryGetFinalShapeSourceBuffer(appendRow.Table.Name, context, out var finalShapeSourceBuffer))

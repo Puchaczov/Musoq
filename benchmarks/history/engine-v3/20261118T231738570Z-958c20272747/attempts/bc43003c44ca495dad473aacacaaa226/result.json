@@ -1,0 +1,24 @@
+{
+  "caseId": "B10_CorrelatedFallback-execution-Table-Large",
+  "startedUtc": "2026-11-19T01:21:20.5319925+00:00",
+  "finishedUtc": "2026-11-19T01:22:49.9826615+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 29987292.5,
+  "medianNanoseconds": 29865450,
+  "standardDeviationNanoseconds": 522317.6859552927,
+  "confidenceLowerNanoseconds": 29638325.320446167,
+  "confidenceUpperNanoseconds": 30336259.679553833,
+  "sampleCount": 30,
+  "allocatedBytesPerOperation": 64999615,
+  "gen0Collections": 13,
+  "gen1Collections": 7,
+  "gen2Collections": 2,
+  "gcOperations": 32,
+  "rawReports": [
+    "raw/bc43003c44ca495dad473aacacaaa226/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/bc43003c44ca495dad473aacacaaa226/measured-process-22676-76500c76cb774902a81f160377d9e23b.json",
+    "raw/bc43003c44ca495dad473aacacaaa226/measured-process-48376-d2f2b889a97b4c8188dd4a97a1d6cd1d.json"
+  ],
+  "attemptId": "bc43003c44ca495dad473aacacaaa226"
+}

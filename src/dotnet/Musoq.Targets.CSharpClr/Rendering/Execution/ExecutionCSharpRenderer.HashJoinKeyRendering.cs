@@ -13,7 +13,10 @@ public sealed partial class ExecutionCSharpRenderer
             hashAdd.PrecomputedKey,
             hashAdd.KeyVariableName ?? "key",
             hashAdd.NullHandling,
-            keyName => CreateHashBucketAddOrCreateStatement(hashAdd, keyName, HashBuildBucketNaming.Resolve(hashAdd))
+            keyName =>
+                hashAdd.TracksMaximum
+                    ? CreateMaximumUpdateStatement(hashAdd, keyName)
+                    : CreateHashBucketAddOrCreateStatement(hashAdd, keyName, HashBuildBucketNaming.Resolve(hashAdd))
         );
     }
 

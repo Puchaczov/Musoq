@@ -68,8 +68,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 resultShapeName,
                 sources.Source
             ),
-            JoinKind.FullOuter => BuildFullOuterNestedLoopJoinTable(
-                join,
+            JoinKind.FullOuter => BuildFullOuterJoinTable(
+                join.OnPredicate,
                 pipeline,
                 resultTableName,
                 resultShapeName,

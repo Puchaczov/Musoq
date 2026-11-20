@@ -103,7 +103,7 @@ namespace GeneratedSample_Q150_RuntimeV2CastProjection
             var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2CastGroupingFeatureEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
             var __musoqTableSourceRows = ko3ikoRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2CastGroupingFeatureEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToGuid(ko3iko.Id)), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.RuntimeV2.RuntimeV2CastGroupingFeatureEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => new ResultRow0(global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToInt32(ko3iko.Population), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToDecimal(ko3iko.Amount), global::Musoq.Evaluator.Helpers.StrictCastRuntime.ToGuid(ko3iko.Id)), token), token, onCompleted: () =>
             {
                 try
                 {

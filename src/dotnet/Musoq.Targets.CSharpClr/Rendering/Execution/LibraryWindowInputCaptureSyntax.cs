@@ -7,7 +7,7 @@ namespace Musoq.Targets.CSharpClr;
 internal static class LibraryWindowInputCaptureSyntax
 {
     public static string CapturedWindowArgumentName(ExecutionWindowAggregateKernel kernel, int argument) =>
-        argument == 0 ? LibraryWindowBatchValuesName(kernel) : $"{kernel.Results.Name}CapturedArgument{argument}";
+        argument == 0 ? kernel.CapturedValuesName : $"{kernel.Results.Name}CapturedArgument{argument}";
 
     public static IReadOnlyList<StatementSyntax> Create(
         ExecutionWindowAggregateKernel kernel,
@@ -24,6 +24,8 @@ internal static class LibraryWindowInputCaptureSyntax
         var types = kernel.Descriptor.LibraryKernel!.ArgumentTypes;
         for (var argument = 0; argument < types.Count; argument++)
         {
+            if (argument == 0 && kernel.SharedValues is not null)
+                continue;
             var name = CapturedWindowArgumentName(kernel, argument);
             statements.Add(
                 CreateLocalDeclaration(
@@ -36,6 +38,8 @@ internal static class LibraryWindowInputCaptureSyntax
                 CreateArrayAssignment(name, index.Name, expressions[argument], types[argument].RequireClrType())
             );
         }
+        if (values.Count == 0 && kernel.SharedValues is not null && filter is null)
+            return statements;
         if (filter is not null)
         {
             var name = $"{kernel.Results.Name}CapturedFilter";

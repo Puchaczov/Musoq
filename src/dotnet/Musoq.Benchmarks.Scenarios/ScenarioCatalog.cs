@@ -24,7 +24,13 @@ public static partial class ScenarioCatalog
 
     public static IReadOnlyList<Scenario> All { get; } = Create().AsReadOnly();
 
-    public static Scenario Get(string id) => All.Single(scenario => scenario.Id == id);
+    public static Scenario Get(string id) =>
+        (
+            id.StartsWith(BasicQueryScenarios.Prefix, StringComparison.Ordinal) ? BasicQueryScenarios.All
+            : id.StartsWith(ExecutionPlanScenarios.Prefix, StringComparison.Ordinal) ? ExecutionPlanScenarios.All
+            : id.StartsWith(VectorizationScenarios.Prefix, StringComparison.Ordinal) ? VectorizationScenarios.All
+            : All
+        ).Single(scenario => scenario.Id == id);
 
     private static List<Scenario> Create()
     {

@@ -95,6 +95,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (
             node is ExecutionSourceLoop sourceLoop
             && TryGetHashBuildLoopAdd(sourceLoop, out var add)
+            && !add.TracksMaximum
             && CanExtractHashBuildLoop(sourceLoop)
             && !ContainsStoredTableRows(add.Key)
         )

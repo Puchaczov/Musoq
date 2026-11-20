@@ -27,6 +27,9 @@ public sealed record ExecutionRangeProbe : ExecutionNode
         this.PartitionKeyType = PartitionKeyType;
     }
 
+    internal ExecutionVariable? InputOrdinal { get; init; }
+    internal ExecutionVariable? BufferedRows { get; init; }
+
     public ExecutionVariable Match { get; init; }
     public ExecutionVariable Index { get; init; }
     public ExecutionExpression ProbeKey { get; init; }

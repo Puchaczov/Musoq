@@ -28,6 +28,7 @@ internal sealed partial class PhysicalLoweringImplementation
             join.Kind
             is not (
                 JoinKind.Inner
+                or JoinKind.FullOuter
                 or JoinKind.LeftSemi
                 or JoinKind.LeftAntiSemi
                 or JoinKind.LeftMark
@@ -55,6 +56,16 @@ internal sealed partial class PhysicalLoweringImplementation
                 "Execution IR sort-merge join lowering received a right input that cannot be range-probed. Physical planning must select nested-loop before Execution IR lowering."
             );
         }
+
+        if (join.Kind == JoinKind.FullOuter)
+            return BuildFullOuterJoinTable(
+                join.Residual,
+                pipeline,
+                resultTableName,
+                resultShapeName,
+                joinSources,
+                join
+            );
 
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape, joinSources.Right.Shape);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
@@ -153,6 +164,51 @@ internal sealed partial class PhysicalLoweringImplementation
             noMatchBody = appendBlocks.UnmatchedAppendBlock;
         }
 
+        var (createIndex, rangeProbe) = CreateRangeIndexAndProbe(
+            join,
+            resultTableName,
+            joinSources,
+            sourceLookup,
+            joinSources.Right.Rows,
+            matchedBody,
+            noMatchBody,
+            matchFound
+        );
+        var leftLoop = CreateSourceLoop(
+            joinSources.Left.Shape,
+            joinSources.Left.Rows,
+            joinSources.Left.Variable,
+            new ExecutionBlock([rangeProbe])
+        );
+        var nodes = CreateJoinPrelude(joinSources, resultTable, resultShape, scope);
+
+        if (preludeNodes != null)
+            nodes.AddRange(preludeNodes);
+        nodes.Add(createIndex);
+        nodes.Add(leftLoop);
+
+        return CompleteOutputTableBuild(
+            scope,
+            [.. joinSources.Left.Shapes, .. joinSources.Right.Shapes, resultShape],
+            nodes,
+            resultTable,
+            resultShape,
+            pipeline.PostOperations,
+            pipeline.Project.IsDistinct
+        );
+    }
+
+    private static (ExecutionCreateRangeIndex Index, ExecutionRangeProbe Probe) CreateRangeIndexAndProbe(
+        PhysicalSortMergeJoinNode join,
+        string resultTableName,
+        JoinSources joinSources,
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        ExecutionExpression candidateRows,
+        ExecutionBlock matchedBody,
+        ExecutionBlock? noMatchBody,
+        ExecutionVariable? matchFound
+    )
+    {
         var rightAlias = RowShapeLookup.ResolveSourceAlias(joinSources.Right.Shape);
         var candidate = new ExecutionVariable(
             $"{joinSources.Right.Variable.Name}RangeCandidate",
@@ -184,7 +240,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var createIndex = new ExecutionCreateRangeIndex(
             rangeIndex,
             candidate,
-            joinSources.Right.Rows,
+            candidateRows,
             candidateKey,
             keyType,
             join.ComparisonKind,
@@ -202,28 +258,7 @@ internal sealed partial class PhysicalLoweringImplementation
             partitionKeys,
             partitionKeyType
         );
-        var leftLoop = CreateSourceLoop(
-            joinSources.Left.Shape,
-            joinSources.Left.Rows,
-            joinSources.Left.Variable,
-            new ExecutionBlock([rangeProbe])
-        );
-        var nodes = CreateJoinPrelude(joinSources, resultTable, resultShape, scope);
-
-        if (preludeNodes != null)
-            nodes.AddRange(preludeNodes);
-        nodes.Add(createIndex);
-        nodes.Add(leftLoop);
-
-        return CompleteOutputTableBuild(
-            scope,
-            [.. joinSources.Left.Shapes, .. joinSources.Right.Shapes, resultShape],
-            nodes,
-            resultTable,
-            resultShape,
-            pipeline.PostOperations,
-            pipeline.Project.IsDistinct
-        );
+        return (createIndex, rangeProbe);
     }
 
     private ExecutionBlock CreateSingleRangeJoinMatchedBody(

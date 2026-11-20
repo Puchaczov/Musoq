@@ -87,44 +87,44 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void ChunkedSourceSamples_WhenCheckedIn_ShouldUseCachedCountLoopsAndCancellationChecks()
     {
-        var simpleSelect = ReadSample("Q01_SimpleSelectWhere.cs").Content;
+        var orderedScan = ReadSample("Q91_OrderBySimple.cs").Content;
 
-        Assert.Contains("foreach (var ko3ikoChunk in ko3ikoRows)", simpleSelect);
+        Assert.Contains("foreach (var ko3ikoChunk in ko3ikoRows)", orderedScan);
         Assert.IsFalse(
-            simpleSelect.Contains(
+            orderedScan.Contains(
                 "ko3ikoChunk is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[]",
                 StringComparison.Ordinal
             )
         );
         Assert.IsFalse(
-            simpleSelect.Contains(
+            orderedScan.Contains(
                 "ko3ikoChunk is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>",
                 StringComparison.Ordinal
             )
         );
         Assert.Contains(
             "if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkView)",
-            simpleSelect
+            orderedScan
         );
         Assert.Contains(
             "if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.Basic.BasicEntity[] ko3ikoChunkViewArray)",
-            simpleSelect
+            orderedScan
         );
         Assert.Contains(
             "if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity> ko3ikoChunkViewList)",
-            simpleSelect
+            orderedScan
         );
-        Assert.Contains("int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;", simpleSelect);
+        Assert.Contains("int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;", orderedScan);
         Assert.Contains(
             "for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)",
-            simpleSelect
+            orderedScan
         );
         Assert.Contains(
             "for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)",
-            simpleSelect
+            orderedScan
         );
-        Assert.Contains("if ((ko3ikoIndex & 1023) == 0)", simpleSelect);
-        Assert.Contains("token.ThrowIfCancellationRequested();", simpleSelect);
+        Assert.Contains("if ((ko3ikoIndex & 1023) == 0)", orderedScan);
+        Assert.Contains("token.ThrowIfCancellationRequested();", orderedScan);
     }
 
     [TestMethod]

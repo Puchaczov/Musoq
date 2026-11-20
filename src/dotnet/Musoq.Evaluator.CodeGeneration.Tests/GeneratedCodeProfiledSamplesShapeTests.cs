@@ -478,7 +478,7 @@ public sealed partial class GeneratedCodeProfiledSamplesShapeTests
                 "PhysicalTopOffset [skip 2, take 5] [ko3iko.Population DESC]",
                 "CreateBoundedRecordList [resultOrderRecords: ResultRow0WithSortKeys by Population DESC, skip 2, take 5]",
                 "MaterializeRecordListToShapeRows [resultOrderRecords -> result: ResultShape0 fields 0, 1]",
-                "new EvaluationHelper.BoundedTopRecordList<ResultRow0WithSortKeys>(2, 5, ResultRow0WithSortKeysComparer.Instance)",
+                "new EvaluationHelper.SmallBoundedTopRecordList<ResultRow0WithSortKeys>(2, 5, ResultRow0WithSortKeysComparer.Instance)",
             ],
             OrderBySkipTakeFullFileName
         );

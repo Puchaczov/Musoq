@@ -101,7 +101,9 @@ public partial class InterpreterCodeGenerator
                 $"        SetCurrentField(\"{InterpretationStringLiterals.EscapeCSharpString(field.Name)}\");"
             );
 
-            var readCode = GenerateTextFieldReadCode(field.Source);
+            var readCode = plan.UsesDirectDelimitedReads
+                ? GenerateDirectDelimitedRead(field)
+                : GenerateTextFieldReadCode(field.Source);
             builder.Append(Indent(readCode, 2));
 
             if (field.EmitsProperty)

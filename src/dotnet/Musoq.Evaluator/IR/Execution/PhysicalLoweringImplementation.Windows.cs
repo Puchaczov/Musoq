@@ -125,6 +125,10 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!appendBlock.IsBuilt)
             return TableBuildResult.Unsupported(appendBlock.UnsupportedReason);
 
+        var boundedRanking = computations.Value
+            is [{ Node: ExecutionComputeRankingWindow { WinnerPositions: not null } ranking }]
+            ? ranking
+            : null;
         var windowKernelNodes = CreateWindowKernelPlanNodes(computations.Value);
         var nodes = new List<ExecutionNode>(
             sourceSetup.Count + pipeline.PostOperations.Count + windowKernelNodes.Count + 4
@@ -136,10 +140,19 @@ internal sealed partial class PhysicalLoweringImplementation
             CreateTable(
                 resultTable,
                 resultShape,
-                ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(resultTable, buffer)
+                ExecutionCapacityHintCandidates.CreateCollectionCountCandidate(
+                    resultTable,
+                    boundedRanking?.Results ?? buffer
+                )
             )
         );
-        nodes.Add(new ExecutionForEachIndexed(source, windowIndex, buffer, rowAccessMode, appendBlock.Value));
+        nodes.Add(
+            new ExecutionForEachIndexed(source, windowIndex, buffer, rowAccessMode, appendBlock.Value)
+            {
+                WinnerPositions = boundedRanking?.WinnerPositions,
+                WinnerRanks = boundedRanking?.Results,
+            }
+        );
 
         return CompleteTableBuild(
             [.. windowSource.Source.Shapes, .. postOperationProjection.Shapes],

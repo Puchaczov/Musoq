@@ -1,0 +1,20 @@
+{
+  "processId": 38932,
+  "capturedUtc": "2026-11-19T01:36:02.4268928+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "suiteInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "source": {
+    "commit": "958c2027274756a22654c7e12f8f321643497fd5",
+    "branch": null,
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B11_ScalarAggregate",
+  "sql": "select r.Id as Id, (select Sum(d.Amount)\r\nfrom bench.lookup() d\r\nwhere d.Key = r.Key) as Total\r\nfrom bench.rows() r\r\norder by r.Id",
+  "inputCount": 10000
+}

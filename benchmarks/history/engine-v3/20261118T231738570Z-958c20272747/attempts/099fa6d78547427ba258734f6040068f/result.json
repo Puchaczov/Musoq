@@ -1,0 +1,30 @@
+{
+  "caseId": "B31_TextCaptures-compilation-cold-Table-ContractFixture",
+  "startedUtc": "2026-11-19T04:26:57.0287983+00:00",
+  "finishedUtc": "2026-11-19T04:27:39.520538+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 2013457512.5,
+  "medianNanoseconds": 1990457250,
+  "standardDeviationNanoseconds": 63083486.75496708,
+  "confidenceLowerNanoseconds": 1892843450.2860157,
+  "confidenceUpperNanoseconds": 2134071574.7139843,
+  "sampleCount": 8,
+  "allocatedBytesPerOperation": null,
+  "gen0Collections": null,
+  "gen1Collections": null,
+  "gen2Collections": null,
+  "gcOperations": null,
+  "rawReports": [
+    "raw/099fa6d78547427ba258734f6040068f/Musoq.Benchmarks.ColdCompilationBenchmark-report-full.json",
+    "raw/099fa6d78547427ba258734f6040068f/measured-process-13764-059c572284b344419db4f6f5056ec55a.json",
+    "raw/099fa6d78547427ba258734f6040068f/measured-process-24964-0b0aceb240f24a7bad846ba26a594b0e.json",
+    "raw/099fa6d78547427ba258734f6040068f/measured-process-28548-c054f46f27fb477d82196216eb277d0f.json",
+    "raw/099fa6d78547427ba258734f6040068f/measured-process-28580-3ce507e68f9f4363873bf7ebe863cc4f.json",
+    "raw/099fa6d78547427ba258734f6040068f/measured-process-39660-e77f864278a042f9852a7aaad336cbb9.json",
+    "raw/099fa6d78547427ba258734f6040068f/measured-process-4896-c2493b3d80ee418eaddb1a90dc2f545e.json",
+    "raw/099fa6d78547427ba258734f6040068f/measured-process-49628-1d6f1b7e77f74ab5a3cbd151d050c9d6.json",
+    "raw/099fa6d78547427ba258734f6040068f/measured-process-60324-e06c7c36a69f4a969dbd80b969050c63.json"
+  ],
+  "attemptId": "099fa6d78547427ba258734f6040068f"
+}

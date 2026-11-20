@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.IR.Analysis;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical;
@@ -19,12 +20,19 @@ internal static partial class PhysicalStrategyRules
             kind
                 is not (
                     JoinKind.Inner
+                    or JoinKind.FullOuter
                     or JoinKind.LeftSemi
                     or JoinKind.LeftAntiSemi
                     or JoinKind.LeftMark
                     or JoinKind.LeftSingle
                 )
             || predicate == null
+        )
+            return null;
+
+        if (
+            kind == JoinKind.FullOuter
+            && (!ExpressionStabilityAnalyzer.IsStable(predicate) || !IsSafeFullOuterRangePredicate(predicate))
         )
             return null;
 
@@ -48,7 +56,7 @@ internal static partial class PhysicalStrategyRules
                 key.LeftKey,
                 key.RightKey,
                 key.ComparisonKind,
-                predicate,
+                RangeJoinResidual(kind, predicate),
                 [.. leftPartitionKeys],
                 [.. rightPartitionKeys]
             )
@@ -81,15 +89,6 @@ internal static partial class PhysicalStrategyRules
 
         key = default;
         return false;
-    }
-
-    private static bool IsSortMergeRangeKind(BinaryOpKind kind)
-    {
-        return kind
-            is BinaryOpKind.GreaterThan
-                or BinaryOpKind.GreaterOrEqual
-                or BinaryOpKind.LessThan
-                or BinaryOpKind.LessOrEqual;
     }
 
     private static bool TryNormalizeSortMergeRange(

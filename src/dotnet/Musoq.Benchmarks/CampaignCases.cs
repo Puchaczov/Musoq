@@ -67,7 +67,23 @@ public static class CampaignCases
     private static CampaignCase[] CreateSelected(CampaignOptions options, string workingDirectory)
     {
         var cases = new List<CampaignCase>();
-        foreach (var type in Types)
+        var types = Types;
+        if (
+            !options.Official
+            && options.Filter.StartsWith(BasicQueryScenarios.Prefix, StringComparison.OrdinalIgnoreCase)
+        )
+            types = [.. types, BenchmarkRegistrations.BasicQueries.Type, BenchmarkRegistrations.BasicTyped.Type];
+        if (
+            !options.Official
+            && options.Filter.StartsWith(VectorizationScenarios.Prefix, StringComparison.OrdinalIgnoreCase)
+        )
+            types = [.. types, BenchmarkRegistrations.Vectorization.Type];
+        if (
+            !options.Official
+            && options.Filter.StartsWith(ExecutionPlanScenarios.Prefix, StringComparison.OrdinalIgnoreCase)
+        )
+            types = [.. types, BenchmarkRegistrations.ExecutionPlans.Type];
+        foreach (var type in types)
         {
             var job = CreateJob(options, type);
             var config = ManualConfig

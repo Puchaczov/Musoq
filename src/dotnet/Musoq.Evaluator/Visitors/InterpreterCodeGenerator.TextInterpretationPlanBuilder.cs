@@ -29,8 +29,16 @@ public partial class InterpreterCodeGenerator
             SchemaName = schema.Name,
             Extends = string.IsNullOrEmpty(schema.Extends) ? null : schema.Extends,
             Fields = boundFields,
+            UsesDirectDelimitedReads = string.IsNullOrEmpty(schema.Extends) && boundFields.All(IsSimpleDelimitedField),
         };
     }
+
+    private static bool IsSimpleDelimitedField(BoundTextField field) =>
+        !field.IsDiscard
+        && field.Source.Modifiers == TextFieldModifier.None
+        && field.Source
+            is { FieldType: TextFieldType.Until, PrimaryValue.Length: 1 }
+                or { FieldType: TextFieldType.Rest };
 
     private BoundTextField BindTextField(TextFieldDefinitionNode field)
     {

@@ -45,5 +45,6 @@ public sealed record ExecutionSubquery : ExecutionExpression
         get => _capturedCteValues;
         init => _capturedCteValues = ExecutionIrCollections.Freeze(value);
     }
+    internal bool StreamsScalar { get; init; }
     internal IReadOnlyList<SubqueryCteBinding> CteBindings { get; init; } = [];
 }

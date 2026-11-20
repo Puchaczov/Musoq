@@ -66,7 +66,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         else
             AddChainedApplyAggregateStreamingFailures(fileName, content, failures);
 
-        if (!ContainsGeneratedRowNumberKernel(content))
+        if (
+            fileName == ChainedApplyQualifyWindowSampleFileName
+            || fileName == ChainedApplyGroupedAggregateQualifyWindowSampleFileName
+        )
+        {
+            if (
+                !content.Contains("[bounded winners]", StringComparison.Ordinal)
+                || !content.Contains("EvaluationHelper.BoundedTopRecordList<int>", StringComparison.Ordinal)
+            )
+                failures.Add($"{fileName}: missing bounded row-number selection");
+        }
+        else if (!ContainsGeneratedRowNumberKernel(content))
             failures.Add($"{fileName}: missing row-number window computation");
 
         if (!content.Contains("resultRowNumbers[windowIndex] <= 1", StringComparison.Ordinal))

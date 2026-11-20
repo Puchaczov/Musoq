@@ -96,7 +96,7 @@ namespace GeneratedSample_K74_NativeInlineRecordArgument
             var __resultGenericLibrary0 = new Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.GenericLibrary();
             var __musoqTableSourceRows = ko3ikoRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0((int)__resultGenericLibrary0.NeedsStruct<__musoqStructuralCarrier_0_root>(new __musoqStructuralCarrier_0_root(ko3iko.Position, 1UL))), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input, ResultRow0>(__musoqTableSourceRows, (ko3iko) => new ResultRow0((int)__resultGenericLibrary0.NeedsStruct<__musoqStructuralCarrier_0_root>(new __musoqStructuralCarrier_0_root(ko3iko.Position, 1UL))), token), token, onCompleted: () =>
             {
                 try
                 {

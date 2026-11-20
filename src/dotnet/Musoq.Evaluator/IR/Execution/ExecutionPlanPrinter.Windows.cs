@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
@@ -58,19 +58,15 @@ public static partial class ExecutionPlanPrinter
         };
     }
 
-    private static string FormatPluginNodeName(string functionName)
-    {
-        return $"Compute{NormalizeWindowFunctionName(functionName)}Window";
-    }
+    private static string FormatPluginNodeName(string functionName) =>
+        $"Compute{functionName.Replace("_", string.Empty, StringComparison.Ordinal)}Window";
+
+    private static string FormatSharedWindowValues(ExecutionVariable? values) =>
+        values is null ? string.Empty : $" shared values {values.Name}";
 
     private static string FormatWindowAggregateKernelNodeName(ExecutionWindowAggregateKernelDescriptor descriptor)
     {
         return $"Compute{descriptor.LibraryKernel?.FunctionName ?? descriptor.Function.ToString()}WindowKernel[{descriptor.Mode}]";
-    }
-
-    private static string NormalizeWindowFunctionName(string functionName)
-    {
-        return functionName.Replace("_", string.Empty, StringComparison.Ordinal);
     }
 
     private static string FormatOptionalWindowOrderKeys(IReadOnlyList<ExecutionWindowOrderKey> orderKeys)

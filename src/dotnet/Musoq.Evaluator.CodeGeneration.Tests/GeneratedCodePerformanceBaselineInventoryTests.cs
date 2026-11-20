@@ -140,8 +140,7 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
 
         var generatedCode = source[source.IndexOf("// === Generated C# ===", StringComparison.Ordinal)..];
 
-        Assert.Contains("TableProjectionRows.ProjectOptionalRowsSerial", generatedCode);
-        Assert.Contains("new ResultRow0(ko3iko.Name, ko3iko.City, population)", generatedCode);
+        Assert.Contains("return new ResultRow0(", generatedCode);
         Assert.Contains("_ = __musoqMaterializedTable.Count", generatedCode);
         Assert.IsFalse(generatedCode.Contains("ResultShape0", StringComparison.Ordinal));
         Assert.IsFalse(generatedCode.Contains("ComputeShapeRows", StringComparison.Ordinal));

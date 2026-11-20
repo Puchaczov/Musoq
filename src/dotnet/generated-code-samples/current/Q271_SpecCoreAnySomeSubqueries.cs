@@ -154,7 +154,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
             var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:3") : aRowsSource.Chunks;
             var __musoqTableSourceRows = aRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, (a) => true, (a) => new ResultRow0(a.City, global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<Subquery0ResultRow0, string, string>(a.Country, __ExecuteSubquery0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static row => (string)row.Country, static (left, right) => Operators.SqlCompare<string, string>(left, right, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)), token), global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<Subquery1ResultRow0, decimal, decimal>(a.Population, __ExecuteSubquery1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static row => (decimal)row.Population, static (left, right) => (left > right), token)), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, (a) => new ResultRow0(a.City, global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<string, string, string>(a.Country, __ExecuteSubquery0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static value => value, static (left, right) => Operators.SqlCompare<string, string>(left, right, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)), token), global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<decimal, decimal, decimal>(a.Population, __ExecuteSubquery1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static value => value, static (left, right) => (left > right), token)), token), token, onCompleted: () =>
             {
                 try
                 {
@@ -199,7 +199,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
             PhaseChanged?.Invoke(this, new QueryPhaseEventArgs(queryId, phase));
         }
 
-        private static IEnumerable<Subquery0ResultRow0> __ExecuteSubquery0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged)
+        private static IEnumerable<string> __ExecuteSubquery0(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged)
         {
             try
             {
@@ -224,7 +224,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                                 }
 
                                 var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                yield return new Subquery0ResultRow0(b.Country);
+                                yield return b.Country;
                             }
 
                             continue;
@@ -241,7 +241,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                                 }
 
                                 var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                yield return new Subquery0ResultRow0(b.Country);
+                                yield return b.Country;
                             }
 
                             continue;
@@ -256,7 +256,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                         }
 
                         var b = bChunk[bIndex];
-                        yield return new Subquery0ResultRow0(b.Country);
+                        yield return b.Country;
                     }
                 }
             }
@@ -273,7 +273,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
             }
         }
 
-        private static IEnumerable<Subquery1ResultRow0> __ExecuteSubquery1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged)
+        private static IEnumerable<decimal> __ExecuteSubquery1(Musoq.Schema.ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, Microsoft.Extensions.Logging.ILogger logger, CancellationToken token, QueryRunContext? __musoqProgressContext, Musoq.Schema.DataSourceEventHandler OnDataSourceProgress, Musoq.Evaluator.QueryProgressEventHandler OnQueryProgress, Action<string, QueryPhase> OnPhaseChanged)
         {
             try
             {
@@ -298,7 +298,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                                 }
 
                                 var c = cChunkViewArray[cChunkViewOffset + cIndex];
-                                yield return new Subquery1ResultRow0(c.Population);
+                                yield return c.Population;
                             }
 
                             continue;
@@ -315,7 +315,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                                 }
 
                                 var c = cChunkViewList[cChunkViewOffset + cIndex];
-                                yield return new Subquery1ResultRow0(c.Population);
+                                yield return c.Population;
                             }
 
                             continue;
@@ -330,7 +330,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
                         }
 
                         var c = cChunk[cIndex];
-                        yield return new Subquery1ResultRow0(c.Population);
+                        yield return c.Population;
                     }
                 }
             }

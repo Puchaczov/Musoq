@@ -28,8 +28,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("If [(population = population)]", sample);
         Assert.Contains("decimal population = ko3iko.Population;", sample);
         Assert.Contains("if ((population == population))", sample);
-        Assert.Contains("yield return new ResultRow0(population, population);", sample);
-        Assert.Contains("yield return __musoqShapeRow;", sample);
+        Assert.Contains("return new ResultRow0(population, population);", sample);
+        Assert.DoesNotContain("new ResultShape0(", sample);
     }
 
     [TestMethod]
@@ -339,6 +339,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("SourceScan [ko3iko: RuntimeV2RegressionEntity] -> ko3ikoRows", sample);
         Assert.Contains("ForEach [ko3iko in ko3ikoRows]", sample);
         Assert.Contains("Let [__resultSkipRemaining: int = 100]", sample);
+        Assert.Contains("ArrayChunkRows.SkipPrefix(ko3ikoChunkInput, ref __resultSkipRemaining, token)", sample);
         Assert.Contains("Let [__resultTakeRemaining: int = 100]", sample);
         Assert.Contains("Continue", sample);
         Assert.Contains("Break", sample);

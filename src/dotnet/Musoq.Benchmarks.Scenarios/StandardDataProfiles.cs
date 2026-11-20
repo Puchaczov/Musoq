@@ -6,6 +6,7 @@ internal enum StandardDataProfile
     ManyGroups,
     Shuffled,
     Fanout8,
+    SmallChunks,
 }
 
 internal static class StandardDataProfiles
@@ -19,6 +20,7 @@ internal static class StandardDataProfiles
             "many-groups" => StandardDataProfile.ManyGroups,
             "shuffled" => StandardDataProfile.Shuffled,
             "fanout8" => StandardDataProfile.Fanout8,
+            "small-chunks" => StandardDataProfile.SmallChunks,
             _ => throw new ArgumentException($"Unknown standard fixture profile '{id}'.", nameof(id)),
         };
 
@@ -26,6 +28,7 @@ internal static class StandardDataProfiles
         Get(scenario.DataProfileId) switch
         {
             StandardDataProfile.Default => FixtureData.Description,
+            StandardDataProfile.SmallChunks => FixtureData.Description + " Main input is delivered in 32-row arrays.",
             StandardDataProfile.ManyGroups => FixtureData.Description
                 + " Profile override: rows.Key=Id, giving N distinct main-input keys; all other sources and fields retain default values.",
             StandardDataProfile.Shuffled => FixtureData.Description

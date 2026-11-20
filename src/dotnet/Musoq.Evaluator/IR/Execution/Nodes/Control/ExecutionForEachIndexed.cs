@@ -6,4 +6,8 @@ public sealed record ExecutionForEachIndexed(
     ExecutionVariable Source,
     ExecutionRowAccessMode RowAccessMode,
     ExecutionBlock Body
-) : ExecutionNode;
+) : ExecutionNode
+{
+    internal ExecutionVariable? WinnerRanks { get; init; }
+    internal ExecutionVariable? WinnerPositions { get; init; }
+}

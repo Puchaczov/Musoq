@@ -98,123 +98,40 @@ namespace GeneratedSample_Q324_EnumQueryScopedRows
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
-            {
-                yield return __musoqShapeRow;
-            }
-        }
-
-        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
-        {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
             Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
-            try
+            var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
+            ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
+            this.OnPhaseChanged("compiled", QueryPhase.Begin);
+            this.OnPhaseChanged("compiled", QueryPhase.From);
+            var __ko3ikoSchema = provider.GetSchema("#queryrowsample");
+            var __ko3ikoSchemaQueryRows = __ko3ikoSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape B9994CBC6B098622748934DC82B5D4412ADA3DF973EC63272596E7EDF94F7B6E).");
+            var ko3ikoRowsSource = QuerySourceInvocation<QueryRow_B9994CBC6B09_S, QueryRowMaterializer_B9994CBC6B09_S>.Open(__ko3ikoSchemaQueryRows, "rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, __queryRowShape_B9994CBC6B09), global::Musoq.Schema.SourceArguments.Empty);
+            var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_B9994CBC6B09_S>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+            var __musoqTableSourceRows = ko3ikoRows;
+            this.OnPhaseChanged("compiled", QueryPhase.Where);
+            this.OnPhaseChanged("compiled", QueryPhase.Select);
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectOptionalRowsSerial<QueryRow_B9994CBC6B09_S, ResultRow0>(__musoqTableSourceRows, (ko3iko) =>
             {
-                var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
-                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                OnPhaseChanged("compiled", QueryPhase.Begin);
-                OnPhaseChanged("compiled", QueryPhase.From);
-                var __ko3ikoSchema = provider.GetSchema("#queryrowsample");
-                var __ko3ikoSchemaQueryRows = __ko3ikoSchema as Musoq.Schema.IQueryScopedRowSourceSchema ?? throw new InvalidOperationException("Source '#queryrowsample.rows' advertised QueryScopedRows but its runtime schema does not implement IQueryScopedRowSourceSchema (shape B9994CBC6B098622748934DC82B5D4412ADA3DF973EC63272596E7EDF94F7B6E).");
-                var ko3ikoRowsSource = QuerySourceInvocation<QueryRow_B9994CBC6B09_S, QueryRowMaterializer_B9994CBC6B09_S>.Open(__ko3ikoSchemaQueryRows, "rows", new QueryScopedRowSourceRequest(new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, __queryRowShape_B9994CBC6B09), global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_B9994CBC6B09_S>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
-                OnPhaseChanged("compiled", QueryPhase.Where);
-                OnPhaseChanged("compiled", QueryPhase.Select);
-                foreach (var ko3ikoChunk in ko3ikoRows)
+                short? status = ko3iko.Field0;
+                if (Musoq.Evaluator.Operators.SqlIn(status, membershipValue => (Array.IndexOf(__inSet_compiled_0, membershipValue) >= 0), false) == true)
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_B9994CBC6B09_S> ko3ikoChunkView)
+                    return new ResultRow0(status, (status switch
                     {
-                        if (ko3ikoChunkView.Source is QueryRow_B9994CBC6B09_S[] ko3ikoChunkViewArray)
-                        {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                            {
-                                if ((ko3ikoIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                short? status = ko3iko.Field0;
-                                if (Musoq.Evaluator.Operators.SqlIn(status, membershipValue => (Array.IndexOf(__inSet_compiled_0, membershipValue) >= 0), false) == true)
-                                {
-                                    yield return new ResultRow0(status, (status switch
-                                    {
-                                        10 => "Queued",
-                                        20 => "Running",
-                                        30 => "Finished",
-                                        _ => null
-                                    }), (ko3iko.Field1 switch
-                                    {
-                                        uint __enumValue0 => ((__enumValue0 & 3u) == 3u),
-                                        _ => false
-                                    }));
-                                }
-                            }
-
-                            continue;
-                        }
-
-                        if (ko3ikoChunkView.Source is List<QueryRow_B9994CBC6B09_S> ko3ikoChunkViewList)
-                        {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                            {
-                                if ((ko3ikoIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                short? status = ko3iko.Field0;
-                                if (Musoq.Evaluator.Operators.SqlIn(status, membershipValue => (Array.IndexOf(__inSet_compiled_0, membershipValue) >= 0), false) == true)
-                                {
-                                    yield return new ResultRow0(status, (status switch
-                                    {
-                                        10 => "Queued",
-                                        20 => "Running",
-                                        30 => "Finished",
-                                        _ => null
-                                    }), (ko3iko.Field1 switch
-                                    {
-                                        uint __enumValue1 => ((__enumValue1 & 3u) == 3u),
-                                        _ => false
-                                    }));
-                                }
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
+                        10 => "Queued",
+                        20 => "Running",
+                        30 => "Finished",
+                        _ => null
+                    }), (ko3iko.Field1 switch
                     {
-                        if ((ko3ikoIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        short? status = ko3iko.Field0;
-                        if (Musoq.Evaluator.Operators.SqlIn(status, membershipValue => (Array.IndexOf(__inSet_compiled_0, membershipValue) >= 0), false) == true)
-                        {
-                            yield return new ResultRow0(status, (status switch
-                            {
-                                10 => "Queued",
-                                20 => "Running",
-                                30 => "Finished",
-                                _ => null
-                            }), (ko3iko.Field1 switch
-                            {
-                                uint __enumValue2 => ((__enumValue2 & 3u) == 3u),
-                                _ => false
-                            }));
-                        }
-                    }
+                        uint __enumValue0 => ((__enumValue0 & 3u) == 3u),
+                        _ => false
+                    }));
                 }
-            }
-            finally
+
+                return null;
+            }, token), token, onCompleted: () =>
             {
                 try
                 {
@@ -224,7 +141,27 @@ namespace GeneratedSample_Q324_EnumQueryScopedRows
                 {
                     OnPhaseChanged("compiled", QueryPhase.End);
                 }
-            }
+            }, onException: (Exception _) =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }, onDisposed: () =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            });
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]

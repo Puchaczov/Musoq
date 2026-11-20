@@ -6,12 +6,13 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private TableBuildResult BuildFullOuterNestedLoopJoinTable(
-        PhysicalNestedLoopJoinNode join,
+    private TableBuildResult BuildFullOuterJoinTable(
+        IrExpression? predicate,
         CteSupportedPipeline pipeline,
         string resultTableName,
         string resultShapeName,
-        JoinSources joinSources
+        JoinSources joinSources,
+        PhysicalSortMergeJoinNode? rangeJoin = null
     )
     {
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape, joinSources.Right.Shape);
@@ -56,7 +57,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var rightMatched = new ExecutionVariable($"{resultTableName}RightMatched", typeof(bool[]));
         var rightIndex = new ExecutionVariable($"{joinSources.Right.Variable.Name}Index", typeof(int));
         var matchedBody = CreateFullOuterJoinMatchedBody(
-            join.OnPredicate,
+            predicate,
             pipeline.Filter,
             leftHasMatch,
             rightMatched,
@@ -68,13 +69,36 @@ internal sealed partial class PhysicalLoweringImplementation
         var leftRows = CreateFullOuterReusableRows(joinSources.Left, nodes);
         var rightRows = CreateFullOuterReusableRows(joinSources.Right, nodes);
         nodes.Add(new ExecutionCreateBooleanArray(rightMatched, rightRows.Variable));
-        var leftPhaseInnerLoop = ExecutionRowStreams.CreateForEachIndexed(
-            joinSources.Right.Shape,
-            rightRows.Variable,
-            joinSources.Right.Variable,
-            rightIndex,
-            matchedBody
-        );
+        ExecutionNode leftPhaseInnerLoop;
+        if (rangeJoin != null)
+        {
+            var (index, probe) = CreateRangeIndexAndProbe(
+                rangeJoin,
+                resultTableName,
+                joinSources,
+                sourceLookup,
+                rightRows,
+                matchedBody,
+                null,
+                null
+            );
+            nodes.Add(index with { UsesInputOrdinals = true, PartitionKeys = null, PartitionKeyType = null });
+            leftPhaseInnerLoop = probe with
+            {
+                InputOrdinal = rightIndex,
+                BufferedRows = rightRows.Variable,
+                PartitionKeys = null,
+                PartitionKeyType = null,
+            };
+        }
+        else
+            leftPhaseInnerLoop = ExecutionRowStreams.CreateForEachIndexed(
+                joinSources.Right.Shape,
+                rightRows.Variable,
+                joinSources.Right.Variable,
+                rightIndex,
+                matchedBody
+            );
         var leftPhase = CreateSourceLoop(
             joinSources.Left.Shape,
             leftRows,

@@ -1,0 +1,24 @@
+{
+  "caseId": "X03_Reconciliation-execution-Table-Small",
+  "startedUtc": "2026-11-19T04:52:43.8436223+00:00",
+  "finishedUtc": "2026-11-19T04:53:42.2813151+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 69970.30323949353,
+  "medianNanoseconds": 70060.0341796875,
+  "standardDeviationNanoseconds": 714.9722267395891,
+  "confidenceLowerNanoseconds": 69482.52967397792,
+  "confidenceUpperNanoseconds": 70458.07680500914,
+  "sampleCount": 29,
+  "allocatedBytesPerOperation": 207450,
+  "gen0Collections": 29,
+  "gen1Collections": 3,
+  "gen2Collections": 0,
+  "gcOperations": 8192,
+  "rawReports": [
+    "raw/3c5455011f2346e1bd72a3c8a1d1ff54/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/3c5455011f2346e1bd72a3c8a1d1ff54/measured-process-26236-9dda35e7a55346488001e23f4f64c123.json",
+    "raw/3c5455011f2346e1bd72a3c8a1d1ff54/measured-process-49700-c768f1a03bc14834bb167d876d285e58.json"
+  ],
+  "attemptId": "3c5455011f2346e1bd72a3c8a1d1ff54"
+}

@@ -82,7 +82,7 @@ public sealed partial class FixtureSchema : SchemaBase
 
 public sealed class FixtureTable : ISchemaTable
 {
-    private FixtureTable(Type rowType, ISchemaColumn[] columns)
+    internal FixtureTable(Type rowType, ISchemaColumn[] columns)
     {
         Columns = columns;
         Metadata = new(rowType);
@@ -128,7 +128,10 @@ public sealed class FixtureRows : RowSource<FixtureRow>
 {
     private readonly FixtureRow[][] _chunks;
 
-    public FixtureRows(FixtureRow[] rows) => _chunks = rows.Chunk(4_096).ToArray();
+    public FixtureRows(FixtureRow[] rows)
+        : this(rows, 4096) { }
+
+    internal FixtureRows(FixtureRow[] rows, int chunkSize) => _chunks = rows.Chunk(chunkSize).ToArray();
 
     public override IEnumerable<IReadOnlyList<FixtureRow>> Chunks => _chunks;
 

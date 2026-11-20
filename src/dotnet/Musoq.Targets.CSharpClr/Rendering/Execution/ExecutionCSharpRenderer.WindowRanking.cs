@@ -104,6 +104,14 @@ public sealed partial class ExecutionCSharpRenderer
             );
         }
 
+        if (ranking.WinnerPositions is { } winners)
+        {
+            statements.AddRange(
+                BoundedRowNumberSyntax.Select(ranking, rankingPartitions.Variable, orderKeys.Variable, winners)
+            );
+            return statements;
+        }
+
         var rankingSortedPartitions =
             ranking.SortedPartitions ?? new ExecutionWindowPartitionSet(rankingPartitions.Variable, true, true);
         AddWindowSortedPartitionDeclarations(statements, rankingSortedPartitions, rankingPartitions, orderKeys);

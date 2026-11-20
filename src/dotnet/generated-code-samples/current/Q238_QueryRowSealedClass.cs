@@ -108,7 +108,7 @@ namespace GeneratedSample_Q238_QueryRowSealedClass
             var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_6E1D0F850A2A_C>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
             var __musoqTableSourceRows = rRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<QueryRow_6E1D0F850A2A_C, ResultRow0>(__musoqTableSourceRows, (r) => true, (r) => new ResultRow0(r.Field0, r.Field1, r.Field2, r.Field3, r.Field4), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<QueryRow_6E1D0F850A2A_C, ResultRow0>(__musoqTableSourceRows, (r) => new ResultRow0(r.Field0, r.Field1, r.Field2, r.Field3, r.Field4), token), token, onCompleted: () =>
             {
                 try
                 {

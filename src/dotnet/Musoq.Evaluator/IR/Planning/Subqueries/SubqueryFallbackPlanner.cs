@@ -3,6 +3,8 @@ using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical;
 using Musoq.Evaluator.IR.Logical.Rewriting;
 using Musoq.Evaluator.IR.Optimization.Logical;
+using Musoq.Evaluator.IR.Physical;
+using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Planning.Subqueries;
 
@@ -46,8 +48,22 @@ internal sealed class SubqueryFallbackPlanner(PlanningContext context) : IrExpre
                 context.ShapeResolver,
                 context.CompilationOptions,
                 context.SchemaRegistry,
-                context.CteExecutionPlan
+                context.CteExecutionPlan,
+                CanStreamScalar(node.Kind, result.PhysicalArtifacts.OptimizedPhysicalPlan)
             ),
         };
+    }
+
+    private static bool CanStreamScalar(SubqueryResultKind kind, PhysicalNode physicalPlan)
+    {
+        if (kind is not (SubqueryResultKind.In or SubqueryResultKind.Any or SubqueryResultKind.All))
+            return false;
+
+        return physicalPlan
+                is PhysicalMultiStatementNode
+                {
+                    Statements: [PhysicalProjectNode { Fields.Length: 1, IsDistinct: false } project],
+                }
+            && project.Input is (PhysicalSchemaScanNode or PhysicalFilterNode { Input: PhysicalSchemaScanNode });
     }
 }

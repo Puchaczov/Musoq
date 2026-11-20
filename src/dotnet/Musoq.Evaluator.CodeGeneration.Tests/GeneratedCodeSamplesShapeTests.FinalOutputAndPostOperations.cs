@@ -31,8 +31,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.DoesNotContain("new ResultShape0(", code);
         Assert.DoesNotContain("private sealed class ResultShape0", code);
         Assert.DoesNotContain("new ResultRow0(__musoqShapeRow.", code);
-        Assert.Contains("yield return new ResultRow0(", code);
-        Assert.Contains("yield return __musoqShapeRow;", code);
+        Assert.Contains("return new ResultRow0(", code);
+        Assert.Contains("TableProjectionRows.ProjectOptionalRowsSerial", code);
     }
 
     [TestMethod]

@@ -297,7 +297,11 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context
     )
     {
-        var statements = CreateParallelProjectionProjectorStatements(projectionBody, createProjection, context)
+        var statements = RenderProjectionBody(
+                projectionBody,
+                row => SyntaxFactory.ReturnStatement(createProjection(row)),
+                context
+            )
             .ToList();
         statements.Add(
             SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression))
@@ -309,22 +313,22 @@ public sealed partial class ExecutionCSharpRenderer
             .WithBlock(StatementEmitter.CreateBlock(statements));
     }
 
-    private IEnumerable<StatementSyntax> CreateParallelProjectionProjectorStatements(
+    private IEnumerable<StatementSyntax> RenderProjectionBody(
         ExecutionBlock block,
-        Func<ExecutionAppendRow, ExpressionSyntax> createProjection,
+        Func<ExecutionAppendRow, StatementSyntax> append,
         ExecutionRenderContext context
     )
     {
         foreach (var node in block.Nodes)
         {
-            foreach (var statement in CreateParallelProjectionProjectorStatements(node, createProjection, context))
+            foreach (var statement in RenderProjectionBody(node, append, context))
                 yield return statement;
         }
     }
 
-    private IEnumerable<StatementSyntax> CreateParallelProjectionProjectorStatements(
+    private IEnumerable<StatementSyntax> RenderProjectionBody(
         ExecutionNode node,
-        Func<ExecutionAppendRow, ExpressionSyntax> createProjection,
+        Func<ExecutionAppendRow, StatementSyntax> append,
         ExecutionRenderContext context
     )
     {
@@ -336,13 +340,11 @@ public sealed partial class ExecutionCSharpRenderer
             case ExecutionIf branch:
                 yield return SyntaxFactory.IfStatement(
                     this.RenderBooleanCondition(branch.Condition, context),
-                    StatementEmitter.CreateBlock(
-                        CreateParallelProjectionProjectorStatements(branch.Body, createProjection, context)
-                    )
+                    StatementEmitter.CreateBlock(RenderProjectionBody(branch.Body, append, context))
                 );
                 break;
             case ExecutionAppendRow appendRow:
-                yield return SyntaxFactory.ReturnStatement(createProjection(appendRow));
+                yield return append(appendRow);
                 break;
             default:
                 throw new InvalidOperationException(

@@ -35,8 +35,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("const string letCountry = \"Poland\";", whereSelect);
         Assert.Contains("const int letMinPopulation = 100;", whereSelect);
         Assert.Contains("Operators.SqlCompare<string, string>(ko3iko.Country, letCountry", whereSelect);
-        Assert.Contains("yield return new ResultRow0(ko3iko.Name, population, letCountry);", whereSelect);
-        Assert.Contains("yield return __musoqShapeRow;", whereSelect);
+        Assert.Contains("return new ResultRow0(ko3iko.Name, population, letCountry);", whereSelect);
+        Assert.DoesNotContain("new ResultShape0(", whereSelect);
 
         Assert.AreEqual(0, CountOccurrences(primitiveValues, "ScriptParameterBinder.Get"));
         Assert.Contains("const bool letFlag = true;", primitiveValues);

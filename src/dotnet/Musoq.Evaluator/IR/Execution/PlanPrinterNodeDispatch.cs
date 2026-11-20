@@ -172,7 +172,7 @@ public static partial class ExecutionPlanPrinter
             case ExecutionForEachIndexed forEachIndexed:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}ForEachIndexed [{forEachIndexed.Index.Name}, {forEachIndexed.Item.Name} in {forEachIndexed.Source.Name}]"
+                    $"{prefix}ForEachIndexed [{forEachIndexed.Index.Name}, {forEachIndexed.Item.Name} in {forEachIndexed.Source.Name}]{(forEachIndexed.WinnerPositions is { } positions ? $" [positions: {positions.Name}]" : string.Empty)}"
                 );
                 AppendBlock(builder, forEachIndexed.Body, indentation + 2);
                 break;
@@ -373,7 +373,7 @@ public static partial class ExecutionPlanPrinter
             case ExecutionComputeRankingWindow ranking:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}{FormatRankingNodeName(ranking.Function)} [{FormatWindowComputationTarget(ranking)}{FormatPartition(ranking.PartitionKey)} order by {FormatWindowOrderKeys(ranking.OrderKeys)}{FormatRankingQualifyUpperBound(ranking.QualifyUpperBound)}]"
+                    $"{prefix}{FormatRankingNodeName(ranking.Function)} [{FormatWindowComputationTarget(ranking)}{FormatPartition(ranking.PartitionKey)} order by {FormatWindowOrderKeys(ranking.OrderKeys)}{FormatRankingQualifyUpperBound(ranking.QualifyUpperBound)}]{(ranking.WinnerPositions == null ? string.Empty : " [bounded winners]")}"
                 );
                 break;
             case ExecutionComputeOffsetWindow offset:
@@ -385,25 +385,25 @@ public static partial class ExecutionPlanPrinter
             case ExecutionComputePluginWindow plugin:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}{FormatPluginNodeName(plugin.FunctionName)} [{FormatWindowComputationTarget(plugin)} value {FormatExpression(plugin.Value)}{FormatPartition(plugin.PartitionKey)}{FormatOptionalWindowOrderKeys(plugin.OrderKeys)}{FormatWindowFrame(plugin.Frame)}{FormatPluginArguments(plugin.Arguments)}]"
+                    $"{prefix}{FormatPluginNodeName(plugin.FunctionName)} [{FormatWindowComputationTarget(plugin)} value {FormatExpression(plugin.Value)}{FormatPartition(plugin.PartitionKey)}{FormatOptionalWindowOrderKeys(plugin.OrderKeys)}{FormatWindowFrame(plugin.Frame)}{FormatPluginArguments(plugin.Arguments)}]{FormatSharedWindowValues(plugin.ContextBuffers?.SharedValues)}"
                 );
                 break;
             case ExecutionWindowAggregateKernel kernel:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}{FormatWindowAggregateKernelNodeName(kernel.Descriptor)} [{FormatWindowComputationTarget(kernel)} value {FormatExpression(kernel.Value)}{FormatPartition(kernel.PartitionKey)}{FormatOptionalWindowOrderKeys(kernel.OrderKeys)}{FormatWindowFrame(kernel.Frame)}]"
+                    $"{prefix}{FormatWindowAggregateKernelNodeName(kernel.Descriptor)} [{FormatWindowComputationTarget(kernel)} value {FormatExpression(kernel.Value)}{FormatPartition(kernel.PartitionKey)}{FormatOptionalWindowOrderKeys(kernel.OrderKeys)}{FormatWindowFrame(kernel.Frame)}]{FormatSharedWindowValues(kernel.SharedValues)}{(kernel.ReuseBoundedPeers ? " [reuse peer frame]" : string.Empty)}{(kernel.BoundariesOwner is { } owner ? $" [bounds: {owner.Name}]" : string.Empty)}"
                 );
                 break;
             case ExecutionCreateHash createHash:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}CreateHash [{createHash.Hash.Name}: {FormatType(createHash.KeyType)} -> {FormatType(createHash.RowType)}{FormatOptionalCapacity(createHash.CapacityHint)}]"
+                    $"{prefix}{(createHash.TracksMaximum ? "CreateGroupMaximum" : "CreateHash")} [{createHash.Hash.Name}: {FormatType(createHash.KeyType)} -> {FormatType(createHash.RowType)}{FormatOptionalCapacity(createHash.CapacityHint)}]"
                 );
                 break;
             case ExecutionHashAdd hashAdd:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}HashAdd [{hashAdd.Hash.Name}[{FormatExpression(hashAdd.Key)}] += {hashAdd.Row.Name}]"
+                    $"{prefix}{(hashAdd.TracksMaximum ? "UpdateGroupMaximum" : "HashAdd")} [{hashAdd.Hash.Name}[{FormatExpression(hashAdd.Key)}] += {hashAdd.Row.Name}]"
                 );
                 break;
             case ExecutionHashProbe hashProbe:
@@ -501,13 +501,13 @@ public static partial class ExecutionPlanPrinter
             case ExecutionCreateRangeIndex createIndex:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}CreateRangeIndex [{createIndex.Index.Name} <- {FormatExpression(createIndex.Candidates)} by {FormatRangeIndexKey(createIndex)} {FormatBinaryOperator(createIndex.ComparisonKind)}]"
+                    $"{prefix}CreateRangeIndex [{createIndex.Index.Name} <- {FormatExpression(createIndex.Candidates)} by {FormatRangeIndexKey(createIndex)} {FormatBinaryOperator(createIndex.ComparisonKind)}]{(createIndex.UsesInputOrdinals ? " [original input positions]" : string.Empty)}"
                 );
                 break;
             case ExecutionRangeProbe rangeProbe:
                 builder.AppendLine(
                     CultureInfo.InvariantCulture,
-                    $"{prefix}RangeProbe [{rangeProbe.Match.Name} <- {rangeProbe.Index.Name} where {FormatRangeProbeKey(rangeProbe)}]{FormatMatchTracking(rangeProbe.MatchFound)}"
+                    $"{prefix}RangeProbe [{rangeProbe.Match.Name} <- {rangeProbe.Index.Name} where {FormatRangeProbeKey(rangeProbe)}]{(rangeProbe.InputOrdinal == null ? string.Empty : $" [input order: {rangeProbe.InputOrdinal.Name}]")}{FormatMatchTracking(rangeProbe.MatchFound)}"
                 );
                 AppendBlock(builder, rangeProbe.Body, indentation + 2);
                 AppendLabeledBlock(

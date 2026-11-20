@@ -31,9 +31,19 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionCreateBoundedRecordList createList
     )
     {
+        var comparerType = CreateOrderRecordComparerTypeName(createList.RecordShape);
+        if (createList.UsesSingleRecordBuffer)
+        {
+            return CreateLocalDeclaration(
+                SyntaxFactory.IdentifierName("var"),
+                createList.List.Name,
+                CreateObjectCreation($"{comparerType}.SingleRecordBuffer")
+            );
+        }
+
         var comparer = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
-            SyntaxFactory.IdentifierName(CreateOrderRecordComparerTypeName(createList.RecordShape)),
+            SyntaxFactory.IdentifierName(comparerType),
             SyntaxFactory.IdentifierName("Instance")
         );
 
@@ -51,10 +61,12 @@ public sealed partial class ExecutionCSharpRenderer
             ),
         };
 
+        var helper = createList.UsesSmallOrderedBuffer
+            ? nameof(EvaluationHelper.SmallBoundedTopRecordList<int>)
+            : nameof(EvaluationHelper.BoundedTopRecordList<int>);
         var listType = SyntaxFactory.ParseTypeName(
-            $"{nameof(EvaluationHelper)}.BoundedTopRecordList<{createList.RecordShape.TypeName}>"
+            $"{nameof(EvaluationHelper)}.{helper}<{createList.RecordShape.TypeName}>"
         );
-
         return CreateLocalDeclaration(
             SyntaxFactory.IdentifierName("var"),
             createList.List.Name,

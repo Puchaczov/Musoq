@@ -23,7 +23,7 @@ public sealed partial class CSharpRenderer
         TypeSyntax SourceType,
         TypeSyntax ResultType,
         string RowsName,
-        ExpressionSyntax Predicate,
+        ExpressionSyntax? Predicate,
         ExpressionSyntax Projection,
         int MaxDegreeOfParallelism = 0
     );
@@ -76,7 +76,8 @@ public sealed partial class CSharpRenderer
             );
         }
 
-        arguments.Add(SyntaxFactory.Argument(spec.Predicate));
+        if (spec.Predicate != null)
+            arguments.Add(SyntaxFactory.Argument(spec.Predicate));
         arguments.Add(SyntaxFactory.Argument(spec.Projection));
         arguments.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("token")));
 

@@ -282,6 +282,12 @@ public sealed partial class ExecutionCSharpRenderer
             ? rowAccess
             : SyntaxFactory.CastExpression(itemType, rowAccess);
         var itemDeclaration = CreateLocalDeclaration(itemType, forEach.Item.Name, itemInitializer);
+        var batch = RenderStoredNumericConsumer(forEach, rowsVariable, indexVariable.Name, itemDeclaration, context);
+        if (batch != null)
+        {
+            statements = rowsDeclaration == null ? [batch] : [rowsDeclaration, batch];
+            return true;
+        }
         var bodyStatements = new List<StatementSyntax> { itemDeclaration };
         if (session.EmitChunkLoopCancellationChecks)
             bodyStatements.Insert(
@@ -441,7 +447,8 @@ public sealed partial class ExecutionCSharpRenderer
                 forEachIndexed.Item,
                 forEachIndexed.Source,
                 forEachIndexed.Index,
-                forEachIndexed.RowAccessMode
+                forEachIndexed.RowAccessMode,
+                forEachIndexed.WinnerPositions
             )
         );
         bodyStatements.AddRange(
@@ -455,7 +462,7 @@ public sealed partial class ExecutionCSharpRenderer
 
         return CreateIndexedForLoop(
             forEachIndexed.Index.Name,
-            forEachIndexed.Source,
+            forEachIndexed.WinnerRanks ?? forEachIndexed.Source,
             StatementEmitter.CreateBlock(bodyStatements)
         );
     }

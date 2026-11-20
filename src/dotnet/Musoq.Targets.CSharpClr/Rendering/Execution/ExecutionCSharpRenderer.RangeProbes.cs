@@ -8,6 +8,8 @@ public sealed partial class ExecutionCSharpRenderer
 {
     private StatementSyntax RenderRangeProbe(ExecutionRangeProbe rangeProbe, ExecutionRenderContext context)
     {
+        if (rangeProbe.InputOrdinal != null)
+            return RenderOrderedRangeMatches(rangeProbe, context);
         var loop = StatementEmitter.CreateForeach(
             EscapeIdentifier(rangeProbe.Match.Name),
             CreateRangeIndexFindInvocation(rangeProbe, context),

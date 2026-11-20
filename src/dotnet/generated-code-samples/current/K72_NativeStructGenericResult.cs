@@ -129,7 +129,7 @@ namespace GeneratedSample_K72_NativeStructGenericResult
             var __musoqTableSourceRows = ko3ikoRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
             this.OnPhaseChanged("compiled:cte0", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0(__resultGenericLibrary0.StructEcho<__musoqStructuralCarrier_0_a>(paramItems)), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.LibraryExecutionNativeGenericQueryTestsFixtures.Input, ResultRow0>(__musoqTableSourceRows, (ko3iko) => new ResultRow0(__resultGenericLibrary0.StructEcho<__musoqStructuralCarrier_0_a>(paramItems)), token), token, onCompleted: () =>
             {
                 try
                 {

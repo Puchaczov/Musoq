@@ -36,6 +36,8 @@ public static class ExecutionSettings
             arguments["fixtureId"] = scenario.FixtureId;
             arguments["dataProfileId"] = scenario.DataProfileId;
         }
+        if (scenario.MembershipIds is { } ids)
+            arguments["ids"] = System.Text.Json.JsonSerializer.Serialize(ids);
         if (requirements.RecursiveMaxIterations is null)
             return arguments;
         var limits = options.RecursiveCteLimits;

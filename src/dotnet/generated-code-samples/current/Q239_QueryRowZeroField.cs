@@ -119,72 +119,92 @@ namespace GeneratedSample_Q239_QueryRowZeroField
                 var groupsToFinalize = new List<ResultAggregateGroup>();
                 ResultAggregateGroup group = new ResultAggregateGroup();
                 groupsToFinalize.Add(group);
-                foreach (var rChunk in rRows)
+                foreach (var rChunkInput in rRows)
                 {
-                    if (rChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_59E11789C84D_S> rChunkView)
+                    var rChunk = rChunkInput;
+                    if (global::Musoq.Evaluator.Helpers.ArrayChunkRows.TryGetCount(rChunk, out var rChunkLength))
                     {
-                        if (rChunkView.Source is QueryRow_59E11789C84D_S[] rChunkViewArray)
-                        {
-                            int rChunkViewOffset = rChunkView.Offset;
-                            for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
-                            {
-                                if ((rIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var r = rChunkViewArray[rChunkViewOffset + rIndex];
-                                if (group == null)
-                                {
-                                    group = new ResultAggregateGroup();
-                                    groupsToFinalize.Add(group);
-                                }
-
-                                group.__agg0.Count = checked(group.__agg0.Count + 1L);
-                            }
-
-                            continue;
-                        }
-
-                        if (rChunkView.Source is List<QueryRow_59E11789C84D_S> rChunkViewList)
-                        {
-                            int rChunkViewOffset = rChunkView.Offset;
-                            for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
-                            {
-                                if ((rIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var r = rChunkViewList[rChunkViewOffset + rIndex];
-                                if (group == null)
-                                {
-                                    group = new ResultAggregateGroup();
-                                    groupsToFinalize.Add(group);
-                                }
-
-                                group.__agg0.Count = checked(group.__agg0.Count + 1L);
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    for (int rIndex = 0, rIndexCount = rChunk.Count; rIndex < rIndexCount; ++rIndex)
-                    {
-                        if ((rIndex & 1023) == 0)
+                        if (rChunkLength > 0)
                         {
                             token.ThrowIfCancellationRequested();
+                            if (group == null)
+                            {
+                                group = new ResultAggregateGroup();
+                                groupsToFinalize.Add(group);
+                            }
+
+                            group.__agg0.Count = checked(group.__agg0.Count + (long)rChunkLength);
                         }
 
-                        var r = rChunk[rIndex];
-                        if (group == null)
+                        continue;
+                    }
+
+                    {
+                        if (rChunk is global::Musoq.Schema.DataSources.RowChunk<QueryRow_59E11789C84D_S> rChunkView)
                         {
-                            group = new ResultAggregateGroup();
-                            groupsToFinalize.Add(group);
+                            if (rChunkView.Source is QueryRow_59E11789C84D_S[] rChunkViewArray)
+                            {
+                                int rChunkViewOffset = rChunkView.Offset;
+                                for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
+                                {
+                                    if ((rIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var r = rChunkViewArray[rChunkViewOffset + rIndex];
+                                    if (group == null)
+                                    {
+                                        group = new ResultAggregateGroup();
+                                        groupsToFinalize.Add(group);
+                                    }
+
+                                    group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                                }
+
+                                continue;
+                            }
+
+                            if (rChunkView.Source is List<QueryRow_59E11789C84D_S> rChunkViewList)
+                            {
+                                int rChunkViewOffset = rChunkView.Offset;
+                                for (int rIndex = 0, rIndexCount = rChunkView.Count; rIndex < rIndexCount; ++rIndex)
+                                {
+                                    if ((rIndex & 1023) == 0)
+                                    {
+                                        token.ThrowIfCancellationRequested();
+                                    }
+
+                                    var r = rChunkViewList[rChunkViewOffset + rIndex];
+                                    if (group == null)
+                                    {
+                                        group = new ResultAggregateGroup();
+                                        groupsToFinalize.Add(group);
+                                    }
+
+                                    group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                                }
+
+                                continue;
+                            }
                         }
 
-                        group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                        for (int rIndex = 0, rIndexCount = rChunk.Count; rIndex < rIndexCount; ++rIndex)
+                        {
+                            if ((rIndex & 1023) == 0)
+                            {
+                                token.ThrowIfCancellationRequested();
+                            }
+
+                            var r = rChunk[rIndex];
+                            if (group == null)
+                            {
+                                group = new ResultAggregateGroup();
+                                groupsToFinalize.Add(group);
+                            }
+
+                            group.__agg0.Count = checked(group.__agg0.Count + 1L);
+                        }
                     }
                 }
 

@@ -91,92 +91,29 @@ namespace GeneratedSample_Q233_PublicDynamicNestedNullable
 
         private IEnumerable<ResultRow0> ComputeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
-            foreach (var __musoqShapeRow in ComputeShapeRows_compiled_0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token))
-            {
-                yield return __musoqShapeRow;
-            }
-        }
-
-        private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
-        {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
             var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
             Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
-            try
+            var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
+            ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
+            this.OnPhaseChanged("compiled", QueryPhase.Begin);
+            this.OnPhaseChanged("compiled", QueryPhase.From);
+            var __ko3ikoSchema = provider.GetSchema("#runtime");
+            var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>.Open(__ko3ikoSchema, "events", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
+            var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
+            var __musoqTableSourceRows = ko3ikoRows;
+            this.OnPhaseChanged("compiled", QueryPhase.Where);
+            this.OnPhaseChanged("compiled", QueryPhase.Select);
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectOptionalRowsSerial<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow, ResultRow0>(__musoqTableSourceRows, (ko3iko) =>
             {
-                var __musoqExecutionState = ExecutionState.Capture(TypedParameters);
-                ScriptParameterBinder.ValidateNoUnknownParameters(__musoqExecutionState, Array.Empty<string>());
-                OnPhaseChanged("compiled", QueryPhase.Begin);
-                OnPhaseChanged("compiled", QueryPhase.From);
-                var __ko3ikoSchema = provider.GetSchema("#runtime");
-                var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>.Open(__ko3ikoSchema, "events", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
-                var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
-                OnPhaseChanged("compiled", QueryPhase.Where);
-                OnPhaseChanged("compiled", QueryPhase.Select);
-                foreach (var ko3ikoChunk in ko3ikoRows)
+                Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicBranch branch = ko3iko.Branch;
+                if ((branch != null))
                 {
-                    if (ko3ikoChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow> ko3ikoChunkView)
-                    {
-                        if (ko3ikoChunkView.Source is Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow[] ko3ikoChunkViewArray)
-                        {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                            {
-                                if ((ko3ikoIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicBranch branch = ko3iko.Branch;
-                                if ((branch != null))
-                                {
-                                    yield return new ResultRow0((branch?.Measurement ?? default(double)), (branch?.Raw ?? default(ulong)));
-                                }
-                            }
-
-                            continue;
-                        }
-
-                        if (ko3ikoChunkView.Source is List<Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicRow> ko3ikoChunkViewList)
-                        {
-                            int ko3ikoChunkViewOffset = ko3ikoChunkView.Offset;
-                            for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunkView.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                            {
-                                if ((ko3ikoIndex & 1023) == 0)
-                                {
-                                    token.ThrowIfCancellationRequested();
-                                }
-
-                                var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicBranch branch = ko3iko.Branch;
-                                if ((branch != null))
-                                {
-                                    yield return new ResultRow0((branch?.Measurement ?? default(double)), (branch?.Raw ?? default(ulong)));
-                                }
-                            }
-
-                            continue;
-                        }
-                    }
-
-                    for (int ko3ikoIndex = 0, ko3ikoIndexCount = ko3ikoChunk.Count; ko3ikoIndex < ko3ikoIndexCount; ++ko3ikoIndex)
-                    {
-                        if ((ko3ikoIndex & 1023) == 0)
-                        {
-                            token.ThrowIfCancellationRequested();
-                        }
-
-                        var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                        Musoq.Evaluator.Tests.Schema.RuntimeDynamic.RuntimeDynamicBranch branch = ko3iko.Branch;
-                        if ((branch != null))
-                        {
-                            yield return new ResultRow0((branch?.Measurement ?? default(double)), (branch?.Raw ?? default(ulong)));
-                        }
-                    }
+                    return new ResultRow0((branch?.Measurement ?? default(double)), (branch?.Raw ?? default(ulong)));
                 }
-            }
-            finally
+
+                return null;
+            }, token), token, onCompleted: () =>
             {
                 try
                 {
@@ -186,7 +123,27 @@ namespace GeneratedSample_Q233_PublicDynamicNestedNullable
                 {
                     OnPhaseChanged("compiled", QueryPhase.End);
                 }
-            }
+            }, onException: (Exception _) =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            }, onDisposed: () =>
+            {
+                try
+                {
+                    __musoqProgressContext?.CompleteQueryProgress();
+                }
+                finally
+                {
+                    OnPhaseChanged("compiled", QueryPhase.End);
+                }
+            });
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]

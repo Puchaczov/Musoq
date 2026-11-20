@@ -51,12 +51,16 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             sample.FileName
         );
         Assert.Contains(
-            "var result = new List<ResultShape0>(resultWindowRows.Count);",
+            sample.FileName == ChainedApplyQualifyWindowSampleFileName
+                ? "var result = new List<ResultShape0>(resultRowNumbers.Length);"
+                : "var result = new List<ResultShape0>(resultWindowRows.Count);",
             sample.Content,
             sample.FileName
         );
         Assert.Contains(
-            "apply_0_i_n_mRow0 apply_0_i_n_m = resultWindowRows[windowIndex];",
+            sample.FileName == ChainedApplyQualifyWindowSampleFileName
+                ? "apply_0_i_n_mRow0 apply_0_i_n_m = resultWindowRows[resultRowNumbersWinnerPositions.Length == 0 ? windowIndex : resultRowNumbersWinnerPositions[windowIndex]];"
+                : "apply_0_i_n_mRow0 apply_0_i_n_m = resultWindowRows[windowIndex];",
             sample.Content,
             sample.FileName
         );
@@ -88,7 +92,13 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             computeMethod,
             sample.FileName
         );
-        Assert.Contains("var result = new List<ResultShape0>(resultWindowRows.Count);", computeMethod, sample.FileName);
+        Assert.Contains(
+            sample.FileName == ChainedApplyGroupedAggregateQualifyWindowSampleFileName
+                ? "var result = new List<ResultShape0>(resultRowNumbers.Length);"
+                : "var result = new List<ResultShape0>(resultWindowRows.Count);",
+            computeMethod,
+            sample.FileName
+        );
         Assert.Contains("result.Sort(Comparer<ResultShape0>.Create", computeMethod, sample.FileName);
         Assert.Contains(
             "return left.__musoqSequence.CompareTo(right.__musoqSequence);",

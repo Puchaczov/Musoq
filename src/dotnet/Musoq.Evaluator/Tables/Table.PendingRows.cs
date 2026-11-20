@@ -1,16 +1,20 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Musoq.Evaluator.Tables;
 
 public partial class Table
 {
     private readonly object _guard;
-    private readonly ConcurrentQueue<Row> _pendingRows;
+    private ConcurrentQueue<Row>? _pendingRows;
     private List<DirectRowShard>? _pendingDirectRowShards;
     private int _pendingDirectRowCount;
     private volatile bool _hasPendingRows;
+
+    private ConcurrentQueue<Row> PendingRows =>
+        LazyInitializer.EnsureInitialized(ref _pendingRows, static () => new ConcurrentQueue<Row>());
 
     public void Add(Row value)
     {
@@ -23,14 +27,14 @@ public partial class Table
         var validation = new ColumnTypeValidation(_columnsByIndex);
         value.VisitColumns(ref validation);
 
-        _pendingRows.Enqueue(value);
+        PendingRows.Enqueue(value);
         _hasPendingRows = true;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddUnchecked(Row value)
     {
-        _pendingRows.Enqueue(value);
+        PendingRows.Enqueue(value);
         _hasPendingRows = true;
     }
 
@@ -47,6 +51,14 @@ public partial class Table
     public void EnsureCapacity(int capacity)
     {
         _rows.Capacity = Math.Max(_rows.Capacity, capacity);
+    }
+
+    internal void EnsureAdditionalDirectRowCapacity(long count)
+    {
+        // Reading the public Count during deferred materialization would re-enter the materializer and release its lease.
+        var capacity = _rows.Count + count;
+        if (capacity <= Array.MaxLength)
+            EnsureCapacity((int)capacity);
     }
 
     public void AddRange(IEnumerable<Row> values)

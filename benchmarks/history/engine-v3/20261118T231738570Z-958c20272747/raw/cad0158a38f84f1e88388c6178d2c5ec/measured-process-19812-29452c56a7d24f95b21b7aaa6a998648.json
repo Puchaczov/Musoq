@@ -1,0 +1,20 @@
+{
+  "processId": 19812,
+  "capturedUtc": "2026-11-19T03:42:10.2598289+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "suiteInformationalVersion": "17.0.21\u002B958c2027274756a22654c7e12f8f321643497fd5",
+  "source": {
+    "commit": "958c2027274756a22654c7e12f8f321643497fd5",
+    "branch": null,
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B26_ComputedProjection_Accepted",
+  "sql": "select r.Id as Id, r.Id::long * 2 as Value from computed.accepted() r",
+  "inputCount": 1000
+}

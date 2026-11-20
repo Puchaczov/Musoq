@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-labelledby="title description">
 <title id="title">Analytics workloads at 100,000 rows</title>
-<desc id="description">Mean execution time and cumulative managed allocations per query for 100,000 input rows.  Whiskers show the recorded confidence interval. Sales reporting: 4.08 ms, 6.87 MiB allocated; Join + windows: 45.08 ms, 32.64 MiB allocated; Reconciliation: 14.68 ms, 19.65 MiB allocated; Temporal analysis: 22.49 ms, 27.28 MiB allocated; Log analytics: 12.86 ms, 28.09 MiB allocated; Packet analytics: 74.64 ms, 132.75 MiB allocated</desc>
+<desc id="description">Mean execution time and cumulative managed allocations per query for 100,000 input rows.  Whiskers show the recorded confidence interval. Sales reporting: 4.30 ms, 6.87 MiB allocated; Join + windows: 34.55 ms, 31.50 MiB allocated; Reconciliation: 14.84 ms, 19.65 MiB allocated; Temporal analysis: 21.71 ms, 27.28 MiB allocated; Log analytics: 12.38 ms, 28.09 MiB allocated; Packet analytics: 71.94 ms, 132.75 MiB allocated</desc>
 <rect width="960" height="560" rx="16" fill="#ffffff"/>
 <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
 <text x="32.00" y="39.00" font-size="23" fill="#0f172a" text-anchor="start" font-weight="700">Analytics workloads at 100,000 rows</text>
-<text x="32.00" y="65.00" font-size="14" fill="#334155" text-anchor="start" font-weight="400">Musoq 17.0.17 | Synthetic in-memory inputs | Table results fully consumed</text>
+<text x="32.00" y="65.00" font-size="14" fill="#334155" text-anchor="start" font-weight="400">Musoq 17.0.21 | Synthetic in-memory inputs | Table results fully consumed</text>
 <text x="32.00" y="96.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Mean execution time | Lower is better | Whiskers: recorded confidence intervals</text>
 <text x="912.00" y="124.00" font-size="12" fill="#334155" text-anchor="end" font-weight="400">Allocated / query</text>
 <line x1="300.00" y1="135.00" x2="300.00" y2="461.00" stroke="#e2e8f0" stroke-width="1"/>
@@ -19,51 +19,51 @@
 <text x="780.00" y="482.00" font-size="12" fill="#334155" text-anchor="middle" font-weight="400">80 ms</text>
 <text x="32.00" y="159.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Sales reporting</text>
 <text x="32.00" y="177.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Join, aggregate, rank</text>
-<rect x="300" y="151" width="24.50" height="22" rx="3" fill="#0369a1"/>
-<line x1="324.17" y1="162.00" x2="324.83" y2="162.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="324.17" y1="157.00" x2="324.17" y2="167.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="324.83" y1="157.00" x2="324.83" y2="167.00" stroke="#0f172a" stroke-width="1.5"/>
-<text x="333.50" y="167.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">4.08</text>
+<rect x="300" y="151" width="25.77" height="22" rx="3" fill="#0369a1"/>
+<line x1="325.43" y1="162.00" x2="326.12" y2="162.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="325.43" y1="157.00" x2="325.43" y2="167.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="326.12" y1="157.00" x2="326.12" y2="167.00" stroke="#0f172a" stroke-width="1.5"/>
+<text x="334.77" y="167.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">4.30</text>
 <text x="912.00" y="167.00" font-size="14" fill="#334155" text-anchor="end" font-weight="400">6.87 MiB</text>
 <text x="32.00" y="212.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Join + windows</text>
 <text x="32.00" y="230.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Join, running + sliding sums</text>
-<rect x="300" y="204" width="270.48" height="22" rx="3" fill="#7c3aed"/>
-<line x1="568.10" y1="215.00" x2="572.85" y2="215.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="568.10" y1="210.00" x2="568.10" y2="220.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="572.85" y1="210.00" x2="572.85" y2="220.00" stroke="#0f172a" stroke-width="1.5"/>
-<text x="579.48" y="220.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">45.08</text>
-<text x="912.00" y="220.00" font-size="14" fill="#334155" text-anchor="end" font-weight="400">32.64 MiB</text>
+<rect x="300" y="204" width="207.27" height="22" rx="3" fill="#7c3aed"/>
+<line x1="505.08" y1="215.00" x2="509.46" y2="215.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="505.08" y1="210.00" x2="505.08" y2="220.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="509.46" y1="210.00" x2="509.46" y2="220.00" stroke="#0f172a" stroke-width="1.5"/>
+<text x="516.27" y="220.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">34.55</text>
+<text x="912.00" y="220.00" font-size="14" fill="#334155" text-anchor="end" font-weight="400">31.50 MiB</text>
 <text x="32.00" y="265.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Reconciliation</text>
 <text x="32.00" y="283.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Full outer join, classify, group</text>
-<rect x="300" y="257" width="88.06" height="22" rx="3" fill="#475569"/>
-<line x1="386.91" y1="268.00" x2="389.21" y2="268.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="386.91" y1="263.00" x2="386.91" y2="273.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="389.21" y1="263.00" x2="389.21" y2="273.00" stroke="#0f172a" stroke-width="1.5"/>
-<text x="397.06" y="273.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">14.68</text>
+<rect x="300" y="257" width="89.03" height="22" rx="3" fill="#475569"/>
+<line x1="387.70" y1="268.00" x2="390.36" y2="268.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="387.70" y1="263.00" x2="387.70" y2="273.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="390.36" y1="263.00" x2="390.36" y2="273.00" stroke="#0f172a" stroke-width="1.5"/>
+<text x="398.03" y="273.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">14.84</text>
 <text x="912.00" y="273.00" font-size="14" fill="#334155" text-anchor="end" font-weight="400">19.65 MiB</text>
 <text x="32.00" y="318.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Temporal analysis</text>
 <text x="32.00" y="336.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">ASOF join, lag, running sum</text>
-<rect x="300" y="310" width="134.93" height="22" rx="3" fill="#b45309"/>
-<line x1="433.16" y1="321.00" x2="436.69" y2="321.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="433.16" y1="316.00" x2="433.16" y2="326.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="436.69" y1="316.00" x2="436.69" y2="326.00" stroke="#0f172a" stroke-width="1.5"/>
-<text x="443.93" y="326.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">22.49</text>
+<rect x="300" y="310" width="130.27" height="22" rx="3" fill="#b45309"/>
+<line x1="428.38" y1="321.00" x2="432.15" y2="321.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="428.38" y1="316.00" x2="428.38" y2="326.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="432.15" y1="316.00" x2="432.15" y2="326.00" stroke="#0f172a" stroke-width="1.5"/>
+<text x="439.27" y="326.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">21.71</text>
 <text x="912.00" y="326.00" font-size="14" fill="#334155" text-anchor="end" font-weight="400">27.28 MiB</text>
 <text x="32.00" y="371.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Log analytics</text>
 <text x="32.00" y="389.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Parse text, filter, aggregate</text>
-<rect x="300" y="363" width="77.18" height="22" rx="3" fill="#047857"/>
-<line x1="376.00" y1="374.00" x2="378.35" y2="374.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="376.00" y1="369.00" x2="376.00" y2="379.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="378.35" y1="369.00" x2="378.35" y2="379.00" stroke="#0f172a" stroke-width="1.5"/>
-<text x="386.18" y="379.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">12.86</text>
+<rect x="300" y="363" width="74.29" height="22" rx="3" fill="#047857"/>
+<line x1="373.56" y1="374.00" x2="375.02" y2="374.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="373.56" y1="369.00" x2="373.56" y2="379.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="375.02" y1="369.00" x2="375.02" y2="379.00" stroke="#0f172a" stroke-width="1.5"/>
+<text x="383.29" y="379.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">12.38</text>
 <text x="912.00" y="379.00" font-size="14" fill="#334155" text-anchor="end" font-weight="400">28.09 MiB</text>
 <text x="32.00" y="424.00" font-size="15" fill="#334155" text-anchor="start" font-weight="600">Packet analytics</text>
 <text x="32.00" y="442.00" font-size="11" fill="#334155" text-anchor="start" font-weight="400">Decode binary + text, expand, join</text>
-<rect x="300" y="416" width="447.82" height="22" rx="3" fill="#be185d"/>
-<line x1="740.91" y1="427.00" x2="754.74" y2="427.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="740.91" y1="422.00" x2="740.91" y2="432.00" stroke="#0f172a" stroke-width="1.5"/>
-<line x1="754.74" y1="422.00" x2="754.74" y2="432.00" stroke="#0f172a" stroke-width="1.5"/>
-<text x="756.82" y="432.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">74.64</text>
+<rect x="300" y="416" width="431.61" height="22" rx="3" fill="#be185d"/>
+<line x1="725.20" y1="427.00" x2="738.03" y2="427.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="725.20" y1="422.00" x2="725.20" y2="432.00" stroke="#0f172a" stroke-width="1.5"/>
+<line x1="738.03" y1="422.00" x2="738.03" y2="432.00" stroke="#0f172a" stroke-width="1.5"/>
+<text x="740.61" y="432.00" font-size="12" fill="#334155" text-anchor="start" font-weight="600">71.94</text>
 <text x="912.00" y="432.00" font-size="14" fill="#334155" text-anchor="end" font-weight="400">132.75 MiB</text>
 <text x="32.00" y="514.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Execution only; compilation and source I/O excluded.</text>
 <text x="32.00" y="534.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Intel(R) Core(TM) Ultra 9 285K | .NET 10.0.14 | BenchmarkDotNet Official</text>

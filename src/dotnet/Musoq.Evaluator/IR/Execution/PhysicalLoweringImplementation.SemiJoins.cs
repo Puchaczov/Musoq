@@ -8,6 +8,14 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private TableBuildResult BuildSemiHashJoinTable(HashJoinBuildContext context, bool isAntiSemiJoin)
     {
+        if (
+            context.Join.GroupMaximum is { } maximum
+            && context.CteSidecarIndex == null
+            && !context.UsesRecursiveInvariantHash
+            && TryBuildGroupMaximumJoin(context, maximum) is { } summarized
+        )
+            return summarized;
+
         if (CanUsePayloadFreeSemiJoinKeySet(context))
             return BuildSemiKeySetJoinTable(context, isAntiSemiJoin);
 

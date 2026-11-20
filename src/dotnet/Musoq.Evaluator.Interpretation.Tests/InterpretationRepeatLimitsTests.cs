@@ -110,6 +110,21 @@ public sealed class InterpretationRepeatLimitsTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    [DataRow(0)]
+    [DataRow(2)]
+    [DataRow(3)]
+    public void ByteTailThroughConfiguredLimit_ShouldConsumeAllRemainingBytes(int tailLength)
+    {
+        const string sql =
+            "binary S { Prefix: byte, Tail: byte repeat until eof } "
+            + "select s.Prefix, s.Tail.Length from #test.files() f cross apply Interpret<S>(f.Content) s";
+        using var query = Compile(sql, BinaryProvider([7, .. Enumerable.Repeat((byte)42, tailLength)]), 3);
+        using var table = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)7, tailLength]);
+    }
+
+    [TestMethod]
     public void NestedSubstreams_ShouldReceiveTheSelectedLimitWithIndependentCounters()
     {
         const string sql =

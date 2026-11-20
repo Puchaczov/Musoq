@@ -1,0 +1,24 @@
+{
+  "caseId": "B17_MultipleWindows-compilation-warm-Table-ContractFixture",
+  "startedUtc": "2026-11-19T02:39:06.3804395+00:00",
+  "finishedUtc": "2026-11-19T02:40:03.090264+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 678262.3355263158,
+  "medianNanoseconds": 668041.6015625,
+  "standardDeviationNanoseconds": 21807.953610248736,
+  "confidenceLowerNanoseconds": 669694.4705339248,
+  "confidenceUpperNanoseconds": 686830.2005187069,
+  "sampleCount": 76,
+  "allocatedBytesPerOperation": 815015,
+  "gen0Collections": 3,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 256,
+  "rawReports": [
+    "raw/f85934aca42c4f119d98f2e0c77b1bbb/Musoq.Benchmarks.WarmCompilationBenchmark-report-full.json",
+    "raw/f85934aca42c4f119d98f2e0c77b1bbb/measured-process-28864-218536e8a5c3458b8f2e491d77032e98.json",
+    "raw/f85934aca42c4f119d98f2e0c77b1bbb/measured-process-62116-34457f3d8f21417388902592fb957908.json"
+  ],
+  "attemptId": "f85934aca42c4f119d98f2e0c77b1bbb"
+}

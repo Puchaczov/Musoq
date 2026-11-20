@@ -51,7 +51,29 @@ Filters are case-insensitive globs over case IDs or benchmark class names. `-Out
 directory. Resumes restore the saved mode, filter, size, machine profile and job. Conflicting overrides are rejected. Commands never commit, push or change branches.
 Do not overlap measurements with builds, tests or other heavy work.
 
+## Local basic query workloads
+
+The Local filter `BQ_*` measures basic projection, filter selectivity, bounded ordering, paging and counting.
+Projection cases have matching Table and typed outputs. Use `BQ_*-execution-Table-*` for Table-only runs.
+
+## Local vectorization workloads
+
+Use the Local filter `V_*` to select the experimental execution matrix, or select one case such as
+`V_In32_1-execution*`. The normal Local and Official catalogs retain their existing workloads.
+The matrix exercises collection-parameter membership, nested text fields, window capture, and
+filtered projections and aggregates over streamed rows and joined intermediates. Membership IDs
+encode the number of parameter keys and the target hit percentage. Empty allowlists always miss.
+
+```powershell
+./scripts/benchmarks/Run-Benchmarks.ps1 -Mode Local -Filter 'V_In32_1-execution*' -Size 100000 -Job Short -Json
+```
+
 ## Measurement boundaries
+
+The Local filter `EP_*` selects paired distributions for correlated ALL, full outer inequality
+joins, bounded RANGE frames, and partitioned top-two queries. Use 1,000, 2,000 and 4,000
+rows for the first three families, and `EP_Rank*` at 100,000 rows for ranking.
+The dense join applies eight fixed thresholds to every observation.
 
 - Execution prepares data and compilation in setup, then consumes every row/column through typed visitors
   and disposes table results. Typed counterparts enumerate their typed results.

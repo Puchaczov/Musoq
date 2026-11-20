@@ -148,20 +148,26 @@ At that scale, bottlenecks in earlier versions became serious limits on what I c
 
 ### Benchmark trends
 
-The charts below follow nine composed synthetic workflows over **100,000 input rows**, using the recorded **17.0.14-alpha.2**, **17.0.15-alpha.1**, and **17.0.17** Official campaigns. All three used the same Intel Core Ultra 9 285K, .NET 10.0.14, and benchmark settings.
+The charts below follow nine composed synthetic workflows over **100,000 input rows**, using the recorded
+**17.0.14-alpha.2**, **17.0.15-alpha.1**, **17.0.17**, and **17.0.21** Official campaigns. All four used
+the same Intel Core Ultra 9 285K, .NET 10.0.14 (SDK 10.0.403), BenchmarkDotNet 0.15.8, and Official settings.
+See the [17.0.14-alpha.2](benchmarks/history/engine-v3/20261028T235933572Z-507c7340ade4/manifest.json),
+[17.0.15-alpha.1](benchmarks/history/engine-v3/20261101T001222673Z-6e583af1577e/manifest.json),
+[17.0.17](benchmarks/history/engine-v3/20261111T233043559Z-f182beae1eb5/manifest.json), and
+[17.0.21](benchmarks/history/engine-v3/20261118T231738570Z-958c20272747/manifest.json) campaign records.
 
-![Execution time across three recorded Musoq versions for nine workflows, including collection pivoting, consolidation, and structured pipelines; lower is better](images/benchmarks/release-execution.svg)
+![Execution time across four recorded Musoq versions for nine workflows, including collection pivoting, consolidation, and structured pipelines; lower is better](images/benchmarks/release-execution.svg)
 
-![Managed allocations per query across the same three recorded Musoq versions and nine workflows; lower is better](images/benchmarks/release-allocations.svg)
+![Managed allocations per query across the same four recorded Musoq versions and nine workflows; lower is better](images/benchmarks/release-allocations.svg)
 
 Queries are compiled before measurement; inputs are synthetic and in memory, and all result rows are consumed. Source I/O and compilation are excluded. Allocations are cumulative managed bytes per query, rather than peak process memory. Results depend on the query, provider, data distribution, and hardware.
 
 <details>
-<summary>17.0.17 workload timings and input-size scaling</summary>
+<summary>17.0.21 workload timings and input-size scaling</summary>
 
-![Mean execution time and managed allocations for six analytics queries over 100,000 input rows](images/benchmarks/execution.svg)
+![Mean execution time and managed allocations for six analytics queries over 100,000 input rows at Musoq 17.0.21](images/benchmarks/execution.svg)
 
-![Execution time at 1,000, 10,000, and 100,000 input rows for sales reporting, joins with windows, log analytics, and packet analytics; both axes use logarithmic scales](images/benchmarks/scaling.svg)
+![Execution time at 1,000, 10,000, and 100,000 input rows for sales reporting, joins with windows, log analytics, and packet analytics at Musoq 17.0.21; both axes use logarithmic scales](images/benchmarks/scaling.svg)
 
 </details>
 

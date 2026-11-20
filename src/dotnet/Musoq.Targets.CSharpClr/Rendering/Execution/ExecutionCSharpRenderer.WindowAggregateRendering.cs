@@ -18,7 +18,8 @@ public sealed partial class ExecutionCSharpRenderer
                     Frame.Kind: ExecutionWindowFrameKind.Range,
                     Descriptor.Mode: ExecutionWindowAggregateMode.BoundedRows
                 }
-            && WindowRangeFrameSyntax.HasRangeOffsetBound(kernel.Frame);
+            && WindowRangeFrameSyntax.HasRangeOffsetBound(kernel.Frame)
+            && (kernel.BoundariesOwner == null || kernel.BoundariesOwner == kernel.Results);
         var rangeKeys = requiresRangeKeys
             ? new ExecutionVariable(
                 WindowRangeFrameSyntax.GetAggregateRangeKeysName(kernel),
@@ -27,6 +28,7 @@ public sealed partial class ExecutionCSharpRenderer
             : null;
         var extractionStatements = new List<StatementSyntax>();
         var statements = new List<StatementSyntax>();
+        AddSharedBoundariesDeclaration(kernel, statements);
         var partitionBuilder = CreateWindowPartitionBuilderVariable(kernel.Results, partitionKeys, kernel.Partitions);
 
         if (CanUseFusedIntOrderAggregateKernel(kernel))

@@ -170,8 +170,32 @@ public sealed partial class ExecutionCSharpRenderer
                     ChunkedLoopBreakRewriter.Rewrite(RenderBlock(body, context).Statements, breakTarget)
                 );
                 return bodyStatements;
-            }
+            },
+            operatorNode is ExecutionForEach loop ? PrepareChunk(loop, context) : null
         );
+    }
+
+    private Func<string, string, StatementSyntax, StatementSyntax>? PrepareChunk(
+        ExecutionForEach loop,
+        ExecutionRenderContext context
+    )
+    {
+        if (IsOperatorProfilingEnabledFor(context) || context.Session.SkipInitialLoopCancellationCheck)
+            return null;
+        if (loop.LeadingSkipCounter is { } skip)
+        {
+            var token = context.Session.EmitChunkLoopCancellationChecks ? "token" : "default";
+            return (input, chunk, body) =>
+                SyntaxFactory.Block(
+                    SyntaxFactory.ParseStatement(
+                        $"var {chunk} = global::Musoq.Evaluator.Helpers.ArrayChunkRows.SkipPrefix({input}, ref {EscapeIdentifier(skip.Name)}, {token});"
+                    ),
+                    body
+                );
+        }
+        if (loop.GlobalCountAll is { } count)
+            return (input, chunk, body) => RenderCountChunk(count.Group, count.Set, input, chunk, body, context);
+        return null;
     }
 
     private StatementSyntax RenderChunkedForEachWithOrdinalityCore(
@@ -233,14 +257,16 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionExpression source,
         string breakTarget,
         ExecutionRenderContext context,
-        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements
+        Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements,
+        Func<string, string, StatementSyntax, StatementSyntax>? prepareChunk = null
     )
     {
         return ChunkedLoopSyntaxFactory.Create(
             item,
             RenderExpression(source, context),
             breakTarget,
-            createBodyStatements
+            createBodyStatements,
+            prepareChunk
         );
     }
 

@@ -29,7 +29,7 @@ public class PredicateQuantifierInspectionTests
             result.ExecutionPlanText
         );
         AssertNoResidualQuantifier(result);
-        Assert.AreEqual(6, CountOccurrences(result.GeneratedCSharpCode, ".StartsWith("));
+        Assert.AreEqual(2, CountOccurrences(result.GeneratedCSharpCode, ".StartsWith("));
         Assert.Contains("STRING_MATCH", result.ExecutionPlanText);
     }
 

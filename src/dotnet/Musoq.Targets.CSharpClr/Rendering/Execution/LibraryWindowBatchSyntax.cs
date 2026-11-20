@@ -12,9 +12,6 @@ internal static class LibraryWindowBatchSyntax
     internal static bool HasLibraryWindowBatch(ExecutionWindowAggregateKernel kernel) =>
         kernel.Descriptor.LibraryBatch is not null;
 
-    internal static string LibraryWindowBatchValuesName(ExecutionWindowAggregateKernel kernel) =>
-        $"{kernel.Results.Name}BatchValues";
-
     public static StatementSyntax CreatePartition(
         ExecutionWindowAggregateKernel kernel,
         WindowPartitionPositionSyntax partition,
@@ -45,7 +42,7 @@ internal static class LibraryWindowBatchSyntax
         var batchType = EvaluationHelper.GetCastableType(operation.DeclaringType!);
         var fallback = serialFallback.NormalizeWhitespace().ToFullString();
         return SyntaxFactory.ParseStatement(
-            $"{{\n    var {starts} = new int[{count}];\n    var {ends} = new int[{count}];\n    for (int {position} = 0; {position} < {count}; ++{position})\n    {{\n        if (({position} & 1023) == 0)\n            token.ThrowIfCancellationRequested();\n        {starts}[{position}] = {frameStart};\n        {ends}[{position}] = {frameEnd};\n    }}\n    var {context} = new {contextType}({LibraryWindowBatchValuesName(kernel)},\n        new System.ReadOnlySpan<int>({indices}, {start}, {count}), {starts}, {ends}, {kernel.Results.Name}, token);\n    if (!{batchType}.{operation.Name}(in {context}))\n    {{\n        {fallback}\n    }}\n}}"
+            $"{{\n    var {starts} = new int[{count}];\n    var {ends} = new int[{count}];\n    for (int {position} = 0; {position} < {count}; ++{position})\n    {{\n        if (({position} & 1023) == 0)\n            token.ThrowIfCancellationRequested();\n        {starts}[{position}] = {frameStart};\n        {ends}[{position}] = {frameEnd};\n    }}\n    var {context} = new {contextType}({kernel.CapturedValuesName},\n        new System.ReadOnlySpan<int>({indices}, {start}, {count}), {starts}, {ends}, {kernel.Results.Name}, token);\n    if (!{batchType}.{operation.Name}(in {context}))\n    {{\n        {fallback}\n    }}\n}}"
         );
     }
 }

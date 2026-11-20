@@ -123,7 +123,7 @@ namespace GeneratedSample_Q358_StructuredContextLifecycle
             var cRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Examples.DataSources.StructuredInputs.ContextProbeRow>(cRowsSource.Chunks, __musoqProgressContext, "c:1") : cRowsSource.Chunks;
             var __musoqTableSourceRows = cRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Examples.DataSources.StructuredInputs.ContextProbeRow, ResultRow0>(__musoqTableSourceRows, (c) => true, (c) => new ResultRow0(c.QueryId, c.SourceContextId, c.Alias), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Examples.DataSources.StructuredInputs.ContextProbeRow, ResultRow0>(__musoqTableSourceRows, (c) => new ResultRow0(c.QueryId, c.SourceContextId, c.Alias), token), token, onCompleted: () =>
             {
                 try
                 {

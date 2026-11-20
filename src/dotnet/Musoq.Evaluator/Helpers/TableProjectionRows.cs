@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
+using Musoq.Schema.DataSources;
 
 namespace Musoq.Evaluator.Helpers;
 
@@ -17,6 +18,18 @@ public static class TableProjectionRows
         where TRow : Row
     {
         return ProjectionRows.ProjectSerial(rows, predicate, project, cancellationToken);
+    }
+
+    public static IEnumerable<TRow> ProjectRowsSerial<TSource, TRow>(
+        IEnumerable<IReadOnlyList<TSource>> chunks,
+        Func<TSource, TRow> project,
+        CancellationToken cancellationToken
+    )
+        where TRow : Row
+    {
+        ArgumentNullException.ThrowIfNull(chunks);
+        ArgumentNullException.ThrowIfNull(project);
+        return new ChunkProjectionRows<TSource, TRow>(chunks, null, project, cancellationToken);
     }
 
     public static IEnumerable<TRow> ProjectRowsSerial<TSource, TRow>(
@@ -69,6 +82,30 @@ public static class TableProjectionRows
         return new OptionalChunkProjectionRows<TSource, TRow>(chunks, project, cancellationToken);
     }
 
+    private static void AppendArraySegment<TSource, TRow>(
+        Table table,
+        ArraySegment<TSource> segment,
+        Func<TSource, TRow> project,
+        CancellationToken cancellationToken,
+        bool skipNullRows
+    )
+        where TRow : Row
+    {
+        var rows = new ReadOnlySpan<TSource>(segment.Array, segment.Offset, segment.Count);
+        while (!rows.IsEmpty)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var count = Math.Min(rows.Length, 1024);
+            foreach (var source in rows[..count])
+            {
+                var row = project(source);
+                if (!skipNullRows || row != null)
+                    table.AddDirect(row!);
+            }
+            rows = rows[count..];
+        }
+    }
+
     private sealed class OptionalChunkProjectionRows<TSource, TRow>(
         IEnumerable<IReadOnlyList<TSource>> chunks,
         Func<TSource, TRow> project,
@@ -80,18 +117,20 @@ public static class TableProjectionRows
         {
             ArgumentNullException.ThrowIfNull(table);
 
-            var capacity = table.Count;
             foreach (var chunk in chunks)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // A chunk is an upper bound for the number of projected rows. Reserving it here
-                // avoids List<Row>'s geometric growth without creating an intermediate result list.
-                capacity += chunk.Count;
-                table.EnsureCapacity(capacity);
+                if (ArrayChunkRows.TryGetSegment(chunk, out var segment))
+                {
+                    AppendArraySegment(table, segment, project, cancellationToken, skipNullRows: true);
+                    continue;
+                }
 
                 for (var index = 0; index < chunk.Count; index++)
                 {
+                    if ((index & 1023) == 0)
+                        cancellationToken.ThrowIfCancellationRequested();
                     var projected = project(chunk[index]);
                     if (projected != null)
                         table.AddDirect(projected);
@@ -116,6 +155,8 @@ public static class TableProjectionRows
                 cancellationToken.ThrowIfCancellationRequested();
                 for (var index = 0; index < chunk.Count; index++)
                 {
+                    if ((index & 1023) == 0)
+                        cancellationToken.ThrowIfCancellationRequested();
                     var projected = project(chunk[index]);
                     if (projected != null)
                         yield return projected;
@@ -126,7 +167,7 @@ public static class TableProjectionRows
 
     private sealed class ChunkProjectionRows<TSource, TRow>(
         IEnumerable<IReadOnlyList<TSource>> chunks,
-        Func<TSource, bool> predicate,
+        Func<TSource, bool>? predicate,
         Func<TSource, TRow> project,
         CancellationToken cancellationToken
     ) : ITableRowBatchSource<TRow>
@@ -135,18 +176,55 @@ public static class TableProjectionRows
         public void AddTo(Table table)
         {
             ArgumentNullException.ThrowIfNull(table);
+            if (predicate == null)
+            {
+                var stored = chunks is StoredSourceChunks<TSource> lifecycle
+                    ? lifecycle.Storage
+                    : chunks as IReadOnlyList<TSource>[];
+                if (stored != null)
+                    ReserveStoredRows(table, stored);
+            }
 
             foreach (var chunk in chunks)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                if (predicate == null && ArrayChunkRows.TryGetSegment(chunk, out var segment))
+                {
+                    AppendArraySegment(table, segment, project, cancellationToken, skipNullRows: false);
+                    continue;
+                }
+
                 for (var index = 0; index < chunk.Count; index++)
                 {
                     var row = chunk[index];
-                    if (predicate(row))
+                    if (predicate == null || predicate(row))
                         table.AddDirect(project(row));
                 }
             }
+        }
+
+        private void ReserveStoredRows(Table table, IReadOnlyList<TSource>[] stored)
+        {
+            long count = 0;
+            for (var index = 0; index < stored.Length; index++)
+            {
+                if ((index & 1023) == 0)
+                    cancellationToken.ThrowIfCancellationRequested();
+                switch (stored[index])
+                {
+                    case TSource[] array:
+                        count += array.Length;
+                        break;
+                    case RowChunk<TSource> slice:
+                        count += slice.Count;
+                        break;
+                    default:
+                        return;
+                }
+            }
+
+            table.EnsureAdditionalDirectRowCapacity(count);
         }
 
         public IEnumerator<TRow> GetEnumerator()
@@ -167,7 +245,7 @@ public static class TableProjectionRows
                 for (var index = 0; index < chunk.Count; index++)
                 {
                     var row = chunk[index];
-                    if (predicate(row))
+                    if (predicate == null || predicate(row))
                         yield return project(row);
                 }
             }

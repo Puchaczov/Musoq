@@ -63,7 +63,7 @@ public sealed class PhysicalPlanTextWindowTests : BasicEntityTestBase
                 "PhysicalMultiStatement",
                 "  PhysicalProject [e.Name as Name, WindowRef(0) as RowNum]",
                 "    PhysicalQualify [(WindowRef(0) <= 2)]",
-                "      PhysicalWindow [RowNumber(idx:0; order: e.Name)]",
+                "      PhysicalWindow [RowNumber(idx:0; order: e.Name) bounded winners]",
                 "        PhysicalMaterialize",
                 "          PhysicalSchemaScan [#A.Entities() as e]"
             ),

@@ -18,7 +18,8 @@ public sealed partial class ExecutionCSharpRenderer
             static representation => new TypedStoredTableResult(
                 representation.TableIndex,
                 representation.RowShape,
-                representation.Kind
+                representation.Kind,
+                representation.NumericConsumer
             )
         );
     }
@@ -53,7 +54,7 @@ public sealed partial class ExecutionCSharpRenderer
         var slots = typedResults.Values.OrderBy(static result => result.TableIndex).ToArray();
 
         var columnHelpers = slots.Any(static slot =>
-            slot.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer
+            slot.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer && slot.NumericConsumer == null
         )
             ? new MemberDeclarationSyntax[] { ColumnarStoredTableSyntaxFactory.CreateColumnClass() }
             : [];
@@ -61,6 +62,9 @@ public sealed partial class ExecutionCSharpRenderer
         [
             CreateCteRowResultsClass(slots),
             .. columnHelpers,
+            .. slots.Any(slot => slot.NumericConsumer != null)
+                ? new[] { StoredNumericColumnSyntax.Create() }
+                : Array.Empty<MemberDeclarationSyntax>(),
             .. slots
                 .Where(static slot => slot.Kind == ExecutionStoredTableRepresentationKind.GeneratedColumnarBuffer)
                 .Select(ColumnarStoredTableSyntaxFactory.CreateBufferClass),

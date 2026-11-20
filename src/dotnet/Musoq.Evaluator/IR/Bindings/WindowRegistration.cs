@@ -25,6 +25,12 @@ public sealed record WindowRegistration(
     /// <summary>Gets whether bounded evaluation captures SQL inputs once per source row.</summary>
     public bool CaptureArguments { get; init; }
 
+    internal bool SelectBoundedWinners { get; init; }
+
+    internal bool ReuseBoundedPeers { get; init; }
+
+    internal int? ValueCaptureGroup { get; init; }
+
     /// <summary>Gets whether planning selected the registered typed batch operation.</summary>
     public bool UseBatchEvaluation { get; init; }
 

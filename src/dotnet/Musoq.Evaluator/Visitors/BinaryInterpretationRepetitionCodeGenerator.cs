@@ -63,6 +63,10 @@ public partial class InterpreterCodeGenerator
     )
     {
         var builder = new StringBuilder();
+        var copiesByteTail = repeatUntilType.ElementType is PrimitiveTypeNode { TypeName: PrimitiveTypeName.Byte };
+        if (copiesByteTail)
+            AppendByteTailFastPath(builder, localVar, declareLocal);
+
         var elementTypeName = GetBinaryValueClrTypeName(fieldName, repeatUntilType.ElementType);
         var tempVar = $"_{localVar}_list";
         var lastElemVar = $"_{localVar}_lastElem";
@@ -93,8 +97,25 @@ public partial class InterpreterCodeGenerator
         );
         builder.AppendLine("}");
 
-        AppendRepeatResultAssignment(builder, localVar, tempVar, declareLocal);
+        AppendRepeatResultAssignment(builder, localVar, tempVar, declareLocal && !copiesByteTail);
+        if (copiesByteTail)
+            builder.AppendLine("}");
         return builder.ToString();
+    }
+
+    private void AppendByteTailFastPath(StringBuilder builder, string localVar, bool declareLocal)
+    {
+        if (declareLocal)
+            builder.AppendLine($"byte[] {localVar};");
+        builder.AppendLine(
+            CultureInfo.InvariantCulture,
+            $"if (BitOffset == 0 && (uint)ParsePosition <= (uint)data.Length && data.Length - ParsePosition <= {_maxRepeatIterations})"
+        );
+        builder.AppendLine("{");
+        builder.AppendLine($"    {localVar} = base.TakePreparedBytes(data, data.Length - ParsePosition).ToArray();");
+        builder.AppendLine("}");
+        builder.AppendLine("else");
+        builder.AppendLine("{");
     }
 
     private static void AppendRepeatResultAssignment(

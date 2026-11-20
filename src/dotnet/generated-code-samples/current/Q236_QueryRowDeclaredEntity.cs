@@ -97,7 +97,7 @@ namespace GeneratedSample_Q236_QueryRowDeclaredEntity
             var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.QueryRows.DeclaredQueryRowSample>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
             var __musoqTableSourceRows = rRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.QueryRows.DeclaredQueryRowSample, ResultRow0>(__musoqTableSourceRows, (r) => true, (r) => new ResultRow0(r.Id, r.Name), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.QueryRows.DeclaredQueryRowSample, ResultRow0>(__musoqTableSourceRows, (r) => new ResultRow0(r.Id, r.Name), token), token, onCompleted: () =>
             {
                 try
                 {

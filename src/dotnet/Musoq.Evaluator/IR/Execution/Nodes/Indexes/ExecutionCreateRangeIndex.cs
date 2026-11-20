@@ -26,6 +26,8 @@ public sealed record ExecutionCreateRangeIndex : ExecutionNode
         this.PartitionKeyType = PartitionKeyType;
     }
 
+    internal bool UsesInputOrdinals { get; init; }
+
     public ExecutionVariable Index { get; init; }
     public ExecutionVariable Candidate { get; init; }
     public ExecutionExpression Candidates { get; init; }

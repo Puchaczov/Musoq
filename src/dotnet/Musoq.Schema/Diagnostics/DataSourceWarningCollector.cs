@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema.Optimization;
 
@@ -12,7 +13,8 @@ public sealed class DataSourceWarningCollector
     public const int MaximumWarnings = 100;
     private readonly object _gate = new();
     private Dictionary<string, Entry>? _warnings;
-    private Dictionary<(SourceIdentity Identity, string Operation), Action<DataSourceDiagnostic>>? _reporters;
+    private Dictionary<(SourceIdentity Identity, string Operation), BoundReporter>? _reporters;
+    private BoundReporter? _lastReporter;
     private long _suppressedCount;
 
     public long SuppressedCount
@@ -56,21 +58,31 @@ public sealed class DataSourceWarningCollector
     public Action<DataSourceDiagnostic> ForSource(SourceIdentity identity, string operation = "read")
     {
         ArgumentNullException.ThrowIfNull(identity);
+        var last = Volatile.Read(ref _lastReporter);
+        if (last is not null && ReferenceEquals(last.Identity, identity) && last.Operation == operation)
+            return last.Callback;
+
+        return BindReporter(identity, operation);
+    }
+
+    private Action<DataSourceDiagnostic> BindReporter(SourceIdentity identity, string operation)
+    {
         lock (_gate)
         {
             _reporters ??= new();
             var key = (identity, operation);
-            if (_reporters.TryGetValue(key, out var existing))
-                return existing;
-            var reporter = CreateReporter(identity, operation);
-            if (_reporters.Count < MaximumWarnings)
+            if (!_reporters.TryGetValue(key, out var reporter))
+            {
+                reporter = new BoundReporter(this, identity, operation);
+                if (_reporters.Count >= MaximumWarnings)
+                    return reporter.Callback;
                 _reporters.Add(key, reporter);
-            return reporter;
+            }
+
+            Volatile.Write(ref _lastReporter, reporter);
+            return reporter.Callback;
         }
     }
-
-    private Action<DataSourceDiagnostic> CreateReporter(SourceIdentity identity, string operation) =>
-        report => Report(report, identity, operation);
 
     private void Report(DataSourceDiagnostic report, SourceIdentity identity, string operation)
     {
@@ -110,6 +122,25 @@ public sealed class DataSourceWarningCollector
 
     public static Action<DataSourceDiagnostic>? GetReporter(ISchemaProvider provider, SourceIdentity identity) =>
         provider is ReportingProvider bound ? bound.Collector.ForSource(identity) : null;
+
+    private sealed class BoundReporter
+    {
+        private readonly DataSourceWarningCollector _collector;
+
+        internal BoundReporter(DataSourceWarningCollector collector, SourceIdentity identity, string operation)
+        {
+            _collector = collector;
+            Identity = identity;
+            Operation = operation;
+            Callback = Report;
+        }
+
+        internal SourceIdentity Identity { get; }
+        internal string Operation { get; }
+        internal Action<DataSourceDiagnostic> Callback { get; }
+
+        private void Report(DataSourceDiagnostic report) => _collector.Report(report, Identity, Operation);
+    }
 
     private sealed class Entry(Diagnostic diagnostic)
     {

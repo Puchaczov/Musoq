@@ -12,6 +12,35 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed class WindowSharedOrderKeyPlanTests : BasicEntityTestBase
 {
     [TestMethod]
+    [DataRow("Sum(v.Population)", "FirstValue(v.Population)", true)]
+    [DataRow("FirstValue(v.Population)", "Sum(v.Population)", true)]
+    [DataRow("Sum(v.Population)", "FirstValue(v.Money)", false)]
+    [DataRow("Sum(v.Population) filter (where v.Id > 0)", "FirstValue(v.Population)", false)]
+    public void BoundedWindows_ShareOnlyCompatibleUnconditionalValueInputs(string first, string second, bool share)
+    {
+        const string frame = " over (order by v.Id rows between 1 preceding and current row)";
+        var inspection = InstanceCreator.CompileForInspection(
+            $"select {first}{frame} as A, {second}{frame} as B from #A.Entities() v",
+            Guid.NewGuid().ToString(),
+            new BasicSchemaProvider<BasicEntity>(new Dictionary<string, IEnumerable<BasicEntity>> { ["#A"] = [] }),
+            LoggerResolver,
+            TestCompilationOptions
+        );
+
+        var nodes = ExecutionIrAnalysis.FlattenNodes(inspection.ExecutionPlan!.Body).ToArray();
+        var aggregate = nodes.OfType<ExecutionWindowAggregateKernel>().Single();
+        var context = nodes.OfType<ExecutionComputePluginWindow>().Single().ContextBuffers!;
+        var shared = aggregate.SharedValues ?? context.SharedValues;
+        Assert.AreEqual(share, shared is not null);
+        if (shared is not null)
+        {
+            var owner = aggregate.SharedValues is null ? aggregate.CapturedValuesName : context.Values.Name;
+            Assert.AreEqual(owner, shared.Name);
+            Assert.AreEqual(context.Values.Type, shared.Type);
+        }
+    }
+
+    [TestMethod]
     public void RowsAndRange_ShouldRetainSharedOrderKeyProducerInExecutionPlan()
     {
         const string query =

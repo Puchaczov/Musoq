@@ -64,6 +64,7 @@ internal sealed partial class PhysicalLoweringImplementation
             arguments.MethodTargets
         )
         {
+            ReuseBoundedPeers = registration.ReuseBoundedPeers,
             LibraryArguments = arguments.Arguments,
             UseIntegerOrderIndex = registration.UseIntegerOrderIndex,
         };

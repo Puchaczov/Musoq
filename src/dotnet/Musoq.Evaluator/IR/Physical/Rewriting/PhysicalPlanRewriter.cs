@@ -161,7 +161,10 @@ internal static class PhysicalPlanRewriter
                 join.Right,
                 rewriteNode,
                 (left, right) =>
-                    new PhysicalHashJoinNode(join.Kind, join.BuildKeys, join.ProbeKeys, join.Residual, left, right),
+                    new PhysicalHashJoinNode(join.Kind, join.BuildKeys, join.ProbeKeys, join.Residual, left, right)
+                    {
+                        GroupMaximum = join.GroupMaximum,
+                    },
                 join
             ),
             PhysicalNestedLoopJoinNode join => RewritePair(

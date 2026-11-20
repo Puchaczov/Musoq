@@ -18,7 +18,7 @@ MultiStatement
 /*
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, b.Name as b.Name]
-    PhysicalNestedLoopJoin [FullOuter] [(a.Id < b.Id)]
+    PhysicalSortMergeJoin [FullOuter] [left: a.Id] [right: b.Id] [op: <] [residual: TRUE]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#B.entities() as b]
   PhysicalProject [a.Name as Name, b.Name as Name]
@@ -50,10 +50,11 @@ ExecutionPlan [compiled]
     MaterializeChunked [aRows -> aRowsBuffer]
     MaterializeChunked [bRows -> bRowsBuffer]
     CreateBooleanArray [resultRightMatched <- bRowsBuffer.Count]
+    CreateRangeIndex [resultRangeIndex <- bRowsBuffer by bRangeCandidate.Id <] [original input positions]
     ForEach [a in aRowsBuffer]
       Let [resultLeftHasMatch: bool = FALSE]
-      ForEachIndexed [bIndex, b in bRowsBuffer]
-        If [(a.Id < b.Id)]
+      RangeProbe [b <- resultRangeIndex where a.Id] [input order: bIndex]
+        If [TRUE]
           Assign [resultLeftHasMatch = TRUE]
           ArrayAssign [resultRightMatched[bIndex] = TRUE]
           AppendShape [result <- ResultRow0(Name: a.Name, Name: b.Name)]
@@ -143,23 +144,42 @@ namespace GeneratedSample_Q284_SpecCoreFullOuterJoinNonEqui
                     var aRowsBuffer = EvaluationHelper.MaterializeChunkedRows(aRows);
                     var bRowsBuffer = EvaluationHelper.MaterializeChunkedRows(bRows);
                     bool[] resultRightMatched = new bool[bRowsBuffer.Count];
+                    var resultRangeIndex = EvaluationHelper.CreateRangeJoinIndex<Tuple<int>, int?>(Enumerable.Range(0, bRowsBuffer.Count).Select(resultRangeIndexPosition => Tuple.Create(resultRangeIndexPosition)), resultRangeIndexPosition =>
+                    {
+                        var bRangeCandidate = bRowsBuffer[resultRangeIndexPosition.Item1];
+                        return bRangeCandidate.Id;
+                    }, Musoq.Evaluator.IR.Expressions.BinaryOpKind.LessThan);
+                    int? resultRangeIndexPreviousKey = default(int?);
+                    bool resultRangeIndexHasPreviousKey = false;
+                    var resultRangeIndexPositions = new List<int>();
                     foreach (var a in aRowsBuffer)
                     {
                         token.ThrowIfCancellationRequested();
                         bool resultLeftHasMatch = false;
-                        for (int bIndex = 0; bIndex < bRowsBuffer.Count; ++bIndex)
                         {
-                            if ((bIndex & 1023) == 0)
+                            int? resultRangeIndexProbeKey = a.Id;
+                            if (!resultRangeIndexHasPreviousKey || resultRangeIndexProbeKey != resultRangeIndexPreviousKey)
                             {
-                                token.ThrowIfCancellationRequested();
+                                resultRangeIndexPositions.Clear();
+                                foreach (var resultRangeIndexPosition in resultRangeIndex.Find(resultRangeIndexProbeKey))
+                                {
+                                    resultRangeIndexPositions.Add(resultRangeIndexPosition.Item1);
+                                }
+
+                                resultRangeIndexPositions.Sort();
+                                resultRangeIndexPreviousKey = resultRangeIndexProbeKey;
+                                resultRangeIndexHasPreviousKey = true;
                             }
 
-                            Musoq.Evaluator.Tests.Schema.Basic.BasicEntity b = bRowsBuffer[bIndex];
-                            if ((Operators.SqlCompare<int?, int?>(a.Id, b.Id, (int? __sqlLeft, int? __sqlRight) => (__sqlLeft < __sqlRight))) == true)
+                            foreach (var bIndex in resultRangeIndexPositions)
                             {
-                                resultLeftHasMatch = true;
-                                resultRightMatched[bIndex] = (bool)true;
-                                __musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Name));
+                                var b = bRowsBuffer[bIndex];
+                                if (true)
+                                {
+                                    resultLeftHasMatch = true;
+                                    resultRightMatched[bIndex] = (bool)true;
+                                    __musoqFinalShapeRows.Add(new ResultRow0(a.Name, b.Name));
+                                }
                             }
                         }
 

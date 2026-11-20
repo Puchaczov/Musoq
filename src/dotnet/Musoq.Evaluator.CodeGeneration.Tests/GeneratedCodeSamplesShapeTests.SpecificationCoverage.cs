@@ -26,7 +26,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         Assert.Contains("[FullOuter]", full);
         Assert.Contains("NULL", full);
         Assert.Contains(
-            "PhysicalNestedLoopJoin [FullOuter]",
+            "PhysicalSortMergeJoin [FullOuter]",
             ReadSample("Q284_SpecCoreFullOuterJoinNonEqui.cs").Content
         );
 

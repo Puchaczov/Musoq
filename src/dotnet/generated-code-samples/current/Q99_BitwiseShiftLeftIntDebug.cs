@@ -109,7 +109,7 @@ namespace GeneratedSample_Q99_BitwiseShiftLeftIntDebug
             var __resultLibraryBase0 = new Musoq.Plugins.LibraryBase();
             var __musoqTableSourceRows = ko3ikoRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0((int?)__resultLibraryBase0.ShiftLeft(1, 1)), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => new ResultRow0((int?)__resultLibraryBase0.ShiftLeft(1, 1)), token), token, onCompleted: () =>
             {
                 try
                 {

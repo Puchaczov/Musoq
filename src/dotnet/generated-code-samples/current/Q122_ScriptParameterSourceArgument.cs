@@ -106,7 +106,7 @@ namespace GeneratedSample_Q122_ScriptParameterSourceArgument
             var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.ScriptParameterSampleEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
             var __musoqTableSourceRows = ko3ikoRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.ScriptParameterSampleEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => true, (ko3iko) => new ResultRow0(ko3iko.Key, ko3iko.Value), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.ScriptParameterSampleEntity, ResultRow0>(__musoqTableSourceRows, (ko3iko) => new ResultRow0(ko3iko.Key, ko3iko.Value), token), token, onCompleted: () =>
             {
                 try
                 {

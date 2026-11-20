@@ -209,6 +209,8 @@ public static partial class PhysicalPlanPrinter
                 sb.Append("] [probe: ");
                 PlanPrinterHelpers.AppendExpressions(sb, hashJoin.ProbeKeys);
                 sb.Append(']');
+                if (hashJoin.GroupMaximum != null)
+                    sb.Append(" [group maximum]");
                 if (hashJoin.Residual is not null)
                 {
                     sb.Append(" [residual: ");

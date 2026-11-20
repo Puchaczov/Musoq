@@ -4,6 +4,14 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.21
+
+See the curated release notes for [Musoq Core Engine 17.0.21](release-notes/v17.0.21.md).
+
+- Reduce repeated execution work in numeric filters, quantified subqueries, range joins and windows, bounded ordering, filtered projections, paging, and global counts.
+- Lower allocation and interpretation overhead while preserving query result semantics and datasource contracts.
+- Publish seven aligned stable packages with datasource ABI validation for Musoq.Schema and Musoq.Plugins.
+
 ## 17.0.20
 
 See the curated release notes for [Musoq Core Engine 17.0.20](release-notes/v17.0.20.md).
