@@ -1,3 +1,7 @@
+using System.Linq;
+using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.IR.Logical.Nodes;
+
 namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
@@ -12,6 +16,15 @@ public sealed partial class ExecutionCSharpRenderer
         var session = new ExecutionRenderSession
         {
             UseQueryRunContext = useQueryRunContext,
+            UsesTolerantInterpretation = ExecutionSubqueryPlans
+                .SelfAndDescendants(plan)
+                .Any(static candidate =>
+                    ExecutionIrAnalysis
+                        .CollectNodes<ExecutionInterpretSource>(candidate.Body)
+                        .Any(static node =>
+                            node.Kind is InterpretSourceKind.TryInterpret or InterpretSourceKind.TryParse
+                        )
+                ),
             ValueCaptureScope = plan.Body,
             RegexMatchTimeout = plan.RegexMatchTimeout,
         };

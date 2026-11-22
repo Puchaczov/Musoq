@@ -127,15 +127,11 @@ public sealed partial class ExecutionCSharpRenderer
         return orderRecords.Selection switch
         {
             ExecutionFullOrderRecordSelection => SyntaxFactory.ExpressionStatement(
-                SyntaxFactory
-                    .InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.IdentifierName(orderRecords.Source.Name),
-                            SyntaxFactory.IdentifierName(nameof(List<object>.Sort))
-                        )
-                    )
-                    .WithArgumentList(CreateArgumentList(comparer))
+                CreateEvaluationHelperInvocation(
+                    nameof(EvaluationHelper.SortRecordsIfUnordered),
+                    SyntaxFactory.IdentifierName(orderRecords.Source.Name),
+                    comparer
+                )
             ),
             ExecutionTakeOrderRecordSelection take => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(

@@ -139,10 +139,14 @@ public sealed class ProjectionSensitiveWildcardSchema(
                 .ToArray()
         );
 
-        return new ProjectionSensitiveWildcardQueryScopedRowSource<TRow, TMaterializer>(
-            [FullRow.ToArray()],
-            request.Shape.Fields
-        );
+        var originalOrdinals = request
+            .Shape.Fields.Select(static field =>
+                FullColumns
+                    .Single(column => string.Equals(column.ColumnName, field.Name, StringComparison.OrdinalIgnoreCase))
+                    .ColumnIndex
+            )
+            .ToArray();
+        return new ProjectionSensitiveWildcardQueryScopedRowSource<TRow, TMaterializer>([FullRow], originalOrdinals);
     }
 
     private static void EnsureSourceName(string name)
@@ -207,7 +211,7 @@ public sealed class ProjectionSensitiveWildcardRowSource(IReadOnlyList<object[]>
 
 public sealed class ProjectionSensitiveWildcardQueryScopedRowSource<TRow, TMaterializer>(
     IReadOnlyList<object[]> rows,
-    IReadOnlyList<QueryRowField> fields
+    IReadOnlyList<int> originalOrdinals
 ) : RowSourceBase<TRow>
     where TMaterializer : struct, IQueryRowMaterializer<TRow>
 {
@@ -216,7 +220,7 @@ public sealed class ProjectionSensitiveWildcardQueryScopedRowSource<TRow, TMater
         var materialized = new List<TRow>(rows.Count);
         foreach (var row in rows)
         {
-            var reader = new ProjectionSensitiveWildcardQueryRowReader(row, fields);
+            var reader = new ProjectionSensitiveWildcardQueryRowReader(row, originalOrdinals);
             materialized.Add(TMaterializer.Materialize<ProjectionSensitiveWildcardQueryRowReader>(ref reader));
         }
 
@@ -224,12 +228,12 @@ public sealed class ProjectionSensitiveWildcardQueryScopedRowSource<TRow, TMater
     }
 }
 
-public ref struct ProjectionSensitiveWildcardQueryRowReader(object[] row, IReadOnlyList<QueryRowField> fields)
+public ref struct ProjectionSensitiveWildcardQueryRowReader(object[] row, IReadOnlyList<int> originalOrdinals)
     : IQuerySourceFieldReader
 {
     public T Read<T>(int slot)
     {
-        var value = row[fields[slot].SourceColumnIndex];
+        var value = row[originalOrdinals[slot]];
         return value is null ? default! : (T)value;
     }
 }

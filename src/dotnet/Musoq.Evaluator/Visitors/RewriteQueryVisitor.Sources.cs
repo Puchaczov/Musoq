@@ -44,13 +44,8 @@ public sealed partial class RewriteQueryVisitor
             rewritten.WithSchemaSpan(schemaSpan);
         if (node.MethodSpan is { } methodSpan)
             rewritten.WithMethodSpan(methodSpan);
-        if (node is Parser.SchemaFromNode boundSource && boundSource.BoundInvocation is { } boundInvocation)
-            rewritten.SetBoundInvocation(boundInvocation);
-        if (node is Parser.SchemaFromNode metadataSource)
-            rewritten.SetStaticMetadataArguments(
-                metadataSource.StaticMetadataArguments,
-                metadataSource.HasRequiredRuntimeArguments
-            );
+        if (node is Parser.SchemaFromNode boundSource)
+            rewritten.CopyBindingFrom(boundSource);
         Nodes.Push(rewritten);
     }
 

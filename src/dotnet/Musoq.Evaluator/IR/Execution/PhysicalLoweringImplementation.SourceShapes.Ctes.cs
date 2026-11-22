@@ -6,6 +6,34 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
+    private static TableRowShape? ResolveCteSourceShape(
+        PhysicalCteRefNode cteRef,
+        IReadOnlyDictionary<string, int> cteIndexes,
+        IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName
+    )
+    {
+        var storedShape = ResolveCteStoredRowShape(cteRef, cteShapesByName);
+        if (storedShape != null)
+        {
+            var shape = CanUseTypedStoredRows(storedShape)
+                ? CreateTypedTableRowShape(cteRef, storedShape)
+                : CreateMaterializedTransitionTableRowShape(cteRef.Alias, storedShape);
+            if (
+                cteRef.IntermediateProducerId != null
+                || !shape.Contexts.Any(static slot => slot.RowPresenceAlias != null)
+            )
+                return shape;
+
+            // Presence bindings inside the named definition are outside the caller's alias scope.
+            return shape with
+            {
+                Contexts = shape.Contexts.Select(static slot => slot with { RowPresenceAlias = null }).ToArray(),
+            };
+        }
+
+        return cteIndexes.ContainsKey(cteRef.CteName) ? CreateTableRowShape(cteRef) : null;
+    }
+
     private static GeneratedRowShape? ResolveCteGeneratedRowShape(
         PhysicalCteRefNode cteRef,
         IReadOnlyDictionary<string, GeneratedRowShape>? cteShapesByName

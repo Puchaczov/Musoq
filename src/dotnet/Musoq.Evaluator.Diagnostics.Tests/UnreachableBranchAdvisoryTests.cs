@@ -54,6 +54,26 @@ public sealed class UnreachableBranchAdvisoryTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void CaseConditionsWithTheSameColumnNameFromDistinctParsers_DoNotWarn()
+    {
+        const string sql = """
+            text FixedCard { _: literal 'A:', Device: rest };
+            text PipeCard { _: literal 'B:', Device: rest };
+            select case when a.Device is not null then 'A'
+                        when b.Device is not null then 'B' else '?' end as Layout
+            from values { (Line: 'A:1'), (Line: 'B:2'), (Line: '?') } v
+            outer apply TryParse<FixedCard>(v.Line) a
+            outer apply TryParse<PipeCard>(v.Line) b
+            order by v.Line
+            """;
+
+        var result = Analyze(sql);
+
+        Assert.IsFalse(result.HasErrors, string.Join(" | ", result.Diagnostics));
+        Assert.IsFalse(result.Warnings.Any(static warning => warning.Code == DiagnosticCode.MQ5008_UnreachableCode));
+    }
+
+    [TestMethod]
     public void ConstantScriptCondition_UsesTheSameCaseAnalysis()
     {
         var result = Analyze(

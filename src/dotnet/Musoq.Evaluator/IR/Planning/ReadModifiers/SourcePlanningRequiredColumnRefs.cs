@@ -21,7 +21,8 @@ internal static partial class SourcePlanningPlanner
             return [];
         }
 
-        var columnsByName = ResolveColumns(context, scan)
+        var columnsByName = SourceScanMetadata
+            .ResolveColumns(context, scan)
             .GroupBy(static column => column.ColumnName, StringComparer.Ordinal)
             .ToDictionary(static group => group.Key, static group => group.First(), StringComparer.Ordinal);
 

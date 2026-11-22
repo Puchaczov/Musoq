@@ -96,6 +96,28 @@ public sealed partial class ProjectionSensitiveWildcardTests
     }
 
     [TestMethod]
+    [TestCategory("AfterimageRepro")]
+    [DataRow("alternate")]
+    [DataRow("c")]
+    public void SiblingCtes_ShouldDescribeEachScanWithItsOwnColumnContract(string secondAlias)
+    {
+        var recorder = new ProjectionSensitiveWildcardRecorder();
+        var sql = $$"""
+            with first_rows as (select c.Id from #wildcard.rows() c),
+                 second_rows as (select {{secondAlias}}.Name from #wildcard.rows() {{secondAlias}})
+            select f.Id, s.Name from first_rows f cross join second_rows s
+            """;
+        using var query = Compile(sql, recorder);
+
+        var described = recorder.MetadataContexts.Where(context => context.QueryId.Contains(':')).ToArray();
+        CollectionAssert.AreEquivalent(
+            new[] { "Id", "Name" },
+            described.Select(context => string.Join(",", context.Columns)).ToArray()
+        );
+        Assert.AreNotEqual(described[0].QueryId, described[1].QueryId);
+    }
+
+    [TestMethod]
     public void SiblingCtesReusingAliases_ShouldKeepWildcardOwnershipInEachCte()
     {
         var recorder = new ProjectionSensitiveWildcardRecorder();

@@ -187,7 +187,7 @@ namespace GeneratedSample_K80_NativeFloatingDecimalComparison
                     }
                 }
 
-                resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                 return resultOrderRecords;
             }
             finally

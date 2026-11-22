@@ -334,22 +334,6 @@ internal static partial class SourcePlanningPlanner
         return null;
     }
 
-    private static ISchemaColumn[] ResolveColumns(PlanningContext context, SchemaScanNode scan)
-    {
-        context.CancellationToken.ThrowIfCancellationRequested();
-        if (context.InferredColumns.TryGetValue(scan.Alias, out var inferredColumns) && inferredColumns.Length > 0)
-            return inferredColumns;
-
-        var columns = new ISchemaColumn[scan.OutputSchema.Columns.Length];
-        for (var index = 0; index < scan.OutputSchema.Columns.Length; index++)
-        {
-            context.CancellationToken.ThrowIfCancellationRequested();
-            columns[index] = scan.OutputSchema.Columns[index].ToSchemaColumn();
-        }
-
-        return columns;
-    }
-
     private static PlanningDecision CreateDecision(
         SchemaScanNode scan,
         SourcePlanRequest request,

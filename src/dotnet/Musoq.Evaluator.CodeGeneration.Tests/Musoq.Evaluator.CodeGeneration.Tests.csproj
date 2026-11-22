@@ -20,6 +20,7 @@
     <ItemGroup>
         <Compile Remove="Fixtures\**" />
         <ProjectReference Include="..\Musoq.Evaluator.Tests.Common\Musoq.Evaluator.Tests.Common.csproj" />
+        <ProjectReference Include="..\Musoq.Benchmarks\Musoq.Benchmarks.csproj" />
         <ProjectReference Include="..\Musoq.Converter\Musoq.Converter.csproj" />
         <ProjectReference Include="..\Musoq.Evaluator\Musoq.Evaluator.csproj" />
         <ProjectReference Include="..\Musoq.Parser\Musoq.Parser.csproj" />

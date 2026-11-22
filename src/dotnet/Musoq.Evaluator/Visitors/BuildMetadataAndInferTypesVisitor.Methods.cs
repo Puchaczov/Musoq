@@ -21,7 +21,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
 
         var methodContext = ResolveMethodContext(node, args);
-        if (!TryResolveMethodWithRecovery(node, args, methodContext, out var method, out var canSkipInjectSource))
+        if (!TryBindMethod(node, ref args, methodContext, out var method, out var canSkipInjectSource))
             return;
 
         if (methodContext.IsUnopenedSource)

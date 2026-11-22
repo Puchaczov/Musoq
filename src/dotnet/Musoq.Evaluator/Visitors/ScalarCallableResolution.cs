@@ -1,0 +1,92 @@
+using System.Reflection;
+using Musoq.Evaluator.Exceptions;
+using Musoq.Parser.Diagnostics;
+using Musoq.Parser.Nodes;
+using Musoq.Plugins.Attributes;
+using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
+using static Musoq.Evaluator.Visitors.SqlFunctionCallBinding;
+
+namespace Musoq.Evaluator.Visitors;
+
+public partial class BuildMetadataAndInferTypesVisitor
+{
+    private static (MethodInfo Method, bool CanSkipInjectSource, ArgsListNode BoundArgs) ResolveMethod(
+        AccessMethodNode node,
+        ArgsListNode args,
+        MethodResolutionContext context
+    )
+    {
+        var argTypes = GetArgumentTypes(args);
+
+        var methodName = node.Name;
+        if (node.IsDistinct)
+        {
+            var distinctMethodName = $"{node.Name}Distinct";
+            if (
+                TryResolveAggregateDeclarationMethod(
+                    distinctMethodName,
+                    argTypes,
+                    args,
+                    context,
+                    out var distinctDeclaration
+                )
+            )
+                return (RequireCallableDeclaration(node, distinctDeclaration), false, args);
+
+            throw CallableResolutionDiagnostics.CreateException(
+                context.SchemaTablePair.Schema,
+                distinctMethodName,
+                argTypes,
+                context.EntityType,
+                node.SpanOrEmpty(),
+                args.Args
+            );
+        }
+
+        if (TryResolveAggregateDeclarationMethod(methodName, argTypes, args, context, out var declaration))
+            return (RequireCallableDeclaration(node, declaration), false, args);
+
+        if (context.SchemaTablePair.Schema.TryResolveMethod(methodName, argTypes, context.EntityType, out var method))
+        {
+            if (method.GetCustomAttribute<AggregateFunctionAttribute>() is not null)
+                throw new CannotResolveMethodException(
+                    $"Aggregate method {methodName} must declare a typed AggregateFunctionAttribute and a valid non-negative literal parent depth.",
+                    node.SpanOrEmpty()
+                );
+
+            return (RequireCallableDeclaration(node, method), false, args);
+        }
+
+        if (context.SchemaTablePair.Schema.TryResolveRawMethod(methodName, argTypes, out method))
+            return (RequireCallableDeclaration(node, method), true, args);
+
+        if (
+            ScalarCallableArgumentProof.NarrowStrictCasts(args) is { } narrowed
+            && ScalarCallableArgumentProof.TryResolveGeneric(
+                context.SchemaTablePair.Schema,
+                methodName,
+                GetArgumentTypes(narrowed),
+                context.EntityType,
+                out method
+            )
+        )
+            return (RequireCallableDeclaration(node, method), false, narrowed);
+
+        if (IsInterpretOrParseFunction(methodName))
+            throw new CannotResolveMethodException(
+                $"'{methodName}' can only be used inside CROSS APPLY or OUTER APPLY, not in SELECT or WHERE. "
+                    + $"Example: ... CROSS APPLY {methodName}<SchemaName>(source) alias",
+                DiagnosticCode.MQ3033_InterpretFunctionOutsideApply,
+                node.Span
+            );
+
+        throw CallableResolutionDiagnostics.CreateException(
+            context.SchemaTablePair.Schema,
+            methodName,
+            argTypes,
+            context.EntityType,
+            node.SpanOrEmpty(),
+            args.Args
+        );
+    }
+}

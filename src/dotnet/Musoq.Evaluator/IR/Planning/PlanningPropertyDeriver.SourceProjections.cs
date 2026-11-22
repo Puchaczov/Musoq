@@ -39,7 +39,7 @@ internal static partial class PlanningPropertyDeriver
     private static Dictionary<string, SourcePlanProperties> CreateSourceProperties(
         PlanningContext context,
         IReadOnlyList<SchemaScanNode> scans,
-        IReadOnlyDictionary<string, IReadOnlySet<string>> requiredColumnsByAlias,
+        RequiredColumnUsageResult columnUsages,
         IReadOnlyDictionary<string, IrExpression[]> pushedPredicates,
         List<PlanningDecision> decisions
     )
@@ -53,8 +53,11 @@ internal static partial class PlanningPropertyDeriver
             if (string.IsNullOrWhiteSpace(scan.SourceContextId))
                 continue;
 
-            var requiredColumns = requiredColumnsByAlias.TryGetValue(scan.Alias, out var required)
-                ? required.OrderBy(static name => name, StringComparer.Ordinal).ToArray()
+            var requiredColumns =
+                columnUsages.UsagesBySourceId.TryGetValue(scan.SourceContextId, out var scopedUsages)
+                    ? scopedUsages.Select(static usage => usage.ColumnName).Distinct(StringComparer.Ordinal).ToArray()
+                : columnUsages.RequiredColumnsByAlias.TryGetValue(scan.Alias, out var required)
+                    ? required.OrderBy(static name => name, StringComparer.Ordinal).ToArray()
                 : [];
             context.CancellationToken.ThrowIfCancellationRequested();
             var predicates = pushedPredicates.TryGetValue(scan.SourceContextId, out var pushed) ? pushed : [];
@@ -115,7 +118,7 @@ internal static partial class PlanningPropertyDeriver
             return [];
         }
 
-        var entityType = SourceEntityMetadataResolver.ResolveSourceEntityType(context.Scope, scan.Alias);
+        var entityType = SourceScanMetadata.ResolveEntityType(context, scan);
         context.CancellationToken.ThrowIfCancellationRequested();
         if (entityType == null)
         {
@@ -131,7 +134,7 @@ internal static partial class PlanningPropertyDeriver
             return [];
         }
 
-        var availableColumns = ResolveAvailableColumns(context, scan);
+        var availableColumns = SourceScanMetadata.ResolveColumns(context, scan);
         context.CancellationToken.ThrowIfCancellationRequested();
         if (availableColumns.Length == 0)
         {
@@ -213,22 +216,5 @@ internal static partial class PlanningPropertyDeriver
                 reason
             )
         );
-    }
-
-    private static ISchemaColumn[] ResolveAvailableColumns(PlanningContext context, SchemaScanNode scan)
-    {
-        context.CancellationToken.ThrowIfCancellationRequested();
-        if (context.InferredColumns.TryGetValue(scan.Alias, out var inferredColumns) && inferredColumns.Length > 0)
-            return inferredColumns;
-
-        var columns = new ISchemaColumn[scan.OutputSchema.Columns.Length];
-        for (var index = 0; index < scan.OutputSchema.Columns.Length; index++)
-        {
-            context.CancellationToken.ThrowIfCancellationRequested();
-            columns[index] = scan.OutputSchema.Columns[index].ToSchemaColumn();
-        }
-
-        context.CancellationToken.ThrowIfCancellationRequested();
-        return columns;
     }
 }

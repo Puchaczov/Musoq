@@ -21,11 +21,20 @@ public sealed class BuildConfigurationGuardrailTests
     {
         var repositoryRoot = RepositorySourceScan.RepositoryRoot();
         var sampleFiles = RepositorySourceScan.FilesUnder(repositoryRoot, "src/dotnet/generated-code-samples", "*.cs");
+        using var benchmarkManifest = JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(GeneratedCodeSnapshotText.BenchmarkSamplesDirectory, "manifest.json"))
+        );
+        var benchmarkCount = benchmarkManifest
+            .RootElement.GetProperty("cases")
+            .EnumerateArray()
+            .Select(item => item.GetProperty("file").GetString())
+            .Distinct(StringComparer.Ordinal)
+            .Count();
 
         var productionFiles = RepositorySourceScan.ProductionSourceFiles(repositoryRoot);
 
         Assert.HasCount(
-            EvaluatorSampleFixtures.Samples.Count + EvaluatorProfiledSampleFixtures.Samples.Count,
+            EvaluatorSampleFixtures.Samples.Count + EvaluatorProfiledSampleFixtures.Samples.Count + benchmarkCount,
             sampleFiles
         );
         Assert.IsTrue(sampleFiles.All(file => RepositorySourceScan.IsGeneratedCodeSample(repositoryRoot, file)));

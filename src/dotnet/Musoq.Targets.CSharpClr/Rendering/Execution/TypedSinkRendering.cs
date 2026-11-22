@@ -55,7 +55,11 @@ public sealed partial class ExecutionCSharpRenderer
     {
         var statements = new List<StatementSyntax>();
         statements.AddRange(
-            CreateQueryRunContextAliasStatements(context.Session.UseQueryRunContext, queryIdentifier: plan.Identifier)
+            CreateQueryRunContextAliasStatements(
+                context.Session.UseQueryRunContext,
+                queryIdentifier: plan.Identifier,
+                usesTolerantInterpretation: context.Session.UsesTolerantInterpretation
+            )
         );
 
         statements.AddRange(CreateExecutionStateDeclarations(plan, context));

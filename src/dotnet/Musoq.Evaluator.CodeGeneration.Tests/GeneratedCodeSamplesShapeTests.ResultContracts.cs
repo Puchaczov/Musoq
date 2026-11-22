@@ -4,13 +4,11 @@ namespace Musoq.Evaluator.Tests;
 
 public sealed partial class GeneratedCodeSamplesShapeTests
 {
-    private static bool HasDeclaredResultContract(string fileName, string content)
+    private static bool HasDeclaredResultContract(GeneratedCodeSampleFile sample)
     {
-        var output = GeneratedCodeSamplesCatalog.GetByFileName(fileName).OutputType;
-        if (output is null)
-            return content.Contains("BaseOperations, ITableRunnable,", StringComparison.Ordinal);
-        var type = Musoq.Evaluator.Helpers.EvaluationHelper.GetCastableType(output);
-        return content.Contains($"BaseOperations, ITypedRunnable<{type}>", StringComparison.Ordinal)
-            && content.Contains("ITypedParameterizedRunnable", StringComparison.Ordinal);
+        if (sample.OutputTypeName is not { } type)
+            return sample.Content.Contains("BaseOperations, ITableRunnable,", StringComparison.Ordinal);
+        return sample.Content.Contains($"BaseOperations, ITypedRunnable<{type}>", StringComparison.Ordinal)
+            && sample.Content.Contains("ITypedParameterizedRunnable", StringComparison.Ordinal);
     }
 }

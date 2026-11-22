@@ -669,7 +669,9 @@ select 1 + (-2) from values { (Seed: 0) } seed             -- -1
 
 Arithmetic with a nullable numeric operand has a nullable result and preserves
 NULL. Callable binding uses that nullable type; it does not implicitly unwrap a
-nullable value for a non-nullable parameter. The byte-array slice overload of
+nullable value for a non-nullable parameter. Generic scalar binding can use the
+non-null result type of a strict cast when its operand is statically non-null
+and ordinary overload lookup finds no match. The byte-array slice overload of
 `ToBase64(value, offset, length)` accepts nullable integer offsets and lengths,
 returning NULL when any argument is NULL. The existing non-nullable integer
 overload retains its range validation.
@@ -6603,6 +6605,18 @@ Built-in functions are organized into the following categories:
 - **Generic and Collection** — row numbering, null handling, and collection transformation operations
 
 Use `desc functions` to see the full list with signatures and descriptions for any given schema context.
+
+The numeric `ToHex`, `ToBin`, `ToOcta`, and `ToDec` overloads accept nullable
+values. A present value uses the same conversion as its underlying type.
+`ToBytes` also accepts nullable Boolean and signed or unsigned 16-, 32-, and
+64-bit integers. It uses the same byte width as the corresponding non-nullable
+overload. These overloads return NULL when their value is NULL. Use a typed
+NULL such as `NULL::int` when a bare NULL leaves the conversion ambiguous.
+
+`GetBytes(content, length, offset)` accepts nullable integer bounds. It takes a
+substring using the supplied length and zero-based offset, then encodes it as
+UTF-8. A NULL argument yields NULL. Present bounds use the usual substring
+range checks.
 
 ### 18.4 Enum Intrinsics
 

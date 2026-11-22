@@ -283,14 +283,20 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
         );
     }
 
-    private static string[] FindFilesContainingAny(string repositoryRoot, string[] files, string[] markers)
+    private static string[] FindFilesContainingAny(
+        string repositoryRoot,
+        string[] files,
+        string[] markers,
+        Func<string, string>? normalize = null
+    )
     {
         Assert.IsNotEmpty(files, "A violation scan requires its intended source inventory.");
         return files
             .Where(file =>
             {
                 var text = File.ReadAllText(file);
-                return markers.Any(marker => text.Contains(marker, StringComparison.Ordinal));
+                var content = normalize?.Invoke(text) ?? text;
+                return markers.Any(marker => content.Contains(marker, StringComparison.Ordinal));
             })
             .Select(file => Path.GetRelativePath(repositoryRoot, file).Replace(Path.DirectorySeparatorChar, '/'))
             .ToArray();

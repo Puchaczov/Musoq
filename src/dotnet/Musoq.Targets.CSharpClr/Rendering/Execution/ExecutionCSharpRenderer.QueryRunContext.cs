@@ -12,7 +12,8 @@ public sealed partial class ExecutionCSharpRenderer
         bool includePhaseAlias = true,
         bool includeProgressAlias = true,
         bool includeProgressContextAlias = true,
-        string? queryIdentifier = null
+        string? queryIdentifier = null,
+        bool usesTolerantInterpretation = false
     )
     {
         if (useQueryRunContext)
@@ -21,7 +22,9 @@ public sealed partial class ExecutionCSharpRenderer
             [
                 SyntaxFactory.ParseStatement("var token = queryContext.CancellationToken;"),
                 SyntaxFactory.ParseStatement(
-                    "var __musoqProgressContext = queryContext.QueryProgress == null ? null : queryContext;"
+                    usesTolerantInterpretation
+                        ? "var __musoqProgressContext = global::Musoq.Evaluator.Runtime.TolerantInterpretation.Bind(queryContext);"
+                        : "var __musoqProgressContext = queryContext.QueryProgress == null ? null : queryContext;"
                 ),
                 SyntaxFactory.ParseStatement(
                     "Action<string, QueryPhase> OnPhaseChanged = queryContext.NotifyPhaseChanged;"
@@ -44,7 +47,9 @@ public sealed partial class ExecutionCSharpRenderer
         if (includeProgressContextAlias)
             statements.Add(
                 SyntaxFactory.ParseStatement(
-                    $"var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: {sender}, queryId: \"{escapedQueryIdentifier}\");"
+                    usesTolerantInterpretation
+                        ? $"var __musoqProgressContext = global::Musoq.Evaluator.Runtime.TolerantInterpretation.Bind(token, OnQueryProgress, {sender}, \"{escapedQueryIdentifier}\");"
+                        : $"var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: {sender}, queryId: \"{escapedQueryIdentifier}\");"
                 )
             );
         if (includePhaseAlias)

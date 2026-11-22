@@ -200,7 +200,7 @@ namespace GeneratedSample_P59_TypedIndexedMembers_Full
                     }
                 }
 
-                resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                 return resultOrderRecords;
             }
             finally
@@ -336,7 +336,7 @@ namespace GeneratedSample_P59_TypedIndexedMembers_Full
 
                     var __op30Scope = profileRecorder?.BeginOperatorValue(__op30Handle) ?? OperatorProfileValueScope.None;
                     __op30Scope.AddInputRows(resultOrderRecords.Count);
-                    resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                    EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                     __op30Scope.AddOutputRows(resultOrderRecords.Count);
                     __op30Scope.Dispose();
                     var __op31Scope = profileRecorder?.BeginOperatorValue(__op31Handle) ?? OperatorProfileValueScope.None;

@@ -64,6 +64,7 @@ public sealed partial class RewriteQueryVisitor
             var selectRewriter = new RewritePartsToUseJoinTransitionTable(nestedFrom.Alias);
             var selectTraverser = new CloneTraverseVisitor(selectRewriter);
 
+            aggSelect = selectRewriter.RewriteGroupingProjection(aggSelect, selectTraverser);
             groupBy.Accept(selectTraverser);
             groupBy =
                 selectRewriter.ChangedGroupBy

@@ -187,7 +187,7 @@ namespace GeneratedSample_Q369_DynamicColumnLike
                     }
                 }
 
-                resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                 return resultOrderRecords;
             }
             finally

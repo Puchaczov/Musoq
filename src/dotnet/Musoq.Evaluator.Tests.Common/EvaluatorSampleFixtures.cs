@@ -5,7 +5,7 @@ namespace Musoq.Evaluator.Tests;
 
 internal static partial class EvaluatorSampleFixtures
 {
-    internal const int ExpectedSampleCount = 492;
+    internal const int ExpectedSampleCount = 478;
 
     public static IReadOnlyList<GeneratedCodeSample> Samples { get; } = CreateSamples();
 
@@ -57,7 +57,6 @@ internal static partial class EvaluatorSampleFixtures
         samples.AddRange(CreateLibraryExecutionExtensionSamples());
         samples.AddRange(CreateLibraryExecutionCoverageSamples());
         samples.AddRange(CreateLibraryExecutionPerformanceSamples());
-        samples.AddRange(CreateBenchmarkSamples());
 
         return samples;
     }

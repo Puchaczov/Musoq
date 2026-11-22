@@ -18,6 +18,7 @@ src/dotnet/Musoq.Evaluator.KaitaiStruct.Tests/Upstream/** -text -whitespace
 *.Designer.cs -text
 src/dotnet/Musoq.Evaluator.KaitaiStruct.Tests/Upstream/src/*.bin -text -whitespace
 src/dotnet/generated-code-samples/**/*.cs text eol=lf
+src/dotnet/generated-code-samples/benchmarks/manifest.json text eol=lf
 
 ###############################################################################
 # Set default behavior for command prompt diff.

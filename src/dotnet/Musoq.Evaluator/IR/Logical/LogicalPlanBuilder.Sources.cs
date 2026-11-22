@@ -46,13 +46,13 @@ public sealed partial class LogicalPlanBuilder
     public void Visit(SchemaFromNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        var invocation = node is Musoq.Evaluator.Parser.SchemaFromNode semanticSource
-            ? semanticSource.BoundInvocation
-            : null;
+        var semanticSource = node as Musoq.Evaluator.Parser.SchemaFromNode;
+        var invocation = semanticSource?.BoundInvocation;
         var args = invocation is { } bound
             ? ConvertArguments(node.Parameters, bound)
             : ConvertArguments(node.Parameters);
-        var schema = BuildOutputSchema(node.Alias);
+        var boundTable = semanticSource?.BoundTable;
+        var schema = boundTable == null ? BuildOutputSchema(node.Alias) : CreateOutputSchema(boundTable.Columns);
         _nodeStack.Push(
             new IrNodes.SchemaScanNode(
                 node.Schema,
@@ -69,6 +69,9 @@ public sealed partial class LogicalPlanBuilder
                     : null,
                 CreateStructuralArgumentLimits(invocation)
             )
+            {
+                BoundTable = boundTable,
+            }
         );
     }
 

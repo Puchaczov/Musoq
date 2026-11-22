@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
 using Musoq.Evaluator.Utils.Symbols;
@@ -9,7 +10,7 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private readonly Stack<Dictionary<string, FieldNode>> _selectAliasScopes = new();
+    private readonly Stack<(Dictionary<string, FieldNode> Aliases, SelectNode Projection)> _selectAliasScopes = new();
     private readonly HashSet<string> _activeSelectAliasReferences = new(StringComparer.OrdinalIgnoreCase);
 
     internal void PrecollectCurrentQuerySelectAliases(SelectNode select)
@@ -32,7 +33,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             aliases.TryAdd(alias, field);
         }
 
-        _selectAliasScopes.Push(aliases);
+        _selectAliasScopes.Push((aliases, select));
     }
 
     internal void EndCurrentQuerySelectAliasScope()
@@ -57,7 +58,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (IsCurrentSourceColumnForSelectAlias(identifier))
             return false;
 
-        if (!_selectAliasScopes.Peek().TryGetValue(identifier, out var field))
+        if (!_selectAliasScopes.Peek().Aliases.TryGetValue(identifier, out var field))
             return false;
 
         expression = CloneExpression(field.Expression);
@@ -77,6 +78,22 @@ public partial class BuildMetadataAndInferTypesVisitor
     private bool CanCurrentClauseUseSelectAlias()
     {
         return _queryState.QueryPart is QueryPart.Where or QueryPart.GroupBy or QueryPart.Having or QueryPart.Qualify;
+    }
+
+    private bool IsQualifiedOrderByProjectionAlias(AccessColumnNode node)
+    {
+        if (
+            _queryState.QueryPart != QueryPart.OrderBy
+            || string.IsNullOrEmpty(node.Alias)
+            || _selectAliasScopes.Count == 0
+        )
+            return false;
+
+        var (aliases, projection) = _selectAliasScopes.Peek();
+        return aliases.ContainsKey(node.Name)
+            && projection.Fields.Count(field =>
+                string.Equals(field.FieldName, node.Name, StringComparison.OrdinalIgnoreCase)
+            ) == 1;
     }
 
     private bool IsCurrentSourceColumnForSelectAlias(string name)

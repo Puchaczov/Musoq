@@ -104,11 +104,7 @@ internal sealed record BoundTableSymbolContract(
                     symbol.GetTableByAlias(alias).Table
                     ?? throw new InvalidOperationException($"Table symbol alias '{alias}' has no table contract.");
 
-                return new BoundTableContract(
-                    alias,
-                    table.Metadata?.TableEntityType,
-                    Array.AsReadOnly(columns.Select(BoundSchemaColumn.Capture).ToArray())
-                );
+                return BoundTableContract.Capture(alias, table, columns);
             })
             .ToArray();
 
@@ -145,7 +141,15 @@ internal sealed record BoundTableSymbolContract(
     }
 }
 
-internal sealed record BoundTableContract(string Alias, Type? EntityType, IReadOnlyList<BoundSchemaColumn> Columns);
+internal sealed record BoundTableContract(string Alias, Type? EntityType, IReadOnlyList<BoundSchemaColumn> Columns)
+{
+    internal static BoundTableContract Capture(string alias, ISchemaTable table, IEnumerable<ISchemaColumn> columns) =>
+        new(
+            alias,
+            table.Metadata?.TableEntityType,
+            Array.AsReadOnly(columns.Select(BoundSchemaColumn.Capture).ToArray())
+        );
+}
 
 internal sealed class ReadOnlySet<T>(IEnumerable<T> values) : IReadOnlySet<T>
     where T : notnull

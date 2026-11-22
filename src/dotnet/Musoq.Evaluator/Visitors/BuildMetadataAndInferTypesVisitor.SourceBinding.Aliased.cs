@@ -331,8 +331,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             .AddAlias(_sourceBinding.QueryAlias);
         _sourceBinding.CurrentScope[node.Id] = _sourceBinding.QueryAlias;
 
-        if (!_sourceBinding.InferredColumns.ContainsKey(aliasedSchemaFromNode))
-            _sourceBinding.InferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+        CaptureBoundSourceTable(aliasedSchemaFromNode, table);
 
         if (
             definition.TableName != null

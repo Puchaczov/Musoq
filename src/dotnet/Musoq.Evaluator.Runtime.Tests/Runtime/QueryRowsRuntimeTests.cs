@@ -636,6 +636,72 @@ public sealed class QueryRowsRuntimeTests
     }
 
     [TestMethod]
+    public void SmallOrderedBuffer_WhenEachRecordRanksFirst_PreservesBothRetainedRecords()
+    {
+        var comparer = Comparer<(decimal Amount, string Name)>.Create(
+            (left, right) => right.Amount.CompareTo(left.Amount)
+        );
+        var selected = new EvaluationHelper.SmallBoundedTopRecordList<(decimal Amount, string Name)>(1, 2, comparer);
+
+        selected.Add((1m, "first"));
+        selected.Add((2m, "second"));
+        selected.Add((3m, "third"));
+        selected.Add((4m, "fourth"));
+
+        CollectionAssert.AreEqual(new[] { (3m, "third"), (2m, "second") }, selected.ToArray());
+    }
+
+    [TestMethod]
+    [DataRow(new int[] { }, DisplayName = "Empty")]
+    [DataRow(new[] { 1 }, DisplayName = "Singleton")]
+    [DataRow(new[] { 1, 1, 2, 2, 3 }, DisplayName = "Ordered with ties")]
+    [DataRow(new[] { 4, 3, 2, 2, 1 }, DisplayName = "Reversed with ties")]
+    [DataRow(new[] { 3, 1, 5, 0, 1, 4 }, DisplayName = "Shuffled with ties")]
+    [DataRow(new[] { 2, 1, 2, 3, 4 }, DisplayName = "Inversion at the start")]
+    [DataRow(new[] { 1, 1, 3, 2, 4, 5 }, DisplayName = "Inversion in the middle")]
+    [DataRow(new[] { 1, 2, 2, 3, 2 }, DisplayName = "Inversion at the end")]
+    [DataRow(new[] { 2, 3, 4, 5, 6, 7, 1 }, DisplayName = "A record displaced from start to end")]
+    [DataRow(new[] { 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15, 18, 17 }, DisplayName = "Many inversions")]
+    public void SortRecordsIfUnordered_MatchesSortUsingStableComparer(int[] keys)
+    {
+        var records = keys.Select((key, ordinal) => (Key: key, Ordinal: ordinal)).ToList();
+        var comparer = Comparer<(int Key, int Ordinal)>.Create(
+            static (left, right) =>
+            {
+                var byKey = left.Key.CompareTo(right.Key);
+                return byKey != 0 ? byKey : left.Ordinal.CompareTo(right.Ordinal);
+            }
+        );
+        var expected = records.ToList();
+        expected.Sort(comparer);
+
+        EvaluationHelper.SortRecordsIfUnordered(records, comparer);
+
+        CollectionAssert.AreEqual(expected, records);
+    }
+
+    [TestMethod]
+    [DataRow(16)]
+    [DataRow(17)]
+    public void SortRecordsIfUnordered_WhenOrdered_ChecksEachAdjacentPairOnce(int count)
+    {
+        var records = Enumerable.Range(0, count).ToList();
+        var comparisons = new List<(int, int)>();
+        var comparer = Comparer<int>.Create(
+            (left, right) =>
+            {
+                comparisons.Add((left, right));
+                return left.CompareTo(right);
+            }
+        );
+        var adjacentPairs = Enumerable.Range(0, count - 1).Select(index => (index, index + 1)).ToArray();
+
+        EvaluationHelper.SortRecordsIfUnordered(records, comparer);
+
+        CollectionAssert.AreEquivalent(adjacentPairs, comparisons);
+    }
+
+    [TestMethod]
     [DataRow(0, 2)]
     [DataRow(5, 4)]
     [DataRow(11, 21)]

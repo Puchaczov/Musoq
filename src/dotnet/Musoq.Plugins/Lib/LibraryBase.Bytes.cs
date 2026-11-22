@@ -47,6 +47,16 @@ public partial class LibraryBase
     }
 
     /// <summary>
+    ///     Gets the UTF-8 bytes of a string slice. A null argument returns null.
+    /// </summary>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Binary)]
+    public byte[]? GetBytes(string? content, int? length, int? offset) =>
+        length.HasValue && offset.HasValue
+            ? GetBytes(content, length.GetValueOrDefault(), offset.GetValueOrDefault())
+            : null;
+
+    /// <summary>
     ///     Gets the bytes from the given character.
     /// </summary>
     /// <param name="character">The character to convert to bytes</param>

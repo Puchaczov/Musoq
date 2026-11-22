@@ -71,6 +71,14 @@ public partial class LibraryBase
     }
 
     /// <summary>
+    ///     Converts a nullable value to hex using the same representation as its underlying type.
+    /// </summary>
+    [BindableMethod]
+    [MethodCategory(MethodCategories.Conversion)]
+    public string? ToHex<T>(T? value)
+        where T : struct, IConvertible => value.HasValue ? ToHex(value.GetValueOrDefault()) : null;
+
+    /// <summary>
     ///     Converts a hex string to bytes array.
     ///     Supports hex strings with or without delimiters (spaces, dashes, colons).
     /// </summary>

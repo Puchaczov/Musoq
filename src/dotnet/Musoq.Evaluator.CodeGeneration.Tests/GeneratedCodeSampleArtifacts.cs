@@ -143,22 +143,13 @@ internal static class GeneratedCodeSampleArtifacts
                     loggerResolver,
                     compilationOptions
                 ),
-                var type when type == typeof(BenchmarkProjectionOutput) => InspectTyped<BenchmarkProjectionOutput>(
-                    sample,
-                    loggerResolver,
-                    compilationOptions
-                ),
-                var type when type == typeof(BenchmarkWindowOutput) => InspectTyped<BenchmarkWindowOutput>(
-                    sample,
-                    loggerResolver,
-                    compilationOptions
-                ),
                 _ => throw new InvalidOperationException(
                     $"No typed inspection fixture registered for {sample.OutputType}."
                 ),
             };
-            return FormatSample(
-                sample,
+            return FormatInspection(
+                sample.Query,
+                sample.Format,
                 typed.Query ?? throw new InvalidOperationException("Typed sample inspection failed.")
             );
         }
@@ -170,7 +161,7 @@ internal static class GeneratedCodeSampleArtifacts
             compilationOptions
         );
 
-        return FormatSample(sample, inspection);
+        return FormatInspection(sample.Query, sample.Format, inspection);
     }
 
     private static TypedQueryInspectionResult InspectTyped<T>(
@@ -188,7 +179,7 @@ internal static class GeneratedCodeSampleArtifacts
         );
     }
 
-    private static CompilationOptions CreateSnapshotCompilationOptions(CompilationOptions? options)
+    internal static CompilationOptions CreateSnapshotCompilationOptions(CompilationOptions? options)
     {
         // Tracked samples represent the qualified optimized corpus. Preserve each
         // sample's explicit switch values while constraining snapshot parallelism.
@@ -256,7 +247,7 @@ internal static class GeneratedCodeSampleArtifacts
         return GeneratedNamespaceRegex.Replace(normalized, "namespace __generated_sample_namespace__");
     }
 
-    private static string NormalizeLineEndingsForSnapshot(string text)
+    internal static string NormalizeLineEndingsForSnapshot(string text)
     {
         return text.Replace("\r\n", "\n").Replace("\r", "\n");
     }
@@ -364,11 +355,15 @@ internal static class GeneratedCodeSampleArtifacts
         return true;
     }
 
-    private static string FormatSample(GeneratedCodeSample sample, QueryInspectionResult inspection)
+    internal static string FormatInspection(
+        string query,
+        GeneratedCodeSampleFormat format,
+        QueryInspectionResult inspection
+    )
     {
         var builder = new StringBuilder();
 
-        AppendInspectionSection(builder, "Parsed Query", sample.Query);
+        AppendInspectionSection(builder, "Parsed Query", query);
         AppendInspectionSection(builder, "Logical Plan", inspection.LogicalPlanText);
         AppendInspectionSection(builder, "Physical Plan", inspection.PhysicalPlanText);
         AppendInspectionSection(builder, "Execution Plan", inspection.ExecutionPlanText);
@@ -376,14 +371,14 @@ internal static class GeneratedCodeSampleArtifacts
         builder.AppendLine();
 
         if (
-            sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
+            format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
             && TryAppendRawCombinedSyntaxTrees(builder, string.Empty, inspection.GeneratedCSharpCode)
         )
             return $"{builder.ToString().TrimEnd()}{Environment.NewLine}";
 
         var normalized = CSharpSyntaxTree.ParseText(inspection.GeneratedCSharpCode).GetRoot().NormalizeWhitespace();
         var formatted =
-            sample.Format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
+            format == GeneratedCodeSampleFormat.QueryHeaderAndGeneratedCode
                 ? normalized
                 : new SwitchExpressionBraceFormatter().Visit(normalized);
         builder.AppendLine("// === SyntaxTree:  ===");

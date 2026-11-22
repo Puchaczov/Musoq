@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
+using Musoq.Evaluator.IR.Physical;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -10,6 +11,21 @@ internal sealed partial class RowPresenceAliasExtractor : IrExpressionVisitor<IR
     protected override IReadOnlyList<string> VisitMemberAccess(MemberAccess node) => Visit(node.Receiver);
 
     private readonly HashSet<string> _aliases = new(StringComparer.OrdinalIgnoreCase);
+
+    internal static IReadOnlySet<string> Extract(PhysicalNode plan)
+    {
+        var extractor = new RowPresenceAliasExtractor();
+        extractor.VisitPlan(plan);
+        return extractor._aliases;
+    }
+
+    private void VisitPlan(PhysicalNode plan)
+    {
+        foreach (var expression in CteColumnUsageCollector.EnumerateNodeExpressions(plan))
+            Visit(expression);
+        foreach (var child in plan.Children)
+            VisitPlan(child);
+    }
 
     public static IReadOnlyList<string> Extract(IrExpression expression)
     {

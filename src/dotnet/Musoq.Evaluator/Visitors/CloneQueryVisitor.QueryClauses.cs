@@ -68,13 +68,8 @@ public partial class CloneQueryVisitor
             cloned.WithSchemaSpan(schemaSpan);
         if (node.MethodSpan is { } methodSpan)
             cloned.WithMethodSpan(methodSpan);
-        if (node is Parser.SchemaFromNode boundSource && boundSource.BoundInvocation is { } boundInvocation)
-            cloned.SetBoundInvocation(boundInvocation);
-        if (node is Parser.SchemaFromNode metadataSource)
-            cloned.SetStaticMetadataArguments(
-                metadataSource.StaticMetadataArguments,
-                metadataSource.HasRequiredRuntimeArguments
-            );
+        if (node is Parser.SchemaFromNode boundSource)
+            cloned.CopyBindingFrom(boundSource);
         Nodes.Push(cloned);
     }
 

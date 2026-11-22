@@ -171,7 +171,7 @@ namespace GeneratedSample_Q94_OrderByHiddenComputedKey
                     }
                 }
 
-                resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                 return resultOrderRecords;
             }
             finally

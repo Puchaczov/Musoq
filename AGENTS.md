@@ -14,6 +14,7 @@ The query pipeline is SQL text -> typed AST -> logical plan -> planner decisions
 - For implementation, tests, and helpers, read the [code-quality rules](.claude/rules/code-quality.md), including the reflection policy and performance baseline requirement.
 - Select validation using the [validation policy](.claude/rules/validation.md#validation-by-change-impact); the essentials are repeated below for clients that load only this entry point.
 - Before planner, physical planning, Execution IR, or renderer work, read the [architecture rules](.claude/rules/architecture.md). Query strategy belongs in the planner and explicit IR; renderers faithfully emit its decisions.
+- For performance changes, establish a baseline, regenerate all benchmark snapshots, review changes to plans and generated C#, and measure every affected case. Include manually selected cases for shared runtime changes and report the per-case impact. Follow the [benchmark verification workflow](src/dotnet/Musoq.Benchmarks/DEVELOPMENT.md#verifying-performance-changes).
 - After a new Official benchmark train is retained and successfully verified, refresh the README performance charts using the [benchmark chart maintenance procedure](src/dotnet/Musoq.Benchmarks/README.md#refreshing-readme-performance-charts). This applies during benchmark completion and release work that includes a new campaign.
 - Consult [troubleshooting](.claude/rules/troubleshooting.md) for build, test, runtime compilation, or environment failures.
 

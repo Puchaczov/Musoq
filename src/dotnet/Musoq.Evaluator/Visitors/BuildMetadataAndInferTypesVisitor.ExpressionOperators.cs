@@ -1,5 +1,6 @@
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
+using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
 using static Musoq.Evaluator.Visitors.BinaryOperatorTypeRules;
 using static Musoq.Evaluator.Visitors.SemanticExpressionDiagnosticFacts;
@@ -86,9 +87,28 @@ public partial class BuildMetadataAndInferTypesVisitor
         transformedLeft = TransformToNumericTypeIfNeeded(transformedLeft, transformedRight, operationContext);
         transformedRight = TransformToNumericTypeIfNeeded(transformedRight, transformedLeft, operationContext);
 
-        ValidateBinaryOperatorOperands(transformedLeft, transformedRight, operatorKind, errorContextNode);
+        var operandsPassedValidation = ValidateBinaryOperatorOperands(
+            transformedLeft,
+            transformedRight,
+            operatorKind,
+            errorContextNode
+        );
 
-        var result = nodeFactory(transformedLeft, transformedRight);
+        T result;
+        try
+        {
+            result = nodeFactory(transformedLeft, transformedRight);
+        }
+        catch (InvalidOperandTypesException exception) when (operandsPassedValidation)
+        {
+            throw new InvalidOperandTypesException(
+                exception.LeftType,
+                exception.RightType,
+                operatorKind.ToString(),
+                errorContextNode.SpanOrEmpty()
+            );
+        }
+
         if (errorContextNode.HasSpan)
             result.WithSpan(errorContextNode.Span);
         PushSemanticNode(result);
@@ -175,7 +195,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             ValidateBinaryOperatorOperands(left, item, BinaryOperatorKind.Equality, errorContextNode);
     }
 
-    private void ValidateBinaryOperatorOperands(
+    private bool ValidateBinaryOperatorOperands(
         Node left,
         Node right,
         BinaryOperatorKind operatorKind,
@@ -186,7 +206,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var rightType = NormalizeOperandType(right.ReturnType);
 
         if (CanSkipStaticTypeValidation(leftType) || CanSkipStaticTypeValidation(rightType))
-            return;
+            return true;
 
         var isValid = operatorKind switch
         {
@@ -207,7 +227,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         };
 
         if (isValid)
-            return;
+            return true;
 
         if (
             operatorKind
@@ -218,11 +238,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var message = CreateComparisonTypeMismatchMessage(left, right, leftType, rightType);
             if (TryReportTypeMismatch(message, errorContextNode))
-                return;
+                return false;
 
             throw new TypeMismatchException(leftType, rightType, errorContextNode.SpanOrEmpty());
         }
 
         ThrowOrReportInvalidOperandTypes(leftType, rightType, errorContextNode);
+        return false;
     }
 }

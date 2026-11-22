@@ -23,11 +23,7 @@ internal sealed partial class PhysicalLoweringImplementation
             PhysicalAccessMethodSourceNode accessMethod => _shapeResolver.ResolveAccessMethodSourceShape(accessMethod),
             PhysicalValuesScanNode values => CreateValuesRowShape(values),
             PhysicalUnpivotNode unpivot => CreateUnpivotRowShape(unpivot),
-            PhysicalCteRefNode cteRef when ResolveCteGeneratedRowShape(cteRef, cteShapesByName) is { } cteShape =>
-                CreateTypedTableRowShape(cteRef, cteShape),
-            PhysicalCteRefNode cteRef when ResolveCteStoredRowShape(cteRef, cteShapesByName) is { } cteShape =>
-                CreateMaterializedTransitionTableRowShape(cteRef.Alias, cteShape),
-            PhysicalCteRefNode cteRef when cteIndexes.ContainsKey(cteRef.CteName) => CreateTableRowShape(cteRef),
+            PhysicalCteRefNode cteRef => ResolveCteSourceShape(cteRef, cteIndexes, cteShapesByName),
             _ => null,
         };
     }

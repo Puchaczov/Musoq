@@ -269,10 +269,11 @@ For source predicate negotiation and provider migration, see the [Schema guide](
 
 ## Generated Code Samples & Runtime Optimization
 
-Musoq compiles SQL queries into C# code at runtime. The generated-code sample corpus is tracked under `src/dotnet/generated-code-samples/current/` and `src/dotnet/generated-code-samples/profiled/` and is governed by catalog-driven tests in `Musoq.Evaluator.CodeGeneration.Tests`:
+Musoq compiles SQL queries into C# code at runtime. The `current/`, `profiled/`, and `benchmarks/` collections under `src/dotnet/generated-code-samples/` are governed by catalog-driven tests in `Musoq.Evaluator.CodeGeneration.Tests`:
 
-- `GeneratedCodeSamplesCatalog` is the source of truth for all generated sample names, SQL queries, categories, output formats, and schema-provider factories. `GeneratedCodeSamplesShapeTests.ExpectedSampleFileCount` records the current expected corpus size.
+- `GeneratedCodeSamplesCatalog` provides the names, SQL queries, categories, output formats, and schema-provider factories for `current/`. `GeneratedCodeSamplesShapeTests.ExpectedSampleFileCount` records that collection's expected size.
 - `GeneratedCodeSamplesSnapshotTests` validates tracked sample files against deterministic catalog output; CI shape coverage also generates current catalog output in memory.
+- The sibling `benchmarks/` collection uses the active case inventory and canonical fixtures from `Musoq.Benchmarks`. Its manifest maps every case to a snapshot of the logical plan, physical plan, Execution IR, and generated C#. Table execution, typed execution, and artifact packaging represent their actual compilation paths.
 - `GeneratedInterpretationCodeDumpTests` keeps the binary/text interpretation samples (`Q16` and `Q17`) on the same parity path as the catalog.
 - `GeneratedCodeSamplesShapeTests` checks fast structural budgets for generated-code patterns and guards that retired helper shapes such as `GetColumnValue`, `SmartForEach`, `ConvertTableToSource`, `TableRowSource`, discarded-context conversions, and inline `IN` array allocations stay absent unless a test explicitly documents a transitional allowance.
 - `RuntimeV2MaintainabilityBudgetTests` enforces source-file maintainability budgets. Runtime-v2 Execution files should stay at or below 900 lines unless the test carries a concrete temporary justification, and `EvaluationHelper` must remain split into small domain partials rather than growing back into a catch-all helper.
@@ -294,9 +295,9 @@ The snapshot tests compile each catalog query through `InstanceCreator.CreateFor
 4. **Consult the planner architecture reference** in [architecture.md](../../../.claude/rules/architecture.md) for Physical/Execution IR ownership boundaries, and the [Musoq.Benchmarks development guide](../Musoq.Benchmarks/DEVELOPMENT.md) for the benchmark-to-query-family mapping.
 5. **Establish a benchmark baseline before code changes** for the affected query family.
 6. **Implement changes** in `IR/Physical` or `IR/Execution`; touch `IR/CodeGeneration` only for target-neutral render metadata, and touch `Musoq.Targets.CSharpClr` only for generated C# syntax emission.
-7. **Refresh tracked generated-code samples intentionally** and verify the generated code improved.
+7. **Refresh tracked generated-code samples intentionally**. Regenerate the full benchmark collection and review all affected plans and generated C#.
 8. **Run the full test suite** to ensure correctness.
-9. **Run the same benchmarks** and report before/after runtime and allocation deltas.
+9. **Measure every affected case** and report before/after timing, allocations, and outcomes. Select cases manually for shared runtime helper changes, even when snapshots are identical. Follow the [benchmark verification workflow](../Musoq.Benchmarks/DEVELOPMENT.md#verifying-performance-changes).
 
 ### Legacy Codegen Patterns That Should Stay Absent
 
@@ -397,7 +398,7 @@ dotnet test src/dotnet/Musoq.Evaluator.CodeGeneration.Tests --configuration Rele
 2. Inspect the logical plan, physical plan, and Execution IR before changing rendering code.
 3. Put strategy choices in `IR/Physical` and executable metadata in `IR/Execution`.
 4. Touch `IR/CodeGeneration` only when target-neutral final projection/sink render metadata changes; touch `Musoq.Targets.CSharpClr` when generated C# syntax changes.
-5. Regenerate code samples intentionally through the ignored refresh utility in `GeneratedCodeSamplesSnapshotTests`.
+5. Refresh evaluator samples through the ignored utility in `GeneratedCodeSamplesSnapshotTests`. Regenerate benchmark samples using the [benchmark verification workflow](../Musoq.Benchmarks/DEVELOPMENT.md#verifying-performance-changes).
 6. Review the generated code diff.
 7. Run the full test suite.
 8. Run benchmarks if the change affects runtime performance.

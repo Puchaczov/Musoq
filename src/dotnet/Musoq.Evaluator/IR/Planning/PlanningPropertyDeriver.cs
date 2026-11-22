@@ -32,7 +32,7 @@ internal static partial class PlanningPropertyDeriver
         var sources = CreateSourceProperties(
             context,
             scans,
-            requiredColumnsByAlias,
+            requiredColumnUsageResult,
             pushedPredicates,
             preliminaryDecisions
         );
@@ -76,7 +76,7 @@ internal static partial class PlanningPropertyDeriver
         };
         decisions.AddRange(sourcePredicatePlanningResult.Decisions);
         pushedPredicates = sourcePredicatePlanningResult.PushedPredicatesBySourceId;
-        sources = CreateSourceProperties(context, scans, requiredColumnsByAlias, pushedPredicates, decisions);
+        sources = CreateSourceProperties(context, scans, requiredColumnUsageResult, pushedPredicates, decisions);
         context.CancellationToken.ThrowIfCancellationRequested();
         var projectedColumns = new Dictionary<string, string[]>(StringComparer.Ordinal);
         foreach (var source in sources.Values)

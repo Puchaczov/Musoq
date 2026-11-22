@@ -36,6 +36,7 @@ public sealed record TableRowShape : RowShape
     }
 
     public string? GeneratedRowTypeName { get; init; }
+    internal bool StoreOwnRowPresence { get; init; }
 
     public TableRowShape(string alias, IReadOnlyList<FieldBinding> fields)
         : this(alias, fields, []) { }

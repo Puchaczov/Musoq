@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -53,7 +54,8 @@ internal static class UnreachableBranchAdvisoryAnalyzer
         IReadOnlyDictionary<string, ScriptVariableDefinition> variables
     )
     {
-        var seenDeterministicConditions = new HashSet<string>(StringComparer.Ordinal);
+        var seenDeterministicConditions = new HashSet<(string Expression, string SourceAliases)>();
+        var sourceAliases = new StringBuilder();
         var tailIsUnreachable = false;
         var tailWarningReported = false;
 
@@ -91,15 +93,12 @@ internal static class UnreachableBranchAdvisoryAnalyzer
                 continue;
             }
 
-            if (IsDeterministic(condition))
-            {
-                if (!seenDeterministicConditions.Add(condition.Id))
-                    Report(
-                        context,
-                        pair.When,
-                        "A deterministic CASE WHEN condition is duplicated and cannot be selected."
-                    );
-            }
+            sourceAliases.Clear();
+            if (
+                IsDeterministic(condition, sourceAliases)
+                && !seenDeterministicConditions.Add((condition.Id, sourceAliases.ToString()))
+            )
+                Report(context, pair.When, "A deterministic CASE WHEN condition is duplicated and cannot be selected.");
         }
 
         if (tailIsUnreachable && !tailWarningReported)
@@ -155,23 +154,29 @@ internal static class UnreachableBranchAdvisoryAnalyzer
         return true;
     }
 
-    private static bool IsDeterministic(Node node)
+    private static bool IsDeterministic(Node node, StringBuilder sourceAliases)
     {
         if (node is AccessMethodNode or CaseNode or CoalesceNode)
             return false;
 
-        if (
-            node
-            is ConstantValueNode
-                or NullNode
-                or AccessColumnNode
-                or ScriptVariableReferenceNode
-                or ParameterReferenceNode
-        )
+        if (node is AccessColumnNode column)
+        {
+            sourceAliases.Append(column.Alias?.Length ?? 0).Append(':').Append(column.Alias);
+            return true;
+        }
+
+        if (node is ConstantValueNode or NullNode or ScriptVariableReferenceNode or ParameterReferenceNode)
             return true;
 
-        var children = ParserNodeTraversalRegistry.EnumerateChildren(node).ToArray();
-        return children.Length > 0 && children.All(IsDeterministic);
+        var hasChildren = false;
+        foreach (var child in ParserNodeTraversalRegistry.EnumerateChildren(node))
+        {
+            if (!IsDeterministic(child, sourceAliases))
+                return false;
+            hasChildren = true;
+        }
+
+        return hasChildren;
     }
 
     private static void Report(SemanticAdvisoryContext context, Node node, string message)

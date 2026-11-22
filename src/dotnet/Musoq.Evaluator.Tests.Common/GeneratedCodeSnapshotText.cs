@@ -14,6 +14,9 @@ internal static class GeneratedCodeSnapshotText
     public static string SamplesDirectory =>
         Path.Combine(RepositorySourceScan.RepositoryRoot(), "src", "dotnet", "generated-code-samples", "current");
 
+    public static string BenchmarkSamplesDirectory =>
+        Path.Combine(RepositorySourceScan.RepositoryRoot(), "src", "dotnet", "generated-code-samples", "benchmarks");
+
     public static string NormalizeForComparison(string text)
     {
         var normalized = text.Replace("\r\n", "\n").Replace("\r", "\n").TrimEnd();

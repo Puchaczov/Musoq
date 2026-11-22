@@ -139,6 +139,8 @@ public sealed class ConvertingTests : PluginsTestBase
             "00000001 00000010 "
         );
         yield return StringCase("ToBin_NullBytes", library => library.ToBin(null), null);
+        yield return StringCase("ToBin_PresentNullableInt", library => library.ToBin((int?)10), "1010");
+        yield return StringCase("ToBin_NullNullableInt", library => library.ToBin((int?)null), null);
     }
 
     private static IEnumerable<object?[]> ToOctalCases()
@@ -155,6 +157,8 @@ public sealed class ConvertingTests : PluginsTestBase
         yield return StringCase("ToOcta_Decimal", library => library.ToOcta(123.45m), ConversionNotSupported);
         yield return StringCase("ToOcta_Single", library => library.ToOcta(3.14f), ConversionNotSupported);
         yield return StringCase("ToOcta_String", library => library.ToOcta("test"), ConversionNotSupported);
+        yield return StringCase("ToOcta_PresentNullableInt", library => library.ToOcta((int?)64), "100");
+        yield return StringCase("ToOcta_NullNullableInt", library => library.ToOcta((int?)null), null);
     }
 
     private static IEnumerable<object?[]> ToDecimalBaseCases()
@@ -173,6 +177,8 @@ public sealed class ConvertingTests : PluginsTestBase
         yield return StringCase("ToDec_Decimal", library => library.ToDec(123.45m), ConversionNotSupported);
         yield return StringCase("ToDec_Single", library => library.ToDec(3.14f), ConversionNotSupported);
         yield return StringCase("ToDec_String", library => library.ToDec("test"), ConversionNotSupported);
+        yield return StringCase("ToDec_PresentNullableInt", library => library.ToDec((int?)12345), "12345");
+        yield return StringCase("ToDec_NullNullableInt", library => library.ToDec((int?)null), null);
     }
 
     private static IEnumerable<object?[]> ToHexCases()
@@ -184,6 +190,12 @@ public sealed class ConvertingTests : PluginsTestBase
         );
         yield return StringCase("ToHex_EmptyBytes", library => library.ToHex(Array.Empty<byte>()), string.Empty);
         yield return StringCase("ToHex_NullBytes", library => library.ToHex(null), null);
+        yield return StringCase(
+            "ToHex_PresentNullableUInt16",
+            library => library.ToHex((ushort?)ushort.MaxValue),
+            "FFFF"
+        );
+        yield return StringCase("ToHex_NullNullableUInt16", library => library.ToHex((ushort?)null), null);
         yield return StringCase("ToHex_DateTime", library => library.ToHex(DateTime.Now), ConversionNotSupported);
     }
 

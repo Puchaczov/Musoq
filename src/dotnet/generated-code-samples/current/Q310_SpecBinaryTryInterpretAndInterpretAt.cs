@@ -149,7 +149,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
         private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
-            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            var __musoqProgressContext = global::Musoq.Evaluator.Runtime.TolerantInterpretation.Bind(token, OnQueryProgress, this, "compiled");
             Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
@@ -243,7 +243,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                             Musoq.Generated.Interpreters.Header? statement0_hRows = null;
                             try
                             {
-                                statement0_hRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryInterpret(_interpreter_Header, f.Content);
+                                statement0_hRows = global::Musoq.Evaluator.Runtime.TolerantInterpretation.TryInterpret(_interpreter_Header, f.Content, __musoqProgressContext, "Header");
                             }
                             catch (global::Musoq.Schema.Interpreters.ParseException)
                             {
@@ -276,7 +276,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                             Musoq.Generated.Interpreters.Header? statement0_hRows = null;
                             try
                             {
-                                statement0_hRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryInterpret(_interpreter_Header, f.Content);
+                                statement0_hRows = global::Musoq.Evaluator.Runtime.TolerantInterpretation.TryInterpret(_interpreter_Header, f.Content, __musoqProgressContext, "Header");
                             }
                             catch (global::Musoq.Schema.Interpreters.ParseException)
                             {
@@ -307,7 +307,7 @@ namespace GeneratedSample_Q310_SpecBinaryTryInterpretAndInterpretAt
                     Musoq.Generated.Interpreters.Header? statement0_hRows = null;
                     try
                     {
-                        statement0_hRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryInterpret(_interpreter_Header, f.Content);
+                        statement0_hRows = global::Musoq.Evaluator.Runtime.TolerantInterpretation.TryInterpret(_interpreter_Header, f.Content, __musoqProgressContext, "Header");
                     }
                     catch (global::Musoq.Schema.Interpreters.ParseException)
                     {

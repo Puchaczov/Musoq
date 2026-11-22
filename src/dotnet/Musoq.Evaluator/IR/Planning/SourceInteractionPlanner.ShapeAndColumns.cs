@@ -23,7 +23,7 @@ internal static partial class SourceInteractionPlanner
             );
         }
 
-        var entityType = SourceEntityMetadataResolver.ResolveSourceEntityType(context.Scope, scan.Alias);
+        var entityType = SourceScanMetadata.ResolveEntityType(context, scan);
         if (entityType != null)
         {
             if (SourceEntityMetadataResolver.IsDynamicEntity(entityType))
@@ -42,12 +42,15 @@ internal static partial class SourceInteractionPlanner
             );
         }
 
-        if (context.InferredColumns.TryGetValue(scan.Alias, out var inferredColumns) && inferredColumns.Length > 0)
+        var inferredColumnCount =
+            scan.BoundTable?.Columns.Count
+            ?? (context.InferredColumns.TryGetValue(scan.Alias, out var inferredColumns) ? inferredColumns.Length : 0);
+        if (inferredColumnCount > 0)
         {
             return new SourceInteractionShape(
                 SourceShapeKind.InferredMetadata,
                 PlanningConfidence.Medium,
-                $"Source shape was inferred from {inferredColumns.Length} column(s)."
+                $"Source shape was inferred from {inferredColumnCount} column(s)."
             );
         }
 

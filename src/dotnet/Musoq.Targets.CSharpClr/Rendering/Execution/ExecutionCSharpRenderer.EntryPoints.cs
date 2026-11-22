@@ -102,7 +102,11 @@ public sealed partial class ExecutionCSharpRenderer
         var statements = new List<StatementSyntax>();
         if (!session.IsSubqueryHelper)
             statements.AddRange(
-                CreateQueryRunContextAliasStatements(session.UseQueryRunContext, queryIdentifier: queryIdentifier)
+                CreateQueryRunContextAliasStatements(
+                    session.UseQueryRunContext,
+                    queryIdentifier: queryIdentifier,
+                    usesTolerantInterpretation: session.UsesTolerantInterpretation
+                )
             );
 
         statements.AddRange(CreateOpeningPhaseStatements(block, queryIdentifier));

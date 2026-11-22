@@ -18,8 +18,15 @@ public static class CampaignCli
                 Console.WriteLine(
                     "--action Run|List|Status|Verify|Latest --mode Local|Official --filter <glob> --size <count> --job Short|Dry|Default --machine-profile <name> --output <directory> --resume <directory> --run-directory <directory> --history-root <directory> --json --include-retired (Local measurement or List) --in-process (local Dry only); --compare-readme <script.sql>"
                 );
+                Console.WriteLine("--action SnapshotDiff --baseline-ref <ref> [--candidate-patch <path>] --json");
+                Console.WriteLine("--action Compare --comparison-input <path> --json");
                 return 0;
             }
+            if (
+                arguments is ["--action", var action, .. var supplied]
+                && action.ToLowerInvariant() is "snapshotdiff" or "compare"
+            )
+                return InspectRegression(action, supplied.Where(value => value != "--json").ToArray(), output);
             return Dispatch(CampaignOptions.Parse(arguments), output);
         }
         catch (Exception exception)
@@ -48,6 +55,26 @@ public static class CampaignCli
         finally
         {
             Console.SetOut(output);
+        }
+    }
+
+    private static int InspectRegression(string action, string[] arguments, TextWriter output)
+    {
+        switch (action.ToLowerInvariant(), arguments)
+        {
+            case ("snapshotdiff", ["--baseline-ref", var baseline]):
+                Write(output, BenchmarkSnapshotChanges.Inspect(ProvenanceCollector.RepositoryRoot(), baseline, null));
+                return 0;
+            case ("snapshotdiff", ["--baseline-ref", var baseline, "--candidate-patch", var patch]):
+                Write(output, BenchmarkSnapshotChanges.Inspect(ProvenanceCollector.RepositoryRoot(), baseline, patch));
+                return 0;
+            case ("compare", ["--comparison-input", var input]):
+                Write(output, BenchmarkRegressionComparison.Read(input));
+                return 0;
+            default:
+                throw new ArgumentException(
+                    "SnapshotDiff requires --baseline-ref and optionally --candidate-patch. Compare requires --comparison-input."
+                );
         }
     }
 

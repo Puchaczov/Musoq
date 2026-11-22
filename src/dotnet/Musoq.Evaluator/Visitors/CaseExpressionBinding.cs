@@ -15,6 +15,14 @@ internal static class CaseExpressionBinding
     )
     {
         var common = SemanticTypeInferenceService.FindGreatestCommonSubtype(resultTypes);
+        if (
+            common == typeof(object)
+            && resultTypes.Contains(typeof(byte[]))
+            && otherwise is ElseNode fallback
+            && IsByteArrayResult(fallback.Expression)
+            && branches.All(static branch => branch.Then is ThenNode result && IsByteArrayResult(result.Expression))
+        )
+            common = typeof(byte[]);
         var hasLiteralNull = resultTypes.Any(static type => type == NullNode.NullType.Instance);
         var hasNullableSubquery =
             branches.Any(static pair => SubqueryBindingScope.ContainsNullableSubquery(pair.Then))
@@ -33,4 +41,9 @@ internal static class CaseExpressionBinding
         expression.Accept(new RewritePartsWithProperNullHandlingTraverseVisitor(rewrite));
         return rewrite.RewrittenNode;
     }
+
+    private static bool IsByteArrayResult(Node value) =>
+        value.ReturnType == typeof(byte[])
+        || value is NullNode
+        || value is ArrayLiteralNode array && array.Elements.All(static element => element.ReturnType == typeof(byte));
 }

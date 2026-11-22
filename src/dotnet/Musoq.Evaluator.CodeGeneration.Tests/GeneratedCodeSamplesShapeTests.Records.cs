@@ -30,7 +30,12 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
     private sealed record SourceScanShapeExpectation(string FileName, string Alias, string DirectUsePattern = "");
 
-    private sealed record GeneratedCodeSampleFile(string FileName, string Category, string Content);
+    private sealed record GeneratedCodeSampleFile(
+        string FileName,
+        string Category,
+        string Content,
+        string? OutputTypeName
+    );
 
     private sealed record GeneratedMethod(string Name, string Body);
 
