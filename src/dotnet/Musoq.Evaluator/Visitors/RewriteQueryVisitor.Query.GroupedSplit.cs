@@ -151,7 +151,7 @@ public sealed partial class RewriteQueryVisitor
         {
             var splitOrderBy = FieldProcessingHelper.CreateAfterGroupByOrderByAccessFields(
                 context.OrderBy.Fields,
-                groupBy.Fields
+                context.GroupBy!.Fields
             );
             modifiedOrderBy = new OrderByNode(splitOrderBy);
         }

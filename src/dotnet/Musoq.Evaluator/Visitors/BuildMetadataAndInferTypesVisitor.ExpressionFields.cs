@@ -27,12 +27,20 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         var expression = PopSemanticNode(VisitorOperationNames.VisitFieldOrderedNode);
+        // Keep the resolved projection alias alongside its expression through the AST rewrites.
+        var projectionAlias =
+            _queryState.QueryPart == QueryPart.OrderBy
+            && node.Expression is IdentifierNode identifier
+            && _resultShape.SelectFieldAliases.TryGetValue(identifier.Name, out var aliasedExpression)
+            && ReferenceEquals(expression, aliasedExpression)
+                ? identifier.Name
+                : null;
         PushSemanticNode(
             new FieldOrderedNode(
                 expression,
                 node.FieldOrder,
-                node.FieldName,
-                node.HasExplicitFieldName,
+                projectionAlias ?? node.FieldName,
+                projectionAlias != null || node.HasExplicitFieldName,
                 node.Order,
                 node.NullOrdering
             )

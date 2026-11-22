@@ -30,14 +30,15 @@ internal static class SortKeyProjectionResolver
             : null;
     }
 
-    public static int? TryResolveOutputIndex(IrExpression sortExpression, IReadOnlyList<ProjectedField> projectedFields)
+    public static int? TryResolveOutputIndex(OrderField sortKey, IReadOnlyList<ProjectedField> projectedFields)
     {
-        ArgumentNullException.ThrowIfNull(sortExpression);
+        ArgumentNullException.ThrowIfNull(sortKey);
         ArgumentNullException.ThrowIfNull(projectedFields);
-        return (
-            TryResolveAggregateSortField(sortExpression, projectedFields)
-            ?? TryResolveProjectedFieldByExpression(sortExpression, projectedFields)
-        )?.OutputIndex;
+        return sortKey.ProjectedOutputIndex
+            ?? (
+                TryResolveAggregateSortField(sortKey.Expression, projectedFields)
+                ?? TryResolveProjectedFieldByExpression(sortKey.Expression, projectedFields)
+            )?.OutputIndex;
     }
 
     private static ProjectedField? TryResolveProjectedFieldByExpression(

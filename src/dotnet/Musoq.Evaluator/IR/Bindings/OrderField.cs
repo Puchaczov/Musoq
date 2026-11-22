@@ -6,4 +6,7 @@ public sealed record OrderField(
     IrExpression Expression,
     bool Descending,
     NullOrdering NullOrdering = NullOrdering.Default
-);
+)
+{
+    internal int? ProjectedOutputIndex { get; init; }
+}

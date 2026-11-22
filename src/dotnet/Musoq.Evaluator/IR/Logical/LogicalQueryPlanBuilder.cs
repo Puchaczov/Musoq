@@ -276,7 +276,17 @@ public sealed partial class LogicalPlanBuilder
         {
             var expr = _converter.Convert(field.Expression);
             var descending = field.Order == Order.Descending;
-            _orderFields.Add(new OrderField(expr, descending, ConvertNullOrdering(field.NullOrdering)));
+            var projection = field.HasExplicitFieldName
+                ? _projectedFields.Find(projected =>
+                    string.Equals(projected.OutputName, field.FieldName, StringComparison.OrdinalIgnoreCase)
+                )
+                : null;
+            _orderFields.Add(
+                new OrderField(expr, descending, ConvertNullOrdering(field.NullOrdering))
+                {
+                    ProjectedOutputIndex = projection?.OutputIndex,
+                }
+            );
         }
     }
 

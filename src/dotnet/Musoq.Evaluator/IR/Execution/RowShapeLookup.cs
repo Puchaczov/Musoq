@@ -149,7 +149,7 @@ internal static class RowShapeLookup
         IReadOnlyList<ProjectedField> projectedFields
     )
     {
-        var outputIndex = SortKeyProjectionResolver.TryResolveOutputIndex(key.Expression, projectedFields);
+        var outputIndex = SortKeyProjectionResolver.TryResolveOutputIndex(key, projectedFields);
         if (outputIndex != null)
             return rowShape.Fields.FirstOrDefault(field => field.OutputIndex == outputIndex);
 

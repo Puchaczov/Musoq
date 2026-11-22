@@ -42,7 +42,7 @@ public class RewriteFieldOrderedWithGroupMethodCall(FieldNode[] nodes)
     protected override string ExtractOriginalExpression(FieldNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        return node.FieldName;
+        return node.Expression.ToString();
     }
 
     private bool MatchesGroupByField(string expression)
