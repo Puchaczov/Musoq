@@ -20,14 +20,18 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         return new GeneratedCodeSampleFile(
             sample.FileName,
             sample.Category,
-            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver)
+            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver),
+            SampleOutputTypeName(sample)
         );
     }
 
     private static GeneratedCodeSampleFile[] ReadAllSamples()
     {
-        return GeneratedCodeSampleCorpus.ReadAll();
+        return [.. GeneratedCodeSampleCorpus.ReadAll(), .. BenchmarkShapeSamples.Value];
     }
+
+    private static string? SampleOutputTypeName(GeneratedCodeSample sample) =>
+        sample.OutputType is { } output ? Helpers.EvaluationHelper.GetCastableType(output) : null;
 
     private static GeneratedCodeSampleFile[] ReadNamedSamples(params string[] fileNames)
     {

@@ -51,6 +51,8 @@ Filters are case-insensitive globs over case IDs or benchmark class names. `-Out
 directory. Resumes restore the saved mode, filter, size, machine profile and job. Conflicting overrides are rejected. Commands never commit, push or change branches.
 Do not overlap measurements with builds, tests or other heavy work.
 
+For optimizer work, use the [benchmark verification workflow](DEVELOPMENT.md#verifying-performance-changes) to regenerate snapshots, resolve affected cases, and compare saved runs.
+
 ## Local basic query workloads
 
 The Local filter `BQ_*` measures basic projection, filter selectivity, bounded ordering, paging and counting.
@@ -276,6 +278,7 @@ these commands. It never commits or pushes collected results.
 2. Add independently authored small expected columns/rows in the test project. The normal catalog automatically
    participates in mirrored tests and table benchmarks. Register specialized benchmark types in `BenchmarkRegistrations`.
 3. Run its small test and a filtered Dry check, then proper measurements when needed.
+4. Regenerate the [benchmark snapshot collection](DEVELOPMENT.md#verifying-performance-changes) and review the new case mappings.
 
 Inventory tests check unique IDs, complete expectations and benchmark registrations. Preserve historical
 bundles and use a new suite label for intentionally incompatible methodology changes. Exact sizes,

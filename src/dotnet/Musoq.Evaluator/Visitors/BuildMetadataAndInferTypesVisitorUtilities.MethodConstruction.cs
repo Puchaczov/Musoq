@@ -46,7 +46,7 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
             var i = 0;
             var shiftArgsWhenInjectSpecificSourcePresent = 0;
 
-            if (parameters[0].GetCustomAttribute<InjectSpecificSourceAttribute>() != null)
+            if (parameters.Length > 0 && parameters[0].GetCustomAttribute<InjectSpecificSourceAttribute>() != null)
             {
                 i = 1;
                 shiftArgsWhenInjectSpecificSourcePresent = 1;
@@ -146,7 +146,10 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
             }
         }
 
-        constructedMethod = methodInfo.MakeGenericMethod(genericArgumentsConcreteTypes);
-        return true;
+        return ScalarGenericMethodConstruction.TryCloseMethod(
+            methodInfo,
+            genericArgumentsConcreteTypes,
+            out constructedMethod
+        );
     }
 }

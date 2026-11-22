@@ -1,4 +1,5 @@
-﻿using Musoq.Evaluator.Visitors;
+﻿using Musoq.Evaluator.Utils;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 using Musoq.Schema.DataSources;
 
@@ -20,6 +21,15 @@ public class SchemaFromNode(
     public bool HasExternallyProvidedTypes { get; } = hasExternallyProvidedTypes;
 
     internal BoundSchemaInvocation? BoundInvocation { get; private set; }
+
+    internal BoundTableContract? BoundTable { get; set; }
+
+    internal void CopyBindingFrom(SchemaFromNode source)
+    {
+        BoundInvocation = source.BoundInvocation;
+        BoundTable = source.BoundTable;
+        SetStaticMetadataArguments(source.StaticMetadataArguments, source.HasRequiredRuntimeArguments);
+    }
 
     internal object?[] StaticMetadataArguments { get; private set; } = [];
 

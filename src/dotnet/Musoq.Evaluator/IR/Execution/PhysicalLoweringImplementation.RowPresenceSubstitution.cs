@@ -26,6 +26,12 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         var map = CreatePresenceMap(sourceLookup);
         map[missingAlias] = false;
+        if (sourceLookup.TryGetValue(missingAlias, out var shape) && shape is TableRowShape tableRow)
+        {
+            foreach (var context in tableRow.Contexts)
+                if (context.RowPresenceAlias is { } alias)
+                    map[alias] = false;
+        }
         return map;
     }
 
@@ -57,6 +63,9 @@ internal sealed partial class PhysicalLoweringImplementation
 
             foreach (var context in tableRow.Contexts)
             {
+                if (context.RowPresenceAlias != null)
+                    continue;
+
                 if (!string.IsNullOrWhiteSpace(context.Name))
                     yield return context.Name;
 

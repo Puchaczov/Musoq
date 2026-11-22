@@ -9,24 +9,25 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private bool TryResolveMethodWithRecovery(
+    private bool TryBindMethod(
         AccessMethodNode node,
-        ArgsListNode args,
+        ref ArgsListNode args,
         MethodResolutionContext methodContext,
         out MethodInfo method,
         out bool canSkipInjectSource
     )
     {
+        var originalArgs = args;
         try
         {
-            (method, canSkipInjectSource) = DiagnosticRecovery.ResolveMethod(
-                () => ResolveMethod(node, args, methodContext),
+            (method, canSkipInjectSource, args) = DiagnosticRecovery.ResolveMethod(
+                () => ResolveMethod(node, originalArgs, methodContext),
                 DiagnosticContext,
-                args
+                originalArgs
             );
             return true;
         }
-        catch (CannotResolveMethodException exception) when (TryRecoverUnresolvedMethod(node, args, exception))
+        catch (CannotResolveMethodException exception) when (TryRecoverUnresolvedMethod(node, originalArgs, exception))
         {
             method = null!;
             canSkipInjectSource = false;

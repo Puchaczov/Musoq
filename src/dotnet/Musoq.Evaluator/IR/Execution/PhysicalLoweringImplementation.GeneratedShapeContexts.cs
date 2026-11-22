@@ -38,7 +38,10 @@ internal sealed partial class PhysicalLoweringImplementation
                         ? FieldNullability.Nullable
                         : FieldNullability.Unknown,
                     new ContextAccess(startIndex)
-                );
+                )
+                {
+                    RowPresenceAlias = tableRow.StoreOwnRowPresence ? tableAlias : null,
+                };
 
                 yield break;
             }
@@ -55,6 +58,26 @@ internal sealed partial class PhysicalLoweringImplementation
                     Nullability = IsNullableContext(context, nullableAliases)
                         ? FieldNullability.Nullable
                         : context.Nullability,
+                };
+            }
+
+            if (tableRow.StoreOwnRowPresence)
+            {
+                // A CTE row can exist even when its definition projected a missing source row.
+                var name = $"{tableRow.Alias} IS PRESENT";
+                var index = startIndex + tableRow.Contexts.Count;
+                yield return new FieldBinding(
+                    name,
+                    name,
+                    index,
+                    typeof(object),
+                    IsNullableContext(tableRow.Alias, nullableAliases)
+                        ? FieldNullability.Nullable
+                        : FieldNullability.Unknown,
+                    new ContextAccess(index)
+                )
+                {
+                    RowPresenceAlias = tableRow.Alias,
                 };
             }
 

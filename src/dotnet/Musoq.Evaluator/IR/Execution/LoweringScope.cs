@@ -80,6 +80,9 @@ internal sealed class LoweringScope
 
     public LoweringScope WithSidecarJoinPipelineSuppressed() => Create(Cte with { SuppressSidecarJoinPipeline = true });
 
+    public LoweringScope WithRequiredRowPresenceAliases(IReadOnlySet<string> aliases) =>
+        Create(Cte with { RequiredRowPresenceAliases = aliases });
+
     public LoweringScope WithScalarSubqueryEmptyResults(
         IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> scalarSubqueryEmptyResults
     )

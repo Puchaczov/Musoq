@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Execution;
 using Musoq.Evaluator.IR.Expressions;
+using Musoq.Evaluator.Utils;
 
 namespace Musoq.Evaluator.IR.Physical.Nodes;
 
@@ -22,5 +23,7 @@ public sealed record PhysicalSchemaScanNode(
     IReadOnlyList<ExecutionStructuralLimitPlan?>? StructuralArgumentLimits = null
 ) : PhysicalNode(OutputSchema)
 {
+    internal BoundTableContract? BoundTable { get; init; }
+
     public override IReadOnlyList<PhysicalNode> Children { get; } = Array.Empty<PhysicalNode>();
 }

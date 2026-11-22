@@ -43,6 +43,24 @@ public sealed class InterpretationRecoveryBoundaryTests
             exception,
             Assert.Throws<Exception>(() => new FailingText(exception).TryParse(string.Empty, out _))
         );
+        Assert.AreSame(
+            exception,
+            Assert.Throws<Exception>(() => InterpretationStatus.TryParse(new FailingText(exception), string.Empty))
+        );
+        Assert.AreSame(
+            exception,
+            Assert.Throws<Exception>(() =>
+                InterpretationStatus.TryParse(new LegacyFailingText(exception), string.Empty)
+            )
+        );
+    }
+
+    [TestMethod]
+    public void TextStatusTryParse_ShouldRecoverLegacyParseException()
+    {
+        var interpreter = new LegacyFailingText(new ParseException("Invalid input"));
+
+        Assert.IsNull(InterpretationStatus.TryParse(interpreter, string.Empty));
     }
 
     private static Exception CreateFailure(string failure) =>
@@ -65,5 +83,16 @@ public sealed class InterpretationRecoveryBoundaryTests
         public override string SchemaName => "Failure";
 
         public override object ParseAt(ReadOnlySpan<char> data, int position) => throw failure;
+    }
+
+    private sealed class LegacyFailingText(Exception failure) : ITextInterpreter<object>
+    {
+        public string SchemaName => "Failure";
+
+        public int CharsConsumed => 0;
+
+        public object Parse(ReadOnlySpan<char> text) => ParseAt(text, 0);
+
+        public object ParseAt(ReadOnlySpan<char> text, int position) => throw failure;
     }
 }

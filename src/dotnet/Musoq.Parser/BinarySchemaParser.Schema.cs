@@ -88,6 +88,14 @@ public partial class SchemaParser
         var name = ComposeIdentifierOrWord();
         Consume(TokenType.Colon);
 
+        if (Current.TokenType == TokenType.At && PeekNextTokenType() == TokenType.Integer)
+            throw new SyntaxException(
+                $"Put the field type before the offset modifier, for example '{name}: byte[1] at 0'.",
+                _lexer.AlreadyResolvedQueryPart,
+                DiagnosticCode.MQ2001_UnexpectedToken,
+                Current.Span
+            );
+
         if (Current.TokenType == TokenType.Equality)
         {
             Consume(TokenType.Equality);

@@ -138,19 +138,24 @@ public sealed partial class ExecutionCSharpRenderer
         };
         if (statusMethod is not null)
         {
+            var tolerant = interpret.Kind is InterpretSourceKind.TryInterpret or InterpretSourceKind.TryParse;
+            var arguments = new[] { SyntaxFactory.IdentifierName(interpreterVariableName) }
+                .Cast<ExpressionSyntax>()
+                .Concat(interpret.Arguments.Select(argument => RenderExpression(argument, context)));
+            if (tolerant)
+                arguments = arguments.Concat([
+                    SyntaxFactory.IdentifierName("__musoqProgressContext"),
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal(interpret.SchemaName)
+                    ),
+                ]);
+            var helperType = tolerant
+                ? "global::Musoq.Evaluator.Runtime.TolerantInterpretation"
+                : "global::Musoq.Schema.Interpreters.InterpretationStatus";
             return SyntaxFactory
-                .InvocationExpression(
-                    SyntaxFactory.ParseExpression(
-                        $"global::Musoq.Schema.Interpreters.InterpretationStatus.{statusMethod}"
-                    )
-                )
-                .WithArgumentList(
-                    CreateArgumentList(
-                        new[] { SyntaxFactory.IdentifierName(interpreterVariableName) }
-                            .Cast<ExpressionSyntax>()
-                            .Concat(interpret.Arguments.Select(argument => RenderExpression(argument, context)))
-                    )
-                );
+                .InvocationExpression(SyntaxFactory.ParseExpression($"{helperType}.{statusMethod}"))
+                .WithArgumentList(CreateArgumentList(arguments));
         }
         var invocation = SyntaxFactory
             .InvocationExpression(

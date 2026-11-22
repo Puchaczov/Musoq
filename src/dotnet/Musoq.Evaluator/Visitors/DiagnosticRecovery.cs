@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
@@ -10,11 +9,7 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class DiagnosticRecovery
 {
-    internal static (MethodInfo Method, bool CanSkipInjectSource) ResolveMethod(
-        Func<(MethodInfo Method, bool CanSkipInjectSource)> resolver,
-        DiagnosticContext? context,
-        ArgsListNode args
-    )
+    internal static T ResolveMethod<T>(Func<T> resolver, DiagnosticContext? context, ArgsListNode args)
     {
         try
         {

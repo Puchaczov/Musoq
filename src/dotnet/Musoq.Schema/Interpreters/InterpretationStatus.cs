@@ -58,8 +58,19 @@ public static class InterpretationStatus
     /// <summary>Returns a text result or the established tolerant default value.</summary>
     public static T? TryParse<T>(ITextInterpreter<T> interpreter, string? data)
     {
-        var input = new TextParseInput(data, suppressFailureDetails: true);
-        var result = ReadAt(interpreter, ref input, 0);
-        return result.Succeeded ? result.Value : default;
+        ArgumentNullException.ThrowIfNull(interpreter);
+        try
+        {
+            if (interpreter is not ITextInterpreterStatus<T> status)
+                return interpreter.ParseAt(data.AsSpan(), 0);
+
+            var input = new TextParseInput(data, suppressFailureDetails: true);
+            var result = status.ReadAt(ref input, 0);
+            return result.Succeeded ? result.Value : default;
+        }
+        catch (ParseException)
+        {
+            return default;
+        }
     }
 }

@@ -38,7 +38,7 @@ internal static class ScalarGenericMethodConstruction
                     var valueType = ScalarArgumentTypeMetadata.Resolve(arguments.Args[argumentIndex++]);
                     if (valueType is NullNode.NullType)
                         continue;
-                    if (valueType == null || !Bind(element, valueType, inferred))
+                    if (valueType == null || !Bind(element, valueType, inferred, allowNullableLift: true))
                     {
                         constructed = null;
                         return false;
@@ -47,9 +47,11 @@ internal static class ScalarGenericMethodConstruction
                 continue;
             }
             var actual = ScalarArgumentTypeMetadata.Resolve(arguments.Args[argumentIndex++]);
+            if (actual is NullNode.NullType && Nullable.GetUnderlyingType(parameter.ParameterType) != null)
+                continue;
             if (actual is NullNode.NullType)
                 actual = typeof(DBNull);
-            if (actual == null || !Bind(parameter.ParameterType, actual, inferred))
+            if (actual == null || !Bind(parameter.ParameterType, actual, inferred, allowNullableLift: true))
             {
                 constructed = null;
                 return false;
@@ -58,18 +60,29 @@ internal static class ScalarGenericMethodConstruction
         constructed = null;
         if (inferred.Any(static type => type == null))
             return false;
+
+        return TryCloseMethod(method, inferred.Select(static type => type!).ToArray(), out constructed);
+    }
+
+    internal static bool TryCloseMethod(
+        MethodInfo method,
+        Type[] typeArguments,
+        [NotNullWhen(true)] out MethodInfo? constructed
+    )
+    {
         try
         {
-            constructed = method.MakeGenericMethod(inferred.Select(static type => type!).ToArray());
+            constructed = method.MakeGenericMethod(typeArguments);
+            return true;
         }
         catch (ArgumentException)
         {
+            constructed = null;
             return false;
         }
-        return true;
     }
 
-    private static bool Bind(Type parameter, Type actual, Type?[] inferred)
+    private static bool Bind(Type parameter, Type actual, Type?[] inferred, bool allowNullableLift = false)
     {
         if (parameter.IsGenericParameter)
         {
@@ -86,6 +99,14 @@ internal static class ScalarGenericMethodConstruction
             return Bind(parameter.GetElementType()!, actual.GetElementType()!, inferred);
         if (!parameter.IsGenericType)
             return false;
+        if (
+            allowNullableLift
+            && Nullable.GetUnderlyingType(parameter) is { } nullableElement
+            && actual.IsValueType
+            && Nullable.GetUnderlyingType(actual) == null
+        )
+            return Bind(nullableElement, actual, inferred);
+
         var definition = parameter.GetGenericTypeDefinition();
         var candidate =
             actual.IsGenericType && actual.GetGenericTypeDefinition() == definition

@@ -64,6 +64,7 @@ public sealed class QueryRunContext
     public QueryProgressEventHandler? QueryProgress { get; }
 
     public QueryProgressOptions QueryProgressOptions => _queryProgressOptions;
+    internal System.Action<string, string, int>? InterpretationObserver { get; set; }
 
     public object Sender { get; }
 

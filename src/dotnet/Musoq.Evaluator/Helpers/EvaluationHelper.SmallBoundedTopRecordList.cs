@@ -57,8 +57,20 @@ public static partial class EvaluationHelper
                         high = middle;
                 }
             }
-            if (position < end)
-                Array.Copy(_records, position, _records, position + 1, end - position);
+            int shiftCount = end - position;
+            switch (shiftCount)
+            {
+                case 1:
+                    _records[end] = _records[position];
+                    break;
+                case 2:
+                    _records[end] = _records[end - 1];
+                    _records[end - 1] = _records[position];
+                    break;
+                case > 2:
+                    Array.Copy(_records, position, _records, position + 1, shiftCount);
+                    break;
+            }
             _records[position] = record;
             _length = end + 1;
         }

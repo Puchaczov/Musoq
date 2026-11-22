@@ -41,7 +41,8 @@ public sealed partial class GeneratedCodeSamplesShapeTests
                         generated[index] = new GeneratedCodeSampleFile(
                             sample.FileName,
                             sample.Category,
-                            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver)
+                            GeneratedCodeSampleArtifacts.Generate(sample, LoggerResolver),
+                            SampleOutputTypeName(sample)
                         );
                     }
                 );

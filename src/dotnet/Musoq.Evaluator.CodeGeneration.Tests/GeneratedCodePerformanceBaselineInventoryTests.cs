@@ -80,7 +80,11 @@ public sealed class GeneratedCodePerformanceBaselineInventoryTests
         var actualFiles = files.Select(Path.GetFileName).ToArray();
         CollectionAssert.IsSubsetOf(expectedFiles, actualFiles);
 
-        var offenders = FindTokenOffenders(files, ForbiddenGeneratedExecutionTokens);
+        var benchmarkFiles = global::Musoq.Tests.Common.RequiredSourceInventory.Files(
+            BenchmarkSnapshotGenerator.DirectoryPath,
+            "*.cs"
+        );
+        var offenders = FindTokenOffenders(files.Concat(benchmarkFiles), ForbiddenGeneratedExecutionTokens);
         Assert.IsEmpty(offenders, FormatOffenders(offenders));
 
         var rendererDirectory = Path.Combine(

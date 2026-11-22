@@ -61,7 +61,7 @@ internal static partial class SourcePlanningPlanner
         var metadataContext = new SourceMetadataContext(
             request.Identity.SourceContextId,
             context.CancellationToken,
-            ResolveColumns(context, scan),
+            SourceScanMetadata.ResolveColumns(context, scan),
             request.SourceRuntimeSettings,
             NullLogger.Instance
         );

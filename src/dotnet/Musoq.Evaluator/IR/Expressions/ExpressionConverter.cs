@@ -115,8 +115,8 @@ public sealed partial class ExpressionConverter
             ShortCircuitingNodeRight n => Convert(n.Expression),
 
             WhenNode n => Convert(n.Expression),
-            ThenNode n => Convert(n.Expression),
-            ElseNode n => Convert(n.Expression),
+            ThenNode n => Convert(n.Expression, expectedType),
+            ElseNode n => Convert(n.Expression, expectedType),
 
             ArrayIndexNode n => ConvertArrayAccess(n),
             AccessObjectArrayNode n => ConvertAccessObjectArray(n),
@@ -318,16 +318,18 @@ public sealed partial class ExpressionConverter
 
     private CaseWhen ConvertCaseNode(CaseNode node)
     {
+        var returnType = RequireReturnType(node);
+        var arrayResultType = returnType.IsArray ? returnType : null;
         var branches = node
-            .WhenThenPairs.Select(pair => new CaseWhenBranch(Convert(pair.When), Convert(pair.Then)))
+            .WhenThenPairs.Select(pair => new CaseWhenBranch(Convert(pair.When), Convert(pair.Then, arrayResultType)))
             .ToArray();
 
-        var elseExpr = node.Else is not NullNode ? Convert(node.Else) : null;
+        var elseExpr = node.Else is not NullNode ? Convert(node.Else, arrayResultType) : null;
 
         return new CaseWhen(
             branches,
             elseExpr,
-            IrExpressionNullSemantics.CaseResultType(RequireReturnType(node), branches, elseExpr)
+            IrExpressionNullSemantics.CaseResultType(returnType, branches, elseExpr)
         )
         {
             EnumType = ResolveCommonEnumType(

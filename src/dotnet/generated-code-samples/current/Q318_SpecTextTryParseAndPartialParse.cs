@@ -166,7 +166,7 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
         private IEnumerable<ResultRow0> ComputeShapeRows_compiled_0(ISchemaProvider provider, IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> sourceRuntimeSettingsBySourceContextId, IReadOnlyDictionary<string, SourceExecutionPlan> sourceExecutionPlans, ILogger logger, CancellationToken token)
         {
             QueryProgressEventHandler OnQueryProgress = QueryProgress;
-            var __musoqProgressContext = OnQueryProgress == null ? null : new QueryRunContext(token, queryProgress: OnQueryProgress, sender: this, queryId: "compiled");
+            var __musoqProgressContext = global::Musoq.Evaluator.Runtime.TolerantInterpretation.Bind(token, OnQueryProgress, this, "compiled");
             Action<string, QueryPhase> OnPhaseChanged = this.OnPhaseChanged;
             try
             {
@@ -261,7 +261,7 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                             Musoq.Generated.Interpreters.KeyValue? statement0_tRows = null;
                             try
                             {
-                                statement0_tRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryParse(_interpreter_KeyValue, f.Line);
+                                statement0_tRows = global::Musoq.Evaluator.Runtime.TolerantInterpretation.TryParse(_interpreter_KeyValue, f.Line, __musoqProgressContext, "KeyValue");
                             }
                             catch (global::Musoq.Schema.Interpreters.ParseException)
                             {
@@ -302,7 +302,7 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                             Musoq.Generated.Interpreters.KeyValue? statement0_tRows = null;
                             try
                             {
-                                statement0_tRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryParse(_interpreter_KeyValue, f.Line);
+                                statement0_tRows = global::Musoq.Evaluator.Runtime.TolerantInterpretation.TryParse(_interpreter_KeyValue, f.Line, __musoqProgressContext, "KeyValue");
                             }
                             catch (global::Musoq.Schema.Interpreters.ParseException)
                             {
@@ -341,7 +341,7 @@ namespace GeneratedSample_Q318_SpecTextTryParseAndPartialParse
                     Musoq.Generated.Interpreters.KeyValue? statement0_tRows = null;
                     try
                     {
-                        statement0_tRows = global::Musoq.Schema.Interpreters.InterpretationStatus.TryParse(_interpreter_KeyValue, f.Line);
+                        statement0_tRows = global::Musoq.Evaluator.Runtime.TolerantInterpretation.TryParse(_interpreter_KeyValue, f.Line, __musoqProgressContext, "KeyValue");
                     }
                     catch (global::Musoq.Schema.Interpreters.ParseException)
                     {

@@ -95,7 +95,7 @@ public static partial class ExecutionExpressionConverter
                 member,
                 Convert(member.Receiver, sourceShapes, cteTableIndexes, methodTargets)
             ),
-            RowPresence rowPresence => ConvertRowPresence(rowPresence, sourceShapes),
+            RowPresence rowPresence => ExecutionRowPresenceBinding.Convert(rowPresence, sourceShapes),
             IsNullCheck isNull => new ExecutionIsNullCheck(
                 Convert(isNull.Expression, sourceShapes, cteTableIndexes, methodTargets),
                 isNull.IsNegated,

@@ -71,6 +71,28 @@ public sealed class NullOrderingTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void OrderBy_MultipleKeysWithNulls_UsesInputOrderForTies()
+    {
+        var result = Run(
+            "select Name, Country, NullableValue from #A.Entities() order by Country nulls last, NullableValue desc nulls first",
+            new BasicEntity("First tie") { Country = "PL", NullableValue = 2 },
+            new BasicEntity("No country") { Country = null, NullableValue = 9 },
+            new BasicEntity("No value") { Country = "PL", NullableValue = null },
+            new BasicEntity("Second tie") { Country = "PL", NullableValue = 2 },
+            new BasicEntity("Lower value") { Country = "PL", NullableValue = 1 }
+        );
+
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            result,
+            ["No value", "PL", null],
+            ["First tie", "PL", 2],
+            ["Second tie", "PL", 2],
+            ["Lower value", "PL", 1],
+            ["No country", null, 9]
+        );
+    }
+
+    [TestMethod]
     public void WindowRowNumber_DescendingNullsFirst_ShouldUseExplicitNullOrdering()
     {
         var result = Run(

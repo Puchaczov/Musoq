@@ -22,22 +22,7 @@ public sealed partial class PhysicalPlanBuilder
     {
         return node switch
         {
-            SchemaScanNode scan => new PhysicalSchemaScanNode(
-                scan.SchemaName,
-                scan.MethodName,
-                scan.Arguments,
-                scan.Alias,
-                [],
-                [],
-                ResolveScanOutput(scan),
-                scan.SourceContextId,
-                ResolveSourceTransferStrategy(scan.SourceContextId),
-                scan.SourceConstructionType,
-                scan.SourceConstructionSupportsContext,
-                scan.SourceConstructorStableId,
-                scan.SourceConstructor,
-                scan.StructuralArgumentLimits
-            ),
+            SchemaScanNode scan => LowerSchemaScan(scan),
             ValuesScanNode values => new PhysicalValuesScanNode(values.Alias, values.Rows, values.OutputSchema),
             UnpivotNode unpivot => LowerUnpivot(unpivot, strategyPlan),
             InterpretSourceNode interpret => new PhysicalInterpretSourceNode(

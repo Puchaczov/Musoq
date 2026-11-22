@@ -225,14 +225,13 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_GeneratedSamples_ShouldNotOwnSourceCapabilityNegotiation()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var samplesDirectory = GeneratedCodeSnapshotText.SamplesDirectory;
-        var sampleFiles = Musoq.Evaluator.Tests.Architecture.RepositorySourceScan.FilesUnder(
+        var sampleFiles = EnumerateOptimizerGuardSamples(repositoryRoot);
+        var offenders = FindFilesContainingAny(
             repositoryRoot,
-            Path.GetRelativePath(repositoryRoot, samplesDirectory),
-            "*.cs"
+            sampleFiles,
+            SourceCapabilityDecisionMarkers,
+            GeneratedCodeSnapshotText.NormalizeForComparison
         );
-
-        var offenders = FindFilesContainingAny(repositoryRoot, sampleFiles.ToArray(), SourceCapabilityDecisionMarkers);
 
         Assert.IsEmpty(
             offenders,
@@ -245,12 +244,7 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
     public void OptimizerOwnership_GeneratedSamples_ShouldNotContainOptimizerImplementationNames()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var samplesDirectory = GeneratedCodeSnapshotText.SamplesDirectory;
-        var sampleFiles = Musoq.Evaluator.Tests.Architecture.RepositorySourceScan.FilesUnder(
-            repositoryRoot,
-            Path.GetRelativePath(repositoryRoot, samplesDirectory),
-            "*.cs"
-        );
+        var sampleFiles = EnumerateOptimizerGuardSamples(repositoryRoot);
         string[] markers =
         [
             "ProjectionPruningPhysicalPass",
@@ -262,7 +256,12 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
             "HelperExtractionReadabilityPass",
         ];
 
-        var offenders = FindFilesContainingAny(repositoryRoot, sampleFiles.ToArray(), markers);
+        var offenders = FindFilesContainingAny(
+            repositoryRoot,
+            sampleFiles,
+            markers,
+            GeneratedCodeSnapshotText.NormalizeForComparison
+        );
 
         Assert.IsEmpty(
             offenders,
@@ -270,6 +269,17 @@ public sealed partial class RuntimeV2MaintainabilityBudgetTests
                 + string.Join(", ", offenders)
         );
     }
+
+    private static string[] EnumerateOptimizerGuardSamples(string repositoryRoot) =>
+        new[] { GeneratedCodeSnapshotText.SamplesDirectory, GeneratedCodeSnapshotText.BenchmarkSamplesDirectory }
+            .SelectMany(directory =>
+                Musoq.Evaluator.Tests.Architecture.RepositorySourceScan.FilesUnder(
+                    repositoryRoot,
+                    Path.GetRelativePath(repositoryRoot, directory),
+                    "*.cs"
+                )
+            )
+            .ToArray();
 
     private static string[] EnumeratePhysicalBuilderLowererRendererFiles(string repositoryRoot)
     {

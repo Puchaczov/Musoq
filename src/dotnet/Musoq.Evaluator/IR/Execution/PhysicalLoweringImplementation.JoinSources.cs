@@ -94,6 +94,13 @@ internal sealed partial class PhysicalLoweringImplementation
                 $"Execution IR join lowering cannot resolve source shape for {source.GetType().Name}."
             );
 
+        if (
+            source is PhysicalCteRefNode { IntermediateProducerId: null } reference
+            && shape is TableRowShape tableRow
+            && scope.Cte.RequiredRowPresenceAliases.Contains(reference.Alias)
+        )
+            shape = tableRow with { StoreOwnRowPresence = true };
+
         var variable = CreateSourceVariable(source, shape, cteShapesByName);
         var setup = CreateSourceSetup(source, shape, variable, schemaFromIndex, cteIndexes, sourceRowsScope);
         var rows = CreateSourceRowsExpression(source, shape, cteIndexes, cteShapesByName, sourceRowsScope, scope);

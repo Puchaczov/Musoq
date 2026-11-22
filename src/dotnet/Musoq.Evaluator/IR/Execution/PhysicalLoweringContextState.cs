@@ -87,7 +87,8 @@ internal sealed record CteLoweringContext(
     CteSidecarHashPayloadState SidecarHashPayloads,
     bool SuppressSidecarJoinPipeline,
     IReadOnlyDictionary<string, ScalarSubqueryEmptyResultSpec> ScalarSubqueryEmptyResults,
-    RecursiveCteLoweringContext RecursiveCte
+    RecursiveCteLoweringContext RecursiveCte,
+    IReadOnlySet<string> RequiredRowPresenceAliases
 )
 {
     public static CteLoweringContext Empty =>
@@ -96,7 +97,8 @@ internal sealed record CteLoweringContext(
             new CteSidecarHashPayloadState(),
             false,
             new Dictionary<string, ScalarSubqueryEmptyResultSpec>(StringComparer.OrdinalIgnoreCase),
-            RecursiveCteLoweringContext.Empty
+            RecursiveCteLoweringContext.Empty,
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         );
 }
 

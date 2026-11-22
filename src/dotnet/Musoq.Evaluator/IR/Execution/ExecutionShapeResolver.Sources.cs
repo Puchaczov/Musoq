@@ -21,7 +21,7 @@ public sealed partial class ExecutionShapeResolver
             return QueryRowSourceShapeFactory.Create(scan.Alias, transfer);
         }
 
-        var entityType = ResolveEntityType(scan.Alias);
+        var entityType = scan.BoundTable?.EntityType ?? ResolveEntityType(scan.Alias);
         var columns = ResolveColumns(scan);
         var scalarShape = IsScalar(entityType)
             ? CreateDirectScalarSourceShapeOrNull(scan.Alias, entityType, columns)

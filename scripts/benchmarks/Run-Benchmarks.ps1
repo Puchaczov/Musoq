@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Run', 'List', 'Status', 'Verify', 'Latest')][string] $Action = 'Run',
+    [ValidateSet('Run', 'List', 'Status', 'Verify', 'Latest', 'SnapshotDiff', 'Compare')][string] $Action = 'Run',
     [ValidateSet('Official', 'Local')][string] $Mode = 'Local',
     [ValidateSet('Short', 'Dry', 'Default')][string] $Job = 'Short',
     [string] $Filter = '*',
@@ -10,6 +10,9 @@ param(
     [string] $Size,
     [string] $RunDirectory,
     [string] $HistoryRoot,
+    [string] $BaselineRef,
+    [string] $CandidatePatch,
+    [string] $ComparisonInput,
     [switch] $InProcess,
     [switch] $IncludeRetired,
     [switch] $Json
@@ -18,7 +21,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $runnerPath = Join-Path $repoRoot 'src/dotnet/Musoq.Benchmarks/bin/Release/net10.0/Musoq.Benchmarks.dll'
-$inspection = $Action -in @('Status', 'Verify', 'Latest')
+$inspection = $Action -in @('Status', 'Verify', 'Latest', 'SnapshotDiff', 'Compare')
 
 if ($inspection -and !(Test-Path -LiteralPath $runnerPath)) {
     [Console]::Error.WriteLine('Build prerequisite: dotnet build src/dotnet/Musoq.Benchmarks -c Release --nologo --verbosity quiet')
@@ -54,6 +57,7 @@ $values = @{
     Mode = '--mode'; Job = '--job'; Filter = '--filter'; MachineProfile = '--machine-profile'
     Output = '--output'; Resume = '--resume'; Size = '--size'
     RunDirectory = '--run-directory'; HistoryRoot = '--history-root'
+    BaselineRef = '--baseline-ref'; CandidatePatch = '--candidate-patch'; ComparisonInput = '--comparison-input'
 }
 foreach ($name in $values.Keys | Sort-Object) {
     if ($PSBoundParameters.ContainsKey($name)) {

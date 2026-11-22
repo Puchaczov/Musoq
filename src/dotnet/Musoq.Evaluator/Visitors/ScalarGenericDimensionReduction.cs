@@ -42,15 +42,6 @@ internal static class ScalarGenericDimensionReduction
             typeToReduce = typeToReduce.GetElementType();
         }
 
-        try
-        {
-            reducedMethod = method.MakeGenericMethod(lastNonNullType);
-            return true;
-        }
-        catch (ArgumentException)
-        {
-            reducedMethod = null;
-            return false;
-        }
+        return ScalarGenericMethodConstruction.TryCloseMethod(method, [lastNonNullType], out reducedMethod);
     }
 }

@@ -193,7 +193,7 @@ namespace GeneratedSample_P77_NativeSpanVariadicCalls_Full
                     }
                 }
 
-                resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                 return resultOrderRecords;
             }
             finally
@@ -334,7 +334,7 @@ namespace GeneratedSample_P77_NativeSpanVariadicCalls_Full
 
                     var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                     __op26Scope.AddInputRows(resultOrderRecords.Count);
-                    resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                    EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                     __op26Scope.AddOutputRows(resultOrderRecords.Count);
                     __op26Scope.Dispose();
                     var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;

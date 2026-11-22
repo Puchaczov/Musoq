@@ -20,13 +20,14 @@
 **Before implementing ANY performance optimization**, you MUST:
 
 1. **Identify the owning layer** — Performance behavior must be selected in the physical plan or represented in Execution IR before it reaches the C# renderer. Renderer-only changes are acceptable only for faithful syntax emission of existing strategy metadata or local syntax cleanup.
-2. **Establish a baseline** — Run the relevant benchmarks on the **unmodified code** and record the results. This is non-negotiable. Without a baseline, you cannot prove an optimization is actually faster.
-3. **Run benchmarks after changes** — Run the same benchmarks on the modified code under identical conditions.
-4. **Compare and report** — Present a before/after comparison table showing the metric, baseline value, optimized value, and percentage change. Flag any regressions.
+2. **Establish a baseline** — Pin the clean, unmodified revision, measure the relevant benchmark cases, and retain the results.
+3. **Review generated changes** — After implementation, regenerate the full benchmark snapshot collection and inspect the Git diff for changed plans, Execution IR, and generated C#. Select relevant cases manually for shared runtime changes that leave snapshots identical.
+4. **Measure affected cases** — Compare every selected case under matched workload, input, job, machine, and runtime conditions. Measure cases discovered after regeneration on the pinned baseline as well.
+5. **Compare and report** — Record each case's timing and allocation deltas, uncertainty, and outcome. Repeat suspicious measurements, investigate confirmed regressions, and document any explicit acceptance before closing the work.
 
 Generated C# samples are acceptance evidence for strategy choices. Do not treat generated C# as the primary optimization surface; if a sample looks slow, first ask what physical strategy or Execution IR metadata should have prevented that shape.
 
-For benchmark commands, result interpretation thresholds, baseline workflow, and when to add new benchmarks, see the [Musoq.Benchmarks development guide](../../src/dotnet/Musoq.Benchmarks/DEVELOPMENT.md).
+For commands, comparison evidence, and result interpretation, see the [benchmark verification workflow](../../src/dotnet/Musoq.Benchmarks/DEVELOPMENT.md#verifying-performance-changes).
 
 ### Control Flow
 - **Fail fast / return early.** Validate at the top and bail out. Don't wrap the entire method body in a success branch — the happy path should have the least indentation.

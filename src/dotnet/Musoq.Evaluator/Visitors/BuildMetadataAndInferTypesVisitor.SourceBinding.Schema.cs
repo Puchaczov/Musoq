@@ -181,8 +181,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         _sourceBinding.AliasToSchemaFromNodeMap.Add(_sourceBinding.QueryAlias, aliasedSchemaFromNode);
         _sourceBinding.AllUsedSchemaNames.Add(aliasedSchemaFromNode.Schema);
 
-        if (!_sourceBinding.InferredColumns.ContainsKey(aliasedSchemaFromNode))
-            _sourceBinding.InferredColumns.Add(aliasedSchemaFromNode, table.Columns);
+        CaptureBoundSourceTable(aliasedSchemaFromNode, table);
 
         if (!_sourceBinding.UsedColumns.ContainsKey(aliasedSchemaFromNode))
             _sourceBinding.UsedColumns.Add(aliasedSchemaFromNode, []);

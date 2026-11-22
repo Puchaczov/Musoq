@@ -213,7 +213,7 @@ namespace GeneratedSample_P94_NativeDynamicLiteralContains_Full
                     }
                 }
 
-                resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                 return resultOrderRecords;
             }
             finally
@@ -373,7 +373,7 @@ namespace GeneratedSample_P94_NativeDynamicLiteralContains_Full
 
                     var __op22Scope = profileRecorder?.BeginOperatorValue(__op22Handle) ?? OperatorProfileValueScope.None;
                     __op22Scope.AddInputRows(resultOrderRecords.Count);
-                    resultOrderRecords.Sort(ResultRow0WithSortKeysComparer.Instance);
+                    EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                     __op22Scope.AddOutputRows(resultOrderRecords.Count);
                     __op22Scope.Dispose();
                     var __op23Scope = profileRecorder?.BeginOperatorValue(__op23Handle) ?? OperatorProfileValueScope.None;

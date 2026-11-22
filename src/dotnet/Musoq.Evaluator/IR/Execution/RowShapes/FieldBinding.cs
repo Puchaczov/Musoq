@@ -74,6 +74,7 @@ public sealed record FieldBinding
     public EnumTypeDescriptor? EnumType { get; init; }
 
     public string? GeneratedTypeName { get; init; }
+    internal string? RowPresenceAlias { get; init; }
 
     public ExecutionInterpretationShape? InterpretationShape { get; init; }
 

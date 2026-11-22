@@ -10,6 +10,13 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var query = PopSemanticNode();
         var operand = node is Helpers.Subqueries.SubqueryApplyNode { Operand: not null } ? PopSemanticNode() : null;
-        PushSemanticNode(_semanticState.Subqueries.BindResult(node, query, operand, ValidateBinaryOperatorOperands));
+        PushSemanticNode(
+            _semanticState.Subqueries.BindResult(
+                node,
+                query,
+                operand,
+                (left, right, kind, context) => ValidateBinaryOperatorOperands(left, right, kind, context)
+            )
+        );
     }
 }

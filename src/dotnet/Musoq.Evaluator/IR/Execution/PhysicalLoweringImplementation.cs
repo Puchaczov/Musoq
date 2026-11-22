@@ -46,6 +46,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var scope = _physicalLoweringFacade
             .CreateScope(_facts)
             .WithGeneratedTypePrefix(_facts.GeneratedTypePrefix)
+            .WithRequiredRowPresenceAliases(RowPresenceAliasExtractor.Extract(physicalPlan))
             .WithSubqueryCtes(_shapeResolver.Subqueries.Get(identifier));
         return BuildWithScope(physicalPlan, identifier, scope);
     }

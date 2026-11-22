@@ -12,6 +12,9 @@ public sealed partial class ExecutionShapeResolver
 {
     private ISchemaColumn[] ResolveColumns(PhysicalSchemaScanNode scan)
     {
+        if (scan.BoundTable is { } table)
+            return FilterProjectedColumns(table.Columns.ToArray(), scan.ProjectedColumns);
+
         ISchemaColumn[] columns;
         if (_inferredColumns.TryGetValue(scan.Alias, out var inferredColumns) && inferredColumns.Length > 0)
         {

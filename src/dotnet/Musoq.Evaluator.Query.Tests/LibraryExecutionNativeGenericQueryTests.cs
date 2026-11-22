@@ -45,6 +45,33 @@ public sealed partial class LibraryExecutionNativeGenericQueryTests : GenericEnt
     }
 
     [TestMethod]
+    [DataRow("1::uint")]
+    [DataRow("Position::long")]
+    public void GenericConstraint_ShouldAcceptStrictCastOfKnownValue(string expression)
+    {
+        var sql = $"select NeedsStruct({expression}) as Value from #schema.first()";
+        using var query = CreateAndRunVirtualMachine<Input, GenericLibrary>(sql, [new(1)]);
+        using var table = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1]);
+    }
+
+    [TestMethod]
+    [DataRow("null::long")]
+    [DataRow("OptionalPosition")]
+    [DataRow("OptionalPosition::long")]
+    public void GenericConstraint_ShouldRejectNullableValues(string expression)
+    {
+        var sql = $"select NeedsStruct({expression}) as Value from #schema.first()";
+        var error = Assert.Throws<MusoqQueryException>(() =>
+            CreateAndRunVirtualMachine<OptionalInput, GenericLibrary>(sql, [new(1)])
+        );
+        Assert.AreEqual(DiagnosticCode.MQ3088_NoMatchingCallableOverload, error.PrimaryEnvelope.Code);
+    }
+
+    public sealed record OptionalInput(int? OptionalPosition);
+
+    [TestMethod]
     public void GeneratedRecordConstraintFailure_ShouldReportCallableDiagnosticBeforeRendering()
     {
         const string sql =

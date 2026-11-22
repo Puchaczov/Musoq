@@ -10,9 +10,9 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private readonly HashSet<Node> _nullableInterpretationRecords = new(ReferenceEqualityComparer.Instance);
 
-    private void RegisterNullableInterpretationColumn(Node node, Musoq.Schema.ISchemaColumn column)
+    private void RegisterNullableInterpretationColumn(Node node, Musoq.Schema.ISchemaColumn column, bool mayBeMissing)
     {
-        if (column is NullableInterpretationColumn)
+        if (column is NullableInterpretationColumn || mayBeMissing && column.IntendedTypeName is { Length: > 0 })
             _nullableInterpretationRecords.Add(node);
     }
 

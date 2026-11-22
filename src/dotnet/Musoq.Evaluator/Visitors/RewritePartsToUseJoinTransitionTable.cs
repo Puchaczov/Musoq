@@ -1,3 +1,4 @@
+using System.Linq;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser;
@@ -19,6 +20,19 @@ public class RewritePartsToUseJoinTransitionTable(string alias = "") : CloneQuer
     public WindowNode? ChangedWindow { get; private set; }
 
     public Node RewrittenNode => Nodes.Pop();
+
+    internal SelectNode RewriteGroupingProjection(SelectNode projection, CloneTraverseVisitor traverser)
+    {
+        var fields = projection.Fields.Select(field =>
+        {
+            if (field.Expression is AccessColumnNode or AccessMethodNode { IsAggregate: true })
+                return field;
+
+            field.Accept(traverser);
+            return (FieldNode)RewrittenNode;
+        });
+        return new SelectNode(fields.ToArray());
+    }
 
     public override void Visit(AccessColumnNode node)
     {

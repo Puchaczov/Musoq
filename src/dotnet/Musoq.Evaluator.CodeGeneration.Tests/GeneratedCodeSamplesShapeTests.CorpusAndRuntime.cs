@@ -10,7 +10,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     [TestMethod]
     public void SampleCorpus_WhenCheckedIn_ShouldContainExpectedFileCount()
     {
-        Assert.HasCount(ExpectedSampleFileCount, ReadAllSamples());
+        Assert.HasCount(ExpectedSampleFileCount + BenchmarkShapeFiles.Length, ReadAllSamples());
     }
 
     [TestMethod]
@@ -25,7 +25,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
             .ToArray();
         var missingTableContractSamples = samples
             .Where(static sample =>
-                !HasDeclaredResultContract(sample.FileName, sample.Content)
+                !HasDeclaredResultContract(sample)
                 || !sample.Content.Contains("IQueryProgressSource", StringComparison.Ordinal)
             )
             .Select(static sample => sample.FileName)

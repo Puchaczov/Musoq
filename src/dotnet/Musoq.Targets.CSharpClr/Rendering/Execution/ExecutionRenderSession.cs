@@ -67,6 +67,7 @@ internal sealed class ExecutionRenderSession
     internal bool IncludeTableResults { get; set; } = true;
     internal TimeSpan RegexMatchTimeout { get; set; } = DefaultRegexMatchTimeout;
     internal bool UseQueryRunContext { get; set; }
+    internal bool UsesTolerantInterpretation { get; init; }
     internal string QueryIdentifier { get; set; } = "compiled";
     internal bool EmitChunkLoopCancellationChecks { get; set; } = true;
     internal bool SkipInitialLoopCancellationCheck { get; set; }

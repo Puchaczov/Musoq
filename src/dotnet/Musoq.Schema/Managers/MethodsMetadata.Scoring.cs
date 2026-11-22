@@ -50,7 +50,7 @@ public partial class MethodsMetadata
                 howClosePassedTypesAre += GetNumericConversionCost(arg, param);
             else if (!param.IsGenericParameter && IsGenericShapeCompatible(param, arg))
                 howClosePassedTypesAre += GenericExactShapeConversionCost;
-            else if (param.IsGenericParameter && TypeConformsToConstraints(param, arg))
+            else if (param.IsGenericParameter)
             {
                 var nullableParameter = Nullable.GetUnderlyingType(rawParam) != null;
                 var nullableArgument = Nullable.GetUnderlyingType(rawArg) != null;
@@ -103,10 +103,18 @@ public partial class MethodsMetadata
 
     private static bool IsParameterTypeCompatible(Type rawParam, Type param, Type arg)
     {
+        if (param.IsGenericParameter)
+        {
+            if (IsNullType(arg))
+                return true;
+
+            var inferredType = rawParam == param ? arg : arg.GetUnderlyingNullable();
+            return TypeConformsToConstraints(param, inferredType);
+        }
+
         return (!rawParam.ContainsGenericParameters && SchemaConversionClassifier.TryGetCost(arg, rawParam, out _))
             || IsGenericShapeCompatible(param, arg)
             || CanSafelyPassNull(rawParam, arg)
-            || (param.IsGenericParameter && TypeConformsToConstraints(param, arg))
             || (
                 (arg.IsArray || arg.GetInterface("IEnumerable") != null)
                 && param is { IsGenericType: true, Name: "IEnumerable`1" }

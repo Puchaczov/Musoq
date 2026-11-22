@@ -12,6 +12,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
 
         Assert.Contains("NULLS LAST", sample.Content);
         Assert.Contains("NULLS FIRST", sample.Content);
+        Assert.Contains(
+            "EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);",
+            sample.Content
+        );
         Assert.Contains("var leftNull0 = !left.NullableValue.HasValue;", sample.Content);
         Assert.Contains("var rightNull0 = !right.NullableValue.HasValue;", sample.Content);
         Assert.Contains("var leftNull1 = left.City == null;", sample.Content);

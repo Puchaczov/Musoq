@@ -151,6 +151,19 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (column == null)
         {
+            if (IsQualifiedOrderByProjectionAlias(node))
+            {
+                var guidance =
+                    $"Use the SELECT alias {DiagnosticSafety.QuoteForDisplay(node.Name)} without a source qualifier in ORDER BY.";
+                var failure = new UnknownColumnOrAliasException(node.Name, guidance, node.SpanOrEmpty());
+                if (DiagnosticContext == null)
+                    throw failure;
+
+                DiagnosticContext.ReportException(failure, node.SpanOrEmpty());
+                PushSemanticNode(new AccessColumnNode(node.Name, node.Alias, typeof(object), node.Span));
+                return;
+            }
+
             if (TryReportOrThrowUnknownColumn(node.Name, tuple.Table?.Columns ?? [], node))
                 PushSemanticNode(new AccessColumnNode(node.Name, node.Alias, typeof(object), node.Span));
             return;
@@ -189,7 +202,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             );
         if (column.EnumType != null)
             MarkEnumExpression(accessColumn, column.EnumType);
-        RegisterNullableInterpretationColumn(accessColumn, column);
+        RegisterNullableInterpretationColumn(accessColumn, column, tableSymbol.CanAliasBeMissing(tuple.TableName));
         PushSemanticNode(
             isOuterReference ? _semanticState.Subqueries.CaptureSubqueryOuterColumn(accessColumn) : accessColumn
         );

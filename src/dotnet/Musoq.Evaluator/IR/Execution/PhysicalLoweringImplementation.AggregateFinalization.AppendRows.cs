@@ -121,6 +121,9 @@ internal sealed partial class PhysicalLoweringImplementation
             return new ExecutionContextSegment(ExecutionContextSegmentKind.Single, expression, 1);
         }
 
+        if (tableRow.StoreOwnRowPresence)
+            return CreateCteReferenceContextSegment(tableRow, nullAlias);
+
         if (IsNullExtendedSource(tableRow, nullAlias))
         {
             return new ExecutionContextSegment(
@@ -168,6 +171,19 @@ internal sealed partial class PhysicalLoweringImplementation
             context.AccessStrategy is GeneratedFieldAccess or GeneratedRowContextAccess
         );
 
+    private static ExecutionContextSegment CreateCteReferenceContextSegment(TableRowShape tableRow, string? nullAlias)
+    {
+        var count = tableRow.Contexts.Count + 1;
+        ExecutionExpression contexts = IsNullExtendedSource(tableRow, nullAlias)
+            ? new ExecutionNullContextArray(count)
+            : new ExecutionContextArray(
+                CreateContextValues(tableRow, nullAlias)
+                    .Select(static value => new ExecutionContextSegment(ExecutionContextSegmentKind.Single, value, 1))
+                    .ToArray()
+            );
+        return new ExecutionContextSegment(ExecutionContextSegmentKind.Array, contexts, count);
+    }
+
     private static ExecutionFieldRead CreateTableRowContextFieldRead(TableRowShape tableRow, FieldBinding context) =>
         new(tableRow.Alias, context.Name, context.Type, context.AccessStrategy);
 
@@ -200,6 +216,9 @@ internal sealed partial class PhysicalLoweringImplementation
                 yield return new ExecutionFieldRead(tableRow.Alias, context.Name, context.Type, context.AccessStrategy);
             }
 
+            if (tableRow.StoreOwnRowPresence)
+                yield return new ExecutionLiteral(tableRow.Alias, typeof(string));
+
             yield break;
         }
 
@@ -223,6 +242,9 @@ internal sealed partial class PhysicalLoweringImplementation
 
             foreach (var context in tableRow.Contexts)
                 yield return new ExecutionLiteral((object?)null, context.Type);
+
+            if (tableRow.StoreOwnRowPresence)
+                yield return new ExecutionLiteral(null, typeof(object));
 
             yield break;
         }

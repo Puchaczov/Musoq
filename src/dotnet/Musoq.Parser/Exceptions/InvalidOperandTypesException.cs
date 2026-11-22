@@ -14,6 +14,15 @@ public class InvalidOperandTypesException : Exception, IDiagnosticException
         RightType = rightType;
     }
 
+    public InvalidOperandTypesException(Type leftType, Type rightType, string operatorName, TextSpan span)
+        : base($"Operator '{operatorName}' cannot be applied to '{leftType.Name}' and '{rightType.Name}'.")
+    {
+        LeftType = leftType;
+        RightType = rightType;
+        OperatorName = operatorName;
+        Span = span;
+    }
+
     public InvalidOperandTypesException(string message, Exception innerException)
         : base(message, innerException)
     {
@@ -38,13 +47,38 @@ public class InvalidOperandTypesException : Exception, IDiagnosticException
 
     public Type RightType { get; }
 
+    private string? OperatorName { get; }
+
     public DiagnosticCode Code { get; } = DiagnosticCode.MQ3007_InvalidOperandTypes;
 
     public TextSpan? Span { get; }
 
     public Diagnostic ToDiagnostic(SourceText? sourceText = null)
     {
-        return Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty);
+        var diagnostic = Diagnostic.Error(Code, Message, Span ?? TextSpan.Empty);
+        if (OperatorName is null)
+            return diagnostic;
+
+        if (sourceText is not null && Span is { IsEmpty: false } span)
+            diagnostic = diagnostic.WithSourceContext(sourceText, span);
+
+        diagnostic = diagnostic
+            .WithArgument("operator", OperatorName)
+            .WithArgument("leftType", LeftType.Name)
+            .WithArgument("rightType", RightType.Name);
+        if (LeftType != typeof(decimal) && RightType != typeof(decimal))
+            return diagnostic;
+
+        var floatingPointType = LeftType == typeof(decimal) ? RightType : LeftType;
+        if (floatingPointType != typeof(float) && floatingPointType != typeof(double))
+            return diagnostic;
+
+        var castType = floatingPointType == typeof(float) ? "float" : "double";
+        return diagnostic.WithSuggestedFix(
+            DiagnosticAction.Suggestion(
+                $"Cast one operand explicitly to the other type, for example using ::{castType}."
+            )
+        );
     }
 
     private static string CreateMessage(Type leftType, Type rightType)

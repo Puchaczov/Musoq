@@ -4,6 +4,17 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.22
+
+See the curated release notes for [Musoq Core Engine 17.0.22](release-notes/v17.0.22.md).
+
+- Improve record sorting and tolerant text parsing performance.
+- Preserve source bindings across reused aliases, and fix grouped joins, row presence, and nullable interpreted members.
+- Correct generic scalar binding and support typed nulls in radix and byte conversions.
+- Improve CASE, binary field offset, ORDER BY alias, and invalid operand diagnostics. Add opt-in tolerant interpretation observations.
+- Verify benchmark regressions against canonical generated snapshots and provenance-checked run comparisons.
+- Publish seven aligned stable packages with datasource ABI validation for Musoq.Schema and Musoq.Plugins.
+
 ## 17.0.21
 
 See the curated release notes for [Musoq Core Engine 17.0.21](release-notes/v17.0.21.md).

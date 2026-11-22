@@ -64,6 +64,7 @@ public sealed class GeneratedCodeSamplesSnapshotTests
             {
                 GeneratedCodeSampleArtifacts.SamplesDirectory,
                 GeneratedCodeSampleArtifacts.ProfiledSamplesDirectory,
+                BenchmarkSnapshotGenerator.DirectoryPath,
             }
         )
         {

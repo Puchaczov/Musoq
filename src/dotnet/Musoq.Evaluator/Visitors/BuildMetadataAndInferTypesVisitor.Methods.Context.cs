@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Resources;
+using Musoq.Evaluator.Utils.Symbols;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using static Musoq.Evaluator.Visitors.BuildMetadataAndInferTypesVisitorUtilities;
@@ -98,7 +99,36 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (!tableSymbol.IsCompoundTable)
             return false;
 
-        var argTypes = GetArgumentTypes(args);
+        if (
+            TryInferNonAggregateMethodContext(
+                tableSymbol,
+                node,
+                GetArgumentTypes(args),
+                genericOnly: false,
+                out context
+            )
+        )
+            return true;
+
+        return ScalarCallableArgumentProof.NarrowStrictCasts(args) is { } narrowed
+            && TryInferNonAggregateMethodContext(
+                tableSymbol,
+                node,
+                GetArgumentTypes(narrowed),
+                genericOnly: true,
+                out context
+            );
+    }
+
+    private bool TryInferNonAggregateMethodContext(
+        TableSymbol tableSymbol,
+        AccessMethodNode node,
+        Type[] argTypes,
+        bool genericOnly,
+        out MethodResolutionContext context
+    )
+    {
+        context = default;
         var methodName = node.Name;
 
         MethodInfo? firstMethod = null;
@@ -111,10 +141,17 @@ public partial class BuildMetadataAndInferTypesVisitor
             var candidateContext = CreateMethodResolutionContext(alias, false);
             var schema = candidateContext.SchemaTablePair.Schema;
 
-            if (
-                !schema.TryResolveMethod(methodName, argTypes, candidateContext.EntityType, out var candidateMethod)
-                && !schema.TryResolveRawMethod(methodName, argTypes, out candidateMethod)
-            )
+            var found = genericOnly
+                ? ScalarCallableArgumentProof.TryResolveGeneric(
+                    schema,
+                    methodName,
+                    argTypes,
+                    candidateContext.EntityType,
+                    out var candidateMethod
+                )
+                : schema.TryResolveMethod(methodName, argTypes, candidateContext.EntityType, out candidateMethod)
+                    || schema.TryResolveRawMethod(methodName, argTypes, out candidateMethod);
+            if (!found || candidateMethod == null)
                 continue;
 
             if (firstMethod == null)
