@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
@@ -126,6 +127,16 @@ public sealed class DataSourceLifecycleException : Exception, IDiagnosticExcepti
                     RuntimeInputDiagnosticException.GetReasonCode(InputReason.Value)
                 )
             );
+        }
+
+        if (
+            Code == DiagnosticCode.MQ7011_DataSourceReadFailed
+            && DataSourceFieldConversionDetails.Find(InnerException) is { } field
+        )
+        {
+            arguments.Add(new("recordNumber", field.RecordNumber.ToString(CultureInfo.InvariantCulture)));
+            arguments.Add(new("columnOrdinal", field.ColumnOrdinal.ToString(CultureInfo.InvariantCulture)));
+            arguments.Add(new("expectedType", field.ExpectedType));
         }
 
         if (ReportedDiagnostic is not null)
