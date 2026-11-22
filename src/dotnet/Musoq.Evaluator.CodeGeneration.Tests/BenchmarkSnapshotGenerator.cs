@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using Musoq.Benchmarks;
 using Musoq.Benchmarks.Scenarios;
@@ -22,13 +23,16 @@ internal sealed record GeneratedBenchmarkSnapshots(
 )
 {
     internal static readonly Encoding Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+    private static readonly JsonSerializerOptions ManifestOptions = new(ArtifactJson.Options) { NewLine = "\n" };
+
+    internal string SerializeManifest() => JsonSerializer.Serialize(Manifest, ManifestOptions) + "\n";
 
     internal void WriteTo(string directory)
     {
         Directory.CreateDirectory(directory);
         foreach (var (file, text) in Files)
             File.WriteAllText(Path.Combine(directory, file), text, Encoding);
-        ArtifactJson.Write(Path.Combine(directory, BenchmarkSnapshotManifest.FileName), Manifest);
+        ArtifactJson.WriteText(Path.Combine(directory, BenchmarkSnapshotManifest.FileName), SerializeManifest());
     }
 }
 

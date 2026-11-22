@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Benchmarks;
 using Musoq.Tests.Common;
@@ -33,7 +32,7 @@ public sealed class BenchmarkSnapshotTests
         var manifest = File.ReadAllText(manifestPath);
         _ = BenchmarkSnapshotManifest.Parse(manifest);
         Assert.AreEqual(
-            JsonSerializer.Serialize(generated.Manifest, ArtifactJson.Options) + "\n",
+            generated.SerializeManifest(),
             manifest,
             $"Benchmark case mappings or workload definitions are stale. {refresh}"
         );
