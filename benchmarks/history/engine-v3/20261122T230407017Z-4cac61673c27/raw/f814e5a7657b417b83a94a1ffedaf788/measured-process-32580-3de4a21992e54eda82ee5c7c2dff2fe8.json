@@ -1,0 +1,22 @@
+{
+  "processId": 32580,
+  "capturedUtc": "2026-11-23T01:31:57.3346394+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B13_Apply",
+  "sql": "select r.Id as Id, i.Value as Value, i.Ordinal as Position\r\nfrom bench.rows() r\r\ncross apply r.Items i with ordinality\r\norder by r.Id, Position",
+  "inputCount": 1000
+}

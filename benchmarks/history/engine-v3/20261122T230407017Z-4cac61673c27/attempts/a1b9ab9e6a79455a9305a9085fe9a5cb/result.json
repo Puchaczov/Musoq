@@ -1,0 +1,24 @@
+{
+  "caseId": "B09_AsOf-execution-Table-Small",
+  "startedUtc": "2026-11-23T01:05:02.7046489+00:00",
+  "finishedUtc": "2026-11-23T01:06:18.4362695+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 104168.33735874722,
+  "medianNanoseconds": 103858.40454101562,
+  "standardDeviationNanoseconds": 1299.276683702335,
+  "confidenceLowerNanoseconds": 103262.39422200184,
+  "confidenceUpperNanoseconds": 105074.2804954926,
+  "sampleCount": 28,
+  "allocatedBytesPerOperation": 198314,
+  "gen0Collections": 28,
+  "gen1Collections": 4,
+  "gen2Collections": 0,
+  "gcOperations": 8192,
+  "rawReports": [
+    "raw/a1b9ab9e6a79455a9305a9085fe9a5cb/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/a1b9ab9e6a79455a9305a9085fe9a5cb/measured-process-24896-7fa1db2ec1054f3b85c02fdf30fb94b8.json",
+    "raw/a1b9ab9e6a79455a9305a9085fe9a5cb/measured-process-63912-46b9cdfb354b47f3b67c5d098d2e23cc.json"
+  ],
+  "attemptId": "a1b9ab9e6a79455a9305a9085fe9a5cb"
+}

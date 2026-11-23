@@ -1,0 +1,22 @@
+{
+  "processId": 49060,
+  "capturedUtc": "2026-11-23T02:00:30.4004466+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B14_Skewed",
+  "sql": "select r.Key as Id, Count(*) as Count, Sum(r.Amount) as Total\r\nfrom bench.skewed() r\r\ngroup by r.Key\r\norder by Id",
+  "inputCount": 100000
+}

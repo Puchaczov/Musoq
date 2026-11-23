@@ -1,0 +1,24 @@
+{
+  "caseId": "B07_EqualityJoin-execution-Table-Large",
+  "startedUtc": "2026-11-23T00:19:47.8625176+00:00",
+  "finishedUtc": "2026-11-23T00:21:21.7340347+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 12940098.94701087,
+  "medianNanoseconds": 12940783.203125,
+  "standardDeviationNanoseconds": 402100.0742314942,
+  "confidenceLowerNanoseconds": 12731395.834881442,
+  "confidenceUpperNanoseconds": 13148802.059140297,
+  "sampleCount": 46,
+  "allocatedBytesPerOperation": 25179537,
+  "gen0Collections": 10,
+  "gen1Collections": 9,
+  "gen2Collections": 8,
+  "gcOperations": 64,
+  "rawReports": [
+    "raw/31f22b13bce04df78efd704a54943f40/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/31f22b13bce04df78efd704a54943f40/measured-process-47620-3fbcdc2140124de6b70a9fb59c2de051.json",
+    "raw/31f22b13bce04df78efd704a54943f40/measured-process-67600-a6a966831a3741bca9c0946a109cae36.json"
+  ],
+  "attemptId": "31f22b13bce04df78efd704a54943f40"
+}

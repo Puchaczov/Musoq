@@ -1,0 +1,24 @@
+{
+  "caseId": "X09_RecursiveChunks-execution-Table-Small",
+  "startedUtc": "2026-11-23T05:03:04.4455194+00:00",
+  "finishedUtc": "2026-11-23T05:04:07.2940931+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 155016.05360243056,
+  "medianNanoseconds": 155113.3544921875,
+  "standardDeviationNanoseconds": 1342.2978365368635,
+  "confidenceLowerNanoseconds": 154058.54186731143,
+  "confidenceUpperNanoseconds": 155973.5653375497,
+  "sampleCount": 27,
+  "allocatedBytesPerOperation": 763666,
+  "gen0Collections": 51,
+  "gen1Collections": 2,
+  "gen2Collections": 0,
+  "gcOperations": 4096,
+  "rawReports": [
+    "raw/5fa612920a0c4a528fafc4b0f45728c0/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/5fa612920a0c4a528fafc4b0f45728c0/measured-process-11412-fc59813a68124071a2ea79323b5c5093.json",
+    "raw/5fa612920a0c4a528fafc4b0f45728c0/measured-process-69296-686e39a41b1d4c3fba9af483379c5d3e.json"
+  ],
+  "attemptId": "5fa612920a0c4a528fafc4b0f45728c0"
+}
