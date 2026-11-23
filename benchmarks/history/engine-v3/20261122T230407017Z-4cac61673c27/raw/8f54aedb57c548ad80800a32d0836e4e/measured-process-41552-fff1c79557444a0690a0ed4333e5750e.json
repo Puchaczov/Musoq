@@ -1,0 +1,22 @@
+{
+  "processId": 41552,
+  "capturedUtc": "2026-11-23T02:25:59.265433+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B17_MultipleWindows",
+  "sql": "select r.Id as Id, RowNumber() over (partition by r.Key\r\norder by r.Id) as Position, Sum(r.Amount) over (order by r.Id) as Total\r\nfrom bench.rows() r\r\nqualify Position = 1\r\norder by Id",
+  "inputCount": 4
+}

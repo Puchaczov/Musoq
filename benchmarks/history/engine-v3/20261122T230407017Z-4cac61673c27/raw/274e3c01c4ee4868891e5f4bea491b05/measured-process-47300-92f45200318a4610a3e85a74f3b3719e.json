@@ -1,0 +1,22 @@
+{
+  "processId": 47300,
+  "capturedUtc": "2026-11-23T02:08:21.149225+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B15_RankingOffset",
+  "sql": "select r.Id as Id, RowNumber() over (order by r.Id) as Position, Lag(r.Amount) over (order by r.Id) as Previous\r\nfrom bench.rows() r\r\norder by r.Id",
+  "inputCount": 10000
+}

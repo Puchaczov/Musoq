@@ -1,0 +1,22 @@
+{
+  "processId": 64448,
+  "capturedUtc": "2026-11-23T01:13:51.9265311+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B10_Exists",
+  "sql": "select r.Id as Id\r\nfrom bench.rows() r\r\nwhere exists (select d.Id\r\nfrom bench.lookup() d\r\nwhere d.Key = r.Key)\r\norder by r.Id",
+  "inputCount": 10000
+}

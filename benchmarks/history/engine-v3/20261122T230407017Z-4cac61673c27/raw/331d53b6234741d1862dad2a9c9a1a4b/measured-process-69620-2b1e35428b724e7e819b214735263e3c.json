@@ -1,0 +1,22 @@
+{
+  "processId": 69620,
+  "capturedUtc": "2026-11-23T02:42:09.0725367+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B19_Except",
+  "sql": "select r.Key as Id\r\nfrom bench.rows() r except select d.Key as Id\r\nfrom bench.lookup() d\r\norder by Id",
+  "inputCount": 1000
+}

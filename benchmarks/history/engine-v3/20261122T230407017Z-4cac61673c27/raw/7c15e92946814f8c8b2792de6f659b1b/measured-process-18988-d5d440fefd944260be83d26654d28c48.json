@@ -1,0 +1,22 @@
+{
+  "processId": 18988,
+  "capturedUtc": "2026-11-23T04:42:25.8143725+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "X04_TemporalAnalytics",
+  "sql": "select r.Id as Id, Lag(d.Amount) over (order by r.Id) as Previous, Sum(d.Amount) over (order by r.Id) as Total\nfrom bench.rows() r asof\nleft join bench.lookup() d on r.Time \u003E= d.Time tie break by d.Id desc\norder by r.Id",
+  "inputCount": 1000
+}

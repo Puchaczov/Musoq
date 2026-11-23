@@ -1,0 +1,22 @@
+{
+  "processId": 37588,
+  "capturedUtc": "2026-11-23T00:54:56.3096301+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "B08_SemiJoin",
+  "sql": "select r.Id as Id from bench.rows() r semi join bench.twice() d on r.Key = d.Key order by r.Id",
+  "inputCount": 100000
+}

@@ -1,0 +1,24 @@
+{
+  "caseId": "B18_Unpivot-execution-Table-Medium",
+  "startedUtc": "2026-11-23T02:36:09.8962322+00:00",
+  "finishedUtc": "2026-11-23T02:37:28.6235907+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 1634783.675986842,
+  "medianNanoseconds": 1639773.92578125,
+  "standardDeviationNanoseconds": 38620.00866489034,
+  "confidenceLowerNanoseconds": 1612394.629237106,
+  "confidenceUpperNanoseconds": 1657172.722736578,
+  "sampleCount": 38,
+  "allocatedBytesPerOperation": 2493033,
+  "gen0Collections": 19,
+  "gen1Collections": 16,
+  "gen2Collections": 8,
+  "gcOperations": 512,
+  "rawReports": [
+    "raw/6006c8a00746420484102f5ad48d8a36/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/6006c8a00746420484102f5ad48d8a36/measured-process-38076-b68879126ec44580a795eeb7072c88e3.json",
+    "raw/6006c8a00746420484102f5ad48d8a36/measured-process-49324-eebbf2aef6c9455e990c53945972df50.json"
+  ],
+  "attemptId": "6006c8a00746420484102f5ad48d8a36"
+}

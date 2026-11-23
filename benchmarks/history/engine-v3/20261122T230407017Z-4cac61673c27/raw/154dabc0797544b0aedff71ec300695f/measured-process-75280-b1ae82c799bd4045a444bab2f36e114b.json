@@ -1,0 +1,22 @@
+{
+  "processId": 75280,
+  "capturedUtc": "2026-11-23T04:28:38.6309876+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "suiteInformationalVersion": "17.0.22\u002B4cac61673c27db99368e6eb6e107606efa6ce892",
+  "source": {
+    "commit": "4cac61673c27db99368e6eb6e107606efa6ce892",
+    "branch": null,
+    "tags": [
+      "v17.0.22"
+    ],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": true
+  },
+  "scenarioId": "X01_SalesReporting",
+  "sql": "with totals as (select r.Key as Id, Sum(r.Amount) as Total\nfrom bench.rows() r\ninner join bench.lookup() d on r.Key = d.Key\nwhere r.Amount \u003E= 2\ngroup by r.Key\nhaving Sum(r.Amount) \u003E 0) select Id, Total, RowNumber() over (order by Total desc) as Position\nfrom totals\nqualify Position \u003C= 2\norder by Id\ntake 2",
+  "inputCount": 100000
+}
