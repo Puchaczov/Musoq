@@ -287,7 +287,7 @@ jobs:
       # softprops/action-gh-release@v2.2.2
       - name: Create GitHub Release with curated notes
         if: steps.release-notes.outputs.exists == 'true'
-        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3
         with:
           tag_name: ${{ needs.validate-pack.outputs.release_tag }}
           name: Release ${{ needs.validate-pack.outputs.release_tag }}
@@ -301,7 +301,7 @@ jobs:
       # softprops/action-gh-release@v2.2.2
       - name: Create GitHub Release with generated notes
         if: steps.release-notes.outputs.exists != 'true'
-        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3
         with:
           tag_name: ${{ needs.validate-pack.outputs.release_tag }}
           name: Release ${{ needs.validate-pack.outputs.release_tag }}
