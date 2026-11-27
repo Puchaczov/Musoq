@@ -4,6 +4,16 @@ All notable Musoq package releases are documented here. Release entries are grou
 
 ## Unreleased
 
+## 17.0.23
+
+See the curated release notes for [Musoq Core Engine 17.0.23](release-notes/v17.0.23.md).
+
+- Preserve SQL result types, grouping and sorting bindings, window boundaries, scalar subquery cardinality, and independent CTE results.
+- Preserve declared binary and text record shapes, nullability, cursor behavior, and field diagnostics across query operators.
+- Speed up backward ASOF tie handling, standard binary decoding, and typed record APPLY.
+- Add opt-in per-record APPLY streaming and safe datasource field-conversion details.
+- Publish seven aligned stable packages with datasource ABI validation for Musoq.Schema and Musoq.Plugins.
+
 ## 17.0.22
 
 See the curated release notes for [Musoq Core Engine 17.0.22](release-notes/v17.0.22.md).
