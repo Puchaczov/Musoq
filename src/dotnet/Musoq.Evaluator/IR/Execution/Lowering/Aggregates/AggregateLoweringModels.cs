@@ -27,6 +27,7 @@ internal sealed record AggregateSingleKeyPipeline(
 
 internal sealed record ValueTupleAggregatePipeline(
     PhysicalProjectNode Project,
+    bool InitializeConstantGroup,
     AggregateBinding[] Bindings,
     LoweringSourcePipeline Source,
     IrExpression? HavingPredicate,
@@ -97,7 +98,8 @@ internal sealed record AggregateTableCompletion(
     ExecutionBlock FinalBlock,
     IReadOnlyList<PostOperation> PostOperations,
     bool IsDistinct,
-    TableProjection? FinalProjection = null
+    TableProjection? FinalProjection = null,
+    ExecutionNode? InitializeGroup = null
 );
 
 internal sealed record AggregateSetBuildResult(
@@ -120,7 +122,7 @@ internal sealed record AggregateSetBuildResult(
         return new AggregateSetBuildResult(
             false,
             [],
-            new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase),
+            new Dictionary<string, AggregateAccumulatorField>(StringComparer.Ordinal),
             reason
         );
     }

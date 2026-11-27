@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.Helpers;
+using Musoq.Parser.Helpers;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -7,11 +9,14 @@ namespace Musoq.Evaluator.Visitors;
 
 internal static class BinarySchemaExpressionTypes
 {
-    private static Type ResolveField(string name, IReadOnlyList<SchemaFieldNode> fields, SchemaRegistry? registry)
+    private static Type ResolveField(
+        string name,
+        IReadOnlyList<SchemaFieldNode> fields,
+        SchemaRegistry? registry,
+        IdentifierNode? reference = null
+    )
     {
-        var field = fields.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, name, StringComparison.OrdinalIgnoreCase)
-        );
+        var field = fields.FirstOrDefault(candidate => string.Equals(candidate.Name, name, StringComparison.Ordinal));
         return field switch
         {
             FieldDefinitionNode parsed => Lift(parsed.TypeAnnotation.ClrType, parsed.IsConditional),
@@ -20,9 +25,40 @@ internal static class BinarySchemaExpressionTypes
                 fields.TakeWhile(candidate => candidate != computed).ToArray(),
                 registry
             ),
+            null when reference != null => registry?.ParentBindings.ResolveType(fields, reference) ?? typeof(object),
             _ => typeof(object),
         };
     }
+
+    internal static Type ResolveSwitchSelector(
+        BinarySwitchTypeNode choice,
+        IReadOnlyList<SchemaFieldNode> fields,
+        SchemaRegistry registry
+    )
+    {
+        var type = Unwrap(Resolve(choice.SelectorExpression, fields, registry));
+        if (
+            type == typeof(object)
+            && choice.SelectorExpression is not IdentifierNode
+            && BinarySchemaRecordAliases.Resolve(choice.SelectorExpression, fields, registry) is null
+        )
+            throw new Exceptions.QuerySyntaxException(
+                $"Switch selector '{choice.Selector}' does not identify a declared field.",
+                choice.SelectorSpan,
+                Musoq.Parser.Diagnostics.DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField
+            );
+        foreach (var arm in choice.Cases)
+            if (arm.CaseValue is { } label && !BinarySchemaScalarLiteral.IsCompatibleSwitchLabel(type, label))
+                throw new Exceptions.QuerySyntaxException(
+                    $"Switch case label '{label}' is not compatible with selector '{choice.Selector}'.",
+                    arm.CaseLabelSpan.IsEmpty ? label.Span : arm.CaseLabelSpan,
+                    Musoq.Parser.Diagnostics.DiagnosticCode.MQ4013_InvalidSwitchCaseLabel
+                );
+        return type;
+    }
+
+    internal static Type RadixLiteralType(ConstantValueNode literal) =>
+        literal.ObjValue is long value && value is < int.MinValue or > int.MaxValue ? typeof(long) : typeof(int);
 
     internal static Type Resolve(
         Node expression,
@@ -31,7 +67,7 @@ internal static class BinarySchemaExpressionTypes
     )
     {
         if (
-            BinarySchemaRecordAliases.Resolve(expression, fields) is { } record
+            BinarySchemaRecordAliases.Resolve(expression, fields, registry) is { } record
             && record.TypeAnnotation is SchemaReferenceTypeNode reference
             && registry?.TryGetSchema(reference.SchemaName, out var registration) == true
             && registration?.GeneratedType is { } generatedType
@@ -39,13 +75,15 @@ internal static class BinarySchemaExpressionTypes
             return generatedType;
         switch (expression)
         {
-            case HexIntegerNode or BinaryIntegerNode or OctalIntegerNode:
-                return typeof(int);
+            case NumericLiteralNode radix when radix is HexIntegerNode or BinaryIntegerNode or OctalIntegerNode:
+                return RadixLiteralType(radix);
             case IdentifierNode identifier:
-                return ResolveField(identifier.Name, fields, registry);
+                return ResolveField(identifier.Name, fields, registry, identifier);
             case ArrayIndexNode indexed:
                 var collection = Resolve(indexed.Array, fields, registry);
-                return Lift(Unwrap(collection).GetElementType() ?? typeof(object), IsNullable(collection));
+                return collection == typeof(string)
+                    ? typeof(char)
+                    : Lift(Unwrap(collection).GetElementType() ?? typeof(object), IsNullable(collection));
             case WordNode or StringNode:
                 return typeof(string);
             case NullNode:
@@ -135,7 +173,40 @@ internal static class BinarySchemaExpressionTypes
             return Lift(typeof(bool), nullable);
         if (binary is AddNode && (left == typeof(string) || right == typeof(string)))
             return typeof(string);
-        var arithmeticType = BinaryOperatorTypeRules.GetWiderNumericType(Unwrap(left), Unwrap(right));
+        if (
+            binary is AddNode or HyphenNode
+            && (TypeConversionNodeFactory.IsDateTimeType(left) || TypeConversionNodeFactory.IsDateTimeType(right))
+        )
+        {
+            var leftType = Unwrap(left);
+            var rightType = Unwrap(right);
+            var valid =
+                binary is AddNode
+                    ? TypeConversionNodeFactory.IsDateTimeType(leftType) && rightType == typeof(TimeSpan)
+                    : BinaryOperatorTypeRules.CanApplySubtraction(leftType, rightType);
+            if (!valid)
+                throw new Exceptions.QuerySyntaxException(
+                    $"The temporal operator cannot be applied to '{leftType.Name}' and '{rightType.Name}'.",
+                    binary.SpanOrEmpty(),
+                    Musoq.Parser.Diagnostics.DiagnosticCode.MQ3007_InvalidOperandTypes
+                );
+            return Lift(NodeHelpers.GetReturnTypeMap(leftType, rightType), nullable);
+        }
+        var firstOperand = Unwrap(left);
+        var secondOperand = binary is LeftShiftNode or RightShiftNode ? firstOperand : Unwrap(right);
+        if (
+            BinaryOperatorTypeRules.IsIntegralType(firstOperand)
+            && BinaryOperatorTypeRules.IsIntegralType(secondOperand)
+        )
+        {
+            // Binary schemas also use unsigned 64-bit fields with integer masks and counts.
+            var integralType =
+                firstOperand == typeof(ulong) || secondOperand == typeof(ulong)
+                    ? typeof(ulong)
+                    : NodeHelpers.GetReturnTypeMap(firstOperand, secondOperand);
+            return Lift(integralType, nullable);
+        }
+        var arithmeticType = BinaryOperatorTypeRules.GetWiderNumericType(firstOperand, secondOperand);
         if (
             arithmeticType == typeof(byte)
             || arithmeticType == typeof(sbyte)
@@ -148,60 +219,73 @@ internal static class BinarySchemaExpressionTypes
 
     private static Type ResolvePath(DotNode expression, IReadOnlyList<SchemaFieldNode> fields, SchemaRegistry? registry)
     {
-        if (HasIndexedReceiver(expression.Root))
-            return ResolveIndexedMember(expression, fields, registry);
+        if (!IsFieldPath(expression.Root))
+            return ResolveExpressionMember(expression, fields, registry);
         var parts = PathParts(expression).ToArray();
-        if (
-            parts.Length > 1
-            && parts[0].Equals("parent", StringComparison.OrdinalIgnoreCase)
-            && registry?.ParentBindings.ResolveType(fields, string.Join('.', parts), expression) is { } parentType
-        )
+        if (registry?.ParentBindings.ResolveType(fields, expression) is { } parentType)
             return parentType;
         IReadOnlyList<SchemaFieldNode>? currentFields = fields;
+        TextResultShape? textShape = null;
+        BinarySwitchTypeNode? currentSwitch = null;
         var nullable = false;
         Type result = typeof(object);
         foreach (var part in parts)
         {
-            var field = currentFields?.FirstOrDefault(candidate =>
-                string.Equals(candidate.Name, part, StringComparison.OrdinalIgnoreCase)
-            );
-            if (field is null)
+            if (textShape?.Member(part) is { } textMember)
             {
-                var property = Unwrap(result).GetProperty(part);
-                if (property is null)
-                    return typeof(object);
-                result = property.PropertyType;
-                currentFields = null;
+                textShape = textMember;
+                nullable |= textMember.MayBeNull;
+                result = textMember.ClrType;
                 continue;
             }
-            result = ResolveField(part, currentFields!, registry);
-            nullable |= field.IsConditional || IsNullable(result);
-            if (field is ComputedFieldNode computed)
-                nullable |= MayBeNull(
-                    computed.Expression,
-                    currentFields!.TakeWhile(candidate => candidate != field).ToArray(),
-                    registry
-                );
-            var reference = field switch
+            textShape = null;
+            TypeAnnotationNode? annotation;
+            if (currentSwitch is not null)
             {
-                FieldDefinitionNode { TypeAnnotation: SchemaReferenceTypeNode direct } => direct,
-                FieldDefinitionNode { TypeAnnotation: SubstreamTypeNode { Target: SchemaReferenceTypeNode bounded } } =>
-                    bounded,
-                _ => null,
-            };
-            if (
-                reference is not null
-                && registry?.TryGetSchema(reference.SchemaName, out var registration) == true
-                && registration?.Node is BinarySchemaNode schema
-            )
-                currentFields = schema.Fields;
-            else if (field is FieldDefinitionNode { TypeAnnotation: InlineSchemaTypeNode inline })
-                currentFields = inline.Fields;
+                annotation = SwitchBranch(currentSwitch, part);
+                if (annotation is null && part != "Case")
+                    return typeof(object);
+                result = annotation?.ClrType ?? typeof(string);
+                nullable |= annotation is not null;
+            }
             else
-                currentFields = null;
+            {
+                var field = currentFields?.FirstOrDefault(candidate =>
+                    string.Equals(candidate.Name, part, StringComparison.Ordinal)
+                );
+                if (field is null)
+                {
+                    if (NativeMemberType(Unwrap(result), part) is not { } memberType)
+                        return typeof(object);
+                    result = memberType;
+                    currentFields = null;
+                    continue;
+                }
+                result = ResolveField(part, currentFields!, registry);
+                nullable |= field.IsConditional || IsNullable(result);
+                if (field is ComputedFieldNode computed)
+                {
+                    var preceding = currentFields!.TakeWhile(candidate => candidate != field).ToArray();
+                    nullable |= MayBeNull(computed.Expression, preceding, registry);
+                    field = BinarySchemaRecordAliases.Resolve(computed.Expression, preceding, registry);
+                }
+                annotation = (field as FieldDefinitionNode)?.TypeAnnotation;
+            }
+            textShape = EmbeddedTextShape(annotation, registry);
+            if (textShape is not null)
+                result = textShape.ClrType;
+            currentSwitch = annotation is null ? null : FindSwitch(annotation);
+            currentFields = annotation is SchemaReferenceTypeNode or InlineSchemaTypeNode or SubstreamTypeNode
+                ? RecordFields(annotation, registry)
+                : null;
         }
         return Lift(result, nullable);
     }
+
+    private static TextResultShape? EmbeddedTextShape(TypeAnnotationNode? annotation, SchemaRegistry? registry) =>
+        annotation is StringTypeNode { AsTextSchemaName: { } name } && registry != null
+            ? new TextResultShapeBinding(registry).Schema(name)
+            : null;
 
     internal static IEnumerable<string> PathParts(Node node)
     {
@@ -220,25 +304,35 @@ internal static class BinarySchemaExpressionTypes
 
     internal static Type Unwrap(Type type) => Nullable.GetUnderlyingType(type) ?? type;
 
-    private static bool HasIndexedReceiver(Node expression) =>
-        expression is ArrayIndexNode || expression is DotNode dot && HasIndexedReceiver(dot.Root);
+    internal static bool IsFieldPath(Node expression) =>
+        expression is IdentifierNode or PropertyValueNode
+        || expression is DotNode dot && IsFieldPath(dot.Root) && IsFieldPath(dot.Expression);
 
-    private static Type ResolveIndexedMember(
+    private static Type ResolveExpressionMember(
         DotNode expression,
         IReadOnlyList<SchemaFieldNode> fields,
         SchemaRegistry? registry
     )
     {
+        if (registry?.EmbeddedTextShapes?.Expression(expression, fields) is { } value)
+            return Lift(value.ClrType, value.MayBeNull || MayBeNull(expression.Root, fields, registry));
         var annotation = ResolveAnnotation(expression.Root, fields, registry);
         var receiverFields = annotation is null ? null : RecordFields(annotation, registry);
         var nullable = MayBeNull(expression.Root, fields, registry);
         if (receiverFields is not null)
-            return Lift(ResolveField(IndexedMemberName(expression), receiverFields, registry), nullable);
+            return Lift(ResolveField(MemberName(expression), receiverFields, registry), nullable);
         var receiverType = Unwrap(Resolve(expression.Root, fields, registry));
-        return Lift(receiverType.GetProperty(IndexedMemberName(expression))?.PropertyType ?? typeof(object), nullable);
+        return Lift(NativeMemberType(receiverType, MemberName(expression)) ?? typeof(object), nullable);
     }
 
-    private static string IndexedMemberName(DotNode expression) =>
+    private static Type? NativeMemberType(Type receiver, string member)
+    {
+        if (member == nameof(string.Length) && (receiver == typeof(string) || receiver.IsArray))
+            return typeof(int);
+        return SemanticColumnPropertyBindingService.TryResolveTypedProperty(receiver, member, out _)?.PropertyType;
+    }
+
+    private static string MemberName(DotNode expression) =>
         expression.Expression is IdentifierNode identifier ? identifier.Name : expression.Name;
 
     private static TypeAnnotationNode? ResolveAnnotation(
@@ -247,6 +341,8 @@ internal static class BinarySchemaExpressionTypes
         SchemaRegistry? registry
     )
     {
+        if (expression is CaseNode or CoalesceNode)
+            return BinarySchemaRecordAliases.Resolve(expression, fields, registry)?.TypeAnnotation;
         if (expression is ArrayIndexNode indexed)
             return ResolveAnnotation(indexed.Array, fields, registry) switch
             {
@@ -256,16 +352,18 @@ internal static class BinarySchemaExpressionTypes
             };
         if (expression is DotNode dot)
         {
+            if (BinarySchemaRecordAliases.Resolve(dot, fields, registry) is { } record)
+                return record.TypeAnnotation;
             var receiver = ResolveAnnotation(dot.Root, fields, registry);
+            if (receiver is not null && SwitchBranch(receiver, MemberName(dot)) is { } branch)
+                return branch;
             var members = receiver is null ? null : RecordFields(receiver, registry);
-            return members is null
-                ? null
-                : ResolveAnnotation(new IdentifierNode(IndexedMemberName(dot)), members, registry);
+            return members is null ? null : ResolveAnnotation(new IdentifierNode(MemberName(dot)), members, registry);
         }
         if (expression is not IdentifierNode identifier)
             return null;
         var field = fields.FirstOrDefault(candidate =>
-            candidate.Name.Equals(identifier.Name, StringComparison.OrdinalIgnoreCase)
+            candidate.Name.Equals(identifier.Name, StringComparison.Ordinal)
         );
         return field switch
         {
@@ -275,6 +373,7 @@ internal static class BinarySchemaExpressionTypes
                 fields.TakeWhile(candidate => candidate != field).ToArray(),
                 registry
             ),
+            null => registry?.ParentBindings.ResolveRecord(fields, identifier)?.TypeAnnotation,
             _ => null,
         };
     }
@@ -318,7 +417,7 @@ internal static class BinarySchemaExpressionTypes
                 return IndexedAccessMayBeNull(indexed, fields, registry);
             case IdentifierNode identifier:
                 var field = fields.FirstOrDefault(candidate =>
-                    candidate.Name.Equals(identifier.Name, StringComparison.OrdinalIgnoreCase)
+                    candidate.Name.Equals(identifier.Name, StringComparison.Ordinal)
                 );
                 if (field is ComputedFieldNode computed)
                     return MayBeNull(
@@ -326,7 +425,7 @@ internal static class BinarySchemaExpressionTypes
                         fields.TakeWhile(candidate => candidate != field).ToArray(),
                         registry
                     );
-                return field?.IsConditional == true;
+                return field?.IsConditional ?? (registry?.ParentBindings.ParentMayBeNull(fields, identifier) == true);
             case ArrayIndexNode indexed:
                 var indexedType = Resolve(indexed, fields, registry);
                 var elementCanDefaultToNull =
@@ -338,6 +437,8 @@ internal static class BinarySchemaExpressionTypes
                         || !IsFixedIndexPresent(ResolveAnnotation(indexed.Array, fields, registry), index)
                     );
             case DotNode dot:
+                if (!IsFieldPath(dot.Root) && MayBeNull(dot.Root, fields, registry))
+                    return true;
                 if (HasNullableIndexedAccess(dot, fields, registry))
                     return true;
                 var parts = PathParts(dot).ToArray();
@@ -346,15 +447,20 @@ internal static class BinarySchemaExpressionTypes
                     && IndexedArrayMayBeAbsent(dot.Root, fields, registry)
                 )
                     return true;
-                if (
-                    registry?.ParentBindings.ParentMayBeNull(fields, string.Join('.', parts), expression) is
-                    { } parentNullability
-                )
+                if (registry?.ParentBindings.ParentMayBeNull(fields, expression) is { } parentNullability)
                     return parentNullability;
                 IReadOnlyList<SchemaFieldNode>? current = fields;
                 BinarySwitchTypeNode? currentSwitch = null;
+                TextResultShape? textShape = null;
                 foreach (var part in parts)
                 {
+                    if (textShape != null)
+                    {
+                        textShape = textShape.Member(part);
+                        if (textShape?.MayBeNull == true)
+                            return true;
+                        continue;
+                    }
                     if (
                         currentSwitch?.Cases.Any(branch =>
                             branch.BranchAlias.Equals(part, StringComparison.OrdinalIgnoreCase)
@@ -364,7 +470,7 @@ internal static class BinarySchemaExpressionTypes
                     if (current is null)
                         return false;
                     var member = current.FirstOrDefault(candidate =>
-                        candidate.Name.Equals(part, StringComparison.OrdinalIgnoreCase)
+                        candidate.Name.Equals(part, StringComparison.Ordinal)
                     );
                     if (member?.IsConditional == true)
                         return true;
@@ -378,9 +484,10 @@ internal static class BinarySchemaExpressionTypes
                             )
                         )
                             return true;
-                        member = BinarySchemaRecordAliases.Resolve(value.Expression, current);
+                        member = BinarySchemaRecordAliases.Resolve(value.Expression, current, registry);
                     }
                     var annotation = (member as FieldDefinitionNode)?.TypeAnnotation;
+                    textShape = EmbeddedTextShape(annotation, registry);
                     currentSwitch = annotation is null ? null : FindSwitch(annotation);
                     current = annotation is null ? null : RecordFields(annotation, registry);
                 }
@@ -400,6 +507,9 @@ internal static class BinarySchemaExpressionTypes
                 return IsNullable(Resolve(expression, fields, registry));
         }
     }
+
+    internal static TypeAnnotationNode? SwitchBranch(TypeAnnotationNode receiver, string name) =>
+        FindSwitch(receiver)?.Cases.FirstOrDefault(branch => branch.BranchAlias == name)?.BranchType;
 
     private static BinarySwitchTypeNode? FindSwitch(TypeAnnotationNode annotation) =>
         annotation switch
@@ -441,19 +551,21 @@ internal static class BinarySchemaExpressionTypes
         return true;
     }
 
+    internal static int MinimumArrayLength(TypeAnnotationNode? annotation) =>
+        annotation is ArrayTypeNode { SizeExpression: { } size } && TryGetConstantIntegerIndex(size, out var length)
+            ? Math.Max(0, length)
+            : 0;
+
+    internal static int MinimumArrayLength(
+        Node expression,
+        IReadOnlyList<SchemaFieldNode> fields,
+        SchemaRegistry? registry
+    ) => MinimumArrayLength(ResolveAnnotation(expression, fields, registry));
+
     private static bool IsFixedIndexPresent(TypeAnnotationNode? annotation, int index)
     {
-        if (
-            annotation is not ArrayTypeNode { SizeExpression: IntegerNode count }
-            || !int.TryParse(
-                Convert.ToString(count.ObjValue, System.Globalization.CultureInfo.InvariantCulture),
-                System.Globalization.NumberStyles.Integer,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out var length
-            )
-        )
-            return false;
-        return length > 0 && (index < 0 || index < length);
+        var length = MinimumArrayLength(annotation);
+        return length > 0 && index < length;
     }
 
     private static bool IndexedAccessMayBeNull(
@@ -497,7 +609,7 @@ internal static class BinarySchemaExpressionTypes
             _ => false,
         };
 
-    private static bool TryGetConstantIntegerIndex(Node expression, out int index)
+    internal static bool TryGetConstantIntegerIndex(Node expression, out int index)
     {
         if (
             (expression is IntegerNode or HexIntegerNode or BinaryIntegerNode or OctalIntegerNode)
@@ -517,7 +629,7 @@ internal static class BinarySchemaExpressionTypes
         return false;
     }
 
-    private static IReadOnlyList<SchemaFieldNode>? RecordFields(
+    internal static IReadOnlyList<SchemaFieldNode>? RecordFields(
         TypeAnnotationNode annotation,
         SchemaRegistry? registry
     ) =>
@@ -526,7 +638,7 @@ internal static class BinarySchemaExpressionTypes
             ArrayTypeNode array => RecordFields(array.ElementType, registry),
             RepeatUntilTypeNode repeat => RecordFields(repeat.ElementType, registry),
             SubstreamTypeNode { Target: { } target } => RecordFields(target, registry),
-            SchemaReferenceTypeNode reference => registry?.ParentBindings.Find(reference.SchemaName)?.Fields,
+            SchemaReferenceTypeNode reference => registry?.ParentBindings.FieldsFor(reference),
             InlineSchemaTypeNode inline => inline.Fields,
             _ => null,
         };

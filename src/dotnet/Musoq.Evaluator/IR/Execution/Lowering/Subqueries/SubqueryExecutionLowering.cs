@@ -60,6 +60,9 @@ internal static class SubqueryExecutionLowering
         )
         {
             Comparison = expression.Comparison,
+            ComparisonBody = operand is null
+                ? null
+                : CreateComparison(expression, operand.ReturnType, plan.FinalResult!.Shape.Fields[0].Type),
             StreamsScalar = planning.StreamsScalar && SupportsScalarStream(plan),
             CteBindings = ExecutionIrCollections.Freeze(shapes.Subqueries.Get(expression.Identifier)),
             CapturedCteValues = ExecutionIrCollections.Freeze(
@@ -74,6 +77,26 @@ internal static class SubqueryExecutionLowering
                     .ToArray()
             ),
         };
+    }
+
+    private static ExecutionExpression CreateComparison(
+        SubqueryExpression query,
+        ExecutionTypeRef leftType,
+        ExecutionTypeRef rightType
+    )
+    {
+        var (left, right) = ComparisonOperandBinding.Normalize(
+            query.Comparison,
+            new SubqueryParameterRef(0, leftType.ResolveClrType()) { VariableName = "left" },
+            new SubqueryParameterRef(1, rightType.ResolveClrType()) { VariableName = "right" }
+        );
+        return ExecutionExpressionConverter.Convert(
+            new BinaryOp(query.Comparison, left, right, typeof(bool?))
+            {
+                UsesSqlNullSemantics = true,
+                IsMaterializedMembershipEquality = query.Kind == SubqueryResultKind.In,
+            }
+        );
     }
 
     private static bool SupportsScalarStream(ExecutionPlan plan)

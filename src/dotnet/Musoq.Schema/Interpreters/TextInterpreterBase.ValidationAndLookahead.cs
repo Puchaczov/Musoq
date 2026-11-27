@@ -121,6 +121,7 @@ public abstract partial class TextInterpreterBase<TOut>
     private static int FindUnescapedClose(ReadOnlySpan<char> text, string close, char escapeCharacter)
     {
         var position = 0;
+        var escapedDelimiterEnd = 0;
         while (position < text.Length)
         {
             var offset = text[position..].IndexOf(close.AsSpan());
@@ -139,8 +140,9 @@ public abstract partial class TextInterpreterBase<TOut>
                 return candidate;
             }
 
-            if (HasOddPrecedingEscapes(text, candidate, escapeCharacter))
+            if (HasOddPrecedingEscapes(text, escapedDelimiterEnd, candidate, escapeCharacter))
             {
+                escapedDelimiterEnd = candidate + close.Length;
                 position = candidate + 1;
                 continue;
             }
@@ -151,10 +153,10 @@ public abstract partial class TextInterpreterBase<TOut>
         return -1;
     }
 
-    private static bool HasOddPrecedingEscapes(ReadOnlySpan<char> text, int position, char escapeCharacter)
+    private static bool HasOddPrecedingEscapes(ReadOnlySpan<char> text, int start, int position, char escapeCharacter)
     {
         var count = 0;
-        for (var index = position - 1; index >= 0 && text[index] == escapeCharacter; index--)
+        for (var index = position - 1; index >= start && text[index] == escapeCharacter; index--)
             count++;
 
         return count % 2 != 0;

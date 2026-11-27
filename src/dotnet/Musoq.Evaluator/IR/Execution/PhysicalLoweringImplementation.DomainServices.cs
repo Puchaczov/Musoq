@@ -173,11 +173,13 @@ internal sealed partial class PhysicalLoweringImplementation
         CanBuildTableProducingMultiStatement(statement);
 
     MultiStatementIndexes IMultiStatementLoweringService.CreateMultiStatementIndexes(
+        LoweringScope scope,
         PhysicalMultiStatementNode statement,
         IReadOnlyDictionary<string, int>? existingCteIndexes,
         IReadOnlyDictionary<string, GeneratedRowShape>? existingCteShapesByName,
         string? statementNamePrefix
-    ) => CreateMultiStatementIndexes(statement, existingCteIndexes, existingCteShapesByName, statementNamePrefix);
+    ) =>
+        CreateMultiStatementIndexes(scope, statement, existingCteIndexes, existingCteShapesByName, statementNamePrefix);
 
     LoweringAttempt<LoweredTable> IMultiStatementLoweringService.BuildMultiStatementTable(
         PhysicalMultiStatementNode statement,

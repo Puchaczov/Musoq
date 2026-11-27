@@ -64,9 +64,8 @@ public partial class InterpreterCodeGenerator
 
         if (target is InlineSchemaTypeNode inlineSchema)
         {
-            var className = GetOrRegisterInlineSchemaClassName(fieldName, inlineSchema, null);
+            var className = _registry.BinaryCompositions.Name(inlineSchema);
             builder.AppendLine(culture, $"var {interpreterVar} = {CreateNestedInterpreter(className)};");
-            builder.Append(GenerateOuterRefAssignments(interpreterVar, inlineSchema));
             return builder.ToString();
         }
 

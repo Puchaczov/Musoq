@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.TemporarySchemas;
@@ -13,13 +14,13 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private static (Type ClrType, string? IntendedTypeName) ApplyBinaryFieldIntendedTypeName(
+    private (Type ClrType, string? IntendedTypeName) ApplyBinaryFieldIntendedTypeName(
         FieldDefinitionNode field,
         (Type ClrType, string? IntendedTypeName) resolvedType
     )
     {
         var intended =
-            BinaryCompositionTypes.IntendedTypeName(field.Name, field.TypeAnnotation) ?? resolvedType.IntendedTypeName;
+            SchemaRegistry?.BinaryCompositions.IntendedTypeName(field.TypeAnnotation) ?? resolvedType.IntendedTypeName;
         var type = field.TypeAnnotation is BinarySwitchTypeNode ? typeof(object) : resolvedType.ClrType;
         return (BinarySchemaExpressionTypes.Lift(type, field.IsConditional), intended);
     }
@@ -48,7 +49,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var inlineSchemaFields = ResolveInlineSchemaFields(intendedTypeName);
         if (nestedType == typeof(object) && inlineSchemaFields != null)
         {
-            return new DynamicTable(CreateBinarySchemaColumns(inlineSchemaFields).ToArray());
+            return new DynamicTable(CreateBinarySchemaColumns(inlineSchemaFields).ToArray(), caseSensitive: true);
         }
 
         if (nestedType == typeof(object) && !string.IsNullOrEmpty(intendedTypeName) && SchemaRegistry != null)
@@ -56,6 +57,26 @@ public partial class BuildMetadataAndInferTypesVisitor
             var elementIntendedTypeName = intendedTypeName.EndsWith("[]", StringComparison.Ordinal)
                 ? intendedTypeName.Substring(0, intendedTypeName.Length - 2)
                 : intendedTypeName;
+            if (TextCapturePropertyResolver.Find(SchemaRegistry, elementIntendedTypeName) is { } capture)
+                return new DynamicTable(
+                    capture
+                        .CaptureGroups.Select((name, index) => new SchemaColumn(name, index, typeof(string)))
+                        .ToArray(),
+                    caseSensitive: true
+                );
+            if (TextSwitchPropertyResolver.Find(SchemaRegistry, elementIntendedTypeName) is { } shape)
+            {
+                var columns = shape.MemberNames.Select(
+                    (name, index) =>
+                    {
+                        var member = shape.Member(name)!;
+                        var typeName =
+                            member.Alternatives.Count > 0 ? $"{elementIntendedTypeName}.{name}" : member.TypeName;
+                        return new SchemaColumn(name, index, member.ClrType, typeName);
+                    }
+                );
+                return new DynamicTable(columns.ToArray(), caseSensitive: true);
+            }
             var schemaReference = ParseSchemaReferenceFromTypeName(elementIntendedTypeName);
             if (SchemaRegistry.TryGetSchema(schemaReference.SchemaName, out var schemaRegistration))
             {
@@ -63,23 +84,14 @@ public partial class BuildMetadataAndInferTypesVisitor
                 {
                     var allFields = GetAllBinarySchemaFields(binaryNode);
                     var typeParamMap = CreateTypeParameterMap(binaryNode, schemaReference.TypeArguments);
-                    return new DynamicTable(CreateBinarySchemaColumns(allFields, typeParamMap).ToArray());
+                    return new DynamicTable(
+                        CreateBinarySchemaColumns(allFields, typeParamMap).ToArray(),
+                        caseSensitive: true
+                    );
                 }
 
                 if (schemaRegistration?.Node is TextSchemaNode textNode)
-                {
-                    var columns = new List<ISchemaColumn>();
-                    var columnIndex = 0;
-
-                    foreach (var field in textNode.Fields)
-                    {
-                        if (field.Name.StartsWith('_'))
-                            continue;
-                        columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(string)));
-                    }
-
-                    return new DynamicTable(columns.ToArray());
-                }
+                    return new DynamicTable(CreateTextSchemaColumns(textNode), caseSensitive: true);
             }
         }
 

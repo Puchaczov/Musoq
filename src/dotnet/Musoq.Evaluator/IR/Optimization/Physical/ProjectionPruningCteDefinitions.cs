@@ -227,7 +227,10 @@ internal static partial class ProjectionPruningCteDefinitions
                 .ToArray();
             var fields = requiredFields.Length == 0 ? project.Fields : requiredFields;
 
-            Visit(project.Input, ColumnUsage.CollectColumnNames(fields.Select(static field => field.Expression)));
+            var inputs = ColumnUsage.CollectColumnNames(fields.Select(static field => field.Expression));
+            // ORDER BY can bind directly to a source column absent from the SELECT list.
+            var sourceRequirements = requiredAfter.Where(name => project.OutputSchema.FindByName(name) == null);
+            Visit(project.Input, ColumnUsage.Merge(inputs, sourceRequirements));
         }
 
         private static IReadOnlyList<string> CollectPredicateJoinColumns(IrExpression predicate, OrderField? tieBreak)
@@ -309,6 +312,7 @@ internal static partial class ProjectionPruningCteDefinitions
                         .Where(column =>
                             ColumnUsage.ContainsColumn(requiredAfter, column)
                             || ColumnUsage.ContainsColumn(requiredAfter, $"{cteRef.Alias}.{column}")
+                            || requiredAfter.Any(required => ReadsMember(required, column, cteRef.Alias))
                         )
                         .ToArray();
 
@@ -326,6 +330,18 @@ internal static partial class ProjectionPruningCteDefinitions
 
             foreach (var column in required)
                 columns.Add(column);
+        }
+
+        private static bool ReadsMember(string required, string column, string alias)
+        {
+            var path = required.AsSpan();
+            if (
+                path.StartsWith(alias, StringComparison.OrdinalIgnoreCase)
+                && path.Length > alias.Length
+                && path[alias.Length] == '.'
+            )
+                path = path[(alias.Length + 1)..];
+            return ColumnUsage.ReadsMember(path, column);
         }
 
         private IReadOnlyDictionary<string, IReadOnlySet<string>> CreateResult(

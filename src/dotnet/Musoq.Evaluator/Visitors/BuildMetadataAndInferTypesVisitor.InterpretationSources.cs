@@ -50,114 +50,18 @@ public partial class BuildMetadataAndInferTypesVisitor
                 break;
             }
             case TextSchemaNode textSchemaNode:
-            {
-                var columnIndex = 0;
-
-                foreach (var field in GetAllTextSchemaFields(textSchemaNode))
-                {
-                    if (field.Name.StartsWith('_'))
-                        continue;
-
-                    if (field is { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 })
-                    {
-                        columns.Add(
-                            new SchemaColumn(
-                                field.Name,
-                                columnIndex++,
-                                typeof(object),
-                                $"Musoq.Generated.Interpreters.{schema.Name}.CaptureResult_{field.Name}"
-                            )
-                        );
-                        continue;
-                    }
-
-                    if (field.FieldType == TextFieldType.Repeat)
-                    {
-                        if (field.RepeatElement != null)
-                        {
-                            var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field, SchemaRegistry);
-                            columns.Add(
-                                new SchemaColumn(field.Name, columnIndex++, shape.ClrType, shape.IntendedTypeName)
-                            );
-                            continue;
-                        }
-
-                        var elementSchemaName = field.PrimaryValue ?? "object";
-                        columns.Add(
-                            new SchemaColumn(
-                                field.Name,
-                                columnIndex++,
-                                typeof(object[]),
-                                $"Musoq.Generated.Interpreters.{elementSchemaName}[]"
-                            )
-                        );
-                        continue;
-                    }
-
-                    if (field.FieldType == TextFieldType.Switch)
-                    {
-                        var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field, SchemaRegistry);
-                        columns.Add(new SchemaColumn(field.Name, columnIndex++, shape.ClrType, shape.IntendedTypeName));
-                        continue;
-                    }
-
-                    if (field.FieldType == TextFieldType.SchemaReference)
-                    {
-                        var referencedSchemaName = field.PrimaryValue ?? "object";
-                        columns.Add(
-                            new SchemaColumn(
-                                field.Name,
-                                columnIndex++,
-                                typeof(object),
-                                $"Musoq.Generated.Interpreters.{referencedSchemaName}"
-                            )
-                        );
-                        continue;
-                    }
-
-                    columns.Add(new SchemaColumn(field.Name, columnIndex++, typeof(string)));
-                }
-
+                columns.AddRange(CreateTextSchemaColumns(textSchemaNode));
                 break;
-            }
         }
 
         if (columns.Count == 0)
             return CreateEmptyTable();
 
-        return new DynamicTable(columns.ToArray());
+        return new DynamicTable(columns.ToArray(), caseSensitive: true);
     }
 
-    private List<SchemaFieldNode> GetAllBinarySchemaFields(BinarySchemaNode binaryNode)
-    {
-        if (string.IsNullOrEmpty(binaryNode.Extends))
-            return binaryNode.Fields.ToList();
-
-        var allFields = new List<SchemaFieldNode>();
-
-        if (!string.IsNullOrEmpty(binaryNode.Extends))
-        {
-            var parentSchema = RequireSchemaRegistry().GetSchema(binaryNode.Extends);
-            if (parentSchema?.Node is BinarySchemaNode parentBinaryNode)
-                allFields.AddRange(GetAllBinarySchemaFields(parentBinaryNode));
-        }
-
-        var overriddenParentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var childField in binaryNode.Fields)
-            for (var i = 0; i < allFields.Count; i++)
-                if (string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase))
-                {
-                    allFields[i] = childField;
-                    overriddenParentNames.Add(childField.Name);
-                    break;
-                }
-
-        foreach (var childField in binaryNode.Fields)
-            if (!overriddenParentNames.Contains(childField.Name))
-                allFields.Add(childField);
-
-        return allFields;
-    }
+    private List<SchemaFieldNode> GetAllBinarySchemaFields(BinarySchemaNode binaryNode) =>
+        InterpretationSchemaFields.GetFields(binaryNode, RequireSchemaRegistry());
 
     private List<ISchemaColumn> CreateBinarySchemaColumns(IReadOnlyList<SchemaFieldNode> fields)
     {
@@ -174,7 +78,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         foreach (var field in fields)
         {
-            if (field.Name.StartsWith('_'))
+            if (field.Name == "_")
                 continue;
 
             if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode })
@@ -190,9 +94,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                 }
 
                 columns.Add(
-                    NullableInterpretationColumn.Preserve(
+                    InterpretationColumn.Preserve(
                         new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName),
-                        fieldDef.IsConditional
+                        fieldDef.IsConditional,
+                        minimumArrayLength: columnType.IsArray && intendedTypeName != null
+                            ? BinarySchemaExpressionTypes.MinimumArrayLength(fieldDef.TypeAnnotation)
+                            : 0
                     )
                 );
                 continue;
@@ -201,15 +108,18 @@ public partial class BuildMetadataAndInferTypesVisitor
             if (field is ComputedFieldNode computedField)
             {
                 var columnType = BinarySchemaExpressionTypes.Resolve(computedField.Expression, fields, SchemaRegistry);
-                var alias = BinarySchemaRecordAliases.Resolve(computedField.Expression, fields);
+                var alias = BinarySchemaRecordAliases.Resolve(computedField.Expression, fields, SchemaRegistry);
                 var intendedTypeName = alias is null
                     ? null
                     : ResolveBinaryFieldClrTypeWithIntendedName(alias, typeParamMap).IntendedTypeName;
                 columns.Add(
-                    NullableInterpretationColumn.Preserve(
+                    InterpretationColumn.Preserve(
                         new SchemaColumn(field.Name, columnIndex++, columnType, intendedTypeName),
-                        intendedTypeName != null
-                            && BinarySchemaExpressionTypes.MayBeNull(computedField.Expression, fields, SchemaRegistry)
+                        (intendedTypeName != null || !columnType.IsValueType)
+                            && BinarySchemaExpressionTypes.MayBeNull(computedField.Expression, fields, SchemaRegistry),
+                        minimumArrayLength: columnType.IsArray && intendedTypeName != null
+                            ? BinarySchemaExpressionTypes.MinimumArrayLength(alias?.TypeAnnotation)
+                            : 0
                     )
                 );
                 continue;
@@ -221,48 +131,24 @@ public partial class BuildMetadataAndInferTypesVisitor
         return columns;
     }
 
-    private List<TextFieldDefinitionNode> GetAllTextSchemaFields(TextSchemaNode textNode)
-    {
-        if (string.IsNullOrEmpty(textNode.Extends))
-            return textNode.Fields.ToList();
+    private List<TextFieldDefinitionNode> GetAllTextSchemaFields(TextSchemaNode schema) =>
+        InterpretationSchemaFields.GetFields(schema, SchemaRegistry);
 
-        var allFields = new List<TextFieldDefinitionNode>();
-
-        if (!string.IsNullOrEmpty(textNode.Extends))
-        {
-            var parentSchema = RequireSchemaRegistry().GetSchema(textNode.Extends);
-            if (parentSchema?.Node is TextSchemaNode parentTextNode)
-                allFields.AddRange(GetAllTextSchemaFields(parentTextNode));
-        }
-
-        var overriddenParentNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var childField in textNode.Fields)
-        {
-            if (childField.IsDiscard)
-                continue;
-
-            for (var i = 0; i < allFields.Count; i++)
-            {
-                if (
-                    allFields[i].IsDiscard
-                    || !string.Equals(allFields[i].Name, childField.Name, StringComparison.OrdinalIgnoreCase)
-                )
-                    continue;
-
-                allFields[i] = childField;
-                overriddenParentNames.Add(childField.Name);
-                break;
-            }
-        }
-
-        foreach (var childField in textNode.Fields)
-        {
-            if (childField.IsDiscard || !overriddenParentNames.Contains(childField.Name))
-                allFields.Add(childField);
-        }
-
-        return allFields;
-    }
+    private ISchemaColumn[] CreateTextSchemaColumns(TextSchemaNode schema) =>
+        GetAllTextSchemaFields(schema)
+            .Where(static field => !field.IsDiscard)
+            .Select(
+                (field, index) =>
+                {
+                    var shape = InterpretationTextFieldTypeResolver.Resolve(schema.Name, field, SchemaRegistry);
+                    return InterpretationColumn.Preserve(
+                        new SchemaColumn(field.Name, index, shape.ClrType, shape.IntendedTypeName),
+                        InterpretationTextFieldTypeResolver.MayBeNull(field),
+                        shape.ClrType.IsArray && shape.ClrType.GetElementType()?.IsValueType == false
+                    );
+                }
+            )
+            .ToArray();
 
     private SchemaRegistry RequireSchemaRegistry()
     {

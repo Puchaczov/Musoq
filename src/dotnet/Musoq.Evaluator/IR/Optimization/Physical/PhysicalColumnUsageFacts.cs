@@ -178,8 +178,15 @@ internal static class PhysicalColumnUsageFacts
     public static string[] FilterProducedColumns(PhysicalNode input, IEnumerable<string> columns)
     {
         var available = ResolveAvailableColumnNames(input);
-        return columns.Where(column => ContainsColumn(available, column)).ToArray();
+        return columns
+            .Where(column => ContainsColumn(available, column) || available.Any(root => ReadsMember(column, root)))
+            .ToArray();
     }
+
+    public static bool ReadsMember(ReadOnlySpan<char> path, string column) =>
+        path.Length > column.Length
+        && path[column.Length] is '.' or '['
+        && path.StartsWith(column, StringComparison.OrdinalIgnoreCase);
 
     public static string[] ResolveAvailableColumnNames(PhysicalNode input)
     {

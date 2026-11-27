@@ -16,6 +16,24 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class LibraryExecutionNativeGenericQueryTests : GenericEntityTestBase
 {
     [TestMethod]
+    [DataRow("PairOnly(Pair)", 1)]
+    [DataRow("PairOnly(OptionalPair)", 0)]
+    [DataRow("ChoosePair(Pair)", 1)]
+    [DataRow("ChoosePair(OptionalPair)", 0)]
+    public void NullableGenericStructParameter_ShouldAcceptBothArgumentForms(string expression, int secondResult)
+    {
+        var pair = new KeyValuePair<int, int>(4, 7);
+        var sql = $"select {expression} as Result from #schema.first()";
+        using var query = CreateAndRunVirtualMachine<PairInput, GenericLibrary>(
+            sql,
+            [new(pair, pair), new(pair, null)]
+        );
+        using var table = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [1], [secondResult]);
+    }
+
+    [TestMethod]
     [DataRow("NativeLength($items)")]
     [DataRow("NativeLength(NativeEcho($items))")]
     [DataRow("StructElements($items)")]

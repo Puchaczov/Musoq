@@ -6,6 +6,7 @@ public sealed record ExecutionRowStream(
     ExecutionRowStreamRowsAccess RowsAccess = ExecutionRowStreamRowsAccess.Direct
 ) : ExecutionExpression(ExecutionClrBindingFactory.FromClr(typeof(object)))
 {
+    public bool HasBaseRowElements { get; init; }
     internal bool HasDirectScalarElements { get; init; }
     internal bool IsValueEnumerable { get; init; }
 }

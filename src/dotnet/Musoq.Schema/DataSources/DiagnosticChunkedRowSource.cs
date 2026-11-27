@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Musoq.Schema.Optimization;
 
 namespace Musoq.Schema.DataSources;
@@ -9,6 +10,9 @@ public abstract class DiagnosticChunkedRowSource<T> : RowSource<T>
     private readonly SourceExecutionContext _context;
     private readonly string _sourceName;
     private readonly DiagnosticChunkedRowSourceOptions _options;
+
+    internal TaskScheduler? ProducerScheduler { private get; init; }
+    internal TimeSpan? ProducerShutdownWait { private get; init; }
 
     protected DiagnosticChunkedRowSource(
         SourceExecutionContext context,
@@ -40,7 +44,9 @@ public abstract class DiagnosticChunkedRowSource<T> : RowSource<T>
             (chunks, token) => new DiagnosticChunkWriter<T>(chunks, metrics, token),
             CollectChunks,
             () => _context.EndWorkToken.IsCancellationRequested,
-            metrics
+            metrics,
+            ProducerShutdownWait,
+            ProducerScheduler
         );
     }
 }

@@ -1,6 +1,6 @@
 namespace Musoq.Parser.Nodes;
 
-public class OctalIntegerNode : ConstantValueNode
+public class OctalIntegerNode : NumericLiteralNode
 {
     public OctalIntegerNode(string value)
         : this(value, default) { }
@@ -37,6 +37,8 @@ public class OctalIntegerNode : ConstantValueNode
     {
         return ObjValue.ToString() ?? string.Empty;
     }
+
+    protected override NumericLiteralNode CreateCopy() => new OctalIntegerNode(ObjValue, Span);
 
     public override void Accept(IExpressionVisitor visitor)
     {

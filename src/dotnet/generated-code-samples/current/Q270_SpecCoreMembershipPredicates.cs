@@ -123,8 +123,8 @@ namespace GeneratedSample_Q270_SpecCoreMembershipPredicates
                 }), false)) switch
                 {
                     false => (bool?)false,
-                    true => (bool?)EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames),
-                    _ => (bool?)EvaluationHelper.CollectionParameterNotContains<string>(name, paramNames) & (bool?)null
+                    true => (bool?)(bool?)(!EvaluationHelper.CollectionParameterMembership<string>(name, paramNames)),
+                    _ => (bool?)(bool?)(!EvaluationHelper.CollectionParameterMembership<string>(name, paramNames)) & (bool?)null
 
                 }))) switch
                 {

@@ -6,7 +6,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -16,168 +18,155 @@ public sealed class CompiledQueryRuntimeStateTests
     [TestMethod]
     public async Task ConcurrentRuns_ShouldUseIndependentParameterSnapshots()
     {
+        using var watchdog = new TestWatchdog();
         using var runnable = new BlockingParameterizedRunnable();
-        using var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(
-            query.TypedParameters,
-            query.ParameterDefinitions,
-            "value",
-            1
+        var secondWaiting = TestWatchdog.Signal();
+        using var query = new CompiledQuery(runnable)
+        {
+            SynchronousAdmissionWait = (gate, token) =>
+            {
+                if (gate.Wait(0, token))
+                    return;
+
+                secondWaiting.SetResult();
+                gate.Wait(token);
+            },
+        };
+        SetValue(query, 1);
+        var first = TestWatchdog.StartWorker(() => query.Run());
+        Task<Table>? second = null;
+
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(runnable.FirstRunStarted.Task, first, "the first run");
+                second = StartWithValue(query, 2);
+                await watchdog.ReachedBeforeCompletionAsync(secondWaiting.Task, second, "the second run admission");
+                runnable.Release.TrySetResult();
+                await watchdog.WaitAsync(Task.WhenAll(first, second), "both parameterized runs");
+                using var firstResult = await first;
+                using var secondResult = await second;
+                Assert.AreEqual(1, firstResult[0].ReadValue(0));
+                Assert.AreEqual(2, secondResult[0].ReadValue(0));
+            },
+            () =>
+            {
+                runnable.Release.TrySetResult();
+                return Task.WhenAll(first, second ?? Task.CompletedTask);
+            }
         );
-
-        var firstRun = StartLongRunning(() => query.Run());
-        try
-        {
-            Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
-        }
-        catch
-        {
-            runnable.Release.Set();
-            throw;
-        }
-
-        using var secondRunStarted = new ManualResetEventSlim();
-        var secondRun = StartLongRunning(() =>
-        {
-            secondRunStarted.Set();
-            var values = new TypedParameterValues();
-            values.Set("value", 2);
-            return query.Run(new TypedQueryRunOptions { TypedParameters = values.Capture() });
-        });
-
-        Assert.IsTrue(secondRunStarted.Wait(TimeSpan.FromSeconds(5)));
-        runnable.Release.Set();
-
-        var firstResult = await firstRun;
-        var secondResult = await secondRun;
-
-        Assert.AreEqual(1, firstResult[0].ReadValue(0));
-        Assert.AreEqual(2, secondResult[0].ReadValue(0));
     }
 
     [TestMethod]
     public async Task Dispose_ShouldWaitForAnActiveRunAndRejectLaterRuns()
     {
+        using var watchdog = new TestWatchdog();
         using var runnable = new BlockingParameterizedRunnable();
-        var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(
-            query.TypedParameters,
-            query.ParameterDefinitions,
-            "value",
-            3
+        var probe = new CompiledQueryDrainProbe(CompiledQuery.DrainStage.ActiveRuns, watchdog);
+        using var query = new CompiledQuery(runnable) { DisposalWait = probe.Wait };
+        SetValue(query, 3);
+        var run = TestWatchdog.StartWorker(() => query.Run());
+        Task? disposal = null;
+
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(runnable.FirstRunStarted.Task, run, "the active run");
+                disposal = TestWatchdog.StartWorker(query.Dispose);
+                await probe.ObserveAsync(disposal);
+                runnable.Release.TrySetResult();
+                await watchdog.WaitAsync(Task.WhenAll(run, disposal), "the run and disposal");
+                using var result = await run;
+
+                Assert.IsFalse(runnable.DisposeObservedActiveRun);
+                Assert.IsTrue(runnable.IsDisposed);
+                Assert.ThrowsExactly<ObjectDisposedException>(() => query.Run());
+            },
+            () =>
+            {
+                runnable.Release.TrySetResult();
+                return Task.WhenAll(run, disposal ?? Task.CompletedTask);
+            }
         );
-
-        var run = StartLongRunning(() => query.Run());
-        try
-        {
-            Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
-        }
-        catch
-        {
-            runnable.Release.Set();
-            throw;
-        }
-
-        var dispose = StartLongRunning(query.Dispose);
-
-        runnable.Release.Set();
-        await run;
-        await dispose;
-
-        Assert.IsFalse(runnable.DisposeObservedActiveRun);
-        Assert.IsTrue(runnable.IsDisposed);
-        Assert.ThrowsExactly<ObjectDisposedException>(() => query.Run());
     }
 
     [TestMethod]
-    public async Task ContextualRuns_ShouldExecuteConcurrentlyWithIndependentSnapshots()
+    public Task ContextualRuns_ShouldExecuteConcurrentlyWithIndependentSnapshots() =>
+        AssertContextualRuns(dispose: false);
+
+    [TestMethod]
+    public Task Dispose_ShouldWaitForConcurrentContextualRuns() => AssertContextualRuns(dispose: true);
+
+    private static async Task AssertContextualRuns(bool dispose)
     {
+        using var watchdog = new TestWatchdog();
         using var runnable = new BlockingContextualRunnable();
-        using var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(
-            query.TypedParameters,
-            query.ParameterDefinitions,
-            "value",
-            1
+        var probe = new CompiledQueryDrainProbe(CompiledQuery.DrainStage.ActiveRuns, watchdog);
+        using var query = new CompiledQuery(runnable) { DisposalWait = dispose ? probe.Wait : null };
+        SetValue(query, 1);
+        var first = TestWatchdog.StartWorker(() => query.Run());
+        Task<Table>? second = null;
+        Task? disposal = null;
+
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(
+                    runnable.FirstRunStarted.Task,
+                    first,
+                    "the first contextual run"
+                );
+                second = StartWithValue(query, 2);
+                await watchdog.ReachedBeforeCompletionAsync(
+                    runnable.SecondRunStarted.Task,
+                    second,
+                    "the second contextual run"
+                );
+                Assert.AreEqual(2, runnable.MaximumConcurrentRuns);
+
+                if (dispose)
+                {
+                    disposal = TestWatchdog.StartWorker(query.Dispose);
+                    await probe.ObserveAsync(disposal);
+                }
+
+                runnable.Release.TrySetResult();
+                await watchdog.WaitAsync(
+                    Task.WhenAll(first, second, disposal ?? Task.CompletedTask),
+                    "the contextual runs"
+                );
+                using var firstResult = await first;
+                using var secondResult = await second;
+                CollectionAssert.AreEquivalent(
+                    new[] { 1, 2 },
+                    new[] { firstResult[0].ReadValue(0), secondResult[0].ReadValue(0) }
+                );
+
+                if (dispose)
+                {
+                    Assert.IsFalse(runnable.DisposeObservedActiveRun);
+                    Assert.IsTrue(runnable.IsDisposed);
+                    Assert.ThrowsExactly<ObjectDisposedException>(() => query.Run());
+                }
+            },
+            () =>
+            {
+                runnable.Release.TrySetResult();
+                return Task.WhenAll(first, second ?? Task.CompletedTask, disposal ?? Task.CompletedTask);
+            }
         );
+    }
 
-        var firstRun = StartLongRunning(() => query.Run());
-        try
-        {
-            Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
-        }
-        catch
-        {
-            runnable.Release.Set();
-            throw;
-        }
+    private static void SetValue(CompiledQuery query, int value) =>
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "value", value);
 
-        var secondRun = StartLongRunning(() =>
+    private static Task<Table> StartWithValue(CompiledQuery query, int value) =>
+        TestWatchdog.StartWorker(() =>
         {
             var values = new TypedParameterValues();
-            values.Set("value", 2);
+            values.Set("value", value);
             return query.Run(new TypedQueryRunOptions { TypedParameters = values.Capture() });
         });
-
-        try
-        {
-            Assert.IsTrue(runnable.SecondRunStarted.Wait(TimeSpan.FromSeconds(5)));
-            Assert.AreEqual(2, runnable.MaximumConcurrentRuns);
-        }
-        finally
-        {
-            runnable.Release.Set();
-        }
-        var firstResult = await firstRun;
-        var secondResult = await secondRun;
-
-        CollectionAssert.AreEquivalent(
-            new[] { 1, 2 },
-            new[] { firstResult[0].ReadValue(0), secondResult[0].ReadValue(0) }
-        );
-    }
-
-    [TestMethod]
-    public async Task Dispose_ShouldWaitForConcurrentContextualRuns()
-    {
-        using var runnable = new BlockingContextualRunnable();
-        var query = new CompiledQuery(runnable);
-        global::Musoq.Tests.Common.NativeParameterFixture.Set(
-            query.TypedParameters,
-            query.ParameterDefinitions,
-            "value",
-            3
-        );
-
-        var firstRun = StartLongRunning(() => query.Run());
-        try
-        {
-            Assert.IsTrue(runnable.FirstRunStarted.Wait(TimeSpan.FromSeconds(5)));
-        }
-        catch
-        {
-            runnable.Release.Set();
-            throw;
-        }
-        var secondRun = StartLongRunning(() => query.Run());
-        Assert.IsTrue(runnable.SecondRunStarted.Wait(TimeSpan.FromSeconds(5)));
-
-        var dispose = StartLongRunning(query.Dispose);
-
-        runnable.Release.Set();
-        await firstRun;
-        await secondRun;
-        await dispose;
-
-        Assert.IsFalse(runnable.DisposeObservedActiveRun);
-        Assert.IsTrue(runnable.IsDisposed);
-    }
-
-    private static Task<T> StartLongRunning<T>(Func<T> function) =>
-        Task.Factory.StartNew(function, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
-    private static Task StartLongRunning(Action action) =>
-        Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
     private sealed class BlockingParameterizedRunnable
         : ITableRunnable,
@@ -185,8 +174,8 @@ public sealed class CompiledQueryRuntimeStateTests
             ITypedParameterizedRunnable,
             IDisposable
     {
-        internal readonly ManualResetEventSlim FirstRunStarted = new(false);
-        internal readonly ManualResetEventSlim Release = new(false);
+        internal readonly TaskCompletionSource FirstRunStarted = TestWatchdog.Signal();
+        internal readonly TaskCompletionSource Release = TestWatchdog.Signal();
         private int _activeRuns;
         private int _disposeObservedActiveRun;
 
@@ -229,11 +218,11 @@ public sealed class CompiledQueryRuntimeStateTests
         {
             var runNumber = Interlocked.Increment(ref _activeRuns);
             if (runNumber == 1)
-                FirstRunStarted.Set();
+                FirstRunStarted.TrySetResult();
 
             try
             {
-                Release.Wait(token);
+                Release.Task.WaitAsync(token).GetAwaiter().GetResult();
 
                 var value = TypedParameters.GetRequired<int>("value");
                 var table = new Table("result", [new Column("Value", typeof(int), 0)]);
@@ -254,8 +243,6 @@ public sealed class CompiledQueryRuntimeStateTests
                 return;
 
             IsDisposed = true;
-            FirstRunStarted.Dispose();
-            Release.Dispose();
         }
 
         private sealed class ValueRow(int value) : Row
@@ -283,9 +270,9 @@ public sealed class CompiledQueryRuntimeStateTests
         private int _maximumConcurrentRuns;
         private int _disposeObservedActiveRun;
 
-        internal readonly ManualResetEventSlim FirstRunStarted = new(false);
-        internal readonly ManualResetEventSlim SecondRunStarted = new(false);
-        internal readonly ManualResetEventSlim Release = new(false);
+        internal readonly TaskCompletionSource FirstRunStarted = TestWatchdog.Signal();
+        internal readonly TaskCompletionSource SecondRunStarted = TestWatchdog.Signal();
+        internal readonly TaskCompletionSource Release = TestWatchdog.Signal();
 
         public ISchemaProvider Provider { get; set; } = new ThrowingSchemaProvider();
 
@@ -332,13 +319,13 @@ public sealed class CompiledQueryRuntimeStateTests
             var active = Interlocked.Increment(ref _activeRuns);
             UpdateMaximum(active);
             if (active == 1)
-                FirstRunStarted.Set();
+                FirstRunStarted.TrySetResult();
             if (active == 2)
-                SecondRunStarted.Set();
+                SecondRunStarted.TrySetResult();
 
             try
             {
-                Release.Wait(context.CancellationToken);
+                Release.Task.WaitAsync(context.CancellationToken).GetAwaiter().GetResult();
                 var value = context.TypedParameters.Contains("value")
                     ? context.TypedParameters.GetRequired<int>("value")
                     : 0;

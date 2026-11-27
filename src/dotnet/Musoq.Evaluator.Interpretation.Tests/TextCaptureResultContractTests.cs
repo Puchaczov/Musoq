@@ -6,6 +6,7 @@ using Musoq.Converter;
 using Musoq.Converter.Exceptions;
 using Musoq.Evaluator.Tables;
 using Musoq.Parser.Diagnostics;
+using Musoq.Schema.Interpreters;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -96,14 +97,16 @@ public sealed class TextCaptureResultContractTests : BinaryOrTextualEvaluatorTes
     }
 
     [TestMethod]
-    public void NonCaptureAlternation_ShouldKeepItsEstablishedMatchAndCursor()
+    public void NonCaptureAlternation_ShouldRequireAMatchAtTheCursorAfterAPrefix()
     {
-        using var result = Run(
-            "text Rec { _: literal 'x', Part: pattern 'n|foo', Tail: rest }",
-            "p.Part, p.Tail",
-            "x--foo!"
-        );
-        TableMaterializationTestHelper.AssertRowsInOrder(result, ["foo", "oo!"]);
+        const string schema = "text Rec { _: literal 'x', Part: pattern 'n|foo', Tail: rest }";
+        const string projection = "p.Part, p.Tail";
+        var failure = Assert.Throws<ParseException>(() => Run(schema, projection, "x--foo!"));
+        Assert.AreEqual(ParseErrorCode.PatternMismatch, failure.ErrorCode);
+        Assert.AreEqual(1, failure.Position);
+
+        using var result = Run(schema, projection, "xfoo!");
+        TableMaterializationTestHelper.AssertRowsInOrder(result, ["foo", "!"]);
     }
 
     [TestMethod]

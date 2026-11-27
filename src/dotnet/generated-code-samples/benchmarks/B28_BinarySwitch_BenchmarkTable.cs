@@ -360,6 +360,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Body : BytesInterpreterBase<Body>, IBytesInterpreterStatus<Body>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public int Value { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Value" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -383,9 +385,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Value field value.</summary>
-        public int Value { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Body";
 
         public override Body InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Body>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -408,8 +407,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Body>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.Value = _value;
+                var _field5_Value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Value = _field5_Value;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Body>.Success(__parsedValue);
             }
@@ -426,6 +425,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Tagged : BytesInterpreterBase<Tagged>, IBytesInterpreterStatus<Tagged>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Kind { get; set; }
+        public Switch_Body Body { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Kind", "Body" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -456,11 +458,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Kind field value.</summary>
-        public byte Kind { get; set; }
-        /// <summary>Gets the Body field value.</summary>
-        public Switch_Body Body { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Tagged";
 
         public override Tagged InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Tagged>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -483,25 +480,25 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Tagged>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _kind = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Kind = _kind;
+                var _field4_Kind = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Kind = _field4_Kind;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Body");
-                string _body_case = null;
-                Body _body_Known = default;
-                byte[] _body_Raw = default;
-                if (_kind == 0)
+                string _field4_Body_case = null;
+                Body _field4_Body_Known = default;
+                byte[] _field4_Body_Raw = default;
+                if (_field4_Kind == 0)
                 {
-                    var __body_Known_value_interpreter = new Body();
-                    var __musoqReadResult2 = base.InterpretNestedStatus(__body_Known_value_interpreter, data, "Body");
+                    var __field4_Body_Known_value_interpreter = new Body();
+                    var __musoqReadResult2 = base.InterpretNestedStatus(__field4_Body_Known_value_interpreter, data, "Body");
                     if (!__musoqReadResult2.Succeeded)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Tagged>.Failed(__parsedValue, __musoqReadResult2.Failure!);
                     }
 
-                    var _body_Known_value = __musoqReadResult2.Value!;
-                    _body_Known = _body_Known_value;
-                    _body_case = "Known";
+                    var _field4_Body_Known_value = __musoqReadResult2.Value!;
+                    _field4_Body_Known = _field4_Body_Known_value;
+                    _field4_Body_case = "Known";
                 }
                 else
                 {
@@ -511,18 +508,18 @@ namespace Musoq.Generated.Interpreters
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Tagged>.Failed(__parsedValue, __musoqReadFailure4);
                     }
 
-                    var _body_Raw_value = base.ReadPreparedByteArray(data, __musoqReadSize3);
-                    _body_Raw = _body_Raw_value;
-                    _body_case = "Raw";
+                    var _field4_Body_Raw_value = base.ReadPreparedByteArray(data, __musoqReadSize3);
+                    _field4_Body_Raw = _field4_Body_Raw_value;
+                    _field4_Body_case = "Raw";
                 }
 
-                var _body = new Switch_Body
+                var _field4_Body = new Switch_Body
                 {
-                    Case = _body_case,
-                    Known = _body_Known,
-                    Raw = _body_Raw
+                    Case = _field4_Body_case,
+                    Known = _field4_Body_Known,
+                    Raw = _field4_Body_Raw
                 };
-                __parsedValue.Body = _body;
+                __parsedValue.Body = _field4_Body;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Tagged>.Success(__parsedValue);
             }

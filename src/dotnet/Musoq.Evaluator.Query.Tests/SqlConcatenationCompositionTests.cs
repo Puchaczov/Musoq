@@ -6,6 +6,18 @@ namespace Musoq.Evaluator.Tests;
 public sealed class SqlConcatenationCompositionTests : Schema.Basic.BasicEntityTestBase
 {
     [TestMethod]
+    [DataRow("all")]
+    [DataRow("s.S || '!',s.S || '?'")]
+    public void GroupedConcatenationsRetainTheirDistinctOperands(string keys)
+    {
+        var sql = $"select s.S || '!' as P,s.S || '?' as Q from values {{ (S:'x') }} s group by {keys}";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["x!", "x?"]);
+    }
+
+    [TestMethod]
     [DataRow("select Max(e.Name) || Max(e.Name) as A from #A.Entities() e", "xx")]
     [DataRow("select e.Name || '!' as A from #A.Entities() e group by e.Name || '!'", "x!")]
     [DataRow("with q as (select e.Name as N from #A.Entities() e) select q.N || '!' as A from q", "x!")]

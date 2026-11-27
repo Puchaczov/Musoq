@@ -19,7 +19,7 @@ internal static class RecursiveCteIdentitySyntaxFactory
         );
     }
 
-    public static InvocationExpressionSyntax CreateSeenAddExpression(
+    public static ExpressionSyntax CreateAdmissionCondition(
         ExecutionRecursiveCteAppend append,
         IReadOnlyList<ExecutionVariable> candidateVariables
     )
@@ -34,7 +34,7 @@ internal static class RecursiveCteIdentitySyntaxFactory
                 ? keyParts[0]
                 : SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(keyParts.Select(SyntaxFactory.Argument)));
 
-        return SyntaxFactory
+        ExpressionSyntax admission = SyntaxFactory
             .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -43,5 +43,16 @@ internal static class RecursiveCteIdentitySyntaxFactory
                 )
             )
             .WithArgumentList(CreateArgumentList(key));
+        foreach (var index in append.NaNDistinctFieldIndexes)
+        {
+            var type = append.AppendRow.RowShape.Fields[index].Type.RequireClrType();
+            var constant = (Nullable.GetUnderlyingType(type) ?? type) == typeof(float) ? "float.NaN" : "double.NaN";
+            var isNaN = SyntaxFactory.IsPatternExpression(
+                SyntaxFactory.IdentifierName(candidateVariables[index].Name),
+                SyntaxFactory.ConstantPattern(SyntaxFactory.ParseExpression(constant))
+            );
+            admission = SyntaxFactory.BinaryExpression(SyntaxKind.LogicalOrExpression, isNaN, admission);
+        }
+        return admission;
     }
 }

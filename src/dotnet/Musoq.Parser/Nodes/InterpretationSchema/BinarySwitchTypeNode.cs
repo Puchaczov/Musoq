@@ -17,8 +17,18 @@ public class BinarySwitchTypeNode : TypeAnnotationNode
     /// <param name="cases">The ordered switch cases, with an optional trailing default case.</param>
     /// <param name="selectorSpan">The source span of the selector name.</param>
     public BinarySwitchTypeNode(string selector, BinarySwitchCaseNode[] cases, TextSpan selectorSpan = default)
+        : this(selector, cases, selectorSpan, new IdentifierNode(selector, null, selectorSpan)) { }
+
+    /// <summary>Creates a switch with the parsed selector path and its display name.</summary>
+    public BinarySwitchTypeNode(
+        string selector,
+        BinarySwitchCaseNode[] cases,
+        TextSpan selectorSpan,
+        Node selectorExpression
+    )
     {
         Selector = selector ?? throw new ArgumentNullException(nameof(selector));
+        SelectorExpression = selectorExpression ?? throw new ArgumentNullException(nameof(selectorExpression));
         Cases = cases ?? throw new ArgumentNullException(nameof(cases));
         SelectorSpan = selectorSpan;
         Id = $"{nameof(BinarySwitchTypeNode)}{selector}{string.Join(',', cases.Select(c => c.BranchAlias))}";
@@ -28,6 +38,21 @@ public class BinarySwitchTypeNode : TypeAnnotationNode
     ///     Gets the name of the previously parsed field that selects the branch.
     /// </summary>
     public string Selector { get; }
+
+    /// <summary>Gets the selector expression, restricted to field and index access.</summary>
+    public Node SelectorExpression { get; }
+
+    /// <summary>Gets the first field name for declaration-order checks.</summary>
+    public string SelectorRoot => RootName(SelectorExpression);
+
+    private static string RootName(Node expression) =>
+        expression switch
+        {
+            IdentifierNode name => name.Name,
+            DotNode member => RootName(member.Root),
+            ArrayIndexNode element => RootName(element.Array),
+            _ => throw new ArgumentException("A switch selector must be a field reference.", nameof(expression)),
+        };
 
     /// <summary>
     ///     Gets the source span of the selector name, when parsed from query text.

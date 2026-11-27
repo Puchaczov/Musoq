@@ -11,6 +11,27 @@ namespace Musoq.Evaluator.Tests.IR;
 public sealed class AsOfStructSourcePlanTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void TieBreakMethodUsesATargetDeclaredInTheExecutionPlan()
+    {
+        const string query =
+            "select l.Id from #stress.rows('left') l asof join #stress.rows('right') r "
+            + "on l.KeyValue >= r.KeyValue tie break by r.ReadId() desc";
+        var inspection = InstanceCreator.CompileForInspection(
+            query,
+            Guid.NewGuid().ToString(),
+            new SpecStressAsofTieBreakSchemaProvider(),
+            LoggerResolver,
+            TestCompilationOptions
+        );
+        var body = inspection.ExecutionPlan!.Body;
+        var index = ExecutionIrAnalysis.CollectNodes<ExecutionCreateAsOfIndex>(body).Single();
+        var call = ExecutionIrAnalysis.FlattenExpressions(index.TieBreak!.Key).OfType<ExecutionMethodCall>().Single();
+
+        var declaredTargets = ExecutionIrAnalysis.CollectNodes<ExecutionCreateObject>(body).Select(node => node.Target);
+        Assert.Contains(call.Target, declaredTargets);
+    }
+
+    [TestMethod]
     public void StructAsOfCandidate_ShouldCarryGeneratedReferenceShapeAndOriginalContext()
     {
         const string query =

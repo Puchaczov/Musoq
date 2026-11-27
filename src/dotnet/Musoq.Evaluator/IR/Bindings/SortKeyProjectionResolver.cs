@@ -46,13 +46,19 @@ internal static class SortKeyProjectionResolver
         IReadOnlyList<ProjectedField> projectedFields
     )
     {
-        var sortPrinted = IrExpressionPrinter.Print(sortExpression);
+        var sortPrinted = IrExpressionPrinter.PrintForBinding(sortExpression);
         if (string.IsNullOrWhiteSpace(sortPrinted))
             return null;
 
         foreach (var field in projectedFields)
         {
-            if (string.Equals(IrExpressionPrinter.Print(field.Expression), sortPrinted, StringComparison.Ordinal))
+            if (
+                string.Equals(
+                    IrExpressionPrinter.PrintForBinding(field.Expression),
+                    sortPrinted,
+                    StringComparison.Ordinal
+                )
+            )
                 return field;
         }
 

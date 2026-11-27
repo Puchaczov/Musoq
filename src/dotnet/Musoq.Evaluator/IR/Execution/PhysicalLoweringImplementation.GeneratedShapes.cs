@@ -100,6 +100,8 @@ internal sealed partial class PhysicalLoweringImplementation
             return resultName;
         if (expression is ExecutionStructuralRecord { GeneratedTypeName: { } nativeType })
             return nativeType;
+        if (expression.InterpretationShape?.TypeName is { } interpretedType)
+            return interpretedType;
         var returnType = expression.ReturnType.ResolveClrType();
         if (
             !GeneratedScalarGenericBinding.RequiresGeneratedSpecialization(returnType)

@@ -75,22 +75,13 @@ public class ArgsListNode : Node
             : string.Join(
                 ", ",
                 Args.Select(
-                    (f, index) => ArgumentNames[index] is { } name ? $"{name.Name}: {f.ToString()}" : f.ToString()
+                    (field, index) =>
+                        ArgumentNames[index] is { } name
+                            ? $"{name.Name}: {NumericLiteralNode.FormatOperand(field)}"
+                            : NumericLiteralNode.FormatOperand(field)
                 )
             );
     }
 
-    public string ToStringWithBrackets()
-    {
-        var str =
-            Args.Length == 0
-                ? string.Empty
-                : string.Join(
-                    ", ",
-                    Args.Select(
-                        (f, index) => ArgumentNames[index] is { } name ? $"{name.Name}: {f.ToString()}" : f.ToString()
-                    )
-                );
-        return $"({str})";
-    }
+    public string ToStringWithBrackets() => $"({ToString()})";
 }

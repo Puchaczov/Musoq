@@ -29,6 +29,7 @@ public partial class SchemaParser
                     DiagnosticCode.MQ4002_InvalidTextSchemaField,
                     escapeToken.Span
                 );
+            modifiers |= ComposeTextFieldModifiers();
         }
 
         return new TextFieldDefinitionNode(

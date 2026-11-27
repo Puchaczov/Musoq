@@ -332,6 +332,13 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class PrimitiveMatrix : BytesInterpreterBase<PrimitiveMatrix>, IBytesInterpreterStatus<PrimitiveMatrix>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public int LittleInt { get; set; }
+        public int BigInt { get; set; }
+        public short LittleShort { get; set; }
+        public short BigShort { get; set; }
+        public float LittleFloat { get; set; }
+        public double LittleDouble { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "LittleInt", "BigInt", "LittleShort", "BigShort", "LittleFloat", "LittleDouble" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -390,19 +397,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the LittleInt field value.</summary>
-        public int LittleInt { get; set; }
-        /// <summary>Gets the BigInt field value.</summary>
-        public int BigInt { get; set; }
-        /// <summary>Gets the LittleShort field value.</summary>
-        public short LittleShort { get; set; }
-        /// <summary>Gets the BigShort field value.</summary>
-        public short BigShort { get; set; }
-        /// <summary>Gets the LittleFloat field value.</summary>
-        public float LittleFloat { get; set; }
-        /// <summary>Gets the LittleDouble field value.</summary>
-        public double LittleDouble { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "PrimitiveMatrix";
 
         public override PrimitiveMatrix InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<PrimitiveMatrix>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -425,8 +419,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _littleInt = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.LittleInt = _littleInt;
+                var _field9_LittleInt = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.LittleInt = _field9_LittleInt;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("BigInt");
                 if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure2)
@@ -434,8 +428,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _bigInt = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.BigInt = _bigInt;
+                var _field6_BigInt = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.BigInt = _field6_BigInt;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("LittleShort");
                 if (base.PrepareByteInputStatus(data, 2)is { } __musoqReadFailure3)
@@ -443,8 +437,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure3);
                 }
 
-                var _littleShort = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(base.TakePreparedBytes(data, 2));
-                __parsedValue.LittleShort = _littleShort;
+                var _field11_LittleShort = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(base.TakePreparedBytes(data, 2));
+                __parsedValue.LittleShort = _field11_LittleShort;
                 base.RecordParsedFieldSlot(2);
                 SetCurrentField("BigShort");
                 if (base.PrepareByteInputStatus(data, 2)is { } __musoqReadFailure4)
@@ -452,8 +446,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure4);
                 }
 
-                var _bigShort = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16BigEndian(base.TakePreparedBytes(data, 2));
-                __parsedValue.BigShort = _bigShort;
+                var _field8_BigShort = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16BigEndian(base.TakePreparedBytes(data, 2));
+                __parsedValue.BigShort = _field8_BigShort;
                 base.RecordParsedFieldSlot(3);
                 SetCurrentField("LittleFloat");
                 if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure5)
@@ -461,8 +455,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure5);
                 }
 
-                var _littleFloat = global::System.Buffers.Binary.BinaryPrimitives.ReadSingleLittleEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.LittleFloat = _littleFloat;
+                var _field11_LittleFloat = global::System.Buffers.Binary.BinaryPrimitives.ReadSingleLittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.LittleFloat = _field11_LittleFloat;
                 base.RecordParsedFieldSlot(4);
                 SetCurrentField("LittleDouble");
                 if (base.PrepareByteInputStatus(data, 8)is { } __musoqReadFailure6)
@@ -470,8 +464,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Failed(__parsedValue, __musoqReadFailure6);
                 }
 
-                var _littleDouble = global::System.Buffers.Binary.BinaryPrimitives.ReadDoubleLittleEndian(base.TakePreparedBytes(data, 8));
-                __parsedValue.LittleDouble = _littleDouble;
+                var _field12_LittleDouble = global::System.Buffers.Binary.BinaryPrimitives.ReadDoubleLittleEndian(base.TakePreparedBytes(data, 8));
+                __parsedValue.LittleDouble = _field12_LittleDouble;
                 base.RecordParsedFieldSlot(5);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<PrimitiveMatrix>.Success(__parsedValue);
             }

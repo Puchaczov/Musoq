@@ -101,7 +101,7 @@ public partial class CloneQueryVisitor
         }
 
         Nodes.Push(
-            new BinarySwitchTypeNode(node.Selector, cases, node.SelectorSpan)
+            new BinarySwitchTypeNode(node.Selector, cases, node.SelectorSpan, Nodes.Pop())
                 .WithSpan(node.Span)
                 .WithFullSpan(node.FullSpan)
         );

@@ -76,7 +76,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         var set = PopSemanticNode();
         if (DiagnosticRecovery.HasErrorsWithin(DiagnosticContext, node.Value))
             _diagnosticRecoveryCteNames.Add(node.Name);
-        var collector = new GetSelectFieldsVisitor(ResolveEnumTypeOrNull, IsNullableInterpretationExpression);
+        var collector = new GetSelectFieldsVisitor(ResolveEnumTypeOrNull, PreserveInterpretationColumnShape);
         var traverser = new GetSelectFieldsTraverseVisitor(collector);
 
         set.Accept(traverser);
@@ -135,7 +135,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(definition);
         var anchor = PopSemanticNode();
-        var collector = new GetSelectFieldsVisitor(ResolveEnumTypeOrNull, IsNullableInterpretationExpression);
+        var collector = new GetSelectFieldsVisitor(ResolveEnumTypeOrNull, PreserveInterpretationColumnShape);
         anchor.Accept(new GetSelectFieldsTraverseVisitor(collector));
 
         var projectedColumns = collector.CollectedFieldNames;

@@ -111,5 +111,32 @@ public sealed class InterpretationProviderIndependentExamplesTests : BasicEntity
         Assert.AreEqual(DiagnosticCode.MQ3033_InterpretFunctionOutsideApply, exception.PrimaryEnvelope.Code);
     }
 
+    [TestMethod]
+    public void BinaryUnderscorePrefixedField_ShouldRemainAvailableAfterADiscard()
+    {
+        const string sql = """
+            binary Rec { _: byte, _V: byte };
+            let b: byte[] = array { 255ub, 42ub };
+            select r._V from values { (N: 0) } s cross apply Interpret<Rec>($b) r
+            """;
+        using var query = CreateAndRunVirtualMachine(sql, EmptySources());
+        using var table = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)42]);
+    }
+
+    [TestMethod]
+    public void TextUnderscorePrefixedField_ShouldRemainAvailableAfterADiscard()
+    {
+        const string sql = """
+            text Line { _: chars[1], _V: rest };
+            select p._V from values { (S: '!A') } s cross apply Parse<Line>(s.S) p
+            """;
+        using var query = CreateAndRunVirtualMachine(sql, EmptySources());
+        using var table = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, ["A"]);
+    }
+
     private static Dictionary<string, IEnumerable<BasicEntity>> EmptySources() => new();
 }

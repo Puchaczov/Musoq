@@ -97,11 +97,7 @@ internal sealed partial class PhysicalLoweringImplementation
             "result",
             scope.GeneratedTypePrefix + "ResultRow0",
             cteIndexes,
-            cteShapesByName: scope.SubqueryCtes.ToDictionary(
-                static binding => binding.Name,
-                static binding => binding.Shape,
-                StringComparer.OrdinalIgnoreCase
-            ),
+            cteShapesByName: scope.CreateCapturedCteShapes(),
             schemaFromIndex: DefaultSchemaFromIndex,
             scope: scope
         );

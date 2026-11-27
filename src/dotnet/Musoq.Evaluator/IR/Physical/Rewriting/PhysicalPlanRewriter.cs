@@ -112,7 +112,10 @@ internal static class PhysicalPlanRewriter
                     aggregate.GroupKeyType,
                     aggregate.Bindings,
                     input
-                ),
+                )
+                {
+                    InitializeConstantGroup = aggregate.InitializeConstantGroup,
+                },
                 aggregate
             ),
             PhysicalValueTupleAggregateNode aggregate => RewriteInput(
@@ -124,7 +127,10 @@ internal static class PhysicalPlanRewriter
                     aggregate.GroupKeyTypes,
                     aggregate.Bindings,
                     input
-                ),
+                )
+                {
+                    InitializeConstantGroup = aggregate.InitializeConstantGroup,
+                },
                 aggregate
             ),
             PhysicalHavingFilterNode having => RewriteInput(

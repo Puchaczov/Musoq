@@ -13,6 +13,7 @@ using Musoq.Evaluator.Tables;
 using Musoq.Evaluator.Tests.Architecture;
 using Musoq.Evaluator.Tests.Schema.Basic;
 using Musoq.Schema;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Components;
 
@@ -236,9 +237,11 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
     [TestMethod]
     public async Task Dispose_WhenRequestsAreWaiting_ShouldCompleteThemThroughSinglePath()
     {
+        using var watchdog = new TestWatchdog();
         var singleCalls = 0;
         var queries = new ConcurrentBag<CompiledQuery>();
-        using var requestEnqueued = new ManualResetEventSlim();
+        using var collectionGate = new ManualResetEventSlim();
+        var requestEnqueued = TestWatchdog.Signal();
         using var coordinator = CreateCoordinator(
             _ => throw new AssertFailedException("The pending request must not be batched after shutdown."),
             request =>
@@ -246,11 +249,12 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
                 Interlocked.Increment(ref singleCalls);
                 return CreateSuccess(request, queries).Result;
             },
-            collectionWindow: TimeSpan.FromSeconds(10),
-            requestEnqueued: requestEnqueued.Set
+            collectionWindow: TimeSpan.Zero,
+            collectionGate: collectionGate,
+            requestEnqueued: requestEnqueued.SetResult
         );
 
-        var resultTask = Task.Run(() =>
+        var resultTask = TestWatchdog.StartWorker(() =>
             coordinator.Submit(
                 "shutdown-query",
                 new EmptySchemaProvider(),
@@ -258,18 +262,31 @@ public sealed class ExecutionCompilationBatchCoordinatorTests
                 new CompilationOptions()
             )
         );
-        Assert.IsTrue(
-            requestEnqueued.Wait(TimeSpan.FromSeconds(30)),
-            "The request was not enqueued before the coordinator shutdown test continued."
+        Task? disposal = null;
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(requestEnqueued.Task, resultTask, "the queued compilation");
+                Assert.AreEqual(0, Volatile.Read(ref singleCalls));
+                disposal = TestWatchdog.StartWorker(coordinator.Dispose);
+                await watchdog.WaitAsync(Task.WhenAll(resultTask, disposal), "shutdown and the pending compilation");
+                Assert.IsFalse((await resultTask).WasBatched);
+                Assert.AreEqual(1, singleCalls);
+            },
+            async () =>
+            {
+                disposal ??= TestWatchdog.StartWorker(coordinator.Dispose);
+                try
+                {
+                    await Task.WhenAll(resultTask, disposal);
+                }
+                finally
+                {
+                    foreach (var query in queries)
+                        query.Dispose();
+                }
+            }
         );
-
-        coordinator.Dispose();
-        var result = await resultTask;
-
-        Assert.IsFalse(result.WasBatched);
-        Assert.AreEqual(1, singleCalls);
-        foreach (var query in queries)
-            query.Dispose();
     }
 
     [TestMethod]

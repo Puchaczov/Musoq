@@ -214,7 +214,8 @@ public sealed partial class ExecutionCSharpRenderer
                 .Select(CreateGeneratedWindowKeyStruct)
         );
         members.AddRange(
-            CollectRankingWindowKeyExtractionHelpers(plan.Body).Select(CreateRankingWindowKeyExtractionFunction)
+            CollectRankingWindowKeyExtractionHelpers(plan.Body)
+                .Select(helper => CreateRankingWindowKeyExtractionFunction(context, helper))
         );
         members.AddRange(
             CollectWindowAppendRowsHelpers(plan.Body)

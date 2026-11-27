@@ -25,10 +25,21 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax RenderCaseWhen(ExecutionCaseWhen caseWhen, ExecutionRenderContext context)
     {
+        var generated = caseWhen.InterpretationShape?.GetGeneratedTypeName();
+        ExpressionSyntax Result(ExecutionExpression branch)
+        {
+            var value = RenderExpression(branch, context);
+            return generated == null
+                ? CastIfNeeded(value, caseWhen.ReturnType)
+                : SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(generated), value);
+        }
+
         var fallback =
             caseWhen.ElseExpression == null
-                ? CreateMissingCaseElseExpression(caseWhen.ReturnType.RequireClrType())
-                : CastIfNeeded(RenderExpression(caseWhen.ElseExpression, context), caseWhen.ReturnType);
+                ? generated == null
+                    ? CreateMissingCaseElseExpression(caseWhen.ReturnType.RequireClrType())
+                    : SyntaxFactory.DefaultExpression(SyntaxFactory.ParseTypeName(generated))
+                : Result(caseWhen.ElseExpression);
 
         for (var index = caseWhen.Branches.Count - 1; index >= 0; index--)
         {
@@ -36,7 +47,7 @@ public sealed partial class ExecutionCSharpRenderer
             fallback = SyntaxFactory.ParenthesizedExpression(
                 SyntaxFactory.ConditionalExpression(
                     this.RenderBooleanCondition(branch.Condition, context),
-                    CastIfNeeded(RenderExpression(branch.Result, context), caseWhen.ReturnType),
+                    Result(branch.Result),
                     fallback
                 )
             );
@@ -50,13 +61,22 @@ public sealed partial class ExecutionCSharpRenderer
         if (coalesce.Expressions.Count == 0)
             throw new NotSupportedException("Coalesce must contain at least one expression.");
 
-        var current = RenderExpression(coalesce.Expressions[^1], context);
+        var generated = coalesce.InterpretationShape?.GetGeneratedTypeName();
+        ExpressionSyntax Result(ExecutionExpression operand)
+        {
+            var value = RenderExpression(operand, context);
+            return generated == null
+                ? value
+                : SyntaxFactory.CastExpression(SyntaxFactory.ParseTypeName(generated), value);
+        }
+
+        var current = Result(coalesce.Expressions[^1]);
 
         for (var index = coalesce.Expressions.Count - 2; index >= 0; index--)
         {
             current = SyntaxFactory.BinaryExpression(
                 SyntaxKind.CoalesceExpression,
-                RenderExpression(coalesce.Expressions[index], context),
+                Result(coalesce.Expressions[index]),
                 current
             );
         }

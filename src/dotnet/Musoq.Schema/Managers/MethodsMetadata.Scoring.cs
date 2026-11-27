@@ -48,8 +48,8 @@ public partial class MethodsMetadata
                 howClosePassedTypesAre += GetAssignableConversionCost(arg, param);
             else if (CanImplicitlyConvert(arg, param))
                 howClosePassedTypesAre += GetNumericConversionCost(arg, param);
-            else if (!param.IsGenericParameter && IsGenericShapeCompatible(param, arg))
-                howClosePassedTypesAre += GenericExactShapeConversionCost;
+            else if (!param.IsGenericParameter && TryGetGenericShapeConversionCost(rawParam, rawArg, out var shapeCost))
+                howClosePassedTypesAre += shapeCost;
             else if (param.IsGenericParameter)
             {
                 var nullableParameter = Nullable.GetUnderlyingType(rawParam) != null;
@@ -113,7 +113,7 @@ public partial class MethodsMetadata
         }
 
         return (!rawParam.ContainsGenericParameters && SchemaConversionClassifier.TryGetCost(arg, rawParam, out _))
-            || IsGenericShapeCompatible(param, arg)
+            || TryGetGenericShapeConversionCost(rawParam, arg, out _)
             || CanSafelyPassNull(rawParam, arg)
             || (
                 (arg.IsArray || arg.GetInterface("IEnumerable") != null)
@@ -124,6 +124,22 @@ public partial class MethodsMetadata
             )
             || (param.IsArray && IsGenericArrayElement(param) && arg.IsArray)
             || (arg.IsArray && IsGenericArrayElement(arg));
+    }
+
+    private static bool TryGetGenericShapeConversionCost(Type parameter, Type argument, out int cost)
+    {
+        cost = GenericExactShapeConversionCost;
+        if (!parameter.ContainsGenericParameters)
+            return false;
+
+        // Only the outer parameter can accept an implicitly lifted argument.
+        if (Nullable.GetUnderlyingType(parameter) is { } underlying && Nullable.GetUnderlyingType(argument) is null)
+        {
+            parameter = underlying;
+            cost = GenericNullableLiftConversionCost;
+        }
+
+        return IsGenericShapeCompatible(parameter, argument);
     }
 
     private static bool IsGenericShapeCompatible(Type template, Type actual)

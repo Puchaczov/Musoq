@@ -7,6 +7,14 @@ internal sealed class RowPresenceSubstitutionRewriter(IReadOnlyDictionary<string
 {
     protected override ExecutionExpression RewriteRowPresence(ExecutionRowPresence expression)
     {
+        // A matched intermediate row can carry an absent source from an earlier outer join.
+        if (expression.PresenceSource is ExecutionFieldRead { Alias: { } carrier })
+        {
+            return presenceByAlias.TryGetValue(carrier, out var carrierPresent) && !carrierPresent
+                ? new ExecutionLiteral(!expression.IsPresent, typeof(bool))
+                : expression;
+        }
+
         if (!presenceByAlias.TryGetValue(expression.Alias, out var isPresent))
             return base.RewriteRowPresence(expression);
 

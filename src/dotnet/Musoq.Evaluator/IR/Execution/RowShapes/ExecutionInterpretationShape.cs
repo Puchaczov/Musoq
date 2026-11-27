@@ -51,6 +51,9 @@ public sealed record ExecutionInterpretationShape
         return new(arms.SelectMany(arm => arm.Alternatives.Count > 0 ? arm.Alternatives : [arm]).ToArray());
     }
 
+    public string? GetGeneratedTypeName() =>
+        TypeName ?? (Element?.GetGeneratedTypeName() is { } name ? name + "[]" : null);
+
     public ExecutionTypeRef Type { get; }
     public string? TypeName { get; }
     public IReadOnlyDictionary<string, ExecutionInterpretationShape> Members { get; }

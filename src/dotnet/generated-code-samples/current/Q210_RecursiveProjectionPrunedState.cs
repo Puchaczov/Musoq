@@ -14,7 +14,7 @@ Cte
             ValuesScan [1 rows as seed]
       RecursiveMember
         MultiStatement
-          Project [(w.Id + 1) as w.Id + 1, (w.Depth + 1) as w.Depth + 1, (w.Path || '->next') as w.Path + ->next]
+          Project [(w.Id + 1) as w.Id + 1, (w.Depth + 1) as w.Depth + 1, (w.Path + '->next') as w.Path + ->next]
             Filter [(w.Depth < 2)]
               CteRef [walk as w]
   Query
@@ -35,7 +35,7 @@ PhysicalCte
             PhysicalValuesScan [1 rows as seed]
       RecursiveMember
         PhysicalMultiStatement
-          PhysicalProject [(w.Id + 1) as w.Id + 1, (w.Depth + 1) as w.Depth + 1, (w.Path || '->next') as w.Path + ->next]
+          PhysicalProject [(w.Id + 1) as w.Id + 1, (w.Depth + 1) as w.Depth + 1, (w.Path + '->next') as w.Path + ->next]
             PhysicalFilter [(w.Depth < 2)]
               PhysicalCteRef [walk as w]
   Query

@@ -52,13 +52,7 @@ internal sealed partial class LogicalConstantExpressionFolder(
         var rewritten =
             ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right)
                 ? node
-                : IrExpressionSourceSpans.CopyFrom(
-                    new BinaryOp(node.Kind, left, right, node.ReturnType)
-                    {
-                        UsesSqlNullSemantics = node.UsesSqlNullSemantics,
-                    },
-                    node
-                );
+                : IrExpressionSourceSpans.CopyFrom(node with { Left = left, Right = right }, node);
 
         if (TryFoldBinary(rewritten, out var folded))
         {

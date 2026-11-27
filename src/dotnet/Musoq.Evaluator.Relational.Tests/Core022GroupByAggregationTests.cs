@@ -12,6 +12,134 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class Core022GroupByAggregationTests : BasicEntityTestBase
 {
     [TestMethod]
+    [DataRow("", "null::int")]
+    [DataRow("param(n: int = 2) ", "$n")]
+    [DataRow("let n: int = 2; ", "$n")]
+    [DataRow("", "'all',null::int")]
+    public void ConstantGroupingKeys_OnEmptyInput_ShouldReturnTheSingleAggregate(string script, string keys)
+    {
+        var sql = script + $"select Count(1) as N from values {{(K:1),(K:1)}} v where v.K=0 group by {keys}";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [0L]);
+    }
+
+    [TestMethod]
+    public void GroupedMembershipRetainsBothCollectionParameters()
+    {
+        const string sql =
+            "param(x: int[] = array { 1 },y: int[] = array { 2 }) "
+            + "select s.K in $x as L,s.K in $y as R from values { (K:1) } s group by all";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var table = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [true, false]);
+    }
+
+    [TestMethod]
+    [DataRow("(s.A or s.B) is null", "s.A or (s.B is null)")]
+    [DataRow("(s.A or s.B) is distinct from true", "s.A or (s.B is distinct from true)")]
+    [DataRow("(s.A or s.B) in (false)", "s.A or (s.B in (false))")]
+    public void GroupingPreservesTheOperandOfAPostfixPredicate(string left, string right)
+    {
+        var sql = $"select {left} as L,{right} as R from values {{ (A:true,B:false) }} s group by all";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var table = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [false, true]);
+    }
+
+    [TestMethod]
+    public void GroupedCallsPreserveNumericArgumentTypes()
+    {
+        const string sql = "select GetTypeName(2i) as L,GetTypeName(2d) as R from values { (K:3) } s group by all";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["System.Int32", "System.Decimal"]);
+    }
+
+    [TestMethod]
+    public void GroupedDivisionKeepsBothNumericLiteralTypes()
+    {
+        const string sql = "select s.K/2i as L,s.K/2d as R from values { (K:3) } s group by all";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(result, ("L", typeof(int)), ("R", typeof(decimal)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, 1.5m]);
+    }
+
+    [TestMethod]
+    [DataRow("all")]
+    [DataRow("s.A*(s.B+s.C),s.A*s.B+s.C")]
+    public void GroupedArithmeticPreservesOperatorNesting(string keys)
+    {
+        var sql = $"select s.A*(s.B+s.C) as P,s.A*s.B+s.C as Q from values {{ (A:8,B:4,C:2) }} s group by {keys}";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [48, 34]);
+    }
+
+    [TestMethod]
+    public void GroupedLogicalOperatorsPreserveOperatorNesting()
+    {
+        const string sql =
+            "select (s.A=8 or s.B=2) and s.C=3 as P,s.A=8 or (s.B=2 and s.C=3) as Q"
+            + " from values { (A:8,B:4,C:2) } s group by all";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [false, true]);
+    }
+
+    [TestMethod]
+    public void GroupingDistinguishesAQuotedListSeparatorFromTwoMembers()
+    {
+        const string sql =
+            "select s.S in (r'a'', ''b') as A,s.S in ('a','b') as B from values { (S:'a') } s group by all";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [false, true]);
+    }
+
+    [TestMethod]
+    public void CompositeGroupKeyUsesItsBoundMembershipSet()
+    {
+        const string sql =
+            "select s.G,s.S in ('a','c') as P,Count(*) as N"
+            + " from values { (G:1,S:'a'),(G:1,S:'b'),(G:2,S:null) } s group by s.G,s.S in ('a','c')";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, true, 1L], [1, false, 1L], [2, null, 1L]);
+    }
+
+    [TestMethod]
+    [DataRow("x.S='a b',x.S='ab'")]
+    [DataRow("all")]
+    public void GroupedComparisons_ReadKeysWithTheirOriginalLiteralWhitespace(string keys)
+    {
+        var sql = $"select x.S='a b' as L,x.S='ab' as U from values {{ (S:'a b') }} x group by {keys}";
+        using var compiled = CreateAndRunVirtualMachine(sql, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [true, false]);
+    }
+
+    [TestMethod]
+    public void GroupedColumnComparison_WithDifferentLiteral_IsComputedFromTheGroupedColumn()
+    {
+        const string sql = "select x.S='ab' as U from values { (S:'a b') } x group by x.S,x.S='a b'";
+        using var compiled = CreateAndRunVirtualMachine(sql, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [false]);
+    }
+
+    [TestMethod]
     public void AggregateFamilies_GroupedRows_ShouldReturnTypedValues()
     {
         const string query = (

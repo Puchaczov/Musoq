@@ -14,7 +14,7 @@ Cte
             ValuesScan [1 rows as seed]
       RecursiveMember
         MultiStatement
-          Project [(w.Id + 1) as w.Id + 1, (w.Depth + 1) as w.Depth + 1, w.A as A, w.B as B, w.C as C, w.D as D, w.E as E, w.F as F, (w.Name || 'x') as w.Name + x, w.Flag as Flag, (w.Amount + 1)::Decimal as (w.Amount + 1)::Decimal, w.Code as Code]
+          Project [(w.Id + 1) as w.Id + 1, (w.Depth + 1) as w.Depth + 1, w.A as A, w.B as B, w.C as C, w.D as D, w.E as E, w.F as F, (w.Name + 'x') as w.Name + x, w.Flag as Flag, (w.Amount + 1)::Decimal as (w.Amount + 1)::Decimal, w.Code as Code]
             Filter [(w.Depth < 2)]
               CteRef [wide as w]
   Query
@@ -35,7 +35,7 @@ PhysicalCte
             PhysicalValuesScan [1 rows as seed]
       RecursiveMember
         PhysicalMultiStatement
-          PhysicalProject [(w.Id + 1) as w.Id + 1, (w.Depth + 1) as w.Depth + 1, w.A as A, w.B as B, w.C as C, w.D as D, w.E as E, w.F as F, (w.Name || 'x') as w.Name + x, w.Flag as Flag, (w.Amount + 1)::Decimal as (w.Amount + 1)::Decimal, w.Code as Code]
+          PhysicalProject [(w.Id + 1) as w.Id + 1, (w.Depth + 1) as w.Depth + 1, w.A as A, w.B as B, w.C as C, w.D as D, w.E as E, w.F as F, (w.Name + 'x') as w.Name + x, w.Flag as Flag, (w.Amount + 1)::Decimal as (w.Amount + 1)::Decimal, w.Code as Code]
             PhysicalFilter [(w.Depth < 2)]
               PhysicalCteRef [wide as w]
   Query

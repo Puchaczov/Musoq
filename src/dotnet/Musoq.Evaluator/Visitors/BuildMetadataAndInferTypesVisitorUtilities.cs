@@ -157,7 +157,9 @@ public static partial class BuildMetadataAndInferTypesVisitorUtilities
 
         var typeToCheck = StripNullable(columnType);
 
-        return IsPrimitiveType(typeToCheck);
+        return IsPrimitiveType(typeToCheck)
+            || CommonColumnTypeResolver.IsExplicitNullType(typeToCheck)
+            || typeToCheck == typeof(DBNull);
     }
 
     /// <summary>

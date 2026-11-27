@@ -1,13 +1,14 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Execution;
 
-internal sealed partial class PhysicalLoweringImplementation
+internal static class WindowQualifyBounds
 {
-    private static WindowQualifyTopRankPlan CreateWindowQualifyTopRankPlan(
+    internal static WindowQualifyTopRankPlan Create(
         IrExpression? qualifyPredicate,
         IReadOnlyList<WindowRegistrationBuildResult> registrations
     )
@@ -76,11 +77,11 @@ internal sealed partial class PhysicalLoweringImplementation
     private static bool TryGetTopRankUpperBound(
         IrExpression predicate,
         IReadOnlySet<int> rankingIndexes,
-        out WindowFunctionRef windowRef,
+        [NotNullWhen(true)] out WindowFunctionRef? windowRef,
         out long upperBound
     )
     {
-        windowRef = null!;
+        windowRef = null;
         upperBound = 0;
 
         if (predicate is not BinaryOp binary)

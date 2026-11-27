@@ -43,9 +43,7 @@ internal sealed partial class PhysicalLoweringImplementation
         }
 
         var accumulators = new List<AggregateAccumulatorField>(bindings.Count);
-        var accumulatorsByIdentifier = new Dictionary<string, AggregateAccumulatorField>(
-            StringComparer.OrdinalIgnoreCase
-        );
+        var accumulatorsByIdentifier = new Dictionary<string, AggregateAccumulatorField>(StringComparer.Ordinal);
         var keys = CreateAggregateGroupKeyFields(groupKeys);
 
         for (var index = 0; index < bindings.Count; index++)
@@ -92,6 +90,8 @@ internal sealed partial class PhysicalLoweringImplementation
         var keyType = Nullable.GetUnderlyingType(type) ?? type;
 
         return keyType.IsPrimitive
+            || keyType is Musoq.Parser.Nodes.NullNode.NullType
+            || keyType == typeof(DBNull)
             || keyType.IsEnum
             || keyType == typeof(string)
             || keyType == typeof(decimal)

@@ -1,23 +1,8 @@
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed class FusedSiblingAliasRewriter(ExecutionVariable source, ExecutionVariable target)
-    : ExecutionIrRewriter
+    : ExecutionRowAliasRewriter(source.Name, target, StringComparison.Ordinal)
 {
-    protected override ExecutionExpression RewriteFieldRead(ExecutionFieldRead expression)
-    {
-        return HasSourceName(expression.Alias) ? expression with { Alias = target.Name } : expression;
-    }
-
-    protected override ExecutionExpression RewriteVariableRead(ExecutionVariableRead expression)
-    {
-        return HasSourceName(expression.Variable.Name) ? expression with { Variable = target } : expression;
-    }
-
-    protected override ExecutionExpression RewriteRowContextsRead(ExecutionRowContextsRead expression)
-    {
-        return HasSourceName(expression.Row.Name) ? expression with { Row = target } : expression;
-    }
-
     protected override ExecutionNode RewriteHashAdd(ExecutionHashAdd node)
     {
         var rewritten = (ExecutionHashAdd)base.RewriteHashAdd(node);
@@ -44,11 +29,6 @@ internal sealed class FusedSiblingAliasRewriter(ExecutionVariable source, Execut
 
     private ExecutionVariable? RewriteOptionalVariable(ExecutionVariable? variable)
     {
-        return variable != null && HasSourceName(variable.Name) ? target : variable;
-    }
-
-    private bool HasSourceName(string? name)
-    {
-        return string.Equals(name, source.Name, StringComparison.Ordinal);
+        return variable != null && HasSourceName(variable.Name) ? Target : variable;
     }
 }

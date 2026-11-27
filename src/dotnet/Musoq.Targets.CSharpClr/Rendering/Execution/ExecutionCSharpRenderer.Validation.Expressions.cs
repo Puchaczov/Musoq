@@ -256,6 +256,7 @@ public sealed partial class ExecutionCSharpRenderer
                 or BinaryOpKind.And
                 or BinaryOpKind.Or
                 or BinaryOpKind.Equal
+                or BinaryOpKind.FloatingMembershipEqual
                 or BinaryOpKind.NotEqual
                 or BinaryOpKind.IsDistinctFrom
                 or BinaryOpKind.IsNotDistinctFrom
@@ -286,6 +287,6 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static bool CanRenderUnaryKind(UnaryOpKind kind)
     {
-        return kind is UnaryOpKind.Not or UnaryOpKind.Negate;
+        return kind is UnaryOpKind.Not or UnaryOpKind.Negate or UnaryOpKind.NullIfNaN;
     }
 }

@@ -46,8 +46,6 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax RenderStringPredicateArgument(ExecutionExpression argument, ExecutionRenderContext context)
     {
         var value = RenderExpression(argument, context);
-        return argument is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null }
-            ? SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(string)), value)
-            : value;
+        return ExecutionSyntaxFactory.TypeStringNullLiteral(argument, value);
     }
 }

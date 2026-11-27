@@ -16,7 +16,7 @@ public partial class RewriteQueryTraverseVisitor
         foreach (var binding in apply.Bindings)
             binding.Accept(this);
         if (Visitor is RewriteQueryVisitor rewriter)
-            rewriter.RewriteSubqueryScope(() => apply.Subquery.Accept(this));
+            rewriter.RewriteSubqueryScope(apply.Subquery, () => apply.Subquery.Accept(this));
         else
             apply.Subquery.Accept(this);
         apply.Accept(Visitor);

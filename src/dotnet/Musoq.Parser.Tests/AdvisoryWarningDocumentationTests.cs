@@ -78,6 +78,7 @@ public sealed class AdvisoryWarningDocumentationTests
         var root = FindRepositoryRoot();
         var specification = File.ReadAllText(Path.Combine(root, "specs", "musoq-core-language-spec.md"));
         var readme = File.ReadAllText(Path.Combine(root, "README.md"));
+        var migration = File.ReadAllText(Path.Combine(root, "docs", "diagnostic-migration-v17-v18.md"));
 
         StringAssert.Contains(specification, "Diagnostic Contract and Catalog");
         StringAssert.Contains(specification, "MQ3086_UnknownCallable");
@@ -88,6 +89,13 @@ public sealed class AdvisoryWarningDocumentationTests
         StringAssert.Contains(specification, "MQ5025_ImpossibleImplicitConversion");
         StringAssert.Contains(specification, "MQ5026_SetOperationSliceScope");
         StringAssert.Contains(specification, "MQ5009 remains a compatibility documentation identifier only");
+        StringAssert.Contains(specification, "Removed diagnostic identifiers remain reserved.");
+        Assert.IsFalse(specification.Contains("### 23.7 v17 to v18 migration", System.StringComparison.Ordinal));
+        StringAssert.Contains(migration, "MQ3003 unknown table | MQ3023_TableNotDefined or MQ3085_UnknownSource");
+        StringAssert.Contains(
+            migration,
+            "MQ9999 unknown | MQ9001_InternalCompilerError or MQ9002_InternalExecutionError"
+        );
         StringAssert.Contains(specification, "GeneratedSource");
         StringAssert.Contains(specification, "zero-length span");
         StringAssert.Contains(readme, "where Name not in ('Alice', NULL)");

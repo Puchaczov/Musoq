@@ -168,7 +168,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
                     var lRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<QueryRow_6CE20F4D259D_C>(lRowsSource.Chunks, __musoqProgressContext, "l:2") : lRowsSource.Chunks;
                     var resultAsOfIndex = EvaluationHelper.CreateAsOfIndex<Cte0Row0, int, string>(_cteRowResults.Slot0, (rCandidate) =>
                     {
-                        var __asOfEqualityPart0 = rCandidate.Team;
+                        string __asOfEqualityPart0 = rCandidate.Team;
                         var __asOfEquality = new NativeEqualityKey<string>(true && __asOfEqualityPart0 != null, true && __asOfEqualityPart0 != null ? (string)__asOfEqualityPart0 : default(string));
                         return __asOfEquality;
                     }, (rCandidate) => rCandidate.Score, Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterOrEqual);
@@ -188,7 +188,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
 
                                     var l = lChunkViewArray[lChunkViewOffset + lIndex];
                                     {
-                                        var rEqualityPart0 = l.Field0;
+                                        string rEqualityPart0 = l.Field0;
                                         var rEquality = new NativeEqualityKey<string>(true && rEqualityPart0 != null, true && rEqualityPart0 != null ? (string)rEqualityPart0 : default(string));
                                         var r = resultAsOfIndex.Find(rEquality, l.Field2);
                                         if (r != null)
@@ -213,7 +213,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
 
                                     var l = lChunkViewList[lChunkViewOffset + lIndex];
                                     {
-                                        var rEqualityPart0 = l.Field0;
+                                        string rEqualityPart0 = l.Field0;
                                         var rEquality = new NativeEqualityKey<string>(true && rEqualityPart0 != null, true && rEqualityPart0 != null ? (string)rEqualityPart0 : default(string));
                                         var r = resultAsOfIndex.Find(rEquality, l.Field2);
                                         if (r != null)
@@ -236,7 +236,7 @@ namespace GeneratedSample_Q67_DynamicCteBackedAsOfJoin
 
                             var l = lChunk[lIndex];
                             {
-                                var rEqualityPart0 = l.Field0;
+                                string rEqualityPart0 = l.Field0;
                                 var rEquality = new NativeEqualityKey<string>(true && rEqualityPart0 != null, true && rEqualityPart0 != null ? (string)rEqualityPart0 : default(string));
                                 var r = resultAsOfIndex.Find(rEquality, l.Field2);
                                 if (r != null)

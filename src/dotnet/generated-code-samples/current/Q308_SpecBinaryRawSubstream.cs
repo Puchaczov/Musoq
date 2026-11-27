@@ -306,6 +306,11 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Packet : BytesInterpreterBase<Packet>, IBytesInterpreterStatus<Packet>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Kind { get; set; }
+        public byte Length { get; set; }
+        public byte[] Payload { get; set; }
+        public byte Checksum { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Kind", "Length", "Payload", "Checksum" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -350,15 +355,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Kind field value.</summary>
-        public byte Kind { get; set; }
-        /// <summary>Gets the Length field value.</summary>
-        public byte Length { get; set; }
-        /// <summary>Gets the Payload field value.</summary>
-        public byte[] Payload { get; set; }
-        /// <summary>Gets the Checksum field value.</summary>
-        public byte Checksum { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Packet";
 
         public override Packet InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Packet>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -381,8 +377,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _kind = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Kind = _kind;
+                var _field4_Kind = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Kind = _field4_Kind;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Length");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure2)
@@ -390,11 +386,11 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _length = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Length = _length;
+                var _field6_Length = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Length = _field6_Length;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("Payload");
-                var __musoqReadResult4 = base.ResolveSizeValueStatus<byte>((byte?)(_length), ParseErrorCode.InvalidSize);
+                var __musoqReadResult4 = base.ResolveSizeValueStatus<byte>((byte?)(_field6_Length), ParseErrorCode.InvalidSize);
                 if (!__musoqReadResult4.Succeeded)
                 {
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadResult4.Failure!);
@@ -406,8 +402,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure5);
                 }
 
-                var _payload = base.ReadPreparedByteArray(data, __musoqReadSize3);
-                __parsedValue.Payload = _payload;
+                var _field7_Payload = base.ReadPreparedByteArray(data, __musoqReadSize3);
+                __parsedValue.Payload = _field7_Payload;
                 base.RecordParsedFieldSlot(2);
                 SetCurrentField("Checksum");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure6)
@@ -415,8 +411,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure6);
                 }
 
-                var _checksum = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Checksum = _checksum;
+                var _field8_Checksum = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Checksum = _field8_Checksum;
                 base.RecordParsedFieldSlot(3);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Success(__parsedValue);
             }

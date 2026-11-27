@@ -21,7 +21,7 @@ internal static class ExecutionLikeMatcherSyntaxFactory
         {
             ExecutionStringMatch stringMatch => ExecutionStringMatchSyntaxFactory.Render(
                 stringMatch,
-                renderChild(stringMatch.Input),
+                ExecutionSyntaxFactory.TypeStringNullLiteral(stringMatch.Input, renderChild(stringMatch.Input)),
                 session
             ),
             ExecutionPrepareLikeMatcher prepareLike => InvokeOperators(

@@ -72,7 +72,7 @@ public partial class InterpreterCodeGenerator
 
         builder.AppendLine(
             System.Globalization.CultureInfo.InvariantCulture,
-            $"var {targetVar}_textInterpreter = new {stringType.AsTextSchemaName}();"
+            $"var {targetVar}_textInterpreter = new {EscapeCSharpIdentifier(stringType.AsTextSchemaName)}();"
         );
         builder.Append(
             StatusRead(
@@ -89,7 +89,10 @@ public partial class InterpreterCodeGenerator
             ? $"ReadNullTerminatedString(data, {sizeExpr}, {encodingExpr})"
             : $"ReadString(data, {sizeExpr}, {encodingExpr})";
 
-        if (stringType.Modifiers.HasFlag(StringModifier.Trim))
+        if (
+            stringType.Modifiers.HasFlag(StringModifier.Trim)
+            || stringType.Modifiers.HasFlag(StringModifier.LTrim | StringModifier.RTrim)
+        )
             return $"{expression}.Trim()";
 
         if (stringType.Modifiers.HasFlag(StringModifier.LTrim))
@@ -101,13 +104,21 @@ public partial class InterpreterCodeGenerator
         return expression;
     }
 
-    private static string FormatHexLiteral(HexIntegerNode hexNode)
+    private static string FormatIntegerLiteral(NumericLiteralNode literal)
     {
-        var value = Convert.ToInt64(hexNode.ObjValue ?? 0L, System.Globalization.CultureInfo.InvariantCulture);
-
-        if (value is > int.MaxValue and <= uint.MaxValue)
-            return $"unchecked((int){value}L)";
-        return value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var value = Convert.ToString(literal.ObjValue, System.Globalization.CultureInfo.InvariantCulture) ?? "0";
+        var type = literal is IntegerNode integer
+            ? integer.ReturnType
+            : BinarySchemaExpressionTypes.RadixLiteralType(literal);
+        return Type.GetTypeCode(type) switch
+        {
+            TypeCode.Byte or TypeCode.SByte or TypeCode.Int16 or TypeCode.UInt16 =>
+                $"(({BinarySchemaClrTypeNames.Map(type)})({value}))",
+            TypeCode.UInt32 => value + "U",
+            TypeCode.Int64 => value + "L",
+            TypeCode.UInt64 => value + "UL",
+            _ => value,
+        };
     }
 
     private static string GetEncodingExpression(StringEncoding encoding)

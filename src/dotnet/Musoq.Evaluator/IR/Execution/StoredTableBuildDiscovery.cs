@@ -47,6 +47,7 @@ internal static class StoredTableBuildDiscovery
                 yieldedTableIndexes.Add(store.TableIndex);
                 yield return build;
                 pending.Clear();
+                index += build.TrailingPhaseNodes.Count;
                 continue;
             }
 
@@ -71,7 +72,9 @@ internal static class StoredTableBuildDiscovery
             || !pendingNodes
                 .OfType<ExecutionCreateTable>()
                 .Any(createTable => string.Equals(createTable.Table.Name, store.Table.Name, StringComparison.Ordinal))
-            || ExecutionIrAnalysis.IsVariableUsedAfter(nodes, storeIndex, store.Table.Name)
+            || pendingNodes
+                .OfType<ExecutionCreateTable>()
+                .Any(create => ExecutionIrAnalysis.IsVariableUsedAfter(nodes, storeIndex, create.Table.Name))
         )
         {
             return false;

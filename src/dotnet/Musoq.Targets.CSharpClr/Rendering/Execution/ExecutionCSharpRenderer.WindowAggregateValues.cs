@@ -7,6 +7,7 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private IEnumerable<StatementSyntax> CreateWindowAggregateAccumulateStatements(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel
     )
     {
@@ -17,14 +18,14 @@ public sealed partial class ExecutionCSharpRenderer
         var update = LibraryKernelInvocationSyntax.Set(
             library,
             CreateLibraryWindowStateName(kernel),
-            values.Select(RenderExpression).ToArray()
+            values.Select(windowInput => RenderExpression(windowInput, renderContext)).ToArray()
         );
         if (kernel.FilterPredicate is null)
             return [update];
         return
         [
             StatementEmitter.CreateIf(
-                this.RenderBooleanCondition(kernel.FilterPredicate, CreateIsolatedRenderContext()),
+                this.RenderBooleanCondition(kernel.FilterPredicate, renderContext),
                 StatementEmitter.CreateBlock(update)
             ),
         ];

@@ -284,6 +284,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class TinyHeader : BytesInterpreterBase<TinyHeader>, IBytesInterpreterStatus<TinyHeader>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public int Id { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Id" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -307,9 +309,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Id field value.</summary>
-        public int Id { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "TinyHeader";
 
         public override TinyHeader InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<TinyHeader>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -332,8 +331,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<TinyHeader>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _id = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.Id = _id;
+                var _field2_Id = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Id = _field2_Id;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<TinyHeader>.Success(__parsedValue);
             }

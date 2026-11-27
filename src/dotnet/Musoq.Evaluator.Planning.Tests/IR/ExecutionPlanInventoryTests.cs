@@ -83,15 +83,19 @@ public sealed class ExecutionPlanInventoryTests
     {
         var rowShape = new GeneratedRowShape("SetRow", []);
         var item = new ExecutionVariable("item", typeof(object));
-        var loop = new ExecutionForEach(item, new ExecutionStoredTableRows(1), ExecutionBlock.Empty);
+        var rows = new ExecutionStoredTableRows(1);
+        var values = new[] { new ExecutionRowValue("Value", new ExecutionLiteral(42, typeof(int))) };
         var setup = new ExecutionNode[] { new ExecutionContinue() };
 
-        var arm = new StreamingUnionAllArm(rowShape, setup, loop);
+        var arm = new StreamingUnionAllArm(rowShape, setup, item, rows, null, values);
         var names = new SetOperationArmNames("leftTable", "LeftRow", "rightTable", "RightRow");
 
         Assert.AreSame(rowShape, arm.SourceShape);
         Assert.AreSame(setup, arm.Setup);
-        Assert.AreSame(loop, arm.Loop);
+        Assert.AreSame(item, arm.Source);
+        Assert.AreSame(rows, arm.Rows);
+        Assert.AreSame(values, arm.Values);
+        Assert.IsNull(arm.Filter);
         Assert.AreEqual("leftTable", names.LeftTableName);
         Assert.AreEqual("LeftRow", names.LeftShapeName);
         Assert.AreEqual("rightTable", names.RightTableName);

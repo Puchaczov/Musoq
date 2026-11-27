@@ -9,6 +9,114 @@ namespace Musoq.Evaluator.Tests;
 public class RowNumberTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void QualifiedResultPosition_ShouldOnlySortRowsPassingQualify()
+    {
+        const string sql =
+            "select K, RowNumber()+10 as S from values { (K:0),(K:1),(K:2) } v "
+            + "qualify RowNumber() over (order by K)>1 order by 4 / K";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(result, [2, 11], [1, 12]);
+    }
+
+    [TestMethod]
+    public void PagingDistinctOrdinalExpression_ShouldSkipTheDeduplicatedResult()
+    {
+        const string sql = """
+            select distinct case when RowNumber() > 0 then 1 else 0 end as S
+            from values { (K: 1), (K: 2), (K: 3) } v group by K skip 1
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual(0, result.Count);
+    }
+
+    [TestMethod]
+    public void ScalarRowNumberWithQualify_ShouldNumberOnlyTheSurvivingWindowRows()
+    {
+        const string sql = """
+            select K, RowNumber() + 10 as R, RowNumber() over (order by K) as W
+            from values { (K: 2), (K: 1) } v qualify W > 1 order by K
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(result, [2, 11, 2L]);
+    }
+
+    [TestMethod]
+    public void ScalarSubqueryRowNumber_ShouldRestartForEachCorrelationKey()
+    {
+        const string sql = """
+            select K,(select RowNumber()+10 from values { (K:1),(K:2) } b where b.K=a.K) as S
+            from values { (K:1),(K:2) } a
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, 11], [2, 11]);
+    }
+
+    [TestMethod]
+    public void SlicedScalarSubqueryRowNumber_ShouldCountBeforeSkippingWithinTheBinding()
+    {
+        const string sql = """
+            select K,(select RowNumber() from values { (K:1,N:2),(K:1,N:1),(K:2,N:4) } b
+                      where b.K=a.K order by b.N skip 1 take 1) as S
+            from values { (K:1),(K:2) } a
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, 2], [2, null]);
+    }
+
+    [TestMethod]
+    public void RowNumberInStoredCte_ShouldNumberTheCteRows()
+    {
+        const string sql = """
+            with t as (select RowNumber() as R from values { (K: 1), (K: 1) } v)
+            select R from t
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1], [2]);
+    }
+
+    [TestMethod]
+    public void RowNumberInArithmetic_ShouldUseTheFinalSortOrder()
+    {
+        const string sql = "select K, RowNumber() + 10 as R from values { (K: 2), (K: 1) } v order by K";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsInOrder(result, [1, 11], [2, 12]);
+    }
+
+    [TestMethod]
+    public void RepeatedRowNumberCalls_ShouldReadTheSameOutputPosition()
+    {
+        const string sql = "select RowNumber() + RowNumber() as R from values { (K: 1) } v";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [2]);
+    }
+
+    [TestMethod]
+    public void TwoRowNumberColumns_ShouldReadTheSameOutputPosition()
+    {
+        const string sql = "select RowNumber() as A, RowNumber() as B from values { (K: 1) } v";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, 1]);
+    }
+
+    [TestMethod]
     public void WhenRowNumberSimpleTest_ShouldPass()
     {
         var query = "select RowNumber() from #A.entities()";

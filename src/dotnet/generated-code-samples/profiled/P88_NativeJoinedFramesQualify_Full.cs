@@ -257,7 +257,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     {
                         var resultSums1OutputIndex = resultSums1PartitionIndices[resultSums1PartitionStart + resultSums1PartitionIndex];
                         var resultSums1FrameStart = Math.Max(0, resultSums1PartitionIndex - 2);
-                        var resultSums1FrameEnd = Math.Min(resultSums1PartitionCount - 1, resultSums1PartitionIndex + 1);
+                        var resultSums1FrameEnd = resultSums1PartitionIndex + Math.Min(1, resultSums1PartitionCount - 1 - resultSums1PartitionIndex);
                         Musoq.Plugins.SumAggregateKernel<int>.Reset(ref resultSums1State);
                         for (var resultSums1FrameIndex = Math.Max(0, resultSums1FrameStart); resultSums1FrameIndex <= resultSums1FrameEnd && resultSums1FrameIndex < resultSums1PartitionCount; resultSums1FrameIndex++)
                         {
@@ -281,7 +281,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     {
                         var resultAvgs2OutputIndex = resultAvgs2PartitionIndices[resultAvgs2PartitionStart + resultAvgs2PartitionIndex];
                         var resultAvgs2FrameStart = Math.Max(0, resultAvgs2PartitionIndex - 2);
-                        var resultAvgs2FrameEnd = Math.Min(resultAvgs2PartitionCount - 1, resultAvgs2PartitionIndex + 1);
+                        var resultAvgs2FrameEnd = resultAvgs2PartitionIndex + Math.Min(1, resultAvgs2PartitionCount - 1 - resultAvgs2PartitionIndex);
                         Musoq.Plugins.AverageKernel<int, decimal>.Reset(ref resultAvgs2State);
                         for (var resultAvgs2FrameIndex = Math.Max(0, resultAvgs2FrameStart); resultAvgs2FrameIndex <= resultAvgs2FrameEnd && resultAvgs2FrameIndex < resultAvgs2PartitionCount; resultAvgs2FrameIndex++)
                         {
@@ -305,7 +305,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                     {
                         var resultCounts3OutputIndex = resultCounts3PartitionIndices[resultCounts3PartitionStart + resultCounts3PartitionIndex];
                         var resultCounts3FrameStart = Math.Max(0, resultCounts3PartitionIndex - 2);
-                        var resultCounts3FrameEnd = Math.Min(resultCounts3PartitionCount - 1, resultCounts3PartitionIndex + 1);
+                        var resultCounts3FrameEnd = resultCounts3PartitionIndex + Math.Min(1, resultCounts3PartitionCount - 1 - resultCounts3PartitionIndex);
                         Musoq.Plugins.CountNullableAggregateKernel<int>.Reset(ref resultCounts3State);
                         for (var resultCounts3FrameIndex = Math.Max(0, resultCounts3FrameStart); resultCounts3FrameIndex <= resultCounts3FrameEnd && resultCounts3FrameIndex < resultCounts3PartitionCount; resultCounts3FrameIndex++)
                         {
@@ -464,7 +464,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                         {
                             var resultSums1OutputIndex = resultSums1PartitionIndices[resultSums1PartitionStart + resultSums1PartitionIndex];
                             var resultSums1FrameStart = Math.Max(0, resultSums1PartitionIndex - 2);
-                            var resultSums1FrameEnd = Math.Min(resultSums1PartitionCount - 1, resultSums1PartitionIndex + 1);
+                            var resultSums1FrameEnd = resultSums1PartitionIndex + Math.Min(1, resultSums1PartitionCount - 1 - resultSums1PartitionIndex);
                             Musoq.Plugins.SumAggregateKernel<int>.Reset(ref resultSums1State);
                             for (var resultSums1FrameIndex = Math.Max(0, resultSums1FrameStart); resultSums1FrameIndex <= resultSums1FrameEnd && resultSums1FrameIndex < resultSums1PartitionCount; resultSums1FrameIndex++)
                             {
@@ -490,7 +490,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                         {
                             var resultAvgs2OutputIndex = resultAvgs2PartitionIndices[resultAvgs2PartitionStart + resultAvgs2PartitionIndex];
                             var resultAvgs2FrameStart = Math.Max(0, resultAvgs2PartitionIndex - 2);
-                            var resultAvgs2FrameEnd = Math.Min(resultAvgs2PartitionCount - 1, resultAvgs2PartitionIndex + 1);
+                            var resultAvgs2FrameEnd = resultAvgs2PartitionIndex + Math.Min(1, resultAvgs2PartitionCount - 1 - resultAvgs2PartitionIndex);
                             Musoq.Plugins.AverageKernel<int, decimal>.Reset(ref resultAvgs2State);
                             for (var resultAvgs2FrameIndex = Math.Max(0, resultAvgs2FrameStart); resultAvgs2FrameIndex <= resultAvgs2FrameEnd && resultAvgs2FrameIndex < resultAvgs2PartitionCount; resultAvgs2FrameIndex++)
                             {
@@ -516,7 +516,7 @@ namespace GeneratedSample_P88_NativeJoinedFramesQualify_Full
                         {
                             var resultCounts3OutputIndex = resultCounts3PartitionIndices[resultCounts3PartitionStart + resultCounts3PartitionIndex];
                             var resultCounts3FrameStart = Math.Max(0, resultCounts3PartitionIndex - 2);
-                            var resultCounts3FrameEnd = Math.Min(resultCounts3PartitionCount - 1, resultCounts3PartitionIndex + 1);
+                            var resultCounts3FrameEnd = resultCounts3PartitionIndex + Math.Min(1, resultCounts3PartitionCount - 1 - resultCounts3PartitionIndex);
                             Musoq.Plugins.CountNullableAggregateKernel<int>.Reset(ref resultCounts3State);
                             for (var resultCounts3FrameIndex = Math.Max(0, resultCounts3FrameStart); resultCounts3FrameIndex <= resultCounts3FrameEnd && resultCounts3FrameIndex < resultCounts3PartitionCount; resultCounts3FrameIndex++)
                             {

@@ -8,6 +8,41 @@ namespace Musoq.Evaluator.Tests;
 public class AggregateIdentityTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void FilteredCountsKeepDifferentNumericDivisions()
+    {
+        const string sql =
+            "select Count(*) filter (where s.K/2i=1) as L,Count(*) filter (where s.K/2d=1) as R"
+            + " from values { (K:3) } s";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1L, 0L]);
+    }
+
+    [TestMethod]
+    [DataRow(
+        "select Count(*) filter (where s.C='a') as L,Count(*) filter (where s.C='A') as U from values { (C:'a') } s"
+    )]
+    [DataRow("pivot values { (C:'a') } s on C in ('a' as L,'A' as U) using Count(*) as N")]
+    public void AggregateFilters_PreserveTheCaseOfTextLiterals(string sql)
+    {
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1L, 0L]);
+    }
+
+    [TestMethod]
+    public void AggregateArguments_PreserveTheCaseOfTextLiterals()
+    {
+        const string sql = "select Max('a') as L,Max('A') as U from values { (C:'a') } s";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["a", "A"]);
+    }
+
+    [TestMethod]
     public void FilteredAggregates_WithDifferentPredicates_ShouldNotCollapse()
     {
         const string query = (
@@ -59,6 +94,32 @@ public class AggregateIdentityTests : BasicEntityTestBase
             ("PositiveCountries", typeof(long))
         );
         TableMaterializationTestHelper.AssertRowsUnordered(table, [4L, 2L, 3L]);
+    }
+
+    [TestMethod]
+    [DataRow("1 in (Count(*))", true)]
+    [DataRow("Sum(K) is null", false)]
+    [DataRow("Sum(K) filter (where K=0) is null", true)]
+    public void AggregateInsidePredicate_ShouldReadTheResultForItsGroup(string expression, bool expected)
+    {
+        var sql = $"select {expression} as B from values {{ (K: 1) }} v group by K";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [expected]);
+    }
+
+    [TestMethod]
+    [DataRow("Count(*)")]
+    [DataRow("1+Count(*) filter (where K=2)")]
+    public void OrderByAggregateOutsideSelect_ShouldOrderGroupsWithoutAddingAnOutput(string order)
+    {
+        var sql = $"select K from values {{ (K:1),(K:2),(K:2) }} v group by K order by {order} desc";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(table, ("K", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [2], [1]);
     }
 
     [TestMethod]

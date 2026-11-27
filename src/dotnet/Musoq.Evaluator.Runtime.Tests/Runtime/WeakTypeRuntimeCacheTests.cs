@@ -25,13 +25,12 @@ public sealed class WeakTypeRuntimeCacheTests
     }
 
     [TestMethod]
-    public void Cache_ShouldCreateOneValueWhenAccessedConcurrently()
+    public async Task Cache_ShouldCreateOneValueWhenAccessedConcurrently()
     {
-        var cache = new WeakTypeRuntimeCache<string>(8);
-        var factoryCalls = 0;
-
         using var contention = new SynchronousContention();
-        var results = contention.Run(
+        var cache = new WeakTypeRuntimeCache<string>(8) { EnterMutationGate = contention.EnterMonitor };
+        var factoryCalls = 0;
+        var results = await contention.RunAsync(
             () =>
                 cache.GetOrAdd(
                     typeof(WeakTypeRuntimeCacheTests),

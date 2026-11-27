@@ -24,7 +24,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 continue;
 
             var key = keySelector(candidate);
-            if (key is null)
+            if (!EvaluationHelper.IsComparableJoinKey(key))
                 continue;
 
             entries.Add(new AsOfJoinEntry(key, candidate, ordinal));
@@ -62,7 +62,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                     continue;
 
                 var key = keySelector(candidate);
-                if (key is null)
+                if (!EvaluationHelper.IsComparableJoinKey(key))
                     continue;
 
                 entries.Add(new AsOfJoinEntry(key, candidate, ordinal));
@@ -96,7 +96,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 continue;
 
             var key = keySelector(candidate);
-            if (key is null)
+            if (!EvaluationHelper.IsComparableJoinKey(key))
                 continue;
 
             entries.Add(new AsOfJoinTieEntry<TTie>(key, candidate, tieBreakKeySelector(candidate), ordinal));
@@ -136,7 +136,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                     continue;
 
                 var key = keySelector(candidate);
-                if (key is null)
+                if (!EvaluationHelper.IsComparableJoinKey(key))
                     continue;
 
                 entries.Add(new AsOfJoinTieEntry<TTie>(key, candidate, tieBreakKeySelector(candidate), ordinal));
@@ -175,7 +175,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             var equalityKey = equality.Value;
 
             var key = keySelector(candidate);
-            if (key is null)
+            if (!EvaluationHelper.IsComparableJoinKey(key))
                 continue;
 
             if (!entriesByEqualityKey.TryGetValue(equalityKey, out var entries))
@@ -228,7 +228,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 var equalityKey = equality.Value;
 
                 var key = keySelector(candidate);
-                if (key is null)
+                if (!EvaluationHelper.IsComparableJoinKey(key))
                     continue;
 
                 if (!entriesByEqualityKey.TryGetValue(equalityKey, out var entries))
@@ -278,7 +278,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
             var equalityKey = equality.Value;
 
             var key = keySelector(candidate);
-            if (key is null)
+            if (!EvaluationHelper.IsComparableJoinKey(key))
                 continue;
 
             if (!entriesByEqualityKey.TryGetValue(equalityKey, out var entries))
@@ -329,7 +329,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
                 var equalityKey = equality.Value;
 
                 var key = keySelector(candidate);
-                if (key is null)
+                if (!EvaluationHelper.IsComparableJoinKey(key))
                     continue;
 
                 if (!entriesByEqualityKey.TryGetValue(equalityKey, out var entries))

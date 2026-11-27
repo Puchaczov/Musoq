@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
 
@@ -139,8 +141,20 @@ public partial class SubqueryToCteRewriteVisitor
                 ThrowImplicitLateralDerivedTable(derived, correlation);
 
             var rewritten = RewriteCorrelatedDerivedBody(body, correlation, derived.Alias, derived);
+            // Shaping and potentially throwing projections must see this binding's filtered input.
+            // The decorrelated relation still supplies column metadata during semantic analysis.
+            var correlationColumns =
+                body is SetOperatorNode
+                    ? SubqueryCorrelationUtilities
+                        .CollectAccessColumns(rewritten.JoinPredicate!)
+                        .Where(column => string.Equals(column.Alias, derived.Alias, StringComparison.OrdinalIgnoreCase))
+                        .Select(static column => column.Name)
+                        .ToArray()
+                    : [];
+            joinPredicate = NeedsBoundApplyRows(rewritten.Body, correlationColumns)
+                ? new SubqueryApplyNode(body, SubqueryApplyKind.Rows)
+                : rewritten.JoinPredicate;
             body = rewritten.Body;
-            joinPredicate = rewritten.JoinPredicate;
         }
 
         cteInnerExpressions.Add(new CteInnerExpressionNode(body, cteName));
@@ -150,4 +164,35 @@ public partial class SubqueryToCteRewriteVisitor
             joinPredicate
         );
     }
+
+    private static bool NeedsBoundApplyRows(Node body, string[] correlationColumns) =>
+        body switch
+        {
+            SingleSetNode single => NeedsBoundApplyRows(single.Query, correlationColumns),
+            SetOperatorNode set => set.ResultSkip != null
+                || set.ResultTake != null
+                || set is not UnionAllNode
+                    && set.Keys.Length > 0
+                    && correlationColumns.Except(set.Keys, StringComparer.OrdinalIgnoreCase).Any()
+                || NeedsBoundApplyRows(set.Left, correlationColumns)
+                || NeedsBoundApplyRows(set.Right, correlationColumns),
+            QueryNode query => query.Where != null
+                || query.OrderBy != null
+                || query.Skip != null
+                || query.Take != null
+                || query.Qualify != null
+                || query.GroupBy != null
+                || query.Select.Fields.Any(static field =>
+                    field.Expression
+                        is not (
+                            IdentifierNode
+                            or AccessColumnNode
+                            or DotNode { Root: IdentifierNode, Expression: IdentifierNode }
+                            or ConstantValueNode
+                            or NullNode
+                            or AllColumnsNode
+                        )
+                ),
+            _ => false,
+        };
 }

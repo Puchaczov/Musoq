@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
@@ -23,9 +24,17 @@ public partial class SchemaExtendedTests
     public void DiagnosticChunkedRowSource_WhenEnumerated_ReportsChunksRowsAndBacklog()
     {
         var sink = new CapturingChunkDiagnosticsSink();
-        var source = new ReportingDiagnosticChunkedSource(CreateSourceContext(new SourceDiagnostics(sink)), "items");
+        var scheduler = new RecordingProducerScheduler();
+        var source = new ReportingDiagnosticChunkedSource(CreateSourceContext(new SourceDiagnostics(sink)), "items")
+        {
+            ProducerScheduler = scheduler,
+        };
 
-        var rows = source.Chunks.SelectMany(static chunk => chunk).ToArray();
+        using var enumerator = source.Chunks.GetEnumerator();
+        scheduler.RunProducer();
+        var rows = new List<int>();
+        while (enumerator.MoveNext())
+            rows.AddRange(enumerator.Current);
 
         CollectionAssert.AreEqual(new[] { 1, 2, 3 }, rows);
         Assert.AreEqual(3, sink.RowsProduced);
@@ -33,7 +42,7 @@ public partial class SchemaExtendedTests
         AssertMetric(sink, ChunkMetric("items", DiagnosticChunkMetricNames.ChunksConsumed), 2);
         AssertMetric(sink, ChunkMetric("items", DiagnosticChunkMetricNames.RowsProduced), 3);
         AssertMetric(sink, ChunkMetric("items", DiagnosticChunkMetricNames.RowsConsumed), 3);
-        Assert.IsTrue(GetMetric(sink, ChunkMetric("items", DiagnosticChunkMetricNames.PeakBacklogInChunks)) >= 1);
+        AssertMetric(sink, ChunkMetric("items", DiagnosticChunkMetricNames.PeakBacklogInChunks), 2);
     }
 
     [TestMethod]
@@ -56,17 +65,11 @@ public partial class SchemaExtendedTests
     }
 
     [TestMethod]
-    public void DiagnosticChunkedRowSource_WhenConsumerDisposesEarly_ShouldCancelProducer()
+    public Task DiagnosticChunkedRowSource_WhenConsumerDisposesEarly_ShouldCancelProducer()
     {
-        var source = new WaitingDiagnosticChunkedSource(CreateSourceContext(SourceDiagnostics.None), "items");
-
-        using (var enumerator = source.Chunks.GetEnumerator())
-        {
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual(1, enumerator.Current[0]);
-        }
-
-        Assert.IsTrue(source.ProducerCancelled.Wait(TimeSpan.FromSeconds(2)));
+        var producer = new ControlledChunkProducer(cooperates: true);
+        var source = new GatedDiagnosticChunkedSource(CreateSourceContext(SourceDiagnostics.None), "items", producer);
+        return producer.VerifyConsumerDisposalAsync(source.Chunks);
     }
 
     private static SourceExecutionContext CreateSourceContext(SourceDiagnostics diagnostics)
@@ -126,27 +129,13 @@ public partial class SchemaExtendedTests
         }
     }
 
-    private sealed class WaitingDiagnosticChunkedSource(SourceExecutionContext context, string sourceName)
-        : DiagnosticChunkedRowSource<int>(context, sourceName, new DiagnosticChunkedRowSourceOptions(1))
+    private sealed class GatedDiagnosticChunkedSource(
+        SourceExecutionContext context,
+        string sourceName,
+        ControlledChunkProducer producer
+    ) : DiagnosticChunkedRowSource<int>(context, sourceName, new DiagnosticChunkedRowSourceOptions(1))
     {
-        public ManualResetEventSlim ProducerCancelled { get; } = new();
-
-        protected override void CollectChunks(DiagnosticChunkWriter<int> writer)
-        {
-            var token = writer.CancellationToken;
-            writer.Write([1]);
-
-            try
-            {
-                using var wait = new ManualResetEventSlim();
-                wait.Wait(token);
-            }
-            catch (OperationCanceledException) when (token.IsCancellationRequested)
-            {
-                ProducerCancelled.Set();
-                throw;
-            }
-        }
+        protected override void CollectChunks(DiagnosticChunkWriter<int> writer) => producer.PublishAndWait(writer);
     }
 
     private sealed class CapturingChunkDiagnosticsSink : ISourceDiagnosticsSink

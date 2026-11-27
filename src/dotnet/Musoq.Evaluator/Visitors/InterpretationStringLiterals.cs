@@ -14,6 +14,9 @@ internal static class InterpretationStringLiterals
             .Replace("\"", "\\\"", StringComparison.Ordinal)
             .Replace("\r", "\\r", StringComparison.Ordinal)
             .Replace("\n", "\\n", StringComparison.Ordinal)
-            .Replace("\t", "\\t", StringComparison.Ordinal);
+            .Replace("\t", "\\t", StringComparison.Ordinal)
+            .Replace("\u0085", "\\u0085", StringComparison.Ordinal)
+            .Replace("\u2028", "\\u2028", StringComparison.Ordinal)
+            .Replace("\u2029", "\\u2029", StringComparison.Ordinal);
     }
 }

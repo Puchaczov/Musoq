@@ -42,6 +42,23 @@ public sealed class VerificationOracleTests
     }
 
     [TestMethod]
+    [DataRow("H . Tag")]
+    [DataRow("H[ 0 ] . Tag")]
+    public void FormattingBinarySwitchSelector_ShouldPreserveTheFieldReference(string selector)
+    {
+        var fieldType = selector.Contains('[') ? "Header[1]" : "Header";
+        var script =
+            $"binary Header {{ Tag: byte }}; binary Rec {{ H: {fieldType}, C: switch {selector} {{ 1 => A: byte }} }};";
+        var formatted = MusoqFormatter.Format(script);
+        Assert.IsTrue(formatted.IsSuccess);
+        CollectionAssert.AreEqual(
+            SourceSignature.Of(script).ToArray(),
+            SourceSignature.Of(formatted.FormattedText!).ToArray()
+        );
+        Assert.AreEqual(AstSignature.Parse(script), AstSignature.Parse(formatted.FormattedText!));
+    }
+
+    [TestMethod]
     public void Oracles_ShouldAllowStructuralKeywordCasingAndWhitespaceChanges()
     {
         const string source = "select Name from #s.rows() a where a.X > 1";

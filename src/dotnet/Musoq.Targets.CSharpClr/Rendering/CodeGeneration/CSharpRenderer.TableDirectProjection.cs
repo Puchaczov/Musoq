@@ -756,7 +756,7 @@ public sealed partial class CSharpRenderer
             .WithBody(body);
     }
 
-    private static ExpressionSyntax CreateFinalTableRowExpression(FinalOutputPlan output, string shapeRowName)
+    internal static ExpressionSyntax CreateFinalTableRowExpression(FinalOutputPlan output, string shapeRowName)
     {
         if (output.UsesGeneratedRow || output.ReturnsOwnedRows)
             return SyntaxFactory.IdentifierName(shapeRowName);

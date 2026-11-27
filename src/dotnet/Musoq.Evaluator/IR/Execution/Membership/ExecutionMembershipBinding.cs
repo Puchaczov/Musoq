@@ -7,6 +7,8 @@ public enum ExecutionMembershipEqualityKind
     TypedEquality,
     NumericEquality,
     NeverMatch,
+    CharacterTextEquality,
+    DecimalFloatingEquality,
 }
 
 public sealed record ExecutionMembershipComparison(

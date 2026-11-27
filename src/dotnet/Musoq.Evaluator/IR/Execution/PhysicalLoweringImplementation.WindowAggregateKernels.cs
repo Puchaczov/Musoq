@@ -34,7 +34,11 @@ internal sealed partial class PhysicalLoweringImplementation
         var filterPredicate =
             registration.FilterPredicate == null
                 ? null
-                : ExecutionExpressionConverter.Convert(registration.FilterPredicate, context.SourceLookup);
+                : ConvertWindowInputExpression(
+                    registration.FilterPredicate,
+                    context.SourceLookup,
+                    context.AggregateSourceFields
+                );
         var results = new ExecutionVariable(
             resultsName,
             descriptor.Descriptor.ResultType.ResolveClrType().MakeArrayType()

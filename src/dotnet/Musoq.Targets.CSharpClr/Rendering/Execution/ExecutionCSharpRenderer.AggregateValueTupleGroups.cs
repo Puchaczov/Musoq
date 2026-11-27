@@ -68,7 +68,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateLocalDeclaration(
                     CreateTypeSyntax(getOrAddGroup.KeyTypes[index]),
                     CreateGroupKeyVariableName(index),
-                    RenderExpression(getOrAddGroup.Keys[index])
+                    RenderExpression(getOrAddGroup.Keys[index], context)
                 )
             );
 

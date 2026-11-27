@@ -192,10 +192,10 @@ public partial class BuildMetadataAndInferTypesVisitor
         Node[] args
     )
     {
-        var functionName = call.Name;
+        var functionName = call.IsDistinct ? $"{call.Name}Distinct" : call.Name;
         var normalizedName = functionName.Replace("_", "", StringComparison.Ordinal).ToUpperInvariant();
         var libraries = EnumerateWindowLibraries(call.Alias).ToArray();
-        WindowDeclarationBinding.ValidateArguments(call, args, libraries);
+        WindowDeclarationBinding.ValidateArguments(functionName, call, args, libraries);
         var resolvedFactory = WindowDeclarationBinding.Bind(
             functionName,
             args.Select(static argument => argument.ReturnType ?? typeof(object)).ToArray(),

@@ -36,10 +36,10 @@ public class DynamicTable : ISchemaTable
                         ? ColumnStability.Volatile
                         : ColumnStability.Stable
                 );
-                return NullableInterpretationColumn.Preserve(
-                    merged,
-                    group.Any(static column => column is NullableInterpretationColumn)
-                );
+                var presence = InterpretationPresence.From(firstColumn);
+                foreach (var other in group.Skip(1))
+                    presence = presence.Merge(InterpretationPresence.From(other));
+                return InterpretationColumn.Preserve(merged, presence);
             })
             .ToArray();
         Metadata = new SchemaTableMetadata(metadata ?? typeof(object))

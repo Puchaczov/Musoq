@@ -25,6 +25,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var shapes = new List<RowShape>();
         var tasks = new List<ExecutionParallelTask>();
         var mergeNodes = new List<ExecutionNode>();
+        var intermediateSlots = scope.Cte.ParallelIntermediateSlots ?? new ParallelIntermediateTableSlots();
 
         for (var taskIndex = 0; taskIndex < level.Definitions.Count; taskIndex++)
         {
@@ -38,7 +39,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 cteShapesByName,
                 schemaFromIndexes[definition.Name],
                 pruningPlan,
-                scope
+                scope.WithParallelIntermediateSlots(intermediateSlots)
             );
             var sidecarSpecs = ExecutionStrategies.GetCteSidecarIndexSpecs(cte, definition.Name);
             result = ApplyCteSidecarOptimizations(

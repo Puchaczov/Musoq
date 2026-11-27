@@ -24,4 +24,5 @@ public enum BinaryOpKind
     RightShift,
     StringConcatenate,
     SqlStringConcatenate,
+    FloatingMembershipEqual,
 }

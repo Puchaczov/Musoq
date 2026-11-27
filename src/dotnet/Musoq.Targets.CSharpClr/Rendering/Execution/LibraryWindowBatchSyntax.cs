@@ -26,13 +26,12 @@ internal static class LibraryWindowBatchSyntax
         var starts = $"{prefix}BatchStarts";
         var ends = $"{prefix}BatchEnds";
         var context = $"{prefix}BatchContext";
-        var frame = kernel.Frame!;
         var frameStart = WindowRangeFrameSyntax
-            .CreateAggregateFrameStartExpressionForKernel(kernel, frame.Start, indices, start, position, count)
+            .CreateAggregateFrameExpression(kernel, true, partition, position)
             .NormalizeWhitespace()
             .ToFullString();
         var frameEnd = WindowRangeFrameSyntax
-            .CreateAggregateFrameEndExpressionForKernel(kernel, frame.End, indices, start, position, count)
+            .CreateAggregateFrameExpression(kernel, false, partition, position)
             .NormalizeWhitespace()
             .ToFullString();
         var operation = kernel.Descriptor.LibraryBatch!.RequireClrMethod();

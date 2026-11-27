@@ -6,7 +6,7 @@ internal static class PartialInterpretationShape
 {
     internal static ColumnSchema[] CreateColumns(string schemaName) =>
         [
-            new("ParsedFields", typeof(object), 0, $"Musoq.Generated.Interpreters.{schemaName}"),
+            new("ParsedFields", typeof(object), 0, InterpretationCSharpNames.Qualified(schemaName)),
             new("ErrorField", typeof(string), 1),
             new("ErrorMessage", typeof(string), 2),
             new("BytesConsumed", typeof(int), 3),

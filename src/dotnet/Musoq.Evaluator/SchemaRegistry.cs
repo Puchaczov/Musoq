@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator;
 
@@ -21,7 +22,31 @@ public class SchemaRegistry
     ///     Gets the number of registered schemas.
     /// </summary>
     public int Count => _schemas.Count;
+    private readonly Dictionary<TextSchemaNode, TextResultTypeNames> _textResultTypes = new(
+        ReferenceEqualityComparer.Instance
+    );
+
+    internal TextResultTypeNames TextResultTypes(TextSchemaNode schema)
+    {
+        if (!_textResultTypes.TryGetValue(schema, out var names))
+            _textResultTypes.Add(
+                schema,
+                names = new TextResultTypeNames(schema.Name, InterpretationSchemaFields.GetFields(schema, this))
+            );
+        return names;
+    }
+
+    internal TextResultTypeNames TextResultTypes(string owner) =>
+        TextResultTypes((TextSchemaNode)GetSchema(owner).Node);
+
+    private bool _hasTextSchemas;
+    private EmbeddedTextShapeBinding? _embeddedTextShapes;
+    internal EmbeddedTextShapeBinding? EmbeddedTextShapes => _hasTextSchemas ? _embeddedTextShapes ??= new(this) : null;
+
     private Visitors.BinarySchemaParentBindings? _parentBindings;
+    private Visitors.BinaryCompositionTypes? _binaryCompositions;
+    internal Visitors.BinaryCompositionTypes BinaryCompositions => _binaryCompositions ??= new(this);
+
     internal Visitors.BinarySchemaParentBindings ParentBindings
     {
         get
@@ -65,6 +90,10 @@ public class SchemaRegistry
         _schemas[name] = registration;
         _orderedSchemas.Add(registration);
         _parentBindings = null;
+        _binaryCompositions = null;
+        _textResultTypes.Clear();
+        _hasTextSchemas |= node is TextSchemaNode;
+        _embeddedTextShapes = null;
     }
 
     /// <summary>
@@ -138,6 +167,10 @@ public class SchemaRegistry
     {
         _schemas.Clear();
         _orderedSchemas.Clear();
+        _hasTextSchemas = false;
+        _embeddedTextShapes = null;
         _parentBindings = null;
+        _binaryCompositions = null;
+        _textResultTypes.Clear();
     }
 }

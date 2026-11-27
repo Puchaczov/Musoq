@@ -23,6 +23,6 @@ public class CollectionInNode : BinaryNode
 
     public override string ToString()
     {
-        return $"{Left} in {Collection}";
+        return $"{InfixExpressionText.FormatPredicateOperand(Left)} in {Collection.ToString()}";
     }
 }

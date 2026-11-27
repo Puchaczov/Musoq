@@ -44,15 +44,18 @@ internal static class SchemaCoalesceExpression
         IReadOnlyList<SchemaFieldNode> fields,
         SchemaRegistry registry,
         Func<Node, string> emit,
-        Func<Type, string> typeName
+        Func<Node, IReadOnlyList<SchemaFieldNode>, Type, string> resultTypeName
     )
     {
+        if (expression.Right is NullNode && expression.Left is not NullNode)
+            return emit(expression.Left);
         var type = Resolve(expression, fields, registry);
         var value = BinarySchemaExpressionTypes.Unwrap(type);
-        var target = typeName(value) + (BinarySchemaExpressionTypes.IsNullable(type) ? "?" : string.Empty);
+        var typeName = resultTypeName(expression, fields, type);
+        var target = typeName + (BinarySchemaExpressionTypes.IsNullable(type) ? "?" : string.Empty);
         if (expression.Left is NullNode)
             return $"(({target})({emit(expression.Right)}))";
-        var nullableTarget = typeName(value) + (value.IsValueType ? "?" : string.Empty);
+        var nullableTarget = typeName + (value.IsValueType ? "?" : string.Empty);
         return $"((({nullableTarget})({emit(expression.Left)})) ?? (({target})({emit(expression.Right)})))";
     }
 }

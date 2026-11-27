@@ -19,9 +19,14 @@ internal static class WindowDeclarationBinding
     public static MethodInfo? ResolveStandard(string name, Type[] arguments) =>
         StandardLibrary.Value.TryGetWindowFunction(name, arguments, out var declaration) ? declaration : null;
 
-    public static void ValidateArguments(AccessMethodNode call, Node[] arguments, IEnumerable<ISchema> schemas)
+    public static void ValidateArguments(
+        string name,
+        AccessMethodNode call,
+        Node[] arguments,
+        IEnumerable<ISchema> schemas
+    )
     {
-        var declarations = FindDeclarations(call.Name, schemas);
+        var declarations = FindDeclarations(name, schemas);
         // Legacy typed factories validate their separate argument interface during lowering.
         if (declarations.Any(static declaration => declaration.KernelType is null))
             return;

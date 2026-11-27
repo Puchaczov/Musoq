@@ -24,10 +24,8 @@ internal static class ExecutionMembershipBindingResolver
 
     private static ExecutionMembershipBinding Bind(Type operandType, Type[] memberTypes, bool sqlSemantics)
     {
-        if (IsNullType(operandType))
-            operandType = memberTypes.FirstOrDefault(type => !IsNullType(type)) ?? typeof(bool?);
         operandType = NullableCarrier(operandType);
-        var members = memberTypes.Select(type => IsNullType(type) ? operandType : NullableCarrier(type)).ToArray();
+        var members = memberTypes.Select(NullableCarrier).ToArray();
         var comparisons = members.Select(type => BindComparison(operandType, type, sqlSemantics)).ToArray();
         return new ExecutionMembershipBinding(
             ExecutionClrBindingFactory.FromClr(operandType),
@@ -37,10 +35,13 @@ internal static class ExecutionMembershipBindingResolver
         );
     }
 
-    private static bool IsNullType(Type type) => type == typeof(NullNode.NullType);
+    private static bool IsNullType(Type type) =>
+        type is NullNode.NullType || type == typeof(NullNode.NullType) || type == typeof(DBNull);
 
     private static Type NullableCarrier(Type type)
     {
+        if (IsNullType(type))
+            return typeof(DBNull);
         if (type == typeof(object))
             throw new SourcePlanContractException(
                 "Membership requires concrete operand and member types.",
@@ -55,6 +56,24 @@ internal static class ExecutionMembershipBindingResolver
     {
         var leftValue = Nullable.GetUnderlyingType(left) ?? left;
         var rightValue = Nullable.GetUnderlyingType(right) ?? right;
+        if (leftValue == typeof(DBNull) || rightValue == typeof(DBNull))
+            return new(ExecutionMembershipEqualityKind.NeverMatch, ExecutionClrBindingFactory.FromClr(typeof(DBNull)));
+        if (sqlSemantics && ComparisonOperandBinding.DecimalFloatingType(leftValue, rightValue) is { } floating)
+            return new(
+                ExecutionMembershipEqualityKind.DecimalFloatingEquality,
+                ExecutionClrBindingFactory.FromClr(floating)
+            );
+        if (
+            sqlSemantics
+            && (
+                leftValue == typeof(char) && rightValue == typeof(string)
+                || rightValue == typeof(char) && leftValue == typeof(string)
+            )
+        )
+            return new(
+                ExecutionMembershipEqualityKind.CharacterTextEquality,
+                ExecutionClrBindingFactory.FromClr(typeof(string))
+            );
         if (IsNumeric(leftValue) && IsNumeric(rightValue))
         {
             if (!sqlSemantics && leftValue == rightValue)

@@ -4,7 +4,7 @@ namespace Musoq.Parser;
 
 public partial class Parser
 {
-    private static short GetArithmeticPrecedence(TokenType tokenType)
+    internal static short GetArithmeticPrecedence(TokenType tokenType)
     {
         return tokenType switch
         {

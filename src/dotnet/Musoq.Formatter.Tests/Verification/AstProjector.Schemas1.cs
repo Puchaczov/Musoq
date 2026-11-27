@@ -78,6 +78,10 @@ internal sealed partial class AstProjector
         Write(value.ReturnType);
         Member(nameof(value.Selector));
         Write(value.Selector);
+        Member(nameof(value.SelectorExpression));
+        Write(value.SelectorExpression);
+        Member(nameof(value.SelectorRoot));
+        Write(value.SelectorRoot);
     }
 
     private void Project(global::Musoq.Parser.Nodes.InterpretationSchema.BitsTypeNode value)

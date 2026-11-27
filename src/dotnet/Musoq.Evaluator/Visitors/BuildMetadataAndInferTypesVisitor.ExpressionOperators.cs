@@ -28,7 +28,21 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         var right = PopSemanticNode("VisitBinaryOperatorWithTypeConversion (right)");
         var left = PopSemanticNode("VisitBinaryOperatorWithTypeConversion (left)");
+        PushSemanticNode(
+            BindBinaryOperator((left, right), nodeFactory, errorContextNode, operatorKind, operationContext)
+        );
+    }
 
+    private Node BindBinaryOperator<T>(
+        (Node Left, Node Right) operands,
+        Func<Node, Node, T> nodeFactory,
+        Node errorContextNode,
+        BinaryOperatorKind operatorKind,
+        BinaryOperationContext operationContext
+    )
+        where T : Node
+    {
+        var (left, right) = operands;
         if (
             TryBindEnumBinaryOperation(left, right, operatorKind, errorContextNode, out var enumLeft, out var enumRight)
         )
@@ -36,36 +50,14 @@ public partial class BuildMetadataAndInferTypesVisitor
             var enumResult = nodeFactory(enumLeft, enumRight);
             if (errorContextNode.HasSpan)
                 enumResult.WithSpan(errorContextNode.Span);
-            PushSemanticNode(enumResult);
-            return;
+            return enumResult;
         }
 
-        if (operationContext == BinaryOperationContext.ArithmeticOperation)
-        {
-            var leftIsNull = left.ReturnType is NullNode.NullType;
-            var rightIsNull = right.ReturnType is NullNode.NullType;
-
-            if (leftIsNull && rightIsNull)
-            {
-                PushSemanticNode(new NullNode(typeof(object)));
-                return;
-            }
-
-            if (leftIsNull || rightIsNull)
-            {
-                var nonNullType = leftIsNull ? right.ReturnType : left.ReturnType;
-                var baseType = NormalizeOperandType(nonNullType);
-
-                var newLeft = leftIsNull ? new NullNode(baseType, left.Span) : left;
-                var newRight = rightIsNull ? new NullNode(baseType, right.Span) : right;
-
-                var nullBranchResult = nodeFactory(newLeft, newRight);
-                if (errorContextNode.HasSpan)
-                    nullBranchResult.WithSpan(errorContextNode.Span);
-                PushSemanticNode(nullBranchResult);
-                return;
-            }
-        }
+        if (
+            operationContext == BinaryOperationContext.ArithmeticOperation
+            && NullArithmeticBinding.Bind(left, right, nodeFactory, errorContextNode) is { } nullArithmetic
+        )
+            return nullArithmetic;
 
         var leftIsObject = TypeConversionNodeFactory.IsObjectType(left.ReturnType);
         var rightIsObject = TypeConversionNodeFactory.IsObjectType(right.ReturnType);
@@ -74,11 +66,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         {
             var operatorMethodName = _nodeFactory.GetRuntimeOperatorMethodName(nodeFactory);
             if (operatorMethodName != null)
-            {
-                var wrappedNode = _nodeFactory.CreateRuntimeOperatorCall(operatorMethodName, left, right);
-                PushSemanticNode(wrappedNode);
-                return;
-            }
+                return _nodeFactory.CreateRuntimeOperatorCall(operatorMethodName, left, right);
         }
 
         var transformedLeft = TransformStringToDateTimeIfNeeded(left, right);
@@ -111,8 +99,18 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (errorContextNode.HasSpan)
             result.WithSpan(errorContextNode.Span);
-        PushSemanticNode(result);
+        return result;
     }
+
+    private Node BindRangeBound<T>((Node Left, Node Right) operands, Func<Node, Node, T> create, BetweenNode source)
+        where T : Node =>
+        BindBinaryOperator(
+            operands,
+            create,
+            source,
+            BinaryOperatorKind.Relational,
+            BinaryOperationContext.RelationalComparison
+        );
 
     private Node TransformStringToDateTimeIfNeeded(Node candidateNode, Node otherNode)
     {
@@ -161,11 +159,13 @@ public partial class BuildMetadataAndInferTypesVisitor
         );
     }
 
-    private void ValidateBooleanOperand(Node operand, string operatorName, Node errorContextNode)
+    private Node BindBooleanOperand(Node operand, string operatorName, Node errorContextNode)
     {
+        if (CommonColumnTypeResolver.IsExplicitNullType(operand.ReturnType))
+            return NullArithmeticBinding.AsNullable(operand, typeof(bool));
         var operandType = NormalizeOperandType(operand.ReturnType);
         if (CanSkipStaticTypeValidation(operandType) || operandType == typeof(bool))
-            return;
+            return operand;
 
         ThrowOrReportInvalidOperandTypes(
             typeof(bool),
@@ -173,6 +173,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             errorContextNode,
             $"Operator {operatorName} requires boolean operands, but got '{operandType.Name}'."
         );
+        return operand;
     }
 
     private void ValidatePatternOperand(Node operand, string operatorName, Node errorContextNode)

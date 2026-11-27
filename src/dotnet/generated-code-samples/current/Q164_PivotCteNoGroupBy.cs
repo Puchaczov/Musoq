@@ -13,10 +13,10 @@ with p as (
 Cte
   Definition [p]
     MultiStatement
-      Project [1 as 1, AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
+      Project [1 as 1, AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')]
         Aggregate [keys: 1] [aggs: Sum(Money) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Jan')]
           SchemaScan [#A.entities() as ko3iko]
-      Project [ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb') as Feb]
+      Project [ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb') as Feb]
         CteRef [ko3ikoScore as ko3ikoScore]
   Query
     MultiStatement
@@ -29,10 +29,10 @@ Cte
 PhysicalCte
   Definition [p]
     PhysicalMultiStatement
-      PhysicalProject [AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
+      PhysicalProject [AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')]
         PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Sum(Money) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Jan')]
           PhysicalSchemaScan [#A.entities() as ko3iko]
-      PhysicalProject [ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb') as Feb]
+      PhysicalProject [ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb') as Feb]
         PhysicalCteRef [ko3ikoScore as ko3ikoScore]
   Query
     PhysicalMultiStatement
@@ -73,7 +73,7 @@ ExecutionPlan [compiled]
     EnsureCapacity [cte0 <- cte0GroupsToFinalize.Count]
     PhaseBoundary [Select:cte0]
     ForEach [cte0FinalGroup in cte0GroupsToFinalize]
-      AppendRow [cte0 <- Cte0Row0(Jan: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Feb: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'))]
+      AppendRow [cte0 <- Cte0Row0(Jan: ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan'), Feb: ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'))]
     StoreTable [cte0 -> _cteRowResults.Slot0: List<Cte0Row0>]
     PhaseBoundary [End:cte0]
     CreateShapeRows [result: ResultRow0 from ResultRow0]

@@ -10,6 +10,19 @@ namespace Musoq.Evaluator.Tests;
 public sealed class Core030RecursiveCteTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void RecursivePredicateAnchorAndIdentityMemberShareNullableType()
+    {
+        const string sql =
+            "with recursive q (P) as (select s.V=1 from values { (V:1),(V:null) } s"
+            + " union all select r.P from q r where false) select q.P from q";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(result, ("P", typeof(bool?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [true], new object?[] { null });
+    }
+
+    [TestMethod]
     public void RecursiveCte_ShouldTerminateAtEmptyFrontierAndPreserveGenerationOrder()
     {
         const string query =

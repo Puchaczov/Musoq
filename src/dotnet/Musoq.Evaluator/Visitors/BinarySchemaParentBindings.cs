@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -10,7 +11,7 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed partial class BinarySchemaParentBindings
 {
-    internal sealed record Requirement(string Path, Node Source)
+    internal sealed record Requirement(string Path, Node Source, bool IsImplicit = false)
     {
         internal string[] Parts => Path.Split('.');
         internal int Depth =>
@@ -20,19 +21,37 @@ internal sealed partial class BinarySchemaParentBindings
 
     internal sealed class Context(string name, IReadOnlyList<SchemaFieldNode> fields, string[] typeParameters)
     {
+        private readonly HashSet<string> _declaredNames = fields
+            .Select(field => field.Name)
+            .Append(name)
+            .ToHashSet(StringComparer.Ordinal);
         internal string Name { get; } = name;
+        internal string TypeName => AvailableName("ParentContext");
+        internal string StorageName => AvailableName("__parentContext");
+
+        internal string FactoryName(int index) => AvailableName($"__factory{index}");
+
+        private string AvailableName(string preferred)
+        {
+            while (_declaredNames.Contains(preferred))
+                preferred += "_";
+            return preferred;
+        }
+
         internal IReadOnlyList<SchemaFieldNode> Fields { get; } = fields;
         internal string[] TypeParameters { get; } = typeParameters;
-        internal SortedDictionary<string, Requirement> Requirements { get; } = new(StringComparer.OrdinalIgnoreCase);
-        internal Dictionary<string, Type> Types { get; } = new(StringComparer.OrdinalIgnoreCase);
-        internal HashSet<string> NullablePaths { get; } = new(StringComparer.OrdinalIgnoreCase);
-        internal HashSet<Node> ExpressionReferences { get; } = [];
+        internal SortedDictionary<string, Requirement> Requirements { get; } = new(StringComparer.Ordinal);
+        internal Dictionary<string, Type> Types { get; } = new(StringComparer.Ordinal);
+        internal Dictionary<string, FieldDefinitionNode> RecordFields { get; } = new(StringComparer.Ordinal);
+        internal HashSet<string> NullablePaths { get; } = new(StringComparer.Ordinal);
+        internal Dictionary<Node, string> BoundPaths { get; } = new(ReferenceEqualityComparer.Instance);
+        internal HashSet<string> ImplicitNames { get; } = new(StringComparer.Ordinal);
         internal Dictionary<string, IReadOnlyDictionary<string, string>> GenericInstances { get; } =
             new(StringComparer.Ordinal);
         internal IReadOnlyList<FactorySlot> Factories { get; set; } = [];
 
         internal string Member(string path) =>
-            $"P{Requirements.Keys.ToList().FindIndex(key => key.Equals(path, StringComparison.OrdinalIgnoreCase))}";
+            $"P{Requirements.Keys.ToList().FindIndex(key => key.Equals(path, StringComparison.Ordinal))}";
     }
 
     internal sealed record FactorySlot(string OwnerType, string ResultType)
@@ -43,20 +62,14 @@ internal sealed partial class BinarySchemaParentBindings
     private readonly SchemaRegistry _registry;
     private readonly Dictionary<string, Context> _contexts = new(StringComparer.OrdinalIgnoreCase);
 
+    private readonly Dictionary<Node, List<Context>> _expressionOwners = new(ReferenceEqualityComparer.Instance);
+
     internal BinarySchemaParentBindings(SchemaRegistry registry)
     {
         _registry = registry;
         foreach (var schema in registry.Schemas.Select(registration => registration.Node).OfType<BinarySchemaNode>())
-            Add(schema.Name, GetFields(schema), schema.TypeParameters);
+            Add(schema.Name, InterpretationSchemaFields.GetFields(schema, registry), schema.TypeParameters);
         CollectGenericInstances();
-        foreach (var context in _contexts.Values.Where(context => context.TypeParameters.Length > 0))
-            context.Factories = DiscoverFactories(
-                    context,
-                    context.TypeParameters.ToDictionary(parameter => parameter, parameter => parameter),
-                    []
-                )
-                .Distinct()
-                .ToArray();
         var changed = true;
         while (changed)
         {
@@ -73,6 +86,14 @@ internal sealed partial class BinarySchemaParentBindings
                     changed = true;
             }
         }
+        foreach (var context in _contexts.Values.Where(context => context.TypeParameters.Length > 0))
+            context.Factories = DiscoverFactories(
+                    context,
+                    context.TypeParameters.ToDictionary(parameter => parameter, parameter => parameter),
+                    []
+                )
+                .Distinct()
+                .ToArray();
     }
 
     internal void BindAll()
@@ -91,25 +112,27 @@ internal sealed partial class BinarySchemaParentBindings
         Find(name)?.GenericInstances.GetValueOrDefault(name.Replace(" ", string.Empty, StringComparison.Ordinal))
         ?? new Dictionary<string, string>();
 
-    internal Type? ResolveType(IReadOnlyList<SchemaFieldNode> fields, string path, Node expression)
+    private Context? FindReference(IReadOnlyList<SchemaFieldNode> fields, Node expression)
     {
-        var context = _contexts
-            .Values.OrderByDescending(candidate => candidate.Fields.Count(field => fields.Contains(field)))
-            .FirstOrDefault(candidate =>
-                candidate.Fields.Any(field => fields.Contains(field))
-                && candidate.ExpressionReferences.Contains(expression)
-                && candidate.Types.ContainsKey(path)
-            );
-        return context?.Types.GetValueOrDefault(path);
+        if (!_expressionOwners.TryGetValue(expression, out var owners))
+            return null;
+        return owners.Count == 1 ? owners[0] : owners.MaxBy(candidate => candidate.Fields.Count(fields.Contains));
     }
 
-    internal bool? ParentMayBeNull(IReadOnlyList<SchemaFieldNode> fields, string path, Node expression)
-    {
-        var context = _contexts.Values.FirstOrDefault(candidate =>
-            candidate.Fields.Any(fields.Contains) && candidate.ExpressionReferences.Contains(expression)
-        );
-        return context is null ? null : context.NullablePaths.Contains(path);
-    }
+    internal Type? ResolveType(IReadOnlyList<SchemaFieldNode> fields, Node expression) =>
+        FindReference(fields, expression) is { } owner
+            ? owner.Types.GetValueOrDefault(owner.BoundPaths[expression])
+            : null;
+
+    internal FieldDefinitionNode? ResolveRecord(IReadOnlyList<SchemaFieldNode> fields, Node expression) =>
+        FindReference(fields, expression) is { } owner
+            ? owner.RecordFields.GetValueOrDefault(owner.BoundPaths[expression])
+            : null;
+
+    internal bool? ParentMayBeNull(IReadOnlyList<SchemaFieldNode> fields, Node expression) =>
+        FindReference(fields, expression) is { } owner
+            ? owner.NullablePaths.Contains(owner.BoundPaths[expression])
+            : null;
 
     internal void RequireRoot(string name, TextSpan span)
     {
@@ -120,99 +143,83 @@ internal sealed partial class BinarySchemaParentBindings
             );
     }
 
-    private void Add(string name, IReadOnlyList<SchemaFieldNode> fields, string[] typeParameters)
+    private void Add(
+        string name,
+        IReadOnlyList<SchemaFieldNode> fields,
+        string[] typeParameters,
+        IReadOnlySet<string>? enclosingNames = null
+    )
     {
         if (_contexts.ContainsKey(name))
             return;
         var context = new Context(name, fields, typeParameters);
+        var implicitNames = enclosingNames
+            ?.Except(fields.Select(field => field.Name), StringComparer.Ordinal)
+            .ToHashSet(StringComparer.Ordinal);
         _contexts.Add(name, context);
-        var available = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var available = new HashSet<string>(StringComparer.Ordinal);
         foreach (var field in fields)
         {
             foreach (var expression in Expressions(field))
-            foreach (var reference in ParentPaths(expression))
-                if (!available.Contains("parent"))
+            foreach (var reference in ParentPaths(expression, implicitNames))
+                if (reference.IsImplicit || !available.Contains(reference.Parts[0]))
                 {
+                    if (reference.IsImplicit && reference.Source is IdentifierNode identifier)
+                        context.ImplicitNames.Add(identifier.Name);
                     context.Requirements.TryAdd(reference.Path, reference);
-                    context.ExpressionReferences.Add(reference.Source);
+                    if (context.BoundPaths.TryAdd(reference.Source, reference.Path))
+                    {
+                        if (!_expressionOwners.TryGetValue(reference.Source, out var owners))
+                            _expressionOwners[reference.Source] = owners = [];
+                        owners.Add(context);
+                    }
                 }
-            RegisterInline(field is FieldDefinitionNode parsed ? parsed.TypeAnnotation : null, field.Name);
+            if (field is FieldDefinitionNode parsed)
+                foreach (var inline in RecordTypes(parsed.TypeAnnotation).OfType<InlineSchemaTypeNode>())
+                    Add(_registry.BinaryCompositions.Name(inline), inline.Fields, [], available);
             available.Add(field.Name);
         }
     }
 
-    private void RegisterInline(TypeAnnotationNode? type, string fieldName)
+    private static IEnumerable<TypeAnnotationNode> RecordTypes(TypeAnnotationNode type)
     {
-        switch (type)
+        return type switch
         {
-            case InlineSchemaTypeNode inline:
-                Add($"Inline_{fieldName}", inline.Fields, []);
-                break;
-            case ArrayTypeNode array:
-                RegisterInline(array.ElementType, fieldName);
-                break;
-            case RepeatUntilTypeNode repeat:
-                RegisterInline(repeat.ElementType, fieldName);
-                break;
-            case SubstreamTypeNode { Target: not null } substream:
-                RegisterInline(substream.Target, fieldName);
-                break;
-        }
-    }
-
-    private IReadOnlyList<SchemaFieldNode> GetFields(BinarySchemaNode schema)
-    {
-        var fields = string.IsNullOrEmpty(schema.Extends)
-            ? new List<SchemaFieldNode>()
-            : GetFields((BinarySchemaNode)_registry.GetSchema(schema.Extends).Node).ToList();
-        foreach (var field in schema.Fields)
-        {
-            var index =
-                field.Name == "_"
-                    ? -1
-                    : fields.FindIndex(candidate =>
-                        candidate.Name.Equals(field.Name, StringComparison.OrdinalIgnoreCase)
-                    );
-            if (index < 0)
-                fields.Add(field);
-            else
-                fields[index] = field;
-        }
-        return fields;
+            ArrayTypeNode array => RecordTypes(array.ElementType),
+            RepeatUntilTypeNode repeat => RecordTypes(repeat.ElementType),
+            SubstreamTypeNode { Target: { } target } => RecordTypes(target),
+            BinarySwitchTypeNode choice => choice.Cases.SelectMany(arm => RecordTypes(arm.BranchType)),
+            SchemaReferenceTypeNode or InlineSchemaTypeNode => [type],
+            _ => [],
+        };
     }
 
     private IEnumerable<Context> Children(
         IReadOnlyList<SchemaFieldNode> fields,
         IReadOnlyDictionary<string, string> types
-    ) => fields.OfType<FieldDefinitionNode>().SelectMany(field => Children(field.TypeAnnotation, field.Name, types));
+    ) =>
+        fields
+            .OfType<FieldDefinitionNode>()
+            .SelectMany(field => Children(field.TypeAnnotation, types))
+            .Select(site => site.Child);
 
-    private IEnumerable<Context> Children(
+    private IEnumerable<(TypeAnnotationNode Type, Context Child)> Children(
         TypeAnnotationNode type,
-        string fieldName,
         IReadOnlyDictionary<string, string> types
     )
     {
-        switch (type)
+        foreach (var record in RecordTypes(type))
         {
-            case SchemaReferenceTypeNode reference:
-                if (Find(types.GetValueOrDefault(reference.SchemaName) ?? reference.SchemaName) is { } named)
-                    yield return named;
-                break;
-            case InlineSchemaTypeNode:
-                yield return _contexts[$"Inline_{fieldName}"];
-                break;
-            case ArrayTypeNode array:
-                foreach (var child in Children(array.ElementType, fieldName, types))
-                    yield return child;
-                break;
-            case RepeatUntilTypeNode repeat:
-                foreach (var child in Children(repeat.ElementType, fieldName, types))
-                    yield return child;
-                break;
-            case SubstreamTypeNode { Target: not null } substream:
-                foreach (var child in Children(substream.Target, fieldName, types))
-                    yield return child;
-                break;
+            var child = record switch
+            {
+                SchemaReferenceTypeNode reference => Find(
+                    types.GetValueOrDefault(reference.SchemaName) ?? reference.SchemaName
+                ),
+                InlineSchemaTypeNode => _contexts[_registry.BinaryCompositions.Name(record)],
+                _ => null,
+            };
+            if (child is not null)
+                yield return (record, child);
         }
     }
 
@@ -238,16 +245,24 @@ internal sealed partial class BinarySchemaParentBindings
             if (requirement.Depth > ancestors.Count)
                 throw Invalid(context, requirement, "the required enclosing record does not exist");
             var fields = ancestors[requirement.Depth - 1];
-            if (
-                !fields.Any(field =>
-                    field.Name.Equals(requirement.Parts[requirement.Depth], StringComparison.OrdinalIgnoreCase)
-                )
-            )
+            if (!fields.Any(field => field.Name.Equals(requirement.Parts[requirement.Depth], StringComparison.Ordinal)))
                 throw Invalid(context, requirement, "the enclosing field is missing or has not completed parsing");
-            var type = BinarySchemaExpressionTypes.Resolve(Path(requirement.MemberPath), fields, _registry);
-            if (BinarySchemaExpressionTypes.MayBeNull(Path(requirement.MemberPath), fields, _registry))
+            var member = Path(requirement.MemberPath);
+            var type = BinarySchemaExpressionTypes.Resolve(member, fields, _registry);
+            var record = BinarySchemaRecordAliases.Resolve(member, fields, _registry);
+            if (record is not null)
+            {
+                if (
+                    context.RecordFields.TryGetValue(requirement.Path, out var previousRecord)
+                    && BinarySchemaRecordAliases.Identity(previousRecord, _registry)
+                        != BinarySchemaRecordAliases.Identity(record, _registry)
+                )
+                    throw Invalid(context, requirement, "embedding sites supply incompatible record types");
+                context.RecordFields[requirement.Path] = record;
+            }
+            if (BinarySchemaExpressionTypes.MayBeNull(member, fields, _registry))
                 context.NullablePaths.Add(requirement.Path);
-            if (type == typeof(object))
+            if (type == typeof(object) && record is null)
                 throw Invalid(context, requirement, "the enclosing field has no compatible concrete value type");
             if (context.Types.TryGetValue(requirement.Path, out var previous))
                 type = MergeTypes(previous, type, context, requirement);
@@ -263,12 +278,16 @@ internal sealed partial class BinarySchemaParentBindings
     )
     {
         var available = new List<SchemaFieldNode>();
-        foreach (var field in context.Fields)
+        var boundFields =
+            context.TypeParameters.Length == 0
+                ? context.Fields
+                : FieldsFor(BinarySchemaGenericResolver.ParseReference(InstanceName(context, types))) ?? context.Fields;
+        foreach (var field in boundFields)
         {
             if (field is FieldDefinitionNode parsed)
-                foreach (var child in Children(parsed.TypeAnnotation, field.Name, types))
+                foreach (var (record, child) in Children(parsed.TypeAnnotation, types))
                 {
-                    var childTypes = TypeBindings(parsed.TypeAnnotation, child, types);
+                    var childTypes = TypeBindings(record, child, types);
                     Bind(
                         child,
                         new[] { (IReadOnlyList<SchemaFieldNode>)available.ToArray() }.Concat(ancestors).ToArray(),
@@ -323,23 +342,38 @@ internal sealed partial class BinarySchemaParentBindings
         return node;
     }
 
-    private static IEnumerable<Requirement> ParentPaths(Node expression)
+    private static IEnumerable<Requirement> ParentPaths(Node expression, IReadOnlySet<string>? implicitNames)
     {
-        if (expression is DotNode dot)
+        if (expression is DotNode dot && BinarySchemaExpressionTypes.IsFieldPath(dot))
         {
-            var path = string.Join('.', BinarySchemaExpressionTypes.PathParts(dot));
-            if (path.StartsWith("parent.", StringComparison.OrdinalIgnoreCase))
+            var parts = BinarySchemaExpressionTypes.PathParts(dot).ToArray();
+            var path = string.Join('.', parts);
+            if (implicitNames?.Contains(parts[0]) == true)
+            {
+                yield return new Requirement("parent." + path, dot, true);
+                yield break;
+            }
+            if (parts[0].Equals("parent", StringComparison.OrdinalIgnoreCase))
+            {
                 yield return new Requirement(path, dot);
+                yield break;
+            }
+        }
+        if (expression is IdentifierNode { Name: var name } && implicitNames?.Contains(name) == true)
+        {
+            yield return new Requirement("parent." + name, expression, true);
             yield break;
         }
         foreach (var child in ChildExpressions(expression))
-        foreach (var requirement in ParentPaths(child))
+        foreach (var requirement in ParentPaths(child, implicitNames))
             yield return requirement;
     }
 
     private static IEnumerable<Node> ChildExpressions(Node node) =>
         node switch
         {
+            DotNode dot => [dot.Root],
+            ArrayIndexNode indexed => [indexed.Array, indexed.Index],
             BinaryNode binary => [binary.Left, binary.Right],
             UnaryNode unary => [unary.Expression],
             IsNullNode predicate => [predicate.Expression],
@@ -390,6 +424,14 @@ internal sealed partial class BinarySchemaParentBindings
                 break;
             case SubstreamTypeNode substream:
                 yield return substream.SizeExpression;
+                if (substream.Target is not null)
+                    foreach (var expression in TypeExpressions(substream.Target))
+                        yield return expression;
+                break;
+            case BinarySwitchTypeNode choice:
+                yield return choice.SelectorExpression;
+                foreach (var expression in choice.Cases.SelectMany(arm => TypeExpressions(arm.BranchType)))
+                    yield return expression;
                 break;
         }
     }

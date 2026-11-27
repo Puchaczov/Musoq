@@ -7,6 +7,26 @@ namespace Musoq.Evaluator.Tests;
 public sealed partial class LibraryExecutionWindowQueryTests
 {
     [TestMethod]
+    public void DistinctKeywordInWindow_ShouldReduceEachDifferentValueOnce()
+    {
+        const string query = """
+            select Count(distinct Value) over () as N, Sum(distinct Value) over () as Total,
+                   Avg(distinct Value) over () as Average from #schema.first()
+            """;
+        NumericRow<int>[] input = [new(1, 2), new(2, 2), new(3, 8), new(4, null)];
+        using var compiled = CreateAndRunVirtualMachine(query, input);
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            result,
+            [2L, 10, 5m],
+            [2L, 10, 5m],
+            [2L, 10, 5m],
+            [2L, 10, 5m]
+        );
+    }
+
+    [TestMethod]
     public void DistinctWindows_WhenFramesRepeatValues_ShouldUseIndependentTypedSets()
     {
         const string query = """

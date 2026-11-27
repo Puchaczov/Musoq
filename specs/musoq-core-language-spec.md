@@ -466,14 +466,12 @@ The following warnings are active in the core language:
 | `MQ5023_UnusedScriptVariable` | Bind | A `let` declaration is not used by an executable statement or live transitive initializer chain. | Script parameters are not `let` declarations; variables used only by dead declarations remain unused. | Remove the declaration or reference it from live work. |
 | `MQ5024_NullSensitiveNotIn` | Bind | A `NOT IN` list or proven collection contains `NULL`, so non-matching values can become `UNKNOWN`. | Positive `IN`, null-free collections, and values proven to exclude `NULL` remain quiet. | Filter `NULL` values or use a null-aware predicate. |
 | `MQ5025_ImpossibleImplicitConversion` | Bind | An engine-selected implicit conversion of a constant is proven unable to succeed, so the comparison cannot match. | Dynamic values, explicit soft conversions, and uncertain plugin conversions remain quiet. | Use a compatible literal or an explicit conversion. |
-| `MQ5026_SetOperationSliceScope` | Bind | Compatibility identifier for the completed set-slicing migration. | Never emitted by the current language version. | No action is required; trailing slicing is result-level. |
+| `MQ5026_SetOperationSliceScope` | Bind | Reserved identifier for result-level slicing compatibility. | Reserved codes are excluded from query diagnostics. | No action is required; trailing slicing is result-level. |
 
 Specific advisories take precedence over generic tautology, contradiction,
-and unreachable-branch messages for the same source region. The v17 identifiers
+and unreachable-branch messages for the same source region. The reserved identifiers
 `MQ5001`, `MQ5002`, `MQ5004`, `MQ5005`, `MQ5006`, `MQ5007`, `MQ5009`, and
-`MQ5012` are not active v18 enum members and are never emitted. `MQ5009` is
-retained as a compatibility documentation identifier so consumers can explain
-older reports; current tested `ORDER BY` alias behavior does not produce it.
+`MQ5012` are excluded from query diagnostics.
 
 Diagnostic-aware operations expose warnings separately from errors. The host operation used to execute a query does not determine the query's semantics.
 
@@ -922,8 +920,8 @@ unsigned integers range from zero to 2^width - 1. The widths are in §3.1.
 Floating-point types are IEEE 754 binary32 and binary64, including signed zero,
 infinities and NaN. Arithmetic rounds to nearest, ties to even. Comparisons with
 NaN are false except `<>`, which is true; positive and negative zero compare
-equal. Grouping and deduplication treat NaNs as equal, and numeric sorting places
-NaN below other non-null numeric values.
+equal. GROUP BY and SELECT DISTINCT combine NaNs. Sorting places NaN below other non-null numeric values.
+A scalar IN list uses scalar equality. A materialized IN subquery can match a NaN. Set operators use the equality in §12.1.
 
 Decimal is sign × coefficient × 10^-scale, where coefficient is an integer from
 0 through 79228162514264337593543950335 and scale is 0 through 28. Arithmetic
@@ -1176,7 +1174,7 @@ Collection parameters are supplied as finite ordered values matching their decla
 
 #### 4.3.3 Default Values
 
-Default values may be scalar constants, `null`, record literals, or array literals whose values are valid for the declared shape. Defaults are normalized once during parameter preflight.
+Default values may be scalar literals, `null`, record literals, or array literals whose values are valid for the declared shape. A signed decimal-number literal is valid as a scalar default. Arithmetic expressions such as `1 + 2` are rejected in this position. Defaults are normalized once during parameter preflight.
 
 ```sql
 param(
@@ -1330,11 +1328,11 @@ Rules:
 
 #### 4.4.2 Supported Types
 
-Script variables support the same primitive and recursive structural types as script parameters. Inferred record arrays preserve field presence: an omitted field remains omitted and is not rewritten as an explicit `null`.
+Script variables support the same primitive and recursive structural types as script parameters. Scalar initializers require a declared type. When the type is omitted, the initializer must evaluate to a record or collection. Inferred record arrays preserve field presence: an omitted field remains omitted and is not rewritten as an explicit `null`.
 
 #### 4.4.3 Initializers
 
-Initializers MUST be compile-time constants. They MAY use literals, `null`, `array { ... }`, named records `(Field: expression, ...)`, supported unary/binary constant operators, comparisons, boolean operators, `IS NULL`, `BETWEEN`, and references to earlier script variables. Runtime parameters, datasource access, subqueries, forward references, and unsupported function evaluation remain invalid.
+Initializers MUST be compile-time constants. They MAY use literals, `null`, `array { ... }`, named records `(Field: expression, ...)`, supported unary/binary constant operators, comparisons, boolean operators, `IS NULL`, `BETWEEN`, and references to earlier script variables. Runtime parameters, datasource access, subqueries, forward references, and unsupported function evaluation remain invalid. Scalar LET comparison evaluates NULL as an ordered constant. For example, `null = null` initializes to true and `5 between null and 10` initializes to true. The same scalar projections yield NULL. In a LET initializer, AND, OR and NOT require Boolean operands with values. Use a query projection when SQL three-valued evaluation is required.
 
 Syntax fragment (not a complete executable batch):
 
@@ -3649,7 +3647,7 @@ outer apply (
 
 For correlated APPLY derived tables, Musoq requires the local columns used to decorrelate the right side to be visible in the derived-table output. If the query hides a required local correlation column, Musoq rejects the query with MQ2024 instead of exporting hidden columns.
 
-An APPLY derived-table body may contain set operators when every set branch exposes the same projected correlation key. Musoq decorrelates each branch independently and joins the combined set result back to the left side by that shared key:
+An APPLY derived-table body may contain set operators when every branch exposes the same projected correlation key. For each left row, the set operator combines the matching branch rows using its declared set keys.
 
 ```sql
 select a.City, d.City
@@ -3946,7 +3944,7 @@ having Sum(Population) > 1000
 Expansion rules:
 - Aggregate and window expressions are excluded from inferred grouping keys.
 - Constants are valid inferred grouping keys.
-- Duplicate inferred grouping expressions are deduplicated case-insensitively by expression text.
+- Repeated inferred grouping expressions contribute one key. Identifier comparisons ignore case and string literal comparisons preserve case.
 - If no grouping keys remain, Musoq uses a single constant grouping key, producing one aggregate group.
 - `GROUP BY ALL` cannot be combined with explicit grouping expressions.
 - Explicit grouping expressions, including positional ordinals, cannot be mixed with `GROUP BY ALL`.
@@ -5247,8 +5245,8 @@ The key columns specify which projected values are used to determine row identit
 All three operations use the same component-wise key equality. NULL key
 components compare equal to NULL and unequal to non-NULL values. Text comparison
 is ordinal and case-sensitive. Non-NULL values retain their logical type's
-set-operation equality, including nominal enum identity; floating-point NaN does
-not compare equal to itself. Duplicate keys in the right input do not multiply
+set-operation equality, including nominal enum identity. Each NaN is a distinct UNION key, and a NaN key
+never matches in EXCEPT or INTERSECT. Duplicate keys in the right input do not multiply
 membership matches.
 
 Both sides of a set operation MUST return the same number of projected values. Corresponding projected values MUST have compatible types.
@@ -7108,7 +7106,7 @@ the final result does not change the arithmetic or accumulator width.
 
 ### 22.4 Object Column Coercion
 
-When an `object`-typed column is compared to a numeric literal, runtime conversion is attempted. Same graceful failure as string coercion — no exception on failure.
+The native runtime requires a concrete type for each source column. A provider that declares a column as CLR `object` receives `MQ3071` at compilation. A runtime-shaped provider may expose a concrete numeric field for numeric comparison, or a string field for the conversion rules in §22.1.
 
 ### 22.5 Enum Non-Coercion
 
@@ -7322,10 +7320,9 @@ advisories are Bind-phase diagnostics.
 | MQ5025_ImpossibleImplicitConversion | An engine-selected implicit conversion of a constant is proven unable to succeed. | Dynamic values, explicit soft conversions, and uncertain plugin conversions. | Use a compatible literal or explicit conversion. |
 
 Specific advisories take precedence over generic tautology, contradiction, and
-unreachable diagnostics for the same source region. The legacy MQ5009
-OrderByAliasBehavior identifier is retained in compatibility documentation only
-and is not an active v18 enum member or emitted diagnostic. Tested alias
-ordering and shadowing behavior remains unchanged.
+unreachable diagnostics for the same source region.
+MQ5009 remains a compatibility documentation identifier only.
+Removed diagnostic identifiers remain reserved.
 
 `MQ5020_SetOperationOrderByScope` and `MQ5026_SetOperationSliceScope` are
 retained as catalog compatibility identifiers for the completed set-modifier
@@ -7350,32 +7347,6 @@ Cancellation is propagated unchanged through datasource and runtime boundaries.
 Unexpected implementation failures are never rewritten as unsupported SQL syntax merely
 because they crossed a query boundary.
 
-### 23.7 v17 to v18 migration
-
-This historical identifier table is informative. Host API migration details are
-outside the language contract. Active codes and their meanings above are normative.
-
-Removed values are not reused. Hosts upgrading diagnostic consumers should use
-the following replacements:
-
-| v17 code or behavior | v18 replacement |
-|----------------------|-----------------|
-| MQ3003 unknown table | MQ3023_TableNotDefined or MQ3085_UnknownSource |
-| MQ3004 unknown function | MQ3086_UnknownCallable |
-| MQ3006 invalid argument count | MQ3087_InvalidCallableArity |
-| MQ3009 null reference | The role-specific symbol, cast, member, datasource, or internal code |
-| MQ3013 cannot resolve method | MQ3086–MQ3089 according to the callable decision tree |
-| MQ3014 invalid property access | MQ3028_UnknownProperty or the precise index/member code |
-| MQ3029 unresolvable method | MQ3086–MQ3089 |
-| MQ3030 construction not supported | MQ4016_UnsupportedSchemaConstruction |
-| MQ3031 set operator missing keys | The applicable set-column/count/type diagnostic |
-| MQ3082 ambiguous source invocation | MQ3089 for overload ambiguity or MQ3035 for owner ambiguity |
-| MQ5001, MQ5002, MQ5004–MQ5007, MQ5009, MQ5012 | No active style/optimization warning; MQ5009 remains a compatibility documentation identifier only |
-| MQ6001–MQ6004 | The precise parse, bind, schema, or runtime diagnostic |
-| MQ7001 datasource binding failed | MQ7010_DataSourceOpenFailed |
-| MQ7002 datasource iterator error | MQ7011_DataSourceReadFailed |
-| MQ9999 unknown | MQ9001_InternalCompilerError or MQ9002_InternalExecutionError |
-
 Agents should not infer a root cause from exception text. Read the code,
 phase, source domain, arguments, related locations, and suggested action.
 
@@ -7391,7 +7362,7 @@ phase, source domain, arguments, related locations, and suggested action.
 - `x | y` — alternatives
 - `'symbol'` — literal symbol
 
-Nested brackets (`[ [AS] alias_name ]`) mean the entire group is optional, with `AS` independently optional within it.
+Nested brackets (`[ [AS] alias_name ]`) mean the entire group is optional, with `AS` independently optional within it. A schema identifier in a source, COUPLE or DESC may have the datasource prefix `#`. The host resolves the schema name.
 
 ### 24.2 Statement-Level Grammar
 
@@ -7416,7 +7387,7 @@ parameter_decl ::= identifier ':' parameter_type ['=' parameter_default]
 parameter_type ::= (type_name | record_type) { '?' | '[]' }
 record_type    ::= '(' parameter_decl {',' parameter_decl} [','] ')'
 
-parameter_default ::= constant_expression | record_literal | array_literal
+parameter_default ::= literal | '-' (integer_literal [type_suffix] | decimal_literal) | record_literal | array_literal
 
 script_variable_decl ::= LET identifier [':' parameter_type] '=' constant_expression
 
@@ -7429,8 +7400,8 @@ constant_expression ::= record_literal
                       | unary_constant_expression
                       | constant_expression binary_constant_op constant_expression
                       | constant_expression comp_op constant_expression
-                      | constant_expression IS [NOT] NULL
-                      | constant_expression BETWEEN constant_expression AND constant_expression
+                      | constant_expression IS [NOT] (NULL | DISTINCT FROM constant_expression)
+                      | constant_expression [NOT] BETWEEN constant_expression AND constant_expression
 
 unary_constant_expression ::= ('-' | NOT) constant_expression
 
@@ -7451,7 +7422,7 @@ cte_def        ::= identifier ['(' identifier {',' identifier} ')'] AS '(' set_o
 ### 24.3 Query Grammar
 
 ```ebnf
-set_operators  ::= set_chain [ORDER BY order_list] [SKIP integer] [TAKE integer]
+set_operators  ::= set_chain [ORDER BY order_list] [SKIP (integer | script_reference)] [TAKE (integer | script_reference)]
 set_chain      ::= query {set_operator query}
 
 set_operator   ::= UNION [set_operator_key_list]
@@ -7575,10 +7546,10 @@ record_literal ::= '(' named_field {',' named_field} [','] ')'
 named_field    ::= identifier ':' expression
 array_literal  ::= ARRAY '{' [ expression {',' expression} [','] ] '}'
 
-values_expression ::= literal
-                    | script_reference
-                    | values_expression arithmetic_op values_expression
-                    | '(' values_expression ')'
+values_expression ::= literal | script_reference | '(' values_expression ')'
+                    | ('-' | NOT) values_expression
+                    | values_expression (arithmetic_op | comp_op | '||' | '??' | '&' | '|' | '^' | '<<' | '>>' | AND | OR | [NOT] LIKE | [NOT] RLIKE) values_expression
+                    | values_expression IS [NOT] DISTINCT FROM values_expression
 
 arithmetic_op  ::= '+' | '-' | '*' | '/' | '%'
 
@@ -7682,7 +7653,7 @@ comp_op        ::= '=' | '<>' | '!=' | '>' | '>=' | '<' | '<='
 
 coalesce_expr  ::= bitwise_expr ['??' coalesce_expr]
 
-add_expr       ::= mul_expr {('+'|'-') mul_expr}
+add_expr       ::= mul_expr {('+'|'-'|'||') mul_expr}
 bitwise_expr   ::= shift_expr {('&'|'|'|'^') shift_expr}
 shift_expr     ::= add_expr {('<<'|'>>') add_expr}
 mul_expr       ::= unary_expr {('*'|'/'|'%') unary_expr}
@@ -7867,7 +7838,7 @@ integral_literal ::= ['-'] integer_literal [type_suffix]
                    | hex_literal | binary_literal | octal_literal
 identifier     ::= identifier_start {identifier_continue}
 identifier_start ::= Unicode letter | '_'
-identifier_continue ::= Unicode letter | Unicode decimal digit | '_'
+identifier_continue ::= identifier_start | Unicode decimal digit | Unicode category Mn, Mc, Pc or Cf
 digit          ::= '0'..'9'
 hex_digit      ::= digit | 'a'..'f' | 'A'..'F'
 octal_digit    ::= '0'..'7'
@@ -8228,5 +8199,5 @@ runtime warnings belong to one execution, including deferred enumeration. Identi
 report collection is bounded and exposes suppression counts. A source error after rows were produced still fails
 execution; hosts MUST NOT present partial rows as successful completion.
 
-See [Reporting datasource errors and warnings](../docs/datasource-diagnostics.md) for the .NET provider contract,
+See [Reporting datasource errors and warnings](https://github.com/Puchaczov/Musoq/blob/v17.0.16-beta.1/docs/datasource-diagnostics.md) for the .NET provider contract,
 public-content requirements, location conventions, and warning consumption examples.

@@ -20,7 +20,7 @@ MultiStatement
   Project [p.Pattern as p.Pattern, m.PatternId as m.PatternId]
     Apply [Cross]
       ValuesScan [1 rows as p]
-      SchemaScan [#inputs.match('TODO!', array { (Id: 'todo', Pattern: (p.Pattern || $suffix)) }) as m]
+      SchemaScan [#inputs.match('TODO!', array { (Id: 'todo', Pattern: (p.Pattern + $suffix)) }) as m]
   Project [m.PatternId as PatternId]
     CteRef [pm as pm]
 */
@@ -31,7 +31,7 @@ PhysicalMultiStatement
   PhysicalProject [m.PatternId as m.PatternId]
     PhysicalNestedLoopApply [Cross]
       PhysicalValuesScan [1 rows as p]
-      PhysicalSchemaScan [#inputs.match('TODO!', array { (Id: 'todo', Pattern: (p.Pattern || $suffix)) }) as m]
+      PhysicalSchemaScan [#inputs.match('TODO!', array { (Id: 'todo', Pattern: (p.Pattern + $suffix)) }) as m]
   PhysicalProject [m.PatternId as PatternId]
     PhysicalCteRef [pm as pm]
 */

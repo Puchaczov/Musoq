@@ -1,7 +1,12 @@
+using System.Collections.Generic;
+
 namespace Musoq.Evaluator.Helpers;
 
 internal static class RowOrderingComparison
 {
+    internal static IComparer<T> GetComparer<T>() =>
+        typeof(T) == typeof(string) ? (IComparer<T>)StringComparer.Ordinal : Comparer<T>.Default;
+
     public static int CompareValues(object? left, object? right, bool descending, int nullOrdering)
     {
         if (ReferenceEquals(left, right))

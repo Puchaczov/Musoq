@@ -126,6 +126,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private ObjectCreationExpressionSyntax CreateGeneratedWindowKeyCreation(
+        ExecutionRenderContext renderContext,
         ExecutionWindowKeyArray keyArray,
         IReadOnlyList<ExecutionExpression> parts
     )
@@ -136,44 +137,51 @@ public sealed partial class ExecutionCSharpRenderer
 
         return SyntaxFactory
             .ObjectCreationExpression(SyntaxFactory.ParseTypeName(typeName))
-            .WithArgumentList(CreateArgumentList(parts.Select(RenderExpression)));
+            .WithArgumentList(
+                CreateArgumentList(parts.Select(windowInput => RenderExpression(windowInput, renderContext)))
+            );
     }
 
     private ExpressionSyntax CreateWindowPartitionKeyExpression(
+        ExecutionRenderContext renderContext,
         ExecutionWindowKeyArray partitionKeys,
         ExecutionExpression partitionKey
     )
     {
         return HasGeneratedWindowKeyType(partitionKeys)
-            ? CreateGeneratedWindowKeyCreation(partitionKeys, GetWindowKeyParts(partitionKey))
-            : RenderExpression(partitionKey);
+            ? CreateGeneratedWindowKeyCreation(renderContext, partitionKeys, GetWindowKeyParts(partitionKey))
+            : RenderExpression(partitionKey, renderContext);
     }
 
     private ExpressionSyntax CreateWindowOrderKeyExpression(
+        ExecutionRenderContext renderContext,
         ExecutionWindowKeyArray orderKeys,
         IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions
     )
     {
         return CreateGeneratedWindowKeyCreation(
+            renderContext,
             orderKeys,
             orderKeyExpressions.Select(static key => key.Expression).ToArray()
         );
     }
 
     private ExpressionSyntax CreateRankingPartitionKeyExpression(
+        ExecutionRenderContext renderContext,
         ExecutionWindowKeyArray partitionKeys,
         ExecutionExpression partitionKey
     )
     {
-        return CreateWindowPartitionKeyExpression(partitionKeys, partitionKey);
+        return CreateWindowPartitionKeyExpression(renderContext, partitionKeys, partitionKey);
     }
 
     private ExpressionSyntax CreateRankingOrderKeyExpression(
+        ExecutionRenderContext renderContext,
         ExecutionWindowKeyArray orderKeys,
         IReadOnlyList<ExecutionWindowOrderKey> orderKeyExpressions
     )
     {
-        return CreateWindowOrderKeyExpression(orderKeys, orderKeyExpressions);
+        return CreateWindowOrderKeyExpression(renderContext, orderKeys, orderKeyExpressions);
     }
 
     private static TypeSyntax CreateWindowKeyElementTypeSyntax(ExecutionWindowKeyArray keyArray)

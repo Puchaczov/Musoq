@@ -15,6 +15,6 @@ public class ValuesFieldNode(string name, Node expression, TextSpan nameSpan)
 
     public override string ToString()
     {
-        return $"{Name}: {Expression}";
+        return $"{Name}: {Expression.ToString()}";
     }
 }

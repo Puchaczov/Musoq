@@ -18,7 +18,7 @@ public static partial class WindowFunctionHelpers
         bool nullsFirst
     )
         where TNumber : struct, INumber<TNumber> =>
-        ResolveNumericRangeFrame(
+        ResolveNumericRangeFrame<TNumber, TOrder, RangeNumericKeys<TNumber>>(
             new RangeNumericKeys<TNumber>(orderKeys),
             new RangeFrameRequest<TOrder>(
                 peerOrderKeys,
@@ -46,7 +46,7 @@ public static partial class WindowFunctionHelpers
         bool nullsFirst
     )
         where TNumber : struct, INumber<TNumber> =>
-        ResolveNumericRangeFrame(
+        ResolveNumericRangeFrame<TNumber, TOrder, NullableRangeNumericKeys<TNumber>>(
             new NullableRangeNumericKeys<TNumber>(orderKeys),
             new RangeFrameRequest<TOrder>(
                 peerOrderKeys,
@@ -74,7 +74,7 @@ public static partial class WindowFunctionHelpers
         bool nullsFirst
     )
         where TNumber : struct, INumber<TNumber> =>
-        ResolveNumericRangeFrame(
+        ResolveNumericRangeFrame<TNumber, TOrder, RangeNumericKeys<TNumber>>(
             new RangeNumericKeys<TNumber>(orderKeys),
             new RangeFrameRequest<TOrder>(
                 peerOrderKeys,
@@ -102,7 +102,7 @@ public static partial class WindowFunctionHelpers
         bool nullsFirst
     )
         where TNumber : struct, INumber<TNumber> =>
-        ResolveNumericRangeFrame(
+        ResolveNumericRangeFrame<TNumber, TOrder, NullableRangeNumericKeys<TNumber>>(
             new NullableRangeNumericKeys<TNumber>(orderKeys),
             new RangeFrameRequest<TOrder>(
                 peerOrderKeys,
@@ -168,24 +168,26 @@ public static partial class WindowFunctionHelpers
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static int ResolveNumericRangeFrame<TOrder, TKeys>(
+    private static int ResolveNumericRangeFrame<TNumber, TOrder, TKeys>(
         TKeys keys,
         in RangeFrameRequest<TOrder> request,
         RangeBoundary boundary
     )
-        where TKeys : struct, IRangeNumericKeys
+        where TNumber : struct, INumber<TNumber>
+        where TKeys : struct, IRangeNumericKeys<TNumber>
     {
-        var current = keys.ReadDecimal(request.Indices[request.Start + request.Current]);
+        var current = keys.Read(request.Indices[request.Start + request.Current]);
         if (!current.HasValue && request.PeerKeys.Length != 0)
             return ResolveNullRangePeers(request, boundary);
-        var target = ShiftRangeTarget(current, request.Offset, request.Descending);
+        var offset = request.Descending ? -(long)request.Offset : request.Offset;
+        var target = NumericRangeTarget<TNumber>.Shift(current, offset);
         var low = 0;
         var high = request.Count;
         while (low < high)
         {
             var middle = low + ((high - low) / 2);
-            var candidate = keys.ReadDecimal(request.Indices[request.Start + middle]);
-            var comparison = CompareNumericRangeKeys(candidate, target, request.Descending, request.NullsFirst);
+            var candidate = keys.Read(request.Indices[request.Start + middle]);
+            var comparison = target.Compare(candidate, request.Descending, request.NullsFirst);
             if (comparison < 0 || comparison == 0 && boundary == RangeBoundary.End)
                 low = middle + 1;
             else
@@ -213,28 +215,6 @@ public static partial class WindowFunctionHelpers
             ),
         };
 
-    private static decimal? ShiftRangeTarget(decimal? current, int offset, bool descending)
-    {
-        if (!current.HasValue || offset == 0)
-            return current;
-        if (descending)
-            return checked(current.Value - offset);
-        return checked(current.Value + offset);
-    }
-
-    private static int CompareNumericRangeKeys(decimal? left, decimal? right, bool descending, bool nullsFirst)
-    {
-        if (!left.HasValue)
-            return !right.HasValue ? 0
-                : nullsFirst ? -1
-                : 1;
-        if (!right.HasValue)
-            return nullsFirst ? 1 : -1;
-        if (descending)
-            return right.Value.CompareTo(left.Value);
-        return left.Value.CompareTo(right.Value);
-    }
-
     private enum RangeBoundary
     {
         Start,
@@ -252,28 +232,21 @@ public static partial class WindowFunctionHelpers
         bool NullsFirst
     );
 
-    private interface IRangeNumericKeys
+    private interface IRangeNumericKeys<TNumber>
+        where TNumber : struct
     {
-        decimal? ReadDecimal(int index);
+        TNumber? Read(int index);
     }
 
-    private readonly struct RangeNumericKeys<TNumber>(TNumber[] values) : IRangeNumericKeys
-        where TNumber : struct, INumber<TNumber>
+    private readonly struct RangeNumericKeys<TNumber>(TNumber[] values) : IRangeNumericKeys<TNumber>
+        where TNumber : struct
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public decimal? ReadDecimal(int index) => decimal.CreateChecked(values[index]);
+        public TNumber? Read(int index) => values[index];
     }
 
-    private readonly struct NullableRangeNumericKeys<TNumber>(TNumber?[] values) : IRangeNumericKeys
-        where TNumber : struct, INumber<TNumber>
+    private readonly struct NullableRangeNumericKeys<TNumber>(TNumber?[] values) : IRangeNumericKeys<TNumber>
+        where TNumber : struct
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public decimal? ReadDecimal(int index)
-        {
-            var value = values[index];
-            if (!value.HasValue)
-                return null;
-            return decimal.CreateChecked(value.Value);
-        }
+        public TNumber? Read(int index) => values[index];
     }
 }

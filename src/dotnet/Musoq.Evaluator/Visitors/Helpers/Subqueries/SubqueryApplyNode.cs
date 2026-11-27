@@ -11,6 +11,7 @@ internal enum SubqueryApplyKind
     In,
     Any,
     All,
+    Rows,
 }
 
 internal sealed class SubqueryApplyNode(
@@ -23,6 +24,7 @@ internal sealed class SubqueryApplyNode(
 {
     internal Musoq.Parser.Tokens.TokenType Comparison { get; init; } = Musoq.Parser.Tokens.TokenType.Equality;
     internal SubqueryApplyKind Kind { get; } = kind;
+    internal string BindingKey { get; init; } = subquery.Id;
     internal Node? Operand { get; } = operand;
     internal bool IsBound => bindings is not null;
     internal IReadOnlyList<Node> Bindings { get; } = bindings ?? [];

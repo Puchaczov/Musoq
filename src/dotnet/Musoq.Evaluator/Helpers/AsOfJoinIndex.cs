@@ -146,7 +146,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
 
     public T? Find(NativeEqualityKey<TEquality> equalityKey, TKey probeValue)
     {
-        if (probeValue is null)
+        if (!EvaluationHelper.IsComparableJoinKey(probeValue))
             return null;
 
         if (_buckets != null)
@@ -162,7 +162,7 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
 
     private static IComparer<TKey> CreateComparer()
     {
-        return Comparer<TKey>.Default;
+        return RowOrderingComparison.GetComparer<TKey>();
     }
 
     private static void ValidateComparisonKind(BinaryOpKind comparisonKind)

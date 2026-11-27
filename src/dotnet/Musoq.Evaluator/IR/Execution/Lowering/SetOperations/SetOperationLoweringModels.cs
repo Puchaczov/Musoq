@@ -11,7 +11,10 @@ internal sealed record SetOperationPipeline(
 internal sealed record StreamingUnionAllArm(
     RowShape SourceShape,
     IReadOnlyList<ExecutionNode> Setup,
-    ExecutionSourceLoop Loop
+    ExecutionVariable Source,
+    ExecutionExpression Rows,
+    PhysicalFilterNode? Filter,
+    IReadOnlyList<ExecutionRowValue> Values
 );
 
 internal sealed record SetOperationArmNames(

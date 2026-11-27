@@ -44,6 +44,10 @@ internal static class OuterApplyNullSubstitutionService
             ExecutionDynamicRLikeMatch dynamicRLike => SubstituteDynamicRLikeMatch(dynamicRLike, rightAlias),
             ExecutionRLikeMatcherCacheSlot => OuterApplyNullSubstitutionResult.Known(expression),
             ExecutionBetween between => SubstituteBetween(between, rightAlias),
+            // An internal empty CASE represents the typed default and has no input aliases.
+            ExecutionCaseWhen { Branches.Count: 0, ElseExpression: null } => OuterApplyNullSubstitutionResult.Known(
+                expression
+            ),
             ExecutionCaseWhen caseWhen => SubstituteCaseWhen(caseWhen, rightAlias),
             ExecutionCoalesce coalesce => SubstituteCoalesce(coalesce, rightAlias),
             ExecutionStringConcatenation concatenation => StringConcatenationNullSubstitution.Substitute(

@@ -11,6 +11,65 @@ namespace Musoq.Evaluator.Tests;
 public class GroupByAllTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void GroupByNullOnlyColumn_ShouldCountEveryInputRow()
+    {
+        const string sql =
+            "select v.N as N,Count(1) as C from values {(I:1,N:null),(I:1,N:null),(I:2,N:null)} v group by v.N";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null, 3L]);
+    }
+
+    [TestMethod]
+    public void CompositeGroupKey_ShouldAcceptALiteralNullComponent()
+    {
+        const string sql = "select null as N,v.I,Count(1) as C from values {(I:1),(I:1),(I:2)} v group by null,v.I";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null, 1, 2L], [null, 2, 1L]);
+    }
+
+    [TestMethod]
+    [DataRow("all")]
+    [DataRow("1")]
+    [DataRow("explicit")]
+    public void GroupedSubqueryExpression_ShouldReturnTheCompletedKey(string grouping)
+    {
+        const string key =
+            "case when o.K=1 then (select b.X from values {(K:1,X:7),(K:2,X:7)} b where b.K=o.K) else 7 end";
+        var sql =
+            $"select {key} as M,Count(1) as C from values {{(K:1),(K:1),(K:2)}} o group by {(grouping == "explicit" ? key : grouping)}";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [7, 3L]);
+    }
+
+    [TestMethod]
+    public void SubqueryInGroupKey_ShouldRunWhenOnlyTheCountIsSelected()
+    {
+        const string sql = """
+            select 7 as M,Count(1) as C from values {(K:1),(K:1),(K:2)} o
+            group by case when o.K=1 then (select b.X from values {(K:1,X:7),(K:2,X:7)} b where b.K=o.K) else 7 end
+            """;
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [7, 3L]);
+    }
+
+    [TestMethod]
+    [DataRow("A", false)]
+    [DataRow("a", true)]
+    public void GroupByAll_PreservesTheCaseOfTextLiterals(string secondLiteral, bool expectedUpper)
+    {
+        var sql = $$"""
+            select x.S='a' as L,x.S='{{secondLiteral}}' as U from values { (S:'a') } x group by all
+            """;
+        using var query = CreateAndRunVirtualMachine(sql, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [true, expectedUpper]);
+    }
+
+    [TestMethod]
     public void GroupByAll_WhenSelectHasSingleKey_ShouldGroupByThatKey()
     {
         const string query = "select City, Count(Name) as C from #A.Entities() group by all order by City";

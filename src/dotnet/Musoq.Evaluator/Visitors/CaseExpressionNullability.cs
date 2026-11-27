@@ -21,7 +21,7 @@ internal static class CaseExpressionNullability
     }
 
     private static bool IsNullable(Node value) =>
-        value.ReturnType is { } type && Nullable.GetUnderlyingType(type) != null;
+        SqlPredicateNullability.ResultType(value) is { } type && Nullable.GetUnderlyingType(type) != null;
 
     private static bool IsPresentUnder(
         Node value,

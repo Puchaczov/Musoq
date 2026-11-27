@@ -8,34 +8,6 @@ namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
 {
-    private static TableRowShape CreateTableRowShape(PhysicalCteRefNode cteRef)
-    {
-        return new TableRowShape(
-            cteRef.Alias,
-            cteRef
-                .OutputSchema.Columns.Select(column =>
-                {
-                    var field = new FieldBinding(
-                        column.Name,
-                        $"{cteRef.Alias}.{column.Name}",
-                        column.Index,
-                        column.Type,
-                        FieldNullability.Unknown,
-                        new PositionalAccess(column.Index, ExecutionClrBindingFactory.FromClr(column.Type)),
-                        sourceReadType: column.SourceReadType,
-                        enumType: column.EnumType
-                    );
-                    return column.IntendedTypeName is { Length: > 0 } generatedTypeName
-                        ? field with
-                        {
-                            GeneratedTypeName = generatedTypeName,
-                        }
-                        : field;
-                })
-                .ToArray()
-        );
-    }
-
     private static TableRowShape CreateTypedTableRowShape(PhysicalCteRefNode cteRef, GeneratedRowShape cteShape)
     {
         return new TableRowShape(

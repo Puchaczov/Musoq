@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Lexing;
@@ -74,13 +75,13 @@ public sealed class ParsedQueryTemplateCacheTests
     }
 
     [TestMethod]
-    public void SameScript_WhenRequestedConcurrently_ShouldParseOnceAndClonePerCaller()
+    public async Task SameScript_WhenRequestedConcurrently_ShouldParseOnceAndClonePerCaller()
     {
         const string script = "select 1 from #A.Entities()";
         var parseCount = 0;
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
 
-        var roots = contention.Run(
+        var roots = await contention.RunAsync(
             () =>
                 ParsedQueryTemplateCache.GetOrAdd(
                     script,
@@ -89,7 +90,8 @@ public sealed class ParsedQueryTemplateCacheTests
                         Interlocked.Increment(ref parseCount);
                         contention.HoldOwner();
                         return Parse(script);
-                    }
+                    },
+                    contention.ObserveContender
                 ),
             32
         );
@@ -103,7 +105,7 @@ public sealed class ParsedQueryTemplateCacheTests
 
     [TestMethod]
     [DynamicData(nameof(InterpretationSchemaScripts))]
-    public void InterpretationSchemaScript_WhenReused_ShouldCoverColdHotRepeatedAndConcurrentCloning(
+    public async Task InterpretationSchemaScript_WhenReused_ShouldCoverColdHotRepeatedAndConcurrentCloning(
         string scenario,
         string script,
         int expectedSchemaCount
@@ -135,7 +137,7 @@ public sealed class ParsedQueryTemplateCacheTests
         ParsedQueryTemplateCache.Clear();
         parseCount = 0;
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
-        var concurrent = contention.Run(
+        var concurrent = await contention.RunAsync(
             () =>
                 ParsedQueryTemplateCache.GetOrAdd(
                     script,
@@ -144,7 +146,8 @@ public sealed class ParsedQueryTemplateCacheTests
                         Interlocked.Increment(ref parseCount);
                         contention.HoldOwner();
                         return Parse(script);
-                    }
+                    },
+                    contention.ObserveContender
                 ),
             16
         );
@@ -178,13 +181,13 @@ public sealed class ParsedQueryTemplateCacheTests
     }
 
     [TestMethod]
-    public void SameScriptWithDiagnostics_WhenRequestedConcurrently_ShouldReplayOneWarningPerCaller()
+    public async Task SameScriptWithDiagnostics_WhenRequestedConcurrently_ShouldReplayOneWarningPerCaller()
     {
         const string script = @"select 'C:\new\test' from #system.dual()";
         var parseCount = 0;
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
 
-        var templates = contention.Run(
+        var templates = await contention.RunAsync(
             () =>
                 ParsedQueryTemplateCache.GetOrAddWithDiagnostics(
                     script,
@@ -196,7 +199,8 @@ public sealed class ParsedQueryTemplateCacheTests
                         var lexer = new Lexer(script, true);
                         var root = new ParserType(lexer).ComposeAll();
                         return new ParsedQueryTemplate(root, lexer.Diagnostics.ToImmutableArray());
-                    }
+                    },
+                    contention.ObserveContender
                 ),
             32
         );
@@ -218,7 +222,7 @@ public sealed class ParsedQueryTemplateCacheTests
     }
 
     [TestMethod]
-    public void SameScriptWithRequiredAliasError_WhenRequestedConcurrently_ShouldReplayOneErrorPerCaller()
+    public async Task SameScriptWithRequiredAliasError_WhenRequestedConcurrently_ShouldReplayOneErrorPerCaller()
     {
         const string script =
             "select 1 from #system.dual() source cross apply source.Column take 10; "
@@ -226,7 +230,7 @@ public sealed class ParsedQueryTemplateCacheTests
         var parseCount = 0;
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
 
-        var templates = contention.Run(
+        var templates = await contention.RunAsync(
             () =>
                 ParsedQueryTemplateCache.GetOrAddWithDiagnostics(
                     script,
@@ -242,7 +246,8 @@ public sealed class ParsedQueryTemplateCacheTests
                             parseResult.Root!,
                             diagnostics.ToSortedList().ToImmutableArray()
                         );
-                    }
+                    },
+                    contention.ObserveContender
                 ),
             32
         );

@@ -5,6 +5,22 @@ namespace Musoq.Evaluator.Tests;
 public partial class SubqueryTests
 {
     [TestMethod]
+    [DataRow("Count(*) + 1", 1L)]
+    [DataRow("Count(*) + Count(b.K)", 0L)]
+    [DataRow("Coalesce(Sum(b.K), 7)", 7)]
+    public void CorrelatedScalarAggregate_ShouldEvaluateProjectionOnEmptyInput(string projection, object expected)
+    {
+        var sql = $$"""
+            select (select {{projection}} from values { (K: 2) } b where b.K = a.K) as S
+            from values { (K: 1) } a
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [expected]);
+    }
+
+    [TestMethod]
     public void WhenScalarSubquery_HasCorrelatedCustomAggregate_ShouldGroupByCorrelationKey()
     {
         const string query = (

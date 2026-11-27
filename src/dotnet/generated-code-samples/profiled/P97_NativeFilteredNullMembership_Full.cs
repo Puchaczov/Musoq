@@ -6,20 +6,20 @@ select Count(*) filter (where Label not in ('match', null)) as Present from #sch
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [1 as 1, AggRef(ko3iko.Count(*) filter (where not (Label in ('match', null)))) as ko3iko.Count(*) filter (where not (Label in ('match', null)))]
+  Project [1 as 1, AggRef(ko3iko.Count(*) filter (where not (ko3iko.Label in ('match', null)))) as ko3iko.Count(*) filter (where not (ko3iko.Label in ('match', null)))]
     Aggregate [keys: 1] [aggs: Count(*) filter (where not (Label in ('match', null)))]
       SchemaScan [#schema.first() as ko3iko]
-  Project [ko3iko.Count(*) filter (where not (Label in ('match', null))) as Present]
+  Project [ko3iko.Count(*) filter (where not (ko3iko.Label in ('match', null))) as Present]
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [AggRef(ko3iko.Count(*) filter (where not (Label in ('match', null)))) as ko3iko.Count(*) filter (where not (Label in ('match', null)))]
+  PhysicalProject [AggRef(ko3iko.Count(*) filter (where not (ko3iko.Label in ('match', null)))) as ko3iko.Count(*) filter (where not (ko3iko.Label in ('match', null)))]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(*) filter (where not (Label in ('match', null)))]
       PhysicalSchemaScan [#schema.first() as ko3iko]
-  PhysicalProject [ko3iko.Count(*) filter (where not (Label in ('match', null))) as Present]
+  PhysicalProject [ko3iko.Count(*) filter (where not (ko3iko.Label in ('match', null))) as Present]
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
@@ -45,7 +45,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
-      AppendShape [result <- ResultRow0(Present: ko3iko.Count(*) filter (where not (Label in ('match', null))))]
+      AppendShape [result <- ResultRow0(Present: ko3iko.Count(*) filter (where not (ko3iko.Label in ('match', null))))]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
 */
 

@@ -100,6 +100,17 @@ internal sealed partial class PhysicalLoweringImplementation
                 return LoweringAttempt<ExecutionExpression>.Built(
                     new ExecutionUnary(unary.Kind, operand.Value, unary.ReturnType)
                 );
+            case MemberAccess member:
+                var receiver = ConvertWindowExpression(
+                    member.Receiver,
+                    sourceLookup,
+                    aggregateSourceFields,
+                    windowResults,
+                    windowIndex
+                );
+                return receiver.IsBuilt
+                    ? LoweringAttempt<ExecutionExpression>.Built(ComputedValueBinding.Member(member, receiver.Value))
+                    : receiver;
             case ArrayAccess arrayAccess:
                 return ConvertWindowArrayAccess(
                     arrayAccess,
@@ -191,7 +202,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return index;
 
         return LoweringAttempt<ExecutionExpression>.Built(
-            new ExecutionArrayAccess(array.Value, index.Value, arrayAccess.ElementType, arrayAccess.ReturnType)
+            ComputedValueBinding.Index(arrayAccess, array.Value, index.Value)
         );
     }
 
@@ -369,7 +380,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return LoweringAttempt<ExecutionExpression>.Unsupported(elseExpression.Value.UnsupportedReason);
 
         return LoweringAttempt<ExecutionExpression>.Built(
-            new ExecutionCaseWhen(branches, elseExpression?.Value, caseWhen.ReturnType)
+            ComputedValueBinding.Case(branches, elseExpression?.Value, caseWhen)
         );
     }
 
@@ -389,7 +400,7 @@ internal sealed partial class PhysicalLoweringImplementation
             windowIndex
         );
         return expressions.IsBuilt
-            ? LoweringAttempt<ExecutionExpression>.Built(new ExecutionCoalesce(expressions.Value, coalesce.ReturnType))
+            ? LoweringAttempt<ExecutionExpression>.Built(ComputedValueBinding.Coalesce(expressions.Value, coalesce))
             : LoweringAttempt<ExecutionExpression>.Unsupported(expressions.UnsupportedReason);
     }
 

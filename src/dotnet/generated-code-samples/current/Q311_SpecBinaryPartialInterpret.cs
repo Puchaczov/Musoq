@@ -304,6 +304,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class DebugPacket : BytesInterpreterBase<DebugPacket>, IBytesInterpreterStatus<DebugPacket>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public int Magic { get; set; }
+        public byte Version { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Magic", "Version" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -334,11 +337,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Magic field value.</summary>
-        public int Magic { get; set; }
-        /// <summary>Gets the Version field value.</summary>
-        public byte Version { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "DebugPacket";
 
         public override DebugPacket InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<DebugPacket>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -361,8 +359,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<DebugPacket>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _magic = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.Magic = _magic;
+                var _field5_Magic = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Magic = _field5_Magic;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Version");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure2)
@@ -370,8 +368,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<DebugPacket>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _version = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Version = _version;
+                var _field7_Version = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Version = _field7_Version;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<DebugPacket>.Success(__parsedValue);
             }

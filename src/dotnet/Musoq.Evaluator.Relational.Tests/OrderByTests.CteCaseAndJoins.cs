@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.Schema.Basic;
@@ -6,6 +7,25 @@ namespace Musoq.Evaluator.Tests;
 
 public partial class OrderByTests
 {
+    [TestMethod]
+    [DataRow("", new[] { 2, 1 })]
+    [DataRow(" take 1", new[] { 2 })]
+    [DataRow(" skip 1 take 1", new[] { 1 })]
+    public void UnprojectedCteSortKey_SurvivesProjectionPruning(string paging, int[] expectedIds)
+    {
+        var sql =
+            """
+                with v as (select x.Id,x.K from values { (Id:1,K:2),(Id:2,K:1) } x)
+                select p.Id from v p order by p.K
+                """ + paging;
+        using var query = CreateAndRunVirtualMachine(sql, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsInOrder(
+            table,
+            Array.ConvertAll(expectedIds, id => new object?[] { id })
+        );
+    }
+
     [TestMethod]
     public void WhenOrderByWithinCteExpression_ShouldSucceed()
     {

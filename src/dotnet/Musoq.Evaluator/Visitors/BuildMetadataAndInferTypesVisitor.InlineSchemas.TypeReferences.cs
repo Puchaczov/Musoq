@@ -78,7 +78,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             return typeArgument;
 
         return SchemaRegistry.TryGetSchema(typeArgument, out _)
-            ? $"Musoq.Generated.Interpreters.{typeArgument}"
+            ? InterpretationCSharpNames.Qualified(typeArgument)
             : typeArgument;
     }
 
@@ -126,7 +126,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     private static SchemaReferenceTypeNode ParseSchemaReferenceFromTypeName(string typeName)
     {
         var elementTypeName = RemoveArraySuffix(typeName.Trim());
-        var simpleName = StripNamespaceFromTypeName(elementTypeName);
+        var simpleName = StripNamespaceFromTypeName(elementTypeName).TrimStart('@');
         var openIndex = simpleName.IndexOf('<', StringComparison.Ordinal);
         if (openIndex < 0 || !simpleName.EndsWith('>'))
             return new SchemaReferenceTypeNode(simpleName);

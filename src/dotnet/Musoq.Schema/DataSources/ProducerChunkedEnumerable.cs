@@ -19,6 +19,7 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
     private readonly Func<bool> _isExternalCancellationRequested;
     private readonly IChunkPipelineMetrics? _metrics;
     private readonly TimeSpan _producerShutdownWait;
+    private readonly TaskScheduler _producerScheduler;
     private int _disposed;
 
     public ProducerChunkedEnumerable(
@@ -28,7 +29,8 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
         Action<TWriter> collectChunks,
         Func<bool>? isExternalCancellationRequested = null,
         IChunkPipelineMetrics? metrics = null,
-        TimeSpan? producerShutdownWait = null
+        TimeSpan? producerShutdownWait = null,
+        TaskScheduler? producerScheduler = null
     )
     {
         if (capacityInChunks <= 0)
@@ -51,6 +53,7 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
         _isExternalCancellationRequested = isExternalCancellationRequested ?? (static () => false);
         _metrics = metrics;
         _producerShutdownWait = shutdownWait;
+        _producerScheduler = producerScheduler ?? TaskScheduler.Default;
     }
 
     public IEnumerator<IReadOnlyList<T>> GetEnumerator()
@@ -90,7 +93,7 @@ internal sealed class ProducerChunkedEnumerable<T, TWriter> : IEnumerable<IReadO
             () => RunProducer(chunks, cancellation, writer, session),
             CancellationToken.None,
             TaskCreationOptions.LongRunning | TaskCreationOptions.DenyChildAttach,
-            TaskScheduler.Default
+            _producerScheduler
         );
 
         session.SetProducerTask(producerTask);

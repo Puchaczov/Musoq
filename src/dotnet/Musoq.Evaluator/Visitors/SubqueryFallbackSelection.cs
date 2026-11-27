@@ -1,6 +1,7 @@
 using System.Linq;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser.Nodes;
+using Musoq.Parser.Tokens;
 
 namespace Musoq.Evaluator.Visitors;
 
@@ -21,6 +22,20 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
             IdentifierNode => true,
             _ => ParserNodeChildTraversal.EnumerateChildren(node).Any(HasUnqualifiedReference),
         };
+
+    private static bool NeedsBoundPredicateShape(Node query, SubqueryApplyKind kind, bool correlated)
+    {
+        if (kind is not (SubqueryApplyKind.In or SubqueryApplyKind.Exists))
+            return false;
+        if (query is not QueryNode body)
+            return correlated || kind == SubqueryApplyKind.Exists && query is UnionAllNode;
+        if (correlated && (body.Skip != null || body.Take != null || body.GroupBy != null || body.Qualify != null))
+            return true;
+
+        // Before binding, a source-supplied method in the projection may be a global aggregate.
+        return (correlated || kind == SubqueryApplyKind.Exists)
+            && ParserNodeChildTraversal.ContainsProjectionCall(body.Select);
+    }
 
     private sealed class FallbackSelection(SubqueryToCteRewriteVisitor owner, SubqueryCorrelationAnalysis analysis)
         : CloneQueryVisitor
@@ -66,9 +81,9 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
             }
             owner.RecordFallback(node, "Quantified value requires three-valued reduction after inner result shaping.");
             var kind =
-                quantified.Quantifier == Musoq.Parser.Tokens.TokenType.All
-                    ? SubqueryApplyKind.All
-                    : SubqueryApplyKind.Any;
+                quantified.Quantifier == TokenType.All ? SubqueryApplyKind.All
+                : quantified.Comparison == TokenType.Equality ? SubqueryApplyKind.In
+                : SubqueryApplyKind.Any;
             Nodes.Push(
                 new SubqueryApplyNode(node.Subquery, kind, operand)
                 {
@@ -105,16 +120,26 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
                 return "Unqualified references require lexical scope binding before selecting an execution strategy.";
             if (GuardDepth > 0)
                 return "The enclosing evaluation guard requires on-demand execution.";
-            if (
-                kind == SubqueryApplyKind.Scalar
-                && correlation is { IsCorrelated: true }
-                && SubqueryBindingScope
-                    .GetSubqueryFields(query)
-                    .Any(field =>
-                        SubqueryCorrelationUtilities.ReferencesAnyAlias(field.Expression, correlation.CorrelatedAliases)
-                    )
-            )
-                return "The projection contains typed outer references.";
+            if (correlation is { IsCorrelated: true } && ParserNodeChildTraversal.Contains<WindowFunctionNode>(query))
+                return "The window frame must be evaluated over the rows matching the current outer binding.";
+            if (original is InQueryNode membership && !QuantifiedFilterPredicate.IsSimple(membership.Left))
+                return "Membership requires its left operand to be evaluated once.";
+            if (NeedsBoundPredicateShape(query, kind, correlation is { IsCorrelated: true }))
+                return "Predicate truth depends on the completed inner result for this binding.";
+            if (kind == SubqueryApplyKind.Scalar && correlation is { IsCorrelated: true })
+            {
+                var projection = SubqueryBindingScope.GetSubqueryFields(query)[0].Expression;
+                if (SubqueryCorrelationUtilities.ReferencesAnyAlias(projection, correlation.CorrelatedAliases))
+                    return "The projection contains typed outer references.";
+                if (ResultRowNumberProjection.ContainsRowNumber(projection))
+                    return "Scalar RowNumber() depends on the ordering and paging of each outer binding.";
+                if (
+                    query is QueryNode { GroupBy: null } body
+                    && SubqueryToCteRewriteVisitor.RequiresResultMaterialization(body)
+                    && ParserNodeChildTraversal.ContainsProjectionCall(body.Select)
+                )
+                    return "The scalar result is shaped after evaluating a potentially aggregate projection.";
+            }
             if (
                 kind == SubqueryApplyKind.In
                 && correlation is { IsCorrelated: true, Facts.HasEqualityKeys: false }
@@ -129,7 +154,7 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
 
     private sealed class FallbackSelectionTraversal(FallbackSelection selection) : CloneTraverseVisitor(selection)
     {
-        private bool _filteredProjection;
+        private bool _requiresProjectionScope;
 
         public override void Visit(WindowFunctionNode node)
         {
@@ -138,22 +163,45 @@ internal sealed class SubqueryFallbackSelection(SubqueryToCteRewriteVisitor owne
             node.Accept(selection);
         }
 
+        public override void Visit(InNode node)
+        {
+            node.Left.Accept(this);
+            var members = (ArgsListNode)node.Right;
+            if (members.Args.Length > 0)
+                members.Args[0].Accept(this);
+            selection.GuardDepth++;
+            for (var index = 1; index < members.Args.Length; index++)
+                members.Args[index].Accept(this);
+            selection.GuardDepth--;
+            members.Accept(selection);
+            node.Accept(selection);
+        }
+
         public override void Visit(QueryNode node)
         {
-            var previous = _filteredProjection;
-            _filteredProjection =
-                node.Where is not null || node.Qualify is not null || node.GroupBy?.Having is not null;
+            var previous = _requiresProjectionScope;
+            _requiresProjectionScope = node.Where is not null || node.Qualify is not null || node.GroupBy is not null;
             base.Visit(node);
-            _filteredProjection = previous;
+            _requiresProjectionScope = previous;
         }
 
         public override void Visit(SelectNode node)
         {
-            if (_filteredProjection)
+            if (_requiresProjectionScope)
                 selection.GuardDepth++;
             base.Visit(node);
-            if (_filteredProjection)
+            if (_requiresProjectionScope)
                 selection.GuardDepth--;
+        }
+
+        public override void Visit(GroupByNode node)
+        {
+            selection.GuardDepth++;
+            foreach (var field in node.Fields)
+                field.Accept(this);
+            selection.GuardDepth--;
+            node.Having?.Accept(this);
+            node.Accept(selection);
         }
 
         public override void Visit(ScalarSubqueryNode node) => node.Accept(selection);

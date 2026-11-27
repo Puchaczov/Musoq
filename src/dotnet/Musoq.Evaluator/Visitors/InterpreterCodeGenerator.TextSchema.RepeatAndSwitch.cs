@@ -31,9 +31,11 @@ public partial class InterpreterCodeGenerator
     {
         var schemaName = field.RepeatElement is { } element
             ? GetTextFieldPropertyClrType(element).TrimEnd('?')
-            : field.PrimaryValue ?? throw new InvalidOperationException("Repeat field must specify a schema name");
+            : EscapeCSharpIdentifier(
+                field.PrimaryValue ?? throw new InvalidOperationException("Repeat field must specify a schema name")
+            );
         var read = new StringBuilder();
-        AppendRepeatedElementRead(read, field, $"_item_{localVar}", $"_interp_{schemaName}");
+        AppendRepeatedElementRead(read, field, $"_item_{localVar}", $"_interp_{localVar}");
         var assignment = isDiscard ? "_" : $"var {localVar}";
         var name = InterpretationStringLiterals.EscapeCSharpString(GetTextFieldDiagnosticName(field));
         return TextRepeatCodeEmitter.Emit(

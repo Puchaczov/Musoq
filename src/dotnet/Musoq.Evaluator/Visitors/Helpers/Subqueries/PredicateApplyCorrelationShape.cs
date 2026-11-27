@@ -18,7 +18,10 @@ internal static class PredicateApplyCorrelationShape
     private static bool IsNullGuardedRangeDisjunction(Node expression)
     {
         var terms = SplitDisjuncts(expression);
-        var ranges = terms.Where(SubqueryCorrelationUtilities.IsSingleRangeCorrelation).ToArray();
+        var ranges = terms
+            .Select(static term => term is NotNode not ? not.Expression : term)
+            .Where(SubqueryCorrelationUtilities.IsSingleRangeCorrelation)
+            .ToArray();
         var nullGuards = terms.OfType<IsNullNode>().ToArray();
 
         if (ranges.Length != 1 || nullGuards.Length != 2 || terms.Length != 3)

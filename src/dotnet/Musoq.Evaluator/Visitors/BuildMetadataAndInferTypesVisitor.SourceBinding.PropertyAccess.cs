@@ -161,7 +161,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             || registration?.Node is not BinarySchemaNode
         )
             return;
-        _binaryInterpretationAliases[_sourceBinding.QueryAlias] = reference.SchemaName;
+        _interpretationSchemasByAlias[_sourceBinding.QueryAlias] = reference.SchemaName;
     }
 
     public override void Visit(AccessMethodFromNode node)

@@ -107,6 +107,7 @@ internal sealed partial class PhysicalLoweringImplementation
             ? null
             : new ValueTupleAggregatePipeline(
                 CreateAggregateProjection(aggregate),
+                aggregate.InitializeConstantGroup,
                 aggregate.Bindings,
                 source,
                 havingPredicate,

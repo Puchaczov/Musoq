@@ -80,7 +80,9 @@ public partial class RewriteQueryTraverseVisitor
     private void TraverseSetOperatorWithScope(SetOperatorNode node)
     {
         _walker = _walker.NextChild();
+        Visitor.SetScope(_walker.Scope);
         VisitChildrenThenNode(node);
         _walker = _walker.Parent();
+        Visitor.SetScope(_walker.Scope);
     }
 }

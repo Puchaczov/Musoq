@@ -25,6 +25,8 @@ internal static class OutputSchemaFactory
 
     private static string? ResolveIntendedTypeName(IrExpression expression)
     {
+        if (expression is Literal literal)
+            return literal.GeneratedTypeName;
         if (expression is ColumnRef column)
             return column.GeneratedTypeName;
         if (expression is MemberAccess member)

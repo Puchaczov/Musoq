@@ -6,6 +6,12 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class EvaluationHelper
 {
+    public static bool IsComparableJoinKey<T>(T key) => key is not (null or double.NaN or float.NaN);
+
+    public static double? NullIfNaN(double? key) => key is double.NaN ? null : key;
+
+    public static float? NullIfNaN(float? key) => key is float.NaN ? null : key;
+
     public static AsOfJoinIndex<T, TKey, TEquality> CreateAsOfIndex<T, TKey, TEquality>(
         IEnumerable<T> candidates,
         Func<T, NativeEqualityKey<TEquality>>? equalityKeySelector,

@@ -54,32 +54,21 @@ public sealed partial class ExecutionCSharpRenderer
         if (!ContainsNode<ExecutionComputeRankingWindow>(block))
             yield break;
 
-        var pending = new List<ExecutionNode>();
+        var storedNodes = CollectStoredTableNodes(block);
         var nodes = block.Nodes;
         var usedFunctionNames = new Dictionary<string, int>(StringComparer.Ordinal);
 
         for (var index = 0; index < nodes.Count; index++)
         {
             var node = nodes[index];
-            if (node is ExecutionStoreTable store && TryCreateStoredTableBuild(nodes, index, pending, store, out _))
-            {
-                pending.Clear();
+            if (storedNodes.Contains(node))
                 continue;
-            }
-
-            if (IsInsidePendingStoredTableBuild(nodes, index, pending))
-            {
-                pending.Add(node);
-                continue;
-            }
 
             if (node is ExecutionSortTable sort && CanExtractSortedCopy(sort))
             {
                 var functionName = ReserveFunctionName(CreateSortedCopyFunctionBaseName(sort), usedFunctionNames);
                 yield return (new SortedCopyHelper(functionName, sort), index);
             }
-
-            pending.Add(node);
         }
     }
 

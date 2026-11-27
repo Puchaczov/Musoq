@@ -305,10 +305,14 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Patterned : TextInterpreterBase<Patterned>, ITextInterpreterStatus<Patterned>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Ip { get; set; }
+        public string? Separator { get; set; }
+        public string? User { get; set; }
+        public string? Message { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Ip", "Separator", "User", "Message" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
-        private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0 = new(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", (global::Musoq.Schema.Interpreters.TextPatternModifiers)0);
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Patterned value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -350,17 +354,9 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Ip field value.</summary>
-        public string? Ip { get; set; }
-        /// <summary>Gets the Separator field value.</summary>
-        public string? Separator { get; set; }
-        /// <summary>Gets the User field value.</summary>
-        public string? User { get; set; }
-        /// <summary>Gets the Message field value.</summary>
-        public string? Message { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Patterned";
 
+        private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0 = new(@"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", (global::Musoq.Schema.Interpreters.TextPatternModifiers)0);
         public override Patterned ParseAt(ReadOnlySpan<char> data, int offset)
         {
             var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
@@ -384,8 +380,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                 }
 
-                var _ip = __musoqReadResult0.Value!;
-                __parsedValue.Ip = _ip;
+                var _field2_Ip = __musoqReadResult0.Value!;
+                __parsedValue.Ip = _field2_Ip;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Separator");
                 var __musoqReadResult1 = base.ExpectLiteralStatus(ref __musoqTextInput, ":", fieldName: "Separator");
@@ -394,8 +390,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadResult1.Failure!);
                 }
 
-                var _separator = __musoqReadResult1.Value!;
-                __parsedValue.Separator = _separator;
+                var _field9_Separator = __musoqReadResult1.Value!;
+                __parsedValue.Separator = _field9_Separator;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("User");
                 var __musoqReadResult2 = base.ReadTokenStatus(data, fieldName: "User");
@@ -404,8 +400,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadResult2.Failure!);
                 }
 
-                var _user = __musoqReadResult2.Value!;
-                __parsedValue.User = _user;
+                var _field4_User = __musoqReadResult2.Value!;
+                __parsedValue.User = _field4_User;
                 base.RecordParsedFieldSlot(2);
                 SetCurrentField("_");
                 if (base.SkipWhitespaceStatus(data, true, fieldName: "_")is { } __musoqReadFailure3)
@@ -420,8 +416,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Failed(__parsedValue, __musoqReadResult4.Failure!);
                 }
 
-                var _message = __musoqReadResult4.Value!;
-                __parsedValue.Message = _message;
+                var _field7_Message = __musoqReadResult4.Value!;
+                __parsedValue.Message = _field7_Message;
                 base.RecordParsedFieldSlot(3);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Patterned>.Success(__parsedValue);
             }

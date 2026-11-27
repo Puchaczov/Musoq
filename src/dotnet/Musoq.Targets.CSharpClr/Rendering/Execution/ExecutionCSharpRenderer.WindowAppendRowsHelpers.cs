@@ -217,7 +217,7 @@ public sealed partial class ExecutionCSharpRenderer
     )
     {
         var helperIndex = 0;
-        var pending = new List<ExecutionNode>();
+        var storedNodes = CollectStoredTableNodes(block);
         var nodes = block.Nodes;
         var usedFunctionNames = new Dictionary<string, int>(StringComparer.Ordinal);
         var materializedRowTypeNames = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -227,17 +227,8 @@ public sealed partial class ExecutionCSharpRenderer
             var node = nodes[index];
             AddMaterializedRowTypeName(node, materializedRowTypeNames);
 
-            if (node is ExecutionStoreTable store && TryCreateStoredTableBuild(nodes, index, pending, store, out _))
-            {
-                pending.Clear();
+            if (storedNodes.Contains(node))
                 continue;
-            }
-
-            if (IsInsidePendingStoredTableBuild(nodes, index, pending))
-            {
-                pending.Add(node);
-                continue;
-            }
 
             if (
                 TryCreateWindowAppendRowsHelper(
@@ -252,8 +243,6 @@ public sealed partial class ExecutionCSharpRenderer
                 yield return (helper, index);
                 helperIndex++;
             }
-
-            pending.Add(node);
         }
     }
 

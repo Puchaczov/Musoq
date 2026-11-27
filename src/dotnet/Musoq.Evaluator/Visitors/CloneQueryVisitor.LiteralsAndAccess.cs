@@ -13,31 +13,31 @@ public partial class CloneQueryVisitor
     public override void Visit(DecimalNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new DecimalNode(node.Value, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public override void Visit(IntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new IntegerNode(node.ObjValue, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public override void Visit(HexIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new HexIntegerNode(node.ObjValue, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public override void Visit(BinaryIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new BinaryIntegerNode(node.ObjValue, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public override void Visit(OctalIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new OctalIntegerNode(node.ObjValue, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public override void Visit(BooleanNode node)

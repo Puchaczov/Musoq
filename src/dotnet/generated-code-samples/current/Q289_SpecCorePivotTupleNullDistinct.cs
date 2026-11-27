@@ -6,22 +6,22 @@ pivot #A.Entities() on Id, Country in ((2000, 'NL') as y2000_nl, (0, null) as Mi
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(distinct ko3iko.Name) filter (where Id = 0 and Country is null)) as ko3iko.Count(distinct ko3iko.Name) filter (where Id = 0 and Country is null), AggRef(ko3iko.Count(distinct ko3iko.Name) filter (where Id = 2000 and Country = 'NL')) as ko3iko.Count(distinct ko3iko.Name) filter (where Id = 2000 and Country = 'NL')]
+  Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 0 and ko3iko.Country is null)) as ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 0 and ko3iko.Country is null), AggRef(ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 2000 and ko3iko.Country = 'NL')) as ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 2000 and ko3iko.Country = 'NL')]
     Aggregate [keys: City] [aggs: Count(distinct Name) filter (where Id = 0 and Country is null), Count(distinct Name) filter (where Id = 2000 and Country = 'NL')]
       SchemaScan [#A.Entities() as ko3iko]
   Sort [ko3iko.City]
-    Project [ko3iko.City as City, ko3iko.Count(distinct ko3iko.Name) filter (where Id = 2000 and Country = 'NL') as y2000_nl, ko3iko.Count(distinct ko3iko.Name) filter (where Id = 0 and Country is null) as Missing]
+    Project [ko3iko.City as City, ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 2000 and ko3iko.Country = 'NL') as y2000_nl, ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 0 and ko3iko.Country is null) as Missing]
       CteRef [ko3ikoScore as ko3ikoScore]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(distinct ko3iko.Name) filter (where Id = 0 and Country is null)) as ko3iko.Count(distinct ko3iko.Name) filter (where Id = 0 and Country is null), AggRef(ko3iko.Count(distinct ko3iko.Name) filter (where Id = 2000 and Country = 'NL')) as ko3iko.Count(distinct ko3iko.Name) filter (where Id = 2000 and Country = 'NL')]
+  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 0 and ko3iko.Country is null)) as ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 0 and ko3iko.Country is null), AggRef(ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 2000 and ko3iko.Country = 'NL')) as ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 2000 and ko3iko.Country = 'NL')]
     PhysicalSingleKeyAggregate [key: City (String)] [aggs: Count(distinct Name) filter (where Id = 0 and Country is null), Count(distinct Name) filter (where Id = 2000 and Country = 'NL')]
       PhysicalSchemaScan [#A.Entities() as ko3iko]
   PhysicalSort [ko3iko.City]
-    PhysicalProject [ko3iko.City as City, ko3iko.Count(distinct ko3iko.Name) filter (where Id = 2000 and Country = 'NL') as y2000_nl, ko3iko.Count(distinct ko3iko.Name) filter (where Id = 0 and Country is null) as Missing]
+    PhysicalProject [ko3iko.City as City, ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 2000 and ko3iko.Country = 'NL') as y2000_nl, ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 0 and ko3iko.Country is null) as Missing]
       PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
@@ -56,7 +56,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
-      AppendShape [result <- ResultShape0(City: finalGroup.City, y2000_nl: ko3iko.Count(distinct ko3iko.Name) filter (where Id = 2000 and Country = 'NL'), Missing: ko3iko.Count(distinct ko3iko.Name) filter (where Id = 0 and Country is null))]
+      AppendShape [result <- ResultShape0(City: finalGroup.City, y2000_nl: ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 2000 and ko3iko.Country = 'NL'), Missing: ko3iko.Count(distinct ko3iko.Name) filter (where ko3iko.Id = 0 and ko3iko.Country is null))]
     SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */

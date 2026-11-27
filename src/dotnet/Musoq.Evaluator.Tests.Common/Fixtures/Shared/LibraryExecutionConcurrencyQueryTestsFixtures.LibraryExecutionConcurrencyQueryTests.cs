@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
@@ -10,6 +11,7 @@ using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -102,7 +104,8 @@ public partial class LibraryExecutionConcurrencyQueryTestsFixtures
     {
         private readonly Barrier _barrier = new(2);
         private readonly CancellationTokenSource _cancellation = new();
-        private readonly ManualResetEventSlim _windowStarted = new();
+        private readonly TestWatchdog _watchdog = new();
+        private readonly TaskCompletionSource _windowStarted = TestWatchdog.Signal();
         private int _active;
         private int _maximum;
         private int _calls;
@@ -112,13 +115,14 @@ public partial class LibraryExecutionConcurrencyQueryTestsFixtures
 
         public void Cancel() => _cancellation.Cancel();
 
-        public bool WaitForWindow() => _windowStarted.Wait(TimeSpan.FromSeconds(30));
+        internal Task WindowStarted => _windowStarted.Task;
 
         public void EnterWindow(CancellationToken token)
         {
-            _windowStarted.Set();
-            token.WaitHandle.WaitOne();
+            _windowStarted.TrySetResult();
+            WaitHandle.WaitAny([token.WaitHandle, _watchdog.Token.WaitHandle]);
             token.ThrowIfCancellationRequested();
+            throw new AssertFailedException("The custom window operation did not receive query cancellation.");
         }
 
         public int Visit(int value)
@@ -129,14 +133,8 @@ public partial class LibraryExecutionConcurrencyQueryTestsFixtures
                 maximum = Volatile.Read(ref _maximum);
             try
             {
-                if (
-                    Interlocked.Increment(ref _calls) <= 2
-                    && requireOverlap
-                    && !_barrier.SignalAndWait(TimeSpan.FromSeconds(30))
-                )
-                    throw new InvalidOperationException(
-                        "Authorized workers failed to overlap at the deterministic barrier."
-                    );
+                if (Interlocked.Increment(ref _calls) <= 2 && requireOverlap)
+                    _watchdog.Rendezvous(_barrier, "both authorized library workers", _cancellation.Token);
                 return value + 1;
             }
             finally
@@ -149,7 +147,7 @@ public partial class LibraryExecutionConcurrencyQueryTestsFixtures
         {
             _barrier.Dispose();
             _cancellation.Dispose();
-            _windowStarted.Dispose();
+            _watchdog.Dispose();
         }
     }
 }

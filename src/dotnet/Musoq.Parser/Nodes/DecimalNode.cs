@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Musoq.Parser.Nodes;
 
-public class DecimalNode : ConstantValueNode
+public class DecimalNode : NumericLiteralNode
 {
     public DecimalNode(string value, TextSpan span = default)
     {
@@ -35,6 +35,8 @@ public class DecimalNode : ConstantValueNode
     {
         return Value.ToString(CultureInfo.InvariantCulture);
     }
+
+    protected override NumericLiteralNode CreateCopy() => new DecimalNode(Value, Span);
 
     public override void Accept(IExpressionVisitor visitor)
     {

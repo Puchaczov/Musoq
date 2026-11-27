@@ -15,6 +15,26 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context
     )
     {
+        if (
+            TryGetTypedRowBufferShape(distinct.Source.Name, context, out var sourceShape)
+            && TryGetTypedRowBufferShape(distinct.Target.Name, context, out _)
+        )
+        {
+            var fields =
+                distinct.KeyFields.Count == 0
+                    ? sourceShape.Fields
+                    : distinct.KeyFields.Select(field => sourceShape.Fields[field.OutputIndex]).ToArray();
+            var rows = CreateDistinctRowsExpression(distinct.Source.Name, fields);
+            var buffer = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    rows,
+                    SyntaxFactory.IdentifierName("ToList")
+                )
+            );
+            return [CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), distinct.Target.Name, buffer)];
+        }
+
         var invocation = SyntaxFactory
             .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(

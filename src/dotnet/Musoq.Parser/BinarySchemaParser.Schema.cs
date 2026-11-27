@@ -47,7 +47,7 @@ public partial class SchemaParser
 
     private void ValidateBinaryFieldNames(IEnumerable<SchemaFieldNode> fields)
     {
-        var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var names = new HashSet<string>(StringComparer.Ordinal);
         foreach (var field in fields)
         {
             if (string.Equals(field.Name, "_", StringComparison.Ordinal) || names.Add(field.Name))
@@ -105,7 +105,7 @@ public partial class SchemaParser
 
         var startsWithCompletedField =
             !IsTypeKeyword(Current.TokenType)
-            && precedingFields.Any(field => field.Name.Equals(Current.Value, StringComparison.OrdinalIgnoreCase));
+            && precedingFields.Any(field => field.Name.Equals(IdentifierSpelling(Current), StringComparison.Ordinal));
         if (startsWithCompletedField || IsComputedFieldStart())
         {
             var expression = ComposeExpression();

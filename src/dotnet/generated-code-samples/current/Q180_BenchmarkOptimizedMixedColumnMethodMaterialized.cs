@@ -17,7 +17,7 @@ SELECT
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [ko3iko.Value as Value, ExpensiveCompute(ko3iko.Value) as ExpensiveCompute(Value), (ko3iko.Value + ExpensiveCompute(ko3iko.Value)) as Value + ExpensiveCompute(Value), (ko3iko.Value * ExpensiveCompute(ko3iko.Value)) as Value * ExpensiveCompute(Value), ko3iko.Name as Name, StringTransform(ko3iko.Name) as StringTransform(Name), ((ko3iko.Name || '_') || StringTransform(ko3iko.Name)) as Name + _ + StringTransform(Name)]
+  Project [ko3iko.Value as Value, ExpensiveCompute(ko3iko.Value) as ExpensiveCompute(Value), (ko3iko.Value + ExpensiveCompute(ko3iko.Value)) as Value + ExpensiveCompute(Value), (ko3iko.Value * ExpensiveCompute(ko3iko.Value)) as Value * ExpensiveCompute(Value), ko3iko.Name as Name, StringTransform(ko3iko.Name) as StringTransform(Name), ((ko3iko.Name + '_') + StringTransform(ko3iko.Name)) as Name + _ + StringTransform(Name)]
     Filter [(((ko3iko.Value > 100) AND (ExpensiveCompute(ko3iko.Value) > 50)) AND ko3iko.Name IS NOT NULL)]
       SchemaScan [#test.entities() as ko3iko]
 */
@@ -25,7 +25,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [ko3iko.Value as Value, ExpensiveCompute(ko3iko.Value) as ExpensiveCompute(Value), (ko3iko.Value + ExpensiveCompute(ko3iko.Value)) as Value + ExpensiveCompute(Value), (ko3iko.Value * ExpensiveCompute(ko3iko.Value)) as Value * ExpensiveCompute(Value), ko3iko.Name as Name, StringTransform(ko3iko.Name) as StringTransform(Name), ((ko3iko.Name || '_') || StringTransform(ko3iko.Name)) as Name + _ + StringTransform(Name)]
+  PhysicalProject [ko3iko.Value as Value, ExpensiveCompute(ko3iko.Value) as ExpensiveCompute(Value), (ko3iko.Value + ExpensiveCompute(ko3iko.Value)) as Value + ExpensiveCompute(Value), (ko3iko.Value * ExpensiveCompute(ko3iko.Value)) as Value * ExpensiveCompute(Value), ko3iko.Name as Name, StringTransform(ko3iko.Name) as StringTransform(Name), ((ko3iko.Name + '_') + StringTransform(ko3iko.Name)) as Name + _ + StringTransform(Name)]
     PhysicalFilter [(((ko3iko.Value > 100) AND (ExpensiveCompute(ko3iko.Value) > 50)) AND ko3iko.Name IS NOT NULL)]
       PhysicalSchemaScan [#test.entities() as ko3iko]
 */

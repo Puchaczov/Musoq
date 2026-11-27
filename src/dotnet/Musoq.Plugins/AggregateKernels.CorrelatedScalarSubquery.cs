@@ -44,3 +44,29 @@ public static class CorrelatedScalarSubqueryAggregateKernel<T>
     }
 }
 #pragma warning restore CS1591
+
+/// <summary>Preserves the nullable projection type of a scalar value-type subquery.</summary>
+public static class NullableCorrelatedScalarSubqueryAggregateKernel<T>
+    where T : struct
+{
+    /// <summary>Tracks cardinality and the first nullable value independently for each group.</summary>
+    public struct State
+    {
+        internal CorrelatedScalarSubqueryAggregateKernel<T?>.State Inner;
+    }
+
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => CorrelatedScalarSubqueryAggregateKernel<T?>.Reset(ref state.Inner);
+
+    /// <summary>Accumulates one candidate row.</summary>
+    public static void Set(ref State state, T? value) =>
+        CorrelatedScalarSubqueryAggregateKernel<T?>.Set(ref state.Inner, value);
+
+    /// <summary>Returns the scalar result with its original element type.</summary>
+    public static CorrelatedScalarSubqueryResult<T?> Get(in State state) =>
+        CorrelatedScalarSubqueryAggregateKernel<T?>.Get(in state.Inner);
+
+    /// <summary>Combines independently accumulated rows.</summary>
+    public static void Merge(ref State target, in State source) =>
+        CorrelatedScalarSubqueryAggregateKernel<T?>.Merge(ref target.Inner, in source.Inner);
+}

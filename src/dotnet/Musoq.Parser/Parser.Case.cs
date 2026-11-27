@@ -29,7 +29,7 @@ public partial class Parser
             else
                 whenNode = ComposeOperations();
             Consume(TokenType.Then);
-            var thenNode = ComposeEqualityOperators();
+            var thenNode = ComposeOperations();
 
             whenThenNodes.Add(CaseExpressionSyntax.CreateBranch(whenNode, thenNode));
         } while (Current.TokenType == TokenType.When);
@@ -40,7 +40,7 @@ public partial class Parser
         else
         {
             Consume(TokenType.Else);
-            elseNode = new ElseNode(ComposeEqualityOperators());
+            elseNode = new ElseNode(ComposeOperations());
         }
         var endToken = ConsumeAndGetToken(TokenType.End);
 

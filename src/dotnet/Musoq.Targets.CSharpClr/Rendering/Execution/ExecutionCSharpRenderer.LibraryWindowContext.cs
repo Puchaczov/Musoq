@@ -6,7 +6,10 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderLibraryWindowContext(ExecutionComputePluginWindow window)
+    private List<StatementSyntax> RenderLibraryWindowContext(
+        ExecutionRenderContext renderContext,
+        ExecutionComputePluginWindow window
+    )
     {
         var operation = window.LibraryGet!.RequireClrMethod();
         var capture =
@@ -37,7 +40,7 @@ public sealed partial class ExecutionCSharpRenderer
             statements.Add(CreateLibraryWindowArrayDeclaration(rangeKeys, window.Buffer));
         if (buffers.OrderKeyValues is { } orderValues)
             statements.Add(CreateLibraryWindowArrayDeclaration(orderValues, window.Buffer));
-        if (CreateLibraryWindowExtraction(window, buffers, partitionKeys, orderKeys) is { } extraction)
+        if (CreateLibraryWindowExtraction(renderContext, window, buffers, partitionKeys, orderKeys) is { } extraction)
             statements.Add(extraction);
         AddWindowPartitionDeclarations(statements, window.Partitions, partitionKeys?.Variable, window.Buffer);
         if (orderKeys is not null)
@@ -72,6 +75,7 @@ public sealed partial class ExecutionCSharpRenderer
         );
 
     private StatementSyntax? CreateLibraryWindowExtraction(
+        ExecutionRenderContext renderContext,
         ExecutionComputePluginWindow window,
         LibraryWindowContextBuffers buffers,
         ExecutionWindowKeyArray? partitionKeys,
@@ -85,7 +89,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateWindowKeyArrayAssignment(
                     partitionKeys,
                     index.Name,
-                    CreateWindowPartitionKeyExpression(partitionKeys, window.PartitionKey!)
+                    CreateWindowPartitionKeyExpression(renderContext, partitionKeys, window.PartitionKey!)
                 )
             );
         if (orderKeys is { ShouldExtract: true })
@@ -93,7 +97,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateWindowKeyArrayAssignment(
                     orderKeys,
                     index.Name,
-                    CreateWindowOrderKeyExpression(orderKeys, window.OrderKeys)
+                    CreateWindowOrderKeyExpression(renderContext, orderKeys, window.OrderKeys)
                 )
             );
         if (buffers.OrderKeyValues is { } orderValues)
@@ -125,7 +129,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateArrayAssignment(
                     buffers.Values.Name,
                     index.Name,
-                    CastIfNeeded(RenderExpression(window.Value), GetArrayElementType(buffers.Values)),
+                    CastIfNeeded(RenderExpression(window.Value, renderContext), GetArrayElementType(buffers.Values)),
                     GetArrayElementType(buffers.Values)
                 )
             );
@@ -136,7 +140,10 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateArrayAssignment(
                     target.Name,
                     index.Name,
-                    CastIfNeeded(RenderExpression(window.Arguments[argument]), GetArrayElementType(target)),
+                    CastIfNeeded(
+                        RenderExpression(window.Arguments[argument], renderContext),
+                        GetArrayElementType(target)
+                    ),
                     GetArrayElementType(target)
                 )
             );

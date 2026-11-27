@@ -110,7 +110,7 @@ public partial class SchemaDefinitionVisitor
     private static bool ContainsField(SchemaFieldNode[] fields, string name)
     {
         foreach (var field in fields)
-            if (field.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+            if (field.Name.Equals(name, StringComparison.Ordinal))
                 return true;
         return false;
     }
@@ -143,9 +143,9 @@ public partial class SchemaDefinitionVisitor
         IReadOnlyDictionary<string, Type?> outerFieldTypes
     )
     {
-        var declaredFields = new HashSet<string>(outerFields, StringComparer.OrdinalIgnoreCase);
-        var declaredFieldTypes = new Dictionary<string, Type?>(outerFieldTypes, StringComparer.OrdinalIgnoreCase);
-        var localFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var declaredFields = new HashSet<string>(outerFields, StringComparer.Ordinal);
+        var declaredFieldTypes = new Dictionary<string, Type?>(outerFieldTypes, StringComparer.Ordinal);
+        var localFields = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var field in inlineSchema.Fields)
         {

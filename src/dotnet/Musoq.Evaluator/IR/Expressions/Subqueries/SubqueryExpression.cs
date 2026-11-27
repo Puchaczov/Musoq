@@ -12,6 +12,7 @@ public enum SubqueryResultKind
     In,
     Any,
     All,
+    Rows,
 }
 
 public sealed record SubqueryExpression(
@@ -24,8 +25,12 @@ public sealed record SubqueryExpression(
 ) : IrExpression(ReturnType)
 {
     public BinaryOpKind Comparison { get; init; } = BinaryOpKind.Equal;
+    internal string? BindingKey { get; init; }
     public IEnumerable<IrExpression> Inputs => Operand is null ? Bindings : Bindings.Append(Operand);
     internal SubqueryPlanningArtifacts? Planning { get; init; }
 }
 
-public sealed record SubqueryParameterRef(int Index, Type ReturnType) : IrExpression(ReturnType);
+public sealed record SubqueryParameterRef(int Index, Type ReturnType) : IrExpression(ReturnType)
+{
+    internal string VariableName { get; init; } = $"__outer{Index}";
+}

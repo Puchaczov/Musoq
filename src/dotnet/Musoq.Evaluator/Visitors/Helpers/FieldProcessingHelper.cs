@@ -190,6 +190,26 @@ public static class FieldProcessingHelper
         FieldNode[] fieldsToSplit,
         FieldNode[] groupByFields,
         bool useOuterFields
+    ) => SplitProjectionFields(fieldsToSplit, groupByFields, useOuterFields);
+
+    internal static (SelectNode Aggregates, SelectNode Output) CreateGroupedProjections(
+        SelectNode select,
+        GroupByNode groupBy,
+        OrderByNode? orderBy,
+        WindowNode? window,
+        QualifyNode? qualify
+    )
+    {
+        var fields = SplitProjectionFields(select.Fields, groupBy.Fields, true, orderBy, window, qualify);
+        var inputs = QueryRewriteUtilities.ConcatAggregateFieldsWithGroupByFields(fields[0], groupBy.Fields);
+        return (new SelectNode(inputs.Reverse().ToArray()), new SelectNode(fields[1], select.IsDistinct));
+    }
+
+    private static FieldNode[][] SplitProjectionFields(
+        FieldNode[] fieldsToSplit,
+        FieldNode[] groupByFields,
+        bool useOuterFields,
+        params ReadOnlySpan<Node?> additionalClauses
     )
     {
         ArgumentNullException.ThrowIfNull(fieldsToSplit);
@@ -197,81 +217,71 @@ public static class FieldProcessingHelper
         var outerFields = new List<FieldNode>();
         var rawNestedFields = new List<FieldNode>();
 
-        var fieldOrder = 0;
-
         foreach (var root in fieldsToSplit)
         {
-            var subNodes = new Stack<Node>();
-
-            subNodes.Push(root.Expression);
-
-            while (subNodes.Count > 0)
-            {
-                var subNode = subNodes.Pop();
-
-                switch (subNode)
-                {
-                    case WindowFunctionNode:
-                        break;
-                    case AccessMethodNode aggregateMethod when aggregateMethod.IsAggregateMethod():
-                    {
-                        var subNodeStr = subNode.ToString();
-                        if (nestedFields.Select(f => f.Expression.ToString()).Contains(subNodeStr))
-                            continue;
-
-                        var aggregateFieldName = GetAggregateFieldName(aggregateMethod);
-                        nestedFields.Add(new FieldNode(subNode, fieldOrder, aggregateFieldName));
-                        rawNestedFields.Add(new FieldNode(subNode, fieldOrder, string.Empty));
-                        fieldOrder += 1;
-                        break;
-                    }
-                    case AccessMethodNode method:
-                    {
-                        foreach (var arg in method.Arguments.Args)
-                            subNodes.Push(arg);
-                        break;
-                    }
-                    case BinaryNode binary:
-                        subNodes.Push(binary.Left);
-                        subNodes.Push(binary.Right);
-                        break;
-                    case CaseNode caseNode:
-                        foreach (var (whenNode, thenNode) in caseNode.WhenThenPairs)
-                        {
-                            subNodes.Push(whenNode);
-                            subNodes.Push(thenNode);
-                        }
-                        if (caseNode.Else is not null)
-                            subNodes.Push(caseNode.Else);
-                        break;
-                    case UnaryNode unary:
-                        if (unary.Expression is not null)
-                            subNodes.Push(unary.Expression);
-                        break;
-                    case CastNode cast:
-                        subNodes.Push(cast.Expression);
-                        break;
-                }
-            }
-
+            CollectAggregateFields(root.Expression, nestedFields, rawNestedFields);
             if (!useOuterFields)
                 continue;
 
             var rewriter = new RewriteFieldWithGroupMethodCall(groupByFields);
-            var traverser = new CloneTraverseVisitor(rewriter);
-
-            root.Accept(traverser);
-
+            root.Accept(new CloneTraverseVisitor(rewriter));
             outerFields.Add(rewriter.Expression);
         }
 
-        var retFields = new FieldNode[3][];
+        foreach (var clause in additionalClauses)
+            if (clause != null)
+                CollectAggregateFields(clause, nestedFields, null);
 
-        retFields[0] = nestedFields.ToArray();
-        retFields[1] = outerFields.ToArray();
-        retFields[2] = rawNestedFields.ToArray();
+        return [nestedFields.ToArray(), outerFields.ToArray(), rawNestedFields.ToArray()];
+    }
 
-        return retFields;
+    private static void CollectAggregateFields(
+        Node expression,
+        List<FieldNode> nestedFields,
+        List<FieldNode>? rawNestedFields
+    )
+    {
+        var subNodes = new Stack<Node>();
+
+        subNodes.Push(expression);
+
+        while (subNodes.Count > 0)
+        {
+            var subNode = subNodes.Pop();
+
+            if (subNode is QueryNode)
+                continue;
+
+            if (subNode is WindowFunctionNode window)
+            {
+                // The window operation runs over groups. Its arguments, predicate and keys can read group aggregates.
+                subNodes.Push(window.FunctionCall.Arguments);
+                if (window.FunctionCall.FilterExpression != null)
+                    subNodes.Push(window.FunctionCall.FilterExpression);
+                if (window.WindowSpecification != null)
+                    subNodes.Push(window.WindowSpecification);
+                continue;
+            }
+
+            if (subNode is AccessMethodNode method && method.IsAggregateMethod())
+            {
+                var identifier = method.ToString();
+                if (
+                    nestedFields.Any(field =>
+                        string.Equals(field.Expression.ToString(), identifier, StringComparison.Ordinal)
+                    )
+                )
+                    continue;
+
+                var index = nestedFields.Count;
+                nestedFields.Add(new FieldNode(method, index, GetAggregateFieldName(method)));
+                rawNestedFields?.Add(new FieldNode(method, index, string.Empty));
+                continue;
+            }
+
+            foreach (var child in ParserNodeTraversalRegistry.EnumerateChildren(subNode))
+                subNodes.Push(child);
+        }
     }
 
     private static string GetAggregateFieldName(AccessMethodNode aggregateMethod)

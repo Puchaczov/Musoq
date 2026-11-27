@@ -16,12 +16,19 @@ public sealed partial class ExecutionCSharpRenderer
     private ExpressionSyntax RenderCollectionInCheck(
         ExecutionCollectionInCheck collectionInCheck,
         ExecutionRenderContext context
-    ) =>
-        RenderCollectionParameterCheck(
-            collectionInCheck,
-            context,
-            nameof(EvaluationHelper.CollectionParameterContains)
-        );
+    ) => RenderCollectionParameterCheck(collectionInCheck, context, GetCollectionMembershipHelper(collectionInCheck));
+
+    private static string GetCollectionMembershipHelper(ExecutionCollectionInCheck check)
+    {
+        if (check.ReturnType.RequireClrType() == typeof(bool))
+            return nameof(EvaluationHelper.CollectionParameterContains);
+
+        return
+            Nullable.GetUnderlyingType(check.Expression.ReturnType.RequireClrType())
+            == check.ElementType.RequireClrType()
+            ? nameof(EvaluationHelper.NullableProbeCollectionMembership)
+            : nameof(EvaluationHelper.CollectionParameterMembership);
+    }
 
     private ExpressionSyntax RenderCollectionNotInCheck(
         ExecutionCollectionInCheck collectionInCheck,

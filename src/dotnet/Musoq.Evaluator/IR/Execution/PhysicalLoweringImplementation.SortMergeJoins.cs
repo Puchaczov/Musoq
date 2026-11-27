@@ -221,7 +221,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var candidateKey = ReplaceExecutionAlias(
             ExecutionExpressionConverter.Convert(join.RightKey, sourceLookup),
             rightAlias,
-            candidate.Name
+            candidate
         );
         var partitionKeys = join
             .LeftPartitionKeys.Zip(
@@ -232,7 +232,7 @@ internal sealed partial class PhysicalLoweringImplementation
                         ReplaceExecutionAlias(
                             ExecutionExpressionConverter.Convert(rightKey, sourceLookup),
                             rightAlias,
-                            candidate.Name
+                            candidate
                         )
                     )
             )

@@ -202,8 +202,8 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
             var statement0 = new List<Statement0Row0>();
             var statement0AsOfIndex = EvaluationHelper.CreateAsOfIndex<Musoq.Evaluator.Tests.LibraryExecutionAsOfQueryTestsFixtures.AsOfInput, decimal?, ValueTuple<int, string>, int?>(statement0_bRows, (bCandidate) =>
             {
-                var __asOfEqualityPart0 = bCandidate.Partition;
-                var __asOfEqualityPart1 = bCandidate.Label;
+                int? __asOfEqualityPart0 = bCandidate.Partition;
+                string __asOfEqualityPart1 = bCandidate.Label;
                 var __asOfEquality = new NativeEqualityKey<ValueTuple<int, string>>(true && __asOfEqualityPart0 != null && __asOfEqualityPart1 != null, true && __asOfEqualityPart0 != null && __asOfEqualityPart1 != null ? ((int)__asOfEqualityPart0.GetValueOrDefault(), (string)__asOfEqualityPart1) : default(ValueTuple<int, string>));
                 return __asOfEquality;
             }, (bCandidate) => bCandidate.Key, Musoq.Evaluator.IR.Expressions.BinaryOpKind.GreaterOrEqual, (bCandidate) => bCandidate.Position, true, Musoq.Evaluator.IR.Bindings.NullOrdering.Default);
@@ -223,8 +223,8 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
 
                             var a = aChunkViewArray[aChunkViewOffset + aIndex];
                             {
-                                var bEqualityPart0 = a.Partition;
-                                var bEqualityPart1 = a.Label;
+                                int? bEqualityPart0 = a.Partition;
+                                string bEqualityPart1 = a.Label;
                                 var bEquality = new NativeEqualityKey<ValueTuple<int, string>>(true && bEqualityPart0 != null && bEqualityPart1 != null, true && bEqualityPart0 != null && bEqualityPart1 != null ? ((int)bEqualityPart0.GetValueOrDefault(), (string)bEqualityPart1) : default(ValueTuple<int, string>));
                                 var b = statement0AsOfIndex.Find(bEquality, a.Key);
                                 if (b != null)
@@ -253,8 +253,8 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
 
                             var a = aChunkViewList[aChunkViewOffset + aIndex];
                             {
-                                var bEqualityPart0 = a.Partition;
-                                var bEqualityPart1 = a.Label;
+                                int? bEqualityPart0 = a.Partition;
+                                string bEqualityPart1 = a.Label;
                                 var bEquality = new NativeEqualityKey<ValueTuple<int, string>>(true && bEqualityPart0 != null && bEqualityPart1 != null, true && bEqualityPart0 != null && bEqualityPart1 != null ? ((int)bEqualityPart0.GetValueOrDefault(), (string)bEqualityPart1) : default(ValueTuple<int, string>));
                                 var b = statement0AsOfIndex.Find(bEquality, a.Key);
                                 if (b != null)
@@ -281,8 +281,8 @@ namespace GeneratedSample_K59_TypedNullableCompositeAsOf
 
                     var a = aChunk[aIndex];
                     {
-                        var bEqualityPart0 = a.Partition;
-                        var bEqualityPart1 = a.Label;
+                        int? bEqualityPart0 = a.Partition;
+                        string bEqualityPart1 = a.Label;
                         var bEquality = new NativeEqualityKey<ValueTuple<int, string>>(true && bEqualityPart0 != null && bEqualityPart1 != null, true && bEqualityPart0 != null && bEqualityPart1 != null ? ((int)bEqualityPart0.GetValueOrDefault(), (string)bEqualityPart1) : default(ValueTuple<int, string>));
                         var b = statement0AsOfIndex.Find(bEquality, a.Key);
                         if (b != null)

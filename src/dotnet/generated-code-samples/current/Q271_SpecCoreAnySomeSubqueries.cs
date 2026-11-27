@@ -6,7 +6,7 @@ select a.City, a.Country = ANY (select b.Country from #B.entities() b) as AnyMat
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [a.City as City, ApplyAny<Equal>[Subquery0](a.Country; MultiStatement
+  Project [a.City as City, ApplyIn[Subquery0](a.Country; MultiStatement
   Project [b.Country as Country]
     SchemaScan [#B.entities() as b]) as AnyMatch, ApplyAny<GreaterThan>[Subquery1](a.Population; MultiStatement
   Project [c.Population as Population]
@@ -17,7 +17,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [a.City as City, ApplyAny<Equal>[Subquery0](a.Country; MultiStatement
+  PhysicalProject [a.City as City, ApplyIn[Subquery0](a.Country; MultiStatement
   Project [b.Country as Country]
     SchemaScan [#B.entities() as b]) as AnyMatch, ApplyAny<GreaterThan>[Subquery1](a.Population; MultiStatement
   Project [c.Population as Population]
@@ -45,7 +45,7 @@ ExecutionPlan [compiled]
     CreateShapeRows [result: ResultRow0 from ResultRow0]
     PhaseBoundary [Select]
     ChunkedForEach [a in aRows]
-      AppendShape [result <- ResultRow0(City: a.City, AnyMatch: ApplyAny<Equal>(a.Country)[Subquery0](), SomeMatch: ApplyAny<GreaterThan>(a.Population)[Subquery1]())]
+      AppendShape [result <- ResultRow0(City: a.City, AnyMatch: ApplyIn[Subquery0](), SomeMatch: ApplyAny<GreaterThan>(a.Population)[Subquery1]())]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
 
   Subquery
@@ -154,7 +154,7 @@ namespace GeneratedSample_Q271_SpecCoreAnySomeSubqueries
             var aRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity>(aRowsSource.Chunks, __musoqProgressContext, "a:3") : aRowsSource.Chunks;
             var __musoqTableSourceRows = aRows;
             this.OnPhaseChanged("compiled", QueryPhase.Select);
-            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, (a) => new ResultRow0(a.City, global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<string, string, string>(a.Country, __ExecuteSubquery0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static value => value, static (left, right) => Operators.SqlCompare<string, string>(left, right, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)), token), global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<decimal, decimal, decimal>(a.Population, __ExecuteSubquery1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static value => value, static (left, right) => (left > right), token)), token), token, onCompleted: () =>
+            return new QueryTableEnumerable<ResultRow0>((_) => TableProjectionRows.ProjectRowsSerial<Musoq.Evaluator.Tests.Schema.Basic.BasicEntity, ResultRow0>(__musoqTableSourceRows, (a) => new ResultRow0(a.City, global::Musoq.Evaluator.Runtime.SubqueryExecution.In<string, string, string>(a.Country, __ExecuteSubquery0(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static value => value, static (left, right) => Operators.SqlCompare<string, string>(left, right, (string __sqlLeft, string __sqlRight) => (__sqlLeft == __sqlRight)), token), global::Musoq.Evaluator.Runtime.SubqueryExecution.Any<decimal, decimal, decimal>(a.Population, __ExecuteSubquery1(provider, sourceRuntimeSettingsBySourceContextId, sourceExecutionPlans, logger, token, __musoqProgressContext, OnDataSourceProgress, OnQueryProgress, OnPhaseChanged), static value => value, static (left, right) => (left > right), token)), token), token, onCompleted: () =>
             {
                 try
                 {

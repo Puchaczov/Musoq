@@ -14,6 +14,7 @@ internal static class SubqueryApplyCloner
         var operand = apply.Operand is null ? null : nodes.Pop();
         return new SubqueryApplyNode(query, apply.Kind, operand, apply.ReturnType, bindings)
         {
+            BindingKey = apply.BindingKey,
             Comparison = apply.Comparison,
         }.CopySpansFrom(node);
     }
@@ -27,6 +28,7 @@ internal static class SubqueryApplyCloner
         var operand = apply.Operand is null ? null : nodes.Pop();
         return new SubqueryApplyNode(query, apply.Kind, operand, apply.ReturnType, bindings)
         {
+            BindingKey = apply.BindingKey,
             Comparison = apply.Comparison,
         }.CopySpansFrom(node);
     }

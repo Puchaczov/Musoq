@@ -312,6 +312,11 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Structured : TextInterpreterBase<Structured>, ITextInterpreterStatus<Structured>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Prefix { get; set; }
+        public string? Tag { get; set; }
+        public string? Key { get; set; }
+        public string? Value { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Prefix", "Tag", "Key", "Value" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -356,15 +361,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Prefix field value.</summary>
-        public string? Prefix { get; set; }
-        /// <summary>Gets the Tag field value.</summary>
-        public string? Tag { get; set; }
-        /// <summary>Gets the Key field value.</summary>
-        public string? Key { get; set; }
-        /// <summary>Gets the Value field value.</summary>
-        public string? Value { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Structured";
 
         public override Structured ParseAt(ReadOnlySpan<char> data, int offset)
@@ -390,8 +386,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Structured>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                 }
 
-                var _prefix = __musoqReadResult0.Value!;
-                __parsedValue.Prefix = _prefix;
+                var _field6_Prefix = __musoqReadResult0.Value!;
+                __parsedValue.Prefix = _field6_Prefix;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Tag");
                 var __musoqReadResult1 = base.ReadBetweenStatus(data, "[", "]", nested: true, fieldName: "Tag");
@@ -400,8 +396,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Structured>.Failed(__parsedValue, __musoqReadResult1.Failure!);
                 }
 
-                var _tag = __musoqReadResult1.Value!;
-                __parsedValue.Tag = _tag;
+                var _field3_Tag = __musoqReadResult1.Value!;
+                __parsedValue.Tag = _field3_Tag;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("Key");
                 var __musoqReadResult2 = base.ReadUntilStatus(data, "=", fieldName: "Key");
@@ -410,8 +406,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Structured>.Failed(__parsedValue, __musoqReadResult2.Failure!);
                 }
 
-                var _key = __musoqReadResult2.Value!;
-                __parsedValue.Key = _key;
+                var _field3_Key = __musoqReadResult2.Value!;
+                __parsedValue.Key = _field3_Key;
                 base.RecordParsedFieldSlot(2);
                 SetCurrentField("Value");
                 var __musoqReadResult3 = base.ReadRestStatus(data, fieldName: "Value");
@@ -420,8 +416,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Structured>.Failed(__parsedValue, __musoqReadResult3.Failure!);
                 }
 
-                var _value = __musoqReadResult3.Value!;
-                __parsedValue.Value = _value;
+                var _field5_Value = __musoqReadResult3.Value!;
+                __parsedValue.Value = _field5_Value;
                 base.RecordParsedFieldSlot(3);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Structured>.Success(__parsedValue);
             }

@@ -139,13 +139,19 @@ public partial class TypeRelatedMistakesTests
     [TestMethod]
     public void Comparison_StringBetweenNumbers_ShouldHandle()
     {
-        // Arrange - BETWEEN with incompatible types
         var analyzer = CreateAnalyzer();
         var query = "SELECT Name FROM #A.Entities() WHERE Name BETWEEN 1 AND 100";
 
         // Act
         var result = analyzer.Analyze(query);
-        AssertTypeHandling(result, "string BETWEEN numbers", DiagnosticCode.MQ3005_TypeMismatch);
+        AssertTypeHandling(result, "numeric bounds use relational coercion of the string column");
+    }
+
+    [TestMethod]
+    public void Between_WithBooleanBoundOnText_ShouldReportTypeMismatch()
+    {
+        var result = CreateAnalyzer().Analyze("SELECT Name FROM #A.Entities() WHERE Name BETWEEN false AND 'z'");
+        AssertTypeHandling(result, "boolean lower bound on a string column", DiagnosticCode.MQ3005_TypeMismatch);
     }
 
     [TestMethod]

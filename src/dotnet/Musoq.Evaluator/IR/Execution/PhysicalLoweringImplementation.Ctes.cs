@@ -17,11 +17,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var containsRecursiveDefinition = cte.Definitions.Any(static definition =>
             definition.Plan is PhysicalRecursiveCteNode
         );
-        var cteShapesByName = scope.SubqueryCtes.ToDictionary(
-            static binding => binding.Name,
-            static binding => binding.Shape,
-            StringComparer.OrdinalIgnoreCase
-        );
+        var cteShapesByName = scope.CreateCapturedCteShapes();
         var shapes = new List<RowShape>();
         var nodes = new List<ExecutionNode>();
         var schemaFromIndexes = CreateCteDefinitionSchemaFromIndexes(cte);

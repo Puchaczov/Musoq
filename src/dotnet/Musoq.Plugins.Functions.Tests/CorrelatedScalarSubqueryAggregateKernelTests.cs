@@ -7,6 +7,32 @@ namespace Musoq.Plugins.Tests;
 public sealed class CorrelatedScalarSubqueryAggregateKernelTests
 {
     [TestMethod]
+    public void NullableValueKernels_ShouldKeepEmptyAndNullRowsDistinctDuringMerge()
+    {
+        var scalar = new NullableScalarSubqueryAggregateKernel<ulong>.State();
+        var other = new NullableScalarSubqueryAggregateKernel<ulong>.State();
+        Assert.IsNull(NullableScalarSubqueryAggregateKernel<ulong>.Get(in scalar));
+        NullableScalarSubqueryAggregateKernel<ulong>.Set(ref other, null);
+        NullableScalarSubqueryAggregateKernel<ulong>.Merge(ref scalar, in other);
+        NullableScalarSubqueryAggregateKernel<ulong>.Set(ref scalar, 7UL);
+        Assert.Throws<ScalarSubqueryCardinalityException>(() =>
+            NullableScalarSubqueryAggregateKernel<ulong>.Get(in scalar)
+        );
+        NullableScalarSubqueryAggregateKernel<ulong>.Reset(ref scalar);
+        Assert.IsNull(NullableScalarSubqueryAggregateKernel<ulong>.Get(in scalar));
+
+        var correlated = new NullableCorrelatedScalarSubqueryAggregateKernel<float>.State();
+        var first = new NullableCorrelatedScalarSubqueryAggregateKernel<float>.State();
+        NullableCorrelatedScalarSubqueryAggregateKernel<float>.Set(ref first, null);
+        NullableCorrelatedScalarSubqueryAggregateKernel<float>.Merge(ref correlated, in first);
+        var result = NullableCorrelatedScalarSubqueryAggregateKernel<float>.Get(in correlated);
+        Assert.AreEqual(1, result.Cardinality);
+        Assert.IsNull(result.Value);
+        NullableCorrelatedScalarSubqueryAggregateKernel<float>.Reset(ref correlated);
+        Assert.AreEqual(0, NullableCorrelatedScalarSubqueryAggregateKernel<float>.Get(in correlated).Cardinality);
+    }
+
+    [TestMethod]
     public void Get_WhenStateIsEmpty_ShouldReturnEmptyCardinality()
     {
         var state = new CorrelatedScalarSubqueryAggregateKernel<int>.State();

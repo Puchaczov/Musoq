@@ -389,6 +389,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class InlineArrayPacket : BytesInterpreterBase<InlineArrayPacket>, IBytesInterpreterStatus<InlineArrayPacket>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Count { get; set; }
+        public Inline_Items[] Items { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Count", "Items" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -419,11 +422,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Count field value.</summary>
-        public byte Count { get; set; }
-        /// <summary>Gets the Items field value.</summary>
-        public Inline_Items[] Items { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "InlineArrayPacket";
 
         public override InlineArrayPacket InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<InlineArrayPacket>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -446,33 +444,33 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<InlineArrayPacket>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _count = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Count = _count;
+                var _field5_Count = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Count = _field5_Count;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Items");
-                var __items_list = new System.Collections.Generic.List<Inline_Items>();
-                var __musoqReadResult2 = base.ResolveSizeValueStatus<byte>((byte?)(_count), ParseErrorCode.InvalidSize);
+                var __field5_Items_list = new System.Collections.Generic.List<Inline_Items>();
+                var __musoqReadResult2 = base.ResolveSizeValueStatus<byte>((byte?)(_field5_Count), ParseErrorCode.InvalidSize);
                 if (!__musoqReadResult2.Succeeded)
                 {
                     return global::Musoq.Schema.Interpreters.ParseAttempt<InlineArrayPacket>.Failed(__parsedValue, __musoqReadResult2.Failure!);
                 }
 
-                var __items_count = __musoqReadResult2.Value!;
-                for (int __items_i = 0; __items_i < __items_count; __items_i++)
+                var __field5_Items_count = __musoqReadResult2.Value!;
+                for (int __field5_Items_i = 0; __field5_Items_i < __field5_Items_count; __field5_Items_i++)
                 {
-                    var ___items_elem_interpreter = new Inline_Items();
-                    var __musoqReadResult3 = base.InterpretNestedStatus(___items_elem_interpreter, data, "Items");
+                    var ___field5_Items_elem_interpreter = new Inline_Items();
+                    var __musoqReadResult3 = base.InterpretNestedStatus(___field5_Items_elem_interpreter, data, "Items");
                     if (!__musoqReadResult3.Succeeded)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<InlineArrayPacket>.Failed(__parsedValue, __musoqReadResult3.Failure!);
                     }
 
-                    var __items_elem = __musoqReadResult3.Value!;
-                    __items_list.Add(__items_elem);
+                    var __field5_Items_elem = __musoqReadResult3.Value!;
+                    __field5_Items_list.Add(__field5_Items_elem);
                 }
 
-                var _items = __items_list.ToArray();
-                __parsedValue.Items = _items;
+                var _field5_Items = __field5_Items_list.ToArray();
+                __parsedValue.Items = _field5_Items;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<InlineArrayPacket>.Success(__parsedValue);
             }
@@ -489,15 +487,18 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Inline_Items : BytesInterpreterBase<Inline_Items>, IBytesInterpreterStatus<Inline_Items>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Tag { get; set; }
+        public short Value { get; set; }
+
+        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Tag", "Value" });
+        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Inline_Items value, System.Collections.Generic.IReadOnlySet<string> completedFields)
         {
             value.__completedFieldNames = completedFields;
         }
-
-        private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Tag", "Value" });
-        global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
         public void WriteJson(global::System.Text.Json.Utf8JsonWriter writer, global::System.Text.Json.JsonSerializerOptions? options = null)
         {
@@ -519,11 +520,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Tag field value.</summary>
-        public byte Tag { get; set; }
-        /// <summary>Gets the Value field value.</summary>
-        public short Value { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Inline_Items";
 
         public override Inline_Items InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Inline_Items>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -546,8 +542,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Inline_Items>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _tag = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Tag = _tag;
+                var _field3_Tag = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Tag = _field3_Tag;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Value");
                 if (base.PrepareByteInputStatus(data, 2)is { } __musoqReadFailure2)
@@ -555,8 +551,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Inline_Items>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(base.TakePreparedBytes(data, 2));
-                __parsedValue.Value = _value;
+                var _field5_Value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt16LittleEndian(base.TakePreparedBytes(data, 2));
+                __parsedValue.Value = _field5_Value;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Inline_Items>.Success(__parsedValue);
             }

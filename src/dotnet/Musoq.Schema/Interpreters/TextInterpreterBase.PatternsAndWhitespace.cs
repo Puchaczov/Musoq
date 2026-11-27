@@ -114,7 +114,7 @@ public abstract partial class TextInterpreterBase<TOut>
             );
         }
 
-        if (!match.Success)
+        if (!match.Success || match.Index != 0)
             return FailText<Match>(
                 ParseErrorCode.PatternMismatch,
                 fieldName,

@@ -66,14 +66,18 @@ internal static class ExecutionFieldAccessResolver
                 nestedRoot.PropertyPath,
                 IsRowCarrier: true
             ),
-            TableRowShape table
-                when table.GeneratedRowTypeName != null
-                    && nestedRoot.Field.AccessStrategy is PositionalAccess positional => new GeneratedRowNestedAccess(
-                table.GeneratedRowTypeName,
-                ResolveGeneratedRowFieldName(table, positional.Index) ?? string.Empty,
-                nestedRoot.PropertyPath,
-                IsRowCarrier: true
-            ),
+            TableRowShape table when nestedRoot.Field.AccessStrategy is PositionalAccess positional =>
+                new GeneratedRowNestedAccess(
+                    table.GeneratedRowTypeName ?? string.Empty,
+                    nestedRoot.Field.Name,
+                    nestedRoot.PropertyPath,
+                    nestedRoot.Field.GeneratedTypeName,
+                    FieldIndex: positional.Index,
+                    IsRowCarrier: true
+                )
+                {
+                    PositionalRootType = positional.ValueType ?? nestedRoot.Field.Type,
+                },
             TableRowShape table
                 when nestedRoot.Field.GeneratedTypeName is { } generatedTypeName
                     && ResolveGeneratedRowFieldName(table, nestedRoot.Field.OutputIndex) is { } generatedFieldName =>

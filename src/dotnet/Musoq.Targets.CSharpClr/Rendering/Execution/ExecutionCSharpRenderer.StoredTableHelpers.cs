@@ -48,17 +48,6 @@ public sealed partial class ExecutionCSharpRenderer
         );
     }
 
-    private static bool TryCreateStoredTableBuild(
-        IReadOnlyList<ExecutionNode> nodes,
-        int storeIndex,
-        List<ExecutionNode> pendingNodes,
-        ExecutionStoreTable store,
-        out StoredTableBuild build
-    )
-    {
-        return StoredTableBuildDiscovery.TryCreate(nodes, storeIndex, pendingNodes, store, out build);
-    }
-
     private ExpressionStatementSyntax CreateStoredTableBuildInvocation(
         StoredTableBuild build,
         ExecutionRenderContext context
@@ -105,6 +94,19 @@ public sealed partial class ExecutionCSharpRenderer
 
     private IEnumerable<StoredTableBuild> CollectStoredTableBuilds(ExecutionBlock block, ExecutionRenderContext context)
     {
+        foreach (var build in DiscoverStoredTableBuilds(block))
+        {
+            yield return build with
+            {
+                Captures = CollectStoredTableBuildCaptures(build, context),
+            };
+        }
+    }
+
+    private static IEnumerable<StoredTableBuild> DiscoverStoredTableBuilds(ExecutionBlock block)
+    {
+        if (!block.Nodes.Any(static node => node is ExecutionStoreTable))
+            return [];
         var buildDiscoveryBlock = new ExecutionBlock(
             block
                 .Nodes.Where(static node =>
@@ -113,14 +115,13 @@ public sealed partial class ExecutionCSharpRenderer
                 )
                 .ToArray()
         );
-        foreach (var build in StoredTableBuildDiscovery.Collect(buildDiscoveryBlock))
-        {
-            yield return build with
-            {
-                Captures = CollectStoredTableBuildCaptures(build, context),
-            };
-        }
+        return StoredTableBuildDiscovery.Collect(buildDiscoveryBlock);
     }
+
+    private static HashSet<ExecutionNode> CollectStoredTableNodes(ExecutionBlock block) =>
+        DiscoverStoredTableBuilds(block)
+            .SelectMany(static build => build.Nodes)
+            .ToHashSet<ExecutionNode>(ReferenceEqualityComparer.Instance);
 
     private MethodDeclarationSyntax CreateStoredTableBuildFunction(
         StoredTableBuild build,
@@ -140,6 +141,8 @@ public sealed partial class ExecutionCSharpRenderer
         {
             var helperNodes = build.Nodes.Concat(build.TrailingPhaseNodes).ToArray();
             var bodyStatements = RenderStoredTableBuildBody(helperNodes, build.Table.Name, context);
+            if (ContainsInjectQueryStatsMethodCall(new ExecutionBlock(helperNodes)))
+                bodyStatements = [CreateStatsDeclaration(), .. bodyStatements];
 
             return SyntaxFactory
                 .MethodDeclaration(
@@ -240,6 +243,7 @@ public sealed partial class ExecutionCSharpRenderer
         var excludedNames = new HashSet<string>(CreateRuntimeHelperParameterNames(context), StringComparer.Ordinal)
         {
             build.Table.Name,
+            StatsVariableName,
         };
 
         var helperNodes = build.Nodes.Concat(build.TrailingPhaseNodes).ToArray();

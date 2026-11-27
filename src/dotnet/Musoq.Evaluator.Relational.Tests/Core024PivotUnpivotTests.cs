@@ -12,6 +12,59 @@ namespace Musoq.Evaluator.Tests;
 public sealed class Core024PivotUnpivotTests : BasicEntityTestBase
 {
     [TestMethod]
+    [DataRow("null")]
+    [DataRow("v.N")]
+    public void UnpivotOnlyNullEntries_ShouldPreserveTheNamedValueColumn(string entry)
+    {
+        var sql = $"unpivot values {{(I:1,N:null)}} v on Label in ({entry} as A) using Val";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        Assert.AreEqual("Val", result.Columns.Last().ColumnName);
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["A", null]);
+    }
+
+    [TestMethod]
+    public void UnpivotOnlyNullEntries_InCte_ShouldSupplyNullToArithmetic()
+    {
+        const string sql = """
+            with u as (unpivot values {(I:1,N:null)} v on Label in (null as A) using Val)
+            select u.Val+1 as M from u
+            """;
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, new object?[] { null });
+    }
+
+    [TestMethod]
+    public void UnpivotPredicateEntryPreservesUnknown()
+    {
+        const string sql = "unpivot values { (V:1),(V:null) } s on Label in ((s.V=1) as E) using Answer";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(result, ("Label", typeof(string)), ("Answer", typeof(bool?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, ["E", true], ["E", null]);
+    }
+
+    [TestMethod]
+    public void UnpivotKeepPredicatePreservesUnknown()
+    {
+        const string sql = "unpivot values { (V:1),(V:null) } s on Label in (s.V as V) using Value keep (s.V=1) as P";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(
+            result,
+            ("P", typeof(bool?)),
+            ("Label", typeof(string)),
+            ("Value", typeof(int?))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [true, "V", 1], [null, "V", null]);
+    }
+
+    [TestMethod]
     public void Pivot_MultiColumnKeyWithNullComponent_ShouldMatchTupleBucket()
     {
         const string query =

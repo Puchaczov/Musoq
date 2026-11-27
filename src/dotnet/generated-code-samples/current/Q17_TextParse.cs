@@ -305,6 +305,10 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class LogLine : TextInterpreterBase<LogLine>, ITextInterpreterStatus<LogLine>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Timestamp { get; set; }
+        public string? Level { get; set; }
+        public string? Message { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Timestamp", "Level", "Message" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -342,13 +346,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Timestamp field value.</summary>
-        public string? Timestamp { get; set; }
-        /// <summary>Gets the Level field value.</summary>
-        public string? Level { get; set; }
-        /// <summary>Gets the Message field value.</summary>
-        public string? Message { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "LogLine";
 
         public override LogLine ParseAt(ReadOnlySpan<char> data, int offset)
@@ -368,12 +365,12 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new LogLine();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Timestamp");
-                string _timestamp;
+                string _field9_Timestamp;
                 var __musoqRemainingText2 = (uint)ParsePosition <= (uint)data.Length ? data[ParsePosition..] : default;
                 var __musoqDelimiterIndex3 = __musoqRemainingText2.IndexOf('\u0020');
                 if (__musoqDelimiterIndex3 >= 0)
                 {
-                    _timestamp = __musoqRemainingText2[..__musoqDelimiterIndex3].ToString();
+                    _field9_Timestamp = __musoqRemainingText2[..__musoqDelimiterIndex3].ToString();
                     ParsePosition += __musoqDelimiterIndex3 + 1;
                 }
                 else
@@ -385,18 +382,18 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __musoqDelimitedFallback0 = __musoqReadResult1.Value!;
-                    _timestamp = __musoqDelimitedFallback0;
+                    _field9_Timestamp = __musoqDelimitedFallback0;
                 }
 
-                __parsedValue.Timestamp = _timestamp;
+                __parsedValue.Timestamp = _field9_Timestamp;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Level");
-                string _level;
+                string _field5_Level;
                 var __musoqRemainingText6 = (uint)ParsePosition <= (uint)data.Length ? data[ParsePosition..] : default;
                 var __musoqDelimiterIndex7 = __musoqRemainingText6.IndexOf('\u0020');
                 if (__musoqDelimiterIndex7 >= 0)
                 {
-                    _level = __musoqRemainingText6[..__musoqDelimiterIndex7].ToString();
+                    _field5_Level = __musoqRemainingText6[..__musoqDelimiterIndex7].ToString();
                     ParsePosition += __musoqDelimiterIndex7 + 1;
                 }
                 else
@@ -408,16 +405,16 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __musoqDelimitedFallback4 = __musoqReadResult5.Value!;
-                    _level = __musoqDelimitedFallback4;
+                    _field5_Level = __musoqDelimitedFallback4;
                 }
 
-                __parsedValue.Level = _level;
+                __parsedValue.Level = _field5_Level;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("Message");
-                string _message;
+                string _field7_Message;
                 if ((uint)ParsePosition <= (uint)data.Length)
                 {
-                    _message = data[ParsePosition..].ToString();
+                    _field7_Message = data[ParsePosition..].ToString();
                     ParsePosition = data.Length;
                 }
                 else
@@ -429,10 +426,10 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __musoqDelimitedFallback8 = __musoqReadResult9.Value!;
-                    _message = __musoqDelimitedFallback8;
+                    _field7_Message = __musoqDelimitedFallback8;
                 }
 
-                __parsedValue.Message = _message;
+                __parsedValue.Message = _field7_Message;
                 base.RecordParsedFieldSlot(2);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<LogLine>.Success(__parsedValue);
             }

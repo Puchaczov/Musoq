@@ -91,6 +91,8 @@ internal sealed record CteLoweringContext(
     IReadOnlySet<string> RequiredRowPresenceAliases
 )
 {
+    public ParallelIntermediateTableSlots? ParallelIntermediateSlots { get; init; }
+
     public static CteLoweringContext Empty =>
         new(
             null,

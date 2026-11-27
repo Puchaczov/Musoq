@@ -49,14 +49,18 @@ public partial class SchemaParser
 
     private void ValidateBinarySwitchSelectors(IReadOnlyList<SchemaFieldNode> fields, bool hasExtends)
     {
-        var precedingTypes = new Dictionary<string, Type?>(StringComparer.OrdinalIgnoreCase);
+        var precedingTypes = new Dictionary<string, Type?>(StringComparer.Ordinal);
 
         foreach (var field in fields)
         {
             if (
                 field is FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode switchType }
                 && !hasExtends
-                && !precedingTypes.ContainsKey(switchType.Selector)
+                && !precedingTypes.ContainsKey(switchType.SelectorRoot)
+                && !(
+                    switchType.SelectorExpression is not IdentifierNode
+                    && switchType.SelectorRoot.Equals("parent", StringComparison.OrdinalIgnoreCase)
+                )
             )
                 throw new SyntaxException(
                     $"Switch selector '{switchType.Selector}' must reference a field declared before the switch field.",
@@ -67,18 +71,25 @@ public partial class SchemaParser
 
             if (
                 field is FieldDefinitionNode { TypeAnnotation: BinarySwitchTypeNode localSwitch }
+                && localSwitch.SelectorExpression is IdentifierNode
                 && precedingTypes.TryGetValue(localSwitch.Selector, out var selectorType)
+                && selectorType is not null
             )
                 ValidateSwitchCaseLabels(localSwitch, selectorType);
 
-            precedingTypes[field.Name] = field.ReturnType;
+            // A computed reference receives its type during schema binding.
+            precedingTypes[field.Name] =
+                field is ComputedFieldNode && field.ReturnType == typeof(object) ? null : field.ReturnType;
         }
     }
 
     private void ValidateSwitchCaseLabels(BinarySwitchTypeNode switchType, Type? selectorType)
     {
         foreach (var switchCase in switchType.Cases)
-            if (!switchCase.IsDefault && !IsSwitchCaseLabelCompatible(selectorType, switchCase.CaseValue!))
+            if (
+                !switchCase.IsDefault
+                && !BinarySchemaScalarLiteral.IsCompatibleSwitchLabel(selectorType, switchCase.CaseValue!)
+            )
                 throw new SyntaxException(
                     $"Switch case label '{switchCase.CaseValue}' is not compatible with selector '{switchType.Selector}'.",
                     _lexer.AlreadyResolvedQueryPart,
@@ -90,46 +101,6 @@ public partial class SchemaParser
     private static bool IsSwitchCaseLabel(Node node)
     {
         return node is BooleanNode or StringNode or WordNode || IsNumericLiteral(node);
-    }
-
-    private static bool IsSwitchCaseLabelCompatible(Type? selectorType, Node label)
-    {
-        var targetType = selectorType is null ? null : Nullable.GetUnderlyingType(selectorType) ?? selectorType;
-        if (targetType == typeof(bool))
-            return label is BooleanNode;
-
-        if (targetType == typeof(string))
-            return label is StringNode or WordNode;
-
-        if (!IsNumericLiteral(label) || !TryGetNumericValue(label, out var numeric))
-            return false;
-
-        if (targetType == typeof(float) || targetType == typeof(double) || targetType == typeof(decimal))
-            return true;
-
-        if (targetType == typeof(byte))
-            return IsIntegralInRange(numeric, byte.MinValue, byte.MaxValue);
-        if (targetType == typeof(sbyte))
-            return IsIntegralInRange(numeric, sbyte.MinValue, sbyte.MaxValue);
-        if (targetType == typeof(short))
-            return IsIntegralInRange(numeric, short.MinValue, short.MaxValue);
-        if (targetType == typeof(ushort))
-            return IsIntegralInRange(numeric, ushort.MinValue, ushort.MaxValue);
-        if (targetType == typeof(int))
-            return IsIntegralInRange(numeric, int.MinValue, int.MaxValue);
-        if (targetType == typeof(uint))
-            return IsIntegralInRange(numeric, uint.MinValue, uint.MaxValue);
-        if (targetType == typeof(long))
-            return IsIntegralInRange(numeric, long.MinValue, long.MaxValue);
-        if (targetType == typeof(ulong))
-            return IsIntegralInRange(numeric, ulong.MinValue, ulong.MaxValue);
-
-        return false;
-    }
-
-    private static bool IsIntegralInRange(decimal value, decimal minimum, decimal maximum)
-    {
-        return decimal.Truncate(value) == value && value >= minimum && value <= maximum;
     }
 
     private static TextSpan GetSelectorSpan(BinarySwitchTypeNode switchType)

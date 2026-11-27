@@ -5,7 +5,7 @@ internal static class ExecutionGeneratedTypeName
     internal static string? For(ExecutionExpression expression)
     {
         if (expression.InterpretationShape is { } interpretation)
-            return ForInterpretation(interpretation);
+            return interpretation.GetGeneratedTypeName();
         if (
             ByteBufferViewShape.IsView(expression)
             || expression is ExecutionVariableRead { Variable.GeneratedRowTypeName: ByteBufferViewShape.TypeName }
@@ -24,14 +24,5 @@ internal static class ExecutionGeneratedTypeName
             ExecutionScriptVariableRead variable => variable.GeneratedTypeName,
             _ => null,
         };
-    }
-
-    private static string? ForInterpretation(ExecutionInterpretationShape shape)
-    {
-        if (shape.TypeName != null)
-            return shape.TypeName;
-        if (shape.Element is { } element && ForInterpretation(element) is { } elementName)
-            return elementName + "[]";
-        return null;
     }
 }

@@ -421,6 +421,24 @@ public class BinaryOrTextualSwitchTests : BinaryOrTextualEvaluatorTestBase
         StringAssert.Contains(exception.Details, "9");
     }
 
+    [TestMethod]
+    public void MissingBinarySwitchArm_ShouldReportItsByteOffset()
+    {
+        const string sql = """
+            binary Rec { K: byte, P: switch K { 1 => Ok: byte } };
+            let b: byte[] = array { 2ub, 33ub };
+            select r.K from values { (N: 0) } s cross apply Interpret<Rec>($b) r
+            """;
+
+        var error = Assert.ThrowsExactly<ParseException>(() => RunQuery(sql, []));
+        Assert.AreEqual(ParseErrorCode.NoAlternativeMatched, error.ErrorCode);
+        Assert.AreEqual("P", error.FieldName);
+        var location = error.ToDiagnostic().InputLocation;
+        Assert.IsNotNull(location);
+        Assert.AreEqual(1L, location.ByteOffset);
+        Assert.IsNull(location.CharacterOffset);
+    }
+
     private Table RunQuery(string query, byte[] content)
     {
         var entities = new[]

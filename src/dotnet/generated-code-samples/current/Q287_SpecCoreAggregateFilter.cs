@@ -6,20 +6,20 @@ select Country, Count(*) filter (where Population > 200) as FilteredCount from #
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [ko3iko.Country as ko3iko.Country, AggRef(ko3iko.Count(*) filter (where Population > 200)) as ko3iko.Count(*) filter (where Population > 200)]
+  Project [ko3iko.Country as ko3iko.Country, AggRef(ko3iko.Count(*) filter (where ko3iko.Population > 200)) as ko3iko.Count(*) filter (where ko3iko.Population > 200)]
     Aggregate [keys: Country] [aggs: Count(*) filter (where Population > 200)]
       SchemaScan [#A.entities() as ko3iko]
-  Project [ko3iko.Country as Country, ko3iko.Count(*) filter (where Population > 200) as FilteredCount]
+  Project [ko3iko.Country as Country, ko3iko.Count(*) filter (where ko3iko.Population > 200) as FilteredCount]
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [ko3iko.Country as ko3iko.Country, AggRef(ko3iko.Count(*) filter (where Population > 200)) as ko3iko.Count(*) filter (where Population > 200)]
+  PhysicalProject [ko3iko.Country as ko3iko.Country, AggRef(ko3iko.Count(*) filter (where ko3iko.Population > 200)) as ko3iko.Count(*) filter (where ko3iko.Population > 200)]
     PhysicalSingleKeyAggregate [key: Country (String)] [aggs: Count(*) filter (where Population > 200)]
       PhysicalSchemaScan [#A.entities() as ko3iko]
-  PhysicalProject [ko3iko.Country as Country, ko3iko.Count(*) filter (where Population > 200) as FilteredCount]
+  PhysicalProject [ko3iko.Country as Country, ko3iko.Count(*) filter (where ko3iko.Population > 200) as FilteredCount]
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
@@ -48,7 +48,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
-      AppendShape [result <- ResultRow0(Country: finalGroup.Country, FilteredCount: ko3iko.Count(*) filter (where Population > 200))]
+      AppendShape [result <- ResultRow0(Country: finalGroup.Country, FilteredCount: ko3iko.Count(*) filter (where ko3iko.Population > 200))]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
 */
 

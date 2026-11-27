@@ -210,7 +210,7 @@ namespace GeneratedSample_K32_TypedWindowExtremaBatch
                             if ((resultMaxs1BatchPosition & 1023) == 0)
                                 token.ThrowIfCancellationRequested();
                             resultMaxs1BatchStarts[resultMaxs1BatchPosition] = Math.Max(0, resultMaxs1BatchPosition - 1);
-                            resultMaxs1BatchEnds[resultMaxs1BatchPosition] = Math.Min(resultMaxs1PartitionCount - 1, resultMaxs1BatchPosition + 1);
+                            resultMaxs1BatchEnds[resultMaxs1BatchPosition] = resultMaxs1BatchPosition + Math.Min(1, resultMaxs1PartitionCount - 1 - resultMaxs1BatchPosition);
                         }
 
                         var resultMaxs1BatchContext = new Musoq.Plugins.WindowBatchContext<double?, double?>(resultMaxs1BatchValues, new System.ReadOnlySpan<int>(resultMaxs1PartitionIndices, resultMaxs1PartitionStart, resultMaxs1PartitionCount), resultMaxs1BatchStarts, resultMaxs1BatchEnds, resultMaxs1, token);
@@ -220,7 +220,7 @@ namespace GeneratedSample_K32_TypedWindowExtremaBatch
                             {
                                 var resultMaxs1OutputIndex = resultMaxs1PartitionIndices[resultMaxs1PartitionStart + resultMaxs1PartitionIndex];
                                 var resultMaxs1FrameStart = Math.Max(0, resultMaxs1PartitionIndex - 1);
-                                var resultMaxs1FrameEnd = Math.Min(resultMaxs1PartitionCount - 1, resultMaxs1PartitionIndex + 1);
+                                var resultMaxs1FrameEnd = resultMaxs1PartitionIndex + Math.Min(1, resultMaxs1PartitionCount - 1 - resultMaxs1PartitionIndex);
                                 Musoq.Plugins.MaxAggregateKernel<double>.Reset(ref resultMaxs1State);
                                 for (var resultMaxs1FrameIndex = Math.Max(0, resultMaxs1FrameStart); resultMaxs1FrameIndex <= resultMaxs1FrameEnd && resultMaxs1FrameIndex < resultMaxs1PartitionCount; resultMaxs1FrameIndex++)
                                 {

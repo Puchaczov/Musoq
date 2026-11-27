@@ -1,12 +1,40 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Musoq.Evaluator.IR.Execution;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
 
 internal sealed partial class BinarySchemaParentBindings
 {
+    private readonly Dictionary<string, IReadOnlyList<SchemaFieldNode>> _instanceFields = new(
+        StringComparer.OrdinalIgnoreCase
+    );
+
+    internal IReadOnlyList<SchemaFieldNode>? FieldsFor(SchemaReferenceTypeNode reference)
+    {
+        var context = Find(reference.SchemaName);
+        if (context is null || !reference.IsGenericInstantiation)
+            return context?.Fields;
+        if (_instanceFields.TryGetValue(reference.FullTypeName, out var cached))
+            return cached;
+        if (
+            !_registry.TryGetSchema(reference.SchemaName, out var registration)
+            || registration?.Node is not BinarySchemaNode schema
+        )
+            return null;
+        var bindings = BinarySchemaGenericResolver.CreateBindings(
+            schema,
+            reference,
+            BinarySchemaGenericResolver.CreateEmptyBindings()
+        );
+        return _instanceFields[reference.FullTypeName] = BinarySchemaGenericResolver.BindFields(
+            context.Fields,
+            bindings
+        );
+    }
+
     internal static string Substitute(string typeName, IReadOnlyDictionary<string, string> bindings) =>
         Regex.Replace(typeName, @"\b[A-Za-z_]\w*\b", match => bindings.GetValueOrDefault(match.Value) ?? match.Value);
 
@@ -28,11 +56,11 @@ internal sealed partial class BinarySchemaParentBindings
             foreach (var context in _contexts.Values.ToArray())
             foreach (var types in context.GenericInstances.Values.ToArray().Prepend(new Dictionary<string, string>()))
             foreach (var parsed in context.Fields.OfType<FieldDefinitionNode>())
-            foreach (var child in Children(parsed.TypeAnnotation, parsed.Name, types))
+            foreach (var (record, child) in Children(parsed.TypeAnnotation, types))
             {
                 if (child.TypeParameters.Length == 0)
                     continue;
-                var bindings = TypeBindings(parsed.TypeAnnotation, child, types);
+                var bindings = TypeBindings(record, child, types);
                 if (child.GenericInstances.TryAdd(InstanceName(child, bindings), bindings))
                     changed = true;
             }
@@ -49,20 +77,41 @@ internal sealed partial class BinarySchemaParentBindings
             yield break;
         foreach (var parsed in context.Fields.OfType<FieldDefinitionNode>())
         {
-            var type = ElementType(parsed.TypeAnnotation);
-            if (type is SchemaReferenceTypeNode reference && context.TypeParameters.Contains(reference.SchemaName))
+            foreach (
+                var reference in RecordTypes(parsed.TypeAnnotation)
+                    .OfType<SchemaReferenceTypeNode>()
+                    .Where(reference => context.TypeParameters.Contains(reference.SchemaName))
+            )
                 yield return new FactorySlot(
                     InstanceName(context, types),
                     types.GetValueOrDefault(reference.SchemaName) ?? reference.SchemaName
                 );
-            foreach (
-                var child in Children(parsed.TypeAnnotation, parsed.Name, types)
-                    .Where(child => child.TypeParameters.Length > 0)
-            )
-            foreach (var slot in DiscoverFactories(child, TypeBindings(parsed.TypeAnnotation, child, types), active))
-                yield return slot;
+            foreach (var (record, child) in Children(parsed.TypeAnnotation, types))
+            {
+                var childTypes = TypeBindings(record, child, types);
+                if (child.Requirements.Values.Any(requirement => ReadsGenericParent(context, requirement)))
+                    yield return new FactorySlot(InstanceName(context, types), InstanceName(child, childTypes));
+                if (child.TypeParameters.Length > 0)
+                    foreach (var slot in DiscoverFactories(child, childTypes, active))
+                        yield return slot;
+            }
         }
         active.Remove(context.Name);
+    }
+
+    private static bool ReadsGenericParent(Context owner, Requirement requirement)
+    {
+        if (requirement.Depth != 1)
+            return false;
+        var name = requirement.Parts[1];
+        var field = owner.Fields.OfType<FieldDefinitionNode>().FirstOrDefault(candidate => candidate.Name == name);
+        return field is not null
+            && RecordTypes(field.TypeAnnotation)
+                .OfType<SchemaReferenceTypeNode>()
+                .Any(reference =>
+                    owner.TypeParameters.Contains(reference.SchemaName)
+                    || reference.TypeArguments.Any(owner.TypeParameters.Contains)
+                );
     }
 
     private static IReadOnlyDictionary<string, string> TypeBindings(
@@ -71,7 +120,6 @@ internal sealed partial class BinarySchemaParentBindings
         IReadOnlyDictionary<string, string> current
     )
     {
-        type = ElementType(type);
         if (type is not SchemaReferenceTypeNode reference)
             return current;
         var actualName = Substitute(reference.FullTypeName, current);
@@ -80,19 +128,6 @@ internal sealed partial class BinarySchemaParentBindings
         for (var index = 0; index < Math.Min(child.TypeParameters.Length, arguments.Count); index++)
             bindings[child.TypeParameters[index]] = arguments[index];
         return bindings;
-    }
-
-    private static TypeAnnotationNode ElementType(TypeAnnotationNode type)
-    {
-        while (type is ArrayTypeNode or RepeatUntilTypeNode or SubstreamTypeNode { Target: not null })
-            type = type switch
-            {
-                ArrayTypeNode array => array.ElementType,
-                RepeatUntilTypeNode repeat => repeat.ElementType,
-                SubstreamTypeNode sub => sub.Target!,
-                _ => type,
-            };
-        return type;
     }
 
     private static IReadOnlyList<string> GenericArguments(string name)

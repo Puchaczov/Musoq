@@ -11,7 +11,7 @@ public partial class InterpreterCodeGenerator
 
     private int _factoryCounter;
 
-    private string GenerateParentContextMembers(string className)
+    private string GenerateParentContextMembers(string className, string constructorName)
     {
         _parentContext = _registry.ParentBindings.Find(className);
         if (_parentContext is not { } context || (context.Requirements.Count == 0 && context.Factories.Count == 0))
@@ -25,7 +25,11 @@ public partial class InterpreterCodeGenerator
         {
             var type = context.Types[path];
             var typeName =
-                MapClrTypeName(BinarySchemaExpressionTypes.Unwrap(type))
+                (
+                    context.RecordFields.TryGetValue(path, out var record)
+                        ? GetClrTypeNameForFieldDefinition(record)
+                        : MapClrTypeName(BinarySchemaExpressionTypes.Unwrap(type))
+                )
                 + (
                     BinarySchemaExpressionTypes.IsNullable(type)
                     || (!type.IsValueType && context.NullablePaths.Contains(path))
@@ -34,44 +38,63 @@ public partial class InterpreterCodeGenerator
                 );
             return $"{typeName} {context.Member(path)}";
         });
-        var name = className.Split('<')[0];
-        var factories = context
-            .Factories.Select(
-                (slot, index) =>
-                    $"System.Func<{slot.OwnerType}, {slot.OwnerType}.ParentContext, {slot.ResultType}>? __factory{index}"
-            )
-            .ToArray();
+        var factories = ParentFactoryDeclarations(context);
         var declarations = string.Join("\n", factories.Select(factory => $"private readonly {factory};"));
         var parameters = string.Join(", ", factories.Select(factory => factory + " = null"));
         var assignments = string.Join(
             " ",
-            context.Factories.Select((_, index) => $"this.__factory{index} = __factory{index};")
+            context.Factories.Select((_, index) => $"this.{context.FactoryName(index)} = {context.FactoryName(index)};")
         );
-        return $"internal readonly record struct ParentContext({string.Join(", ", members)});\n"
-            + "private readonly ParentContext __parentContext;\n"
+        return $"internal readonly record struct {context.TypeName}({string.Join(", ", members)});\n"
+            + $"private readonly {context.TypeName} {context.StorageName};\n"
             + declarations
             + "\n"
-            + $"public {name}() {{ }}\n"
-            + $"internal {name}(ParentContext parentContext{(parameters.Length == 0 ? string.Empty : ", " + parameters)}) {{ __parentContext = parentContext; {assignments} }}\n";
+            + $"public {constructorName}() {{ }}\n"
+            + $"internal {constructorName}({context.TypeName} parentContext{(parameters.Length == 0 ? string.Empty : ", " + parameters)}) {{ {context.StorageName} = parentContext; {assignments} }}\n";
     }
+
+    private string ForwardParentContextConstructors(InterpreterDeclaration declaration, string name)
+    {
+        if (
+            !declaration.UsesBinaryInput
+            || _registry.ParentBindings.Find(declaration.Name) is not { } context
+            || (context.Requirements.Count == 0 && context.Factories.Count == 0)
+        )
+            return string.Empty;
+        var parameters = string.Concat(
+            ParentFactoryDeclarations(context).Select(factory => ", " + factory + " = null")
+        );
+        var arguments = string.Concat(context.Factories.Select((_, index) => $", {context.FactoryName(index)}"));
+        return $"public {name}() {{ }}\ninternal {name}({context.TypeName} parentContext{parameters}) : base(parentContext{arguments}) {{ }}\n";
+    }
+
+    private string[] ParentFactoryDeclarations(BinarySchemaParentBindings.Context context) =>
+        context
+            .Factories.Select(
+                (slot, index) =>
+                    $"System.Func<{InterpretationCSharpNames.Reference(slot.OwnerType)}, {InterpretationCSharpNames.Reference(slot.OwnerType)}.{_registry.ParentBindings.Find(slot.OwnerType)!.TypeName}, {InterpretationCSharpNames.Reference(slot.ResultType)}>? {context.FactoryName(index)}"
+            )
+            .ToArray();
 
     private string CreateNestedInterpreter(string className)
     {
-        if (_parentContext is { } owner && owner.TypeParameters.Contains(className))
+        var reference = InterpretationCSharpNames.Reference(className);
+        if (_parentContext is { TypeParameters.Length: > 0 } owner)
         {
             var ownType = $"{owner.Name}<{string.Join(',', owner.TypeParameters)}>";
             var index = owner
                 .Factories.ToList()
                 .FindIndex(slot => slot.OwnerType == ownType && slot.ResultType == className);
-            return index < 0
-                ? $"new {className}()"
-                : $"(__factory{index} is null ? new {className}() : __factory{index}.Invoke(__parsedValue, __parentContext))";
+            if (index >= 0)
+                return $"({owner.FactoryName(index)} is null ? new {reference}() : {owner.FactoryName(index)}.Invoke(__parsedValue, {owner.StorageName}))";
+            if (owner.TypeParameters.Contains(className))
+                return $"new {reference}()";
         }
         if (
             _registry.ParentBindings.Find(className) is not { } target
             || (target.Requirements.Count == 0 && target.Factories.Count == 0)
         )
-            return $"new {className}()";
+            return $"new {reference}()";
         var arguments = target.Requirements.Values.Select(requirement =>
         {
             if (requirement.Depth == 1)
@@ -82,10 +105,10 @@ public partial class InterpreterCodeGenerator
                     $"Cannot supply '{requirement.Path}' to binary schema '{className}'.",
                     requirement.Source.SpanOrEmpty()
                 );
-            return $"__parentContext.{_parentContext.Member(forwarded)}";
+            return $"{_parentContext.StorageName}.{_parentContext.Member(forwarded)}";
         });
         var factories = FactoryArguments(target, className);
-        return $"new {className}(new {className}.ParentContext({string.Join(", ", arguments)}){factories})";
+        return $"new {reference}(new {reference}.{target.TypeName}({string.Join(", ", arguments)}){factories})";
     }
 
     private string FactoryArguments(BinarySchemaParentBindings.Context target, string className)
@@ -101,7 +124,7 @@ public partial class InterpreterCodeGenerator
                 var forwarded =
                     _parentContext?.Factories.ToList().FindIndex(candidate => candidate.Key == closed.Key) ?? -1;
                 if (forwarded >= 0)
-                    return $"__factory{forwarded}";
+                    return _parentContext!.FactoryName(forwarded);
                 return CreateGenericFactory(closed);
             })
             .ToArray();
@@ -123,12 +146,18 @@ public partial class InterpreterCodeGenerator
         {
             if (requirement.Depth > 1)
                 return $"{parent}.{owner.Member(string.Join('.', requirement.Parts.Skip(1)))}";
-            var path = requirement.MemberPath;
-            if (BinarySchemaExpressionTypes.MayBeNull(BinarySchemaParentBindings.Path(path), owner.Fields, _registry))
+            var path = InterpretationCSharpNames.Reference(requirement.MemberPath);
+            if (
+                BinarySchemaExpressionTypes.MayBeNull(
+                    BinarySchemaParentBindings.Path(requirement.MemberPath),
+                    owner.Fields,
+                    _registry
+                )
+            )
                 path = path.Replace(".", "?.", StringComparison.Ordinal);
             return $"{record}.{path}";
         });
         var factories = FactoryArguments(valueContext, slot.ResultType);
-        return $"static ({slot.OwnerType} {record}, {slot.OwnerType}.ParentContext {parent}) => new {slot.ResultType}(new {slot.ResultType}.ParentContext({string.Join(", ", arguments)}){factories})";
+        return $"static ({InterpretationCSharpNames.Reference(slot.OwnerType)} {record}, {InterpretationCSharpNames.Reference(slot.OwnerType)}.{owner.TypeName} {parent}) => new {InterpretationCSharpNames.Reference(slot.ResultType)}(new {InterpretationCSharpNames.Reference(slot.ResultType)}.{valueContext.TypeName}({string.Join(", ", arguments)}){factories})";
     }
 }

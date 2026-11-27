@@ -465,6 +465,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class KeyValue : TextInterpreterBase<KeyValue>, ITextInterpreterStatus<KeyValue>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Key { get; set; }
+        public string? Value { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Key", "Value" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -495,11 +498,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Key field value.</summary>
-        public string? Key { get; set; }
-        /// <summary>Gets the Value field value.</summary>
-        public string? Value { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "KeyValue";
 
         public override KeyValue ParseAt(ReadOnlySpan<char> data, int offset)
@@ -519,12 +517,12 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new KeyValue();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Key");
-                string _key;
+                string _field3_Key;
                 var __musoqRemainingText2 = (uint)ParsePosition <= (uint)data.Length ? data[ParsePosition..] : default;
                 var __musoqDelimiterIndex3 = __musoqRemainingText2.IndexOf('\u003D');
                 if (__musoqDelimiterIndex3 >= 0)
                 {
-                    _key = __musoqRemainingText2[..__musoqDelimiterIndex3].ToString();
+                    _field3_Key = __musoqRemainingText2[..__musoqDelimiterIndex3].ToString();
                     ParsePosition += __musoqDelimiterIndex3 + 1;
                 }
                 else
@@ -536,16 +534,16 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __musoqDelimitedFallback0 = __musoqReadResult1.Value!;
-                    _key = __musoqDelimitedFallback0;
+                    _field3_Key = __musoqDelimitedFallback0;
                 }
 
-                __parsedValue.Key = _key;
+                __parsedValue.Key = _field3_Key;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Value");
-                string _value;
+                string _field5_Value;
                 if ((uint)ParsePosition <= (uint)data.Length)
                 {
-                    _value = data[ParsePosition..].ToString();
+                    _field5_Value = data[ParsePosition..].ToString();
                     ParsePosition = data.Length;
                 }
                 else
@@ -557,10 +555,10 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __musoqDelimitedFallback4 = __musoqReadResult5.Value!;
-                    _value = __musoqDelimitedFallback4;
+                    _field5_Value = __musoqDelimitedFallback4;
                 }
 
-                __parsedValue.Value = _value;
+                __parsedValue.Value = _field5_Value;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue>.Success(__parsedValue);
             }

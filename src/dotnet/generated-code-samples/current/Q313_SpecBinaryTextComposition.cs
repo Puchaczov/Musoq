@@ -62,7 +62,8 @@ ExecutionPlan [compiled]
     ChunkedForEach [f in fRows]
       InterpretSource [Config.Interpret(f.Content) -> cRows]
       ScalarForEach [c in cRows]
-        AppendShape [result <- ResultRow0(Version: c.Version, c.Data.Key: c.Data.Key, c.Data.Value: c.Data.Value, Checksum: c.Checksum)]
+        Let [data: object = c.Data]
+        AppendShape [result <- ResultRow0(Version: c.Version, c.Data.Key: data?.Key, c.Data.Value: data?.Value, Checksum: c.Checksum)]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
 */
@@ -160,7 +161,8 @@ namespace GeneratedSample_Q313_SpecBinaryTextComposition
                                     {
                                         token.ThrowIfCancellationRequested();
                                         var c = cRows;
-                                        yield return new ResultRow0(c.Version, ((Musoq.Generated.Interpreters.KeyValue)c.Data).Key, ((Musoq.Generated.Interpreters.KeyValue)c.Data).Value, c.Checksum);
+                                        Musoq.Generated.Interpreters.KeyValue data = c.Data;
+                                        yield return new ResultRow0(c.Version, data?.Key, data?.Value, c.Checksum);
                                     }
                                 }
 
@@ -184,7 +186,8 @@ namespace GeneratedSample_Q313_SpecBinaryTextComposition
                                     {
                                         token.ThrowIfCancellationRequested();
                                         var c = cRows;
-                                        yield return new ResultRow0(c.Version, ((Musoq.Generated.Interpreters.KeyValue)c.Data).Key, ((Musoq.Generated.Interpreters.KeyValue)c.Data).Value, c.Checksum);
+                                        Musoq.Generated.Interpreters.KeyValue data = c.Data;
+                                        yield return new ResultRow0(c.Version, data?.Key, data?.Value, c.Checksum);
                                     }
                                 }
 
@@ -206,7 +209,8 @@ namespace GeneratedSample_Q313_SpecBinaryTextComposition
                             {
                                 token.ThrowIfCancellationRequested();
                                 var c = cRows;
-                                yield return new ResultRow0(c.Version, ((Musoq.Generated.Interpreters.KeyValue)c.Data).Key, ((Musoq.Generated.Interpreters.KeyValue)c.Data).Value, c.Checksum);
+                                Musoq.Generated.Interpreters.KeyValue data = c.Data;
+                                yield return new ResultRow0(c.Version, data?.Key, data?.Value, c.Checksum);
                             }
                         }
                     }
@@ -318,6 +322,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class KeyValue : TextInterpreterBase<KeyValue>, ITextInterpreterStatus<KeyValue>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Key { get; set; }
+        public string? Value { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Key", "Value" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -348,11 +355,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Key field value.</summary>
-        public string? Key { get; set; }
-        /// <summary>Gets the Value field value.</summary>
-        public string? Value { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "KeyValue";
 
         public override KeyValue ParseAt(ReadOnlySpan<char> data, int offset)
@@ -378,8 +380,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                 }
 
-                var _key = __musoqReadResult0.Value!;
-                __parsedValue.Key = _key;
+                var _field3_Key = __musoqReadResult0.Value!;
+                __parsedValue.Key = _field3_Key;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Value");
                 var __musoqReadResult1 = base.ReadRestStatus(data, trim: true, fieldName: "Value");
@@ -388,8 +390,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue>.Failed(__parsedValue, __musoqReadResult1.Failure!);
                 }
 
-                var _value = __musoqReadResult1.Value!;
-                __parsedValue.Value = _value;
+                var _field5_Value = __musoqReadResult1.Value!;
+                __parsedValue.Value = _field5_Value;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<KeyValue>.Success(__parsedValue);
             }
@@ -406,6 +408,10 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Config : BytesInterpreterBase<Config>, IBytesInterpreterStatus<Config>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Version { get; set; }
+        public KeyValue Data { get; set; }
+        public byte Checksum { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Version", "Data", "Checksum" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -443,13 +449,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Version field value.</summary>
-        public byte Version { get; set; }
-        /// <summary>Gets the Data field value.</summary>
-        public KeyValue Data { get; set; }
-        /// <summary>Gets the Checksum field value.</summary>
-        public byte Checksum { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Config";
 
         public override Config InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Config>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -472,8 +471,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Config>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _version = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Version = _version;
+                var _field7_Version = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Version = _field7_Version;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Data");
                 var __musoqReadSize2 = 20;
@@ -483,16 +482,16 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Config>.Failed(__parsedValue, __musoqReadFailure4);
                 }
 
-                var _data_raw = ReadString(data, __musoqReadSize2, __musoqReadEncoding3).Trim();
-                var _data_textInterpreter = new KeyValue();
-                var __musoqReadResult5 = base.ParseNestedStatus(_data_textInterpreter, _data_raw, "Data");
+                var _field4_Data_raw = ReadString(data, __musoqReadSize2, __musoqReadEncoding3).Trim();
+                var _field4_Data_textInterpreter = new KeyValue();
+                var __musoqReadResult5 = base.ParseNestedStatus(_field4_Data_textInterpreter, _field4_Data_raw, "Data");
                 if (!__musoqReadResult5.Succeeded)
                 {
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Config>.Failed(__parsedValue, __musoqReadResult5.Failure!);
                 }
 
-                var _data = __musoqReadResult5.Value!;
-                __parsedValue.Data = _data;
+                var _field4_Data = __musoqReadResult5.Value!;
+                __parsedValue.Data = _field4_Data;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("Checksum");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure6)
@@ -500,8 +499,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Config>.Failed(__parsedValue, __musoqReadFailure6);
                 }
 
-                var _checksum = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Checksum = _checksum;
+                var _field8_Checksum = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Checksum = _field8_Checksum;
                 base.RecordParsedFieldSlot(2);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Config>.Success(__parsedValue);
             }

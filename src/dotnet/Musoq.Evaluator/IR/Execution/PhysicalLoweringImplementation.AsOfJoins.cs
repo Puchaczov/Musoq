@@ -207,7 +207,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 ReplaceExecutionAlias(
                     ExecutionExpressionConverter.Convert(key.Right, sourceLookup),
                     rightAlias,
-                    candidate.Name
+                    candidate
                 )
             ))
             .ToArray();
@@ -216,9 +216,9 @@ internal sealed partial class PhysicalLoweringImplementation
         var candidateKey = ReplaceExecutionAlias(
             ExecutionExpressionConverter.Convert(predicate.RightInequalityKey, sourceLookup),
             rightAlias,
-            candidate.Name
+            candidate
         );
-        var executionTieBreak = CreateAsOfTieBreak(tieBreak, sourceLookup, rightAlias, candidate.Name);
+        var executionTieBreak = CreateAsOfTieBreak(tieBreak, sourceLookup, rightAlias, candidate);
 
         return new ExecutionAsOfProbe(
             rightSource.Variable,
@@ -231,7 +231,7 @@ internal sealed partial class PhysicalLoweringImplementation
             body,
             noMatchBody,
             ComparisonKeyType: ExecutionClrBindingFactory.FromClr(
-                ResolveAsOfComparisonKeyType(
+                AsOfKeyTypes.ComparisonType(
                     probeKey.ReturnType.ResolveClrType(),
                     candidateKey.ReturnType.ResolveClrType()
                 )
@@ -244,7 +244,7 @@ internal sealed partial class PhysicalLoweringImplementation
         OrderField? tieBreak,
         IReadOnlyDictionary<string, RowShape> sourceLookup,
         string rightAlias,
-        string candidateName
+        ExecutionVariable candidate
     )
     {
         if (tieBreak == null)
@@ -253,7 +253,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var key = ReplaceExecutionAlias(
             ExecutionExpressionConverter.Convert(tieBreak.Expression, sourceLookup),
             rightAlias,
-            candidateName
+            candidate
         );
 
         return new ExecutionAsOfTieBreak(key, tieBreak.Descending, tieBreak.NullOrdering);

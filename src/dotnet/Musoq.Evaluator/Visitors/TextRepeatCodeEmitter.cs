@@ -25,7 +25,7 @@ internal static class TextRepeatCodeEmitter
         var (field, localVar, schemaName, _, assignment) = emission;
         var builder = new StringBuilder();
         var listVar = $"_list_{localVar}";
-        var interpreterVar = $"_interp_{schemaName}";
+        var interpreterVar = $"_interp_{localVar}";
         var iterationVar = $"_iteration_{localVar}";
 
         builder.AppendLine(

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -28,24 +29,40 @@ public partial class InterpreterCodeGenerator
         FieldDefinitionNode field
     )
     {
-        // Casting the expected literal to the field's CLR type preserves the bit pattern so unsigned
-        // fields validate magic/const/oneOf values above int.MaxValue correctly.
-        var castType =
-            GetClrTypeNameForFieldDefinition(field) is { } typeName
-            && typeName is "byte" or "sbyte" or "short" or "ushort" or "int" or "uint" or "long" or "ulong"
-                ? typeName
-                : null;
-
-        string Expected(Node value) =>
-            castType is null
-                ? GenerateConditionExpression(value)
-                : $"unchecked(({castType})({GenerateConditionExpression(value)}))";
+        var type = field.TypeAnnotation.ClrType;
 
         if (validation.Kind != FieldValueValidationKind.OneOf)
-            return $"{localVar} == {Expected(validation.Values[0])}";
+            return GenerateScalarLiteralEquality(type, localVar, validation.Values[0]);
 
-        var comparisons = validation.Values.Select(value => $"{localVar} == {Expected(value)}");
-        return $"({string.Join(" || ", comparisons)})";
+        return $"({string.Join(" || ", validation.Values.Select(value => GenerateScalarLiteralEquality(type, localVar, value)))})";
+    }
+
+    private string GenerateScalarLiteralEquality(Type type, string localVar, Node value)
+    {
+        if (type == typeof(string) || type == typeof(bool) || type == typeof(decimal))
+            return $"{localVar} == {GenerateConditionExpression(value)}";
+
+        if (type == typeof(float) || type == typeof(double))
+        {
+            var expected = GenerateConditionExpression(value);
+            if (BinarySchemaExpressionTypes.Resolve(value, [], _registry) != typeof(decimal))
+                return $"{localVar} == {expected}";
+
+            // The first unrepresentable positive decimal is 2^96, exactly representable in either float format.
+            var floating = BinarySchemaClrTypeNames.Map(type);
+            return $"({localVar} > ({floating})decimal.MinValue && {localVar} < ({floating})decimal.MaxValue && (decimal){localVar} == {expected})";
+        }
+
+        decimal number;
+        if (type == typeof(ulong) && BinarySchemaScalarLiteral.TryGetUnsignedInteger(value, out var unsigned))
+            number = unsigned;
+        else if (!BinarySchemaScalarLiteral.TryGetNumber(value, out number))
+            return "false";
+
+        if (!BinarySchemaScalarLiteral.FitsIntegralType(type, number))
+            return "false";
+
+        return $"{localVar} == {number.ToString("0", CultureInfo.InvariantCulture)}";
     }
 
     private string GenerateByteListValidationCondition(FieldValueValidationNode validation, string localVar)

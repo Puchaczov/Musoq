@@ -29,7 +29,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
         else
         {
-            var propertyInfo = _columnPropertyBindingService.TryResolveTypedProperty(
+            var propertyInfo = SemanticColumnPropertyBindingService.TryResolveTypedProperty(
                 parentNodeType,
                 node.Name,
                 out var error

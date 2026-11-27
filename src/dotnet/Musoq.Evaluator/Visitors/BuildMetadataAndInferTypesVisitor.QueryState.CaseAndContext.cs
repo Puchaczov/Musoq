@@ -51,6 +51,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             HasStableOptionalCaseSource
         );
 
+        if (result.ReturnType?.IsValueType == false)
+            RegisterCaseInterpretationPresence(result, whenThenPairs, elseNode);
         if (enumType != null)
             MarkEnumExpression(result, enumType);
         PushSemanticNode(result);
@@ -132,6 +134,9 @@ public partial class BuildMetadataAndInferTypesVisitor
     public void InnerCteBegins() { }
 
     public void InnerCteEnds() { }
+
+    internal bool IsSubqueryOuterColumn(string alias, string name) =>
+        _semanticState.Subqueries.ResolveSubqueryOuterTable(alias)?.GetColumnByAliasAndName(alias, name) is not null;
 
     public bool IsCurrentContextColumn(string name)
     {

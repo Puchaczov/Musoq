@@ -21,7 +21,12 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (isAggregateMethod && method.IsGenericMethodDefinition)
             return AggregateDeclarationSpecialization.Bind(
                 method,
-                args.Args.Select(static argument => argument.ReturnType).ToArray()
+                args.Args.Select(argument =>
+                        argument.ReturnType is NullNode.NullType && IsScalarCardinalityAggregate(method.Name)
+                            ? typeof(DBNull)
+                            : argument.ReturnType
+                    )
+                    .ToArray()
             );
 
         if (!isAggregateMethod && method.IsGenericMethod && TryReduceDimensions(method, args, out var reducedMethod))
@@ -96,6 +101,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         [NotNullWhen(true)] out MethodInfo? method
     )
     {
+        if (argTypes is [NullNode.NullType] && IsScalarCardinalityAggregate(methodName))
+            argTypes = [typeof(DBNull)];
+
         if (TryResolveWildcardAggregateAsArgumentless(methodName, args, context, out method))
             return true;
 
@@ -272,11 +280,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (accessMethod.FilterExpression == null)
             return identifier;
 
-        var filterExpressionText = !string.IsNullOrWhiteSpace(accessMethod.FilterExpressionText)
-            ? accessMethod.FilterExpressionText
-            : accessMethod.FilterExpression.Id;
-
-        return $"{identifier} filter (where {filterExpressionText})";
+        return $"{identifier} filter (where {accessMethod.FilterExpression.ToString()})";
     }
 
     private void FinalizeMethodVisit(MethodInfo method, AccessMethodNode accessMethod)

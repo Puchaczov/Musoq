@@ -137,18 +137,18 @@ public partial class BuildMetadataAndInferTypesVisitor
                     continue;
             }
 
-            if (leftType == rightType)
-                continue;
-
             if (
-                TryReconcileNullSetFields(ref leftFields[i], ref rightFields[i])
-                || TryReconcileNullableSetFields(ref leftFields[i], ref rightFields[i])
+                leftType != rightType
+                && !TryReconcileNullSetFields(ref leftFields[i], ref rightFields[i])
+                && !TryReconcileNullableSetFields(ref leftFields[i], ref rightFields[i])
             )
-                continue;
+            {
+                if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], rightFields[i]))
+                    continue;
+                throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
+            }
 
-            if (TryReportSetOperatorColumnTypes(leftFields[i], rightFields[i], rightFields[i]))
-                continue;
-            throw new SetOperatorMustHaveSameTypesOfColumnsException(leftFields[i], rightFields[i]);
+            MergeSetInterpretationShape(leftFields[i].Expression, rightFields[i].Expression);
         }
     }
 

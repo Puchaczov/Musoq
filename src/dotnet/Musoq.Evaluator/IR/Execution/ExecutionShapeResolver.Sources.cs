@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Plugins;
@@ -66,9 +67,14 @@ public sealed partial class ExecutionShapeResolver
                             _schemaRegistry
                         )
             );
-            if (registration?.Node is not Musoq.Parser.Nodes.InterpretationSchema.TextSchemaNode)
+            var result =
+                registration?.Node is Musoq.Parser.Nodes.InterpretationSchema.TextSchemaNode
+                    ? new TextResultShapeBinding(_schemaRegistry).Schema(interpret.SchemaName)
+                    : _schemaRegistry.EmbeddedTextShapes?.Record(
+                        BinarySchemaGenericResolver.ParseReference(interpret.SchemaName)
+                    );
+            if (result == null)
                 return shape;
-            var result = new TextResultShapeBinding(_schemaRegistry).Schema(interpret.SchemaName);
             var partial = interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse;
             return shape with
             {
@@ -103,6 +109,30 @@ public sealed partial class ExecutionShapeResolver
             if (generatedTypeName?.EndsWith("[]", StringComparison.Ordinal) == true)
                 generatedTypeName = generatedTypeName[..^2];
 
+            if (
+                generatedTypeName is not null
+                && _schemaRegistry is not null
+                && TextSwitchPropertyResolver.Find(_schemaRegistry, generatedTypeName) is { } element
+            )
+            {
+                var source = CreateClrMemberSourceShape(
+                    property.Alias,
+                    property.OutputSchema.Columns,
+                    element.TypeName
+                );
+                var shape = new ExecutionInterpretationShape(element);
+                return source with
+                {
+                    ElementInterpretationShape = shape,
+                    Fields = source
+                        .Fields.Select(field =>
+                        {
+                            var member = shape.Member(field.Name);
+                            return field with { InterpretationShape = member, GeneratedTypeName = member?.TypeName };
+                        })
+                        .ToArray(),
+                };
+            }
             return CreateClrMemberSourceShape(
                 property.Alias,
                 property.OutputSchema.Columns,
@@ -122,6 +152,8 @@ public sealed partial class ExecutionShapeResolver
     public RowShape ResolveAccessMethodSourceShape(PhysicalAccessMethodSourceNode accessMethod)
     {
         ArgumentNullException.ThrowIfNull(accessMethod);
+        if (accessMethod.MethodCallExpression is SubqueryExpression { Kind: SubqueryResultKind.Rows })
+            return TableRowShape.FromSchema(accessMethod.Alias, accessMethod.OutputSchema);
         return ResolveEnumerableSourceShape(
             accessMethod.Alias,
             accessMethod.ResultType,

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter;
 using Musoq.Evaluator.Tests.Components;
@@ -10,6 +10,7 @@ using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -28,7 +29,8 @@ public sealed class StreamingChunkParallelAggregateQueryTests
             maxDegreeOfParallelismOverride: 2,
             forceTableResultMaterialization: true
         );
-        var probe = new AggregateStreamingProbe();
+        using var watchdog = new TestWatchdog();
+        var probe = new AggregateStreamingProbe(watchdog);
         var rowSource = new BlockingSecondChunkRowSource(probe);
         var schema = new GenericSchema<StreamingAggregateLibrary>(
             new Dictionary<string, (ISchemaTable SchemaTable, object RowSource)>
@@ -54,7 +56,7 @@ public sealed class StreamingChunkParallelAggregateQueryTests
         StreamingAggregateLibrary.Probe = probe;
         try
         {
-            var vm = InstanceCreator.CompileForExecution(
+            using var vm = InstanceCreator.CompileForExecution(
                 query,
                 Guid.NewGuid().ToString(),
                 schemaProvider,
@@ -62,7 +64,7 @@ public sealed class StreamingChunkParallelAggregateQueryTests
                 compilationOptions
             );
 
-            var table = vm.Run(CancellationToken.None);
+            using var table = vm.Run(watchdog.Token);
             var rows = table.ToDictionary(
                 static row => (string)row.ReadValue(0),
                 static row => Convert.ToInt64(row.ReadValue(1))
@@ -92,10 +94,7 @@ public sealed class StreamingChunkParallelAggregateQueryTests
             writer.Write([new StreamingAggregateEntity("A", "shared"), new StreamingAggregateEntity("A", "first")]);
             ChunksWritten++;
 
-            if (!probe.WaitForFirstAggregateInput(TimeSpan.FromSeconds(5)))
-                throw new InvalidOperationException(
-                    "The aggregate loop did not process the first chunk before the source needed the second chunk."
-                );
+            probe.WaitForFirstAggregateInput();
 
             writer.Write([new StreamingAggregateEntity("A", "shared"), new StreamingAggregateEntity("B", "only")]);
             ChunksWritten++;
@@ -114,20 +113,18 @@ public sealed class StreamingChunkParallelAggregateQueryTests
         }
     }
 
-    public sealed class AggregateStreamingProbe
+    public sealed class AggregateStreamingProbe(TestWatchdog watchdog)
     {
-        private readonly ManualResetEventSlim _firstAggregateInputObserved = new(false);
+        private readonly TaskCompletionSource _firstAggregateInputObserved = TestWatchdog.Signal();
 
-        public bool FirstAggregateInputObserved => _firstAggregateInputObserved.IsSet;
+        public bool FirstAggregateInputObserved => _firstAggregateInputObserved.Task.IsCompleted;
 
         public void Signal()
         {
-            _firstAggregateInputObserved.Set();
+            _firstAggregateInputObserved.TrySetResult();
         }
 
-        public bool WaitForFirstAggregateInput(TimeSpan timeout)
-        {
-            return _firstAggregateInputObserved.Wait(timeout);
-        }
+        public void WaitForFirstAggregateInput() =>
+            _firstAggregateInputObserved.Task.WaitAsync(watchdog.Token).GetAwaiter().GetResult();
     }
 }

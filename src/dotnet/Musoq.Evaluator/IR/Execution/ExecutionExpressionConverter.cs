@@ -46,16 +46,12 @@ public static partial class ExecutionExpressionConverter
                 methodTargets
             ),
             SubqueryParameterRef parameter => new ExecutionVariableRead(
-                new ExecutionVariable($"__outer{parameter.Index}", parameter.ReturnType)
+                new ExecutionVariable(parameter.VariableName, parameter.ReturnType)
             ),
             ColumnRef column => ConvertColumnRef(column, sourceShapes),
             ScriptParameterRef parameter => ConvertScriptParameter(parameter),
             ScriptVariableRef variable => new ExecutionScriptVariableRead(variable.Name, variable.ReturnType),
-            Literal { Value: null } literal when literal.ReturnType == typeof(object) => new ExecutionLiteral(
-                null,
-                typeof(DBNull)
-            ),
-            Literal literal => new ExecutionLiteral(literal.Value, literal.ReturnType),
+            Literal literal => ComputedValueBinding.Literal(literal),
             StructuralRecordLiteral record => ConvertStructuralRecord(
                 record,
                 sourceShapes,
@@ -120,7 +116,7 @@ public static partial class ExecutionExpressionConverter
                 Convert(between.High, sourceShapes, cteTableIndexes, methodTargets),
                 between.ReturnType
             ),
-            CaseWhen caseWhen => new ExecutionCaseWhen(
+            CaseWhen caseWhen => ComputedValueBinding.Case(
                 caseWhen
                     .Branches.Select(branch => new ExecutionCaseWhenBranch(
                         Convert(branch.Condition, sourceShapes, cteTableIndexes, methodTargets),
@@ -130,13 +126,13 @@ public static partial class ExecutionExpressionConverter
                 caseWhen.ElseExpression == null
                     ? null
                     : Convert(caseWhen.ElseExpression, sourceShapes, cteTableIndexes, methodTargets),
-                caseWhen.ReturnType
+                caseWhen
             ),
-            Coalesce coalesce => new ExecutionCoalesce(
+            Coalesce coalesce => ComputedValueBinding.Coalesce(
                 coalesce
                     .Expressions.Select(value => Convert(value, sourceShapes, cteTableIndexes, methodTargets))
                     .ToArray(),
-                coalesce.ReturnType
+                coalesce
             ),
             AggregateRef aggregateRef => new ExecutionAggregateResultRef(
                 aggregateRef.Identifier,

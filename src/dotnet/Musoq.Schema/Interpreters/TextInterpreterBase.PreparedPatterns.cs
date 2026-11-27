@@ -15,8 +15,8 @@ public abstract partial class TextInterpreterBase<TOut>
         if (attempt.Failure is { } failure)
             return ParseAttempt<string>.Failed(default, failure);
 
-        var (index, length) = attempt.Value;
-        var value = text.Slice(ParsePosition + index, length).ToString();
+        var length = attempt.Value;
+        var value = text.Slice(ParsePosition, length).ToString();
         ParsePosition += length;
         return ParseAttempt<string>.Success(ApplyPreparedModifiers(value, pattern.Modifiers));
     }
@@ -30,7 +30,7 @@ public abstract partial class TextInterpreterBase<TOut>
     {
         var attempt = FindPreparedPattern(text, pattern, fieldName);
         if (attempt.Succeeded)
-            ParsePosition += attempt.Value.Length;
+            ParsePosition += attempt.Value;
         return attempt.Failure;
     }
 
@@ -46,7 +46,7 @@ public abstract partial class TextInterpreterBase<TOut>
             return ParseAttempt<Match>.Failed(default, failure);
 
         var match = prepared.Value!.Match(input.CaptureText, ParsePosition, input.Text.Length - ParsePosition);
-        if (!match.Success)
+        if (!match.Success || match.Index != ParsePosition)
             return ParseAttempt<Match>.Failed(default, PatternMismatch(pattern, fieldName));
 
         ParsePosition += match.Length;
@@ -69,7 +69,7 @@ public abstract partial class TextInterpreterBase<TOut>
         return matches.MoveNext() && matches.Current.Index == 0;
     }
 
-    private ParseAttempt<(int Index, int Length)> FindPreparedPattern(
+    private ParseAttempt<int> FindPreparedPattern(
         ReadOnlySpan<char> text,
         PreparedTextPattern pattern,
         string fieldName
@@ -77,13 +77,12 @@ public abstract partial class TextInterpreterBase<TOut>
     {
         var prepared = PreparePatternStatus(text, pattern, fieldName);
         if (prepared.Failure is { } failure)
-            return ParseAttempt<(int, int)>.Failed(default, failure);
+            return ParseAttempt<int>.Failed(default, failure);
 
         var matches = prepared.Value!.EnumerateMatches(text[ParsePosition..]);
-        if (!matches.MoveNext())
-            return ParseAttempt<(int, int)>.Failed(default, PatternMismatch(pattern, fieldName));
-        var match = matches.Current;
-        return ParseAttempt<(int, int)>.Success((match.Index, match.Length));
+        if (!matches.MoveNext() || matches.Current.Index != 0)
+            return ParseAttempt<int>.Failed(default, PatternMismatch(pattern, fieldName));
+        return ParseAttempt<int>.Success(matches.Current.Length);
     }
 
     private ParseAttempt<Regex> PreparePatternStatus(

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Exceptions;
 using Musoq.Parser.Nodes;
@@ -110,7 +109,11 @@ public partial class SchemaParser
 
     private void EnsureByteValue(Node element, string fieldName)
     {
-        if (TryGetNumericValue(element, out var value) && decimal.Truncate(value) == value && value is >= 0 and <= 255)
+        if (
+            BinarySchemaScalarLiteral.TryGetNumber(element, out var value)
+            && decimal.Truncate(value) == value
+            && value is >= 0 and <= 255
+        )
             return;
 
         throw InvalidFieldValueValidation(
@@ -141,7 +144,7 @@ public partial class SchemaParser
 
         if (typeAnnotation is BitsTypeNode bitsType)
         {
-            if (!TryGetBitValue(value, out var bitValue))
+            if (!BinarySchemaScalarLiteral.TryGetUnsignedInteger(value, out var bitValue))
                 throw InvalidFieldValueValidation(
                     $"Field '{fieldName}' bits value validation requires a non-negative integer literal.",
                     valueSpan
@@ -180,62 +183,6 @@ public partial class SchemaParser
     private static bool IsNumericObject(object value)
     {
         return value is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
-    }
-
-    private static bool TryGetNumericValue(Node node, out decimal value)
-    {
-        if (
-            node is HyphenNode hyphen
-            && TryGetNumericValue(hyphen.Left, out var left)
-            && TryGetNumericValue(hyphen.Right, out var right)
-        )
-        {
-            value = left - right;
-            return true;
-        }
-
-        if (node is ConstantValueNode constant && IsNumericObject(constant.ObjValue))
-        {
-            try
-            {
-                value = Convert.ToDecimal(constant.ObjValue, CultureInfo.InvariantCulture);
-                return true;
-            }
-            catch (Exception) when (constant.ObjValue is double or float)
-            {
-                // NaN and infinity are not valid integer/byte validation literals.
-            }
-        }
-
-        value = default;
-        return false;
-    }
-
-    private static bool TryGetBitValue(Node node, out ulong value)
-    {
-        if (
-            (node is HexIntegerNode or BinaryIntegerNode or OctalIntegerNode)
-            && node is ConstantValueNode { ObjValue: long signedValue }
-            && signedValue < 0
-        )
-        {
-            value = unchecked((ulong)signedValue);
-            return true;
-        }
-
-        if (
-            !TryGetNumericValue(node, out var numeric)
-            || numeric < 0
-            || numeric > ulong.MaxValue
-            || decimal.Truncate(numeric) != numeric
-        )
-        {
-            value = default;
-            return false;
-        }
-
-        value = Convert.ToUInt64(numeric, CultureInfo.InvariantCulture);
-        return true;
     }
 
     private SyntaxException InvalidFieldValueValidation(string message, TextSpan span)

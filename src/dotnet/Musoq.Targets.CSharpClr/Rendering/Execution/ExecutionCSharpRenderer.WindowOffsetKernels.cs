@@ -9,6 +9,7 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private IReadOnlyList<StatementSyntax> CreateOffsetKernelStatements(
+        ExecutionRenderContext renderContext,
         ExecutionComputeOffsetWindow offset,
         ExecutionVariable values,
         ExecutionVariable? offsets,
@@ -29,11 +30,12 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateBufferCountExpression(offset.Buffer)
                 )
             ),
-            CreateOffsetKernelLoop(offset, values, offsets, defaultValues, partitions),
+            CreateOffsetKernelLoop(renderContext, offset, values, offsets, defaultValues, partitions),
         ];
     }
 
     private StatementSyntax CreateOffsetKernelLoop(
+        ExecutionRenderContext renderContext,
         ExecutionComputeOffsetWindow offset,
         ExecutionVariable values,
         ExecutionVariable? offsets,
@@ -51,7 +53,7 @@ public sealed partial class ExecutionCSharpRenderer
         var currentIndex = $"{result}CurrentIndex";
         var sourcePartitionIndex = $"{result}SourcePartitionIndex";
         var offsetExpression =
-            offsets == null ? RenderExpressionSource(offset.Offset) : $"{offsets.Name}[{currentIndex}]";
+            offsets == null ? RenderExpressionSource(renderContext, offset.Offset) : $"{offsets.Name}[{currentIndex}]";
         var resultElementType = CreateWindowResultElementType(offset.Results);
         var valueExpression = CreateCastSource(
             resultElementType,
@@ -59,7 +61,7 @@ public sealed partial class ExecutionCSharpRenderer
         );
         var defaultExpression =
             defaultValues == null
-                ? CreateCastSource(resultElementType, RenderExpressionSource(offset.DefaultValue))
+                ? CreateCastSource(resultElementType, RenderExpressionSource(renderContext, offset.DefaultValue))
                 : $"{defaultValues.Name}[{currentIndex}]";
         var sourceIndexExpression =
             offset.Function == ExecutionOffsetWindowFunction.Lag
@@ -98,9 +100,9 @@ public sealed partial class ExecutionCSharpRenderer
         return SyntaxFactory.ParseStatement(source);
     }
 
-    private string RenderExpressionSource(ExecutionExpression expression)
+    private string RenderExpressionSource(ExecutionRenderContext renderContext, ExecutionExpression expression)
     {
-        return RenderExpression(expression).NormalizeWhitespace().ToFullString();
+        return RenderExpression(expression, renderContext).NormalizeWhitespace().ToFullString();
     }
 
     private static string CreateCastSource(Type type, string expression)

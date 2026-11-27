@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Diagnostics;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Diagnostics;
 
@@ -15,36 +17,33 @@ namespace Musoq.Evaluator.Tests.Diagnostics;
 public sealed class DiagnosticChunkedRowSourceProfilingTests
 {
     [TestMethod]
-    public void DiagnosticChunkedRowSource_WhenProducerIsSlow_DiagnosesSourceBound()
+    public async Task DiagnosticChunkedRowSource_WhenProducerIsSlow_DiagnosesSourceBound()
     {
+        using var watchdog = new TestWatchdog();
         var recorder = new SourceProfileRecorder("slow", StopwatchProfileClock.Instance);
         var metricSignal = new MetricSignal();
-        var source = new SlowProducerChunkedSource(CreateContext(recorder, metricSignal), "slow");
-        var chunks = source.Chunks;
+        var source = new SlowProducerChunkedSource(CreateContext(recorder, metricSignal, watchdog.Token), "slow");
+        using var enumerator = ProfiledChunkedEnumerable<int>.Create(source.Chunks, recorder).GetEnumerator();
+        Task<bool>? moveNext = null;
 
-        using (var enumerator = ProfiledChunkedEnumerable<int>.Create(chunks, recorder).GetEnumerator())
-        {
-            try
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
             {
-                Assert.IsTrue(source.ProducerStarted.Wait(TimeSpan.FromSeconds(5)));
-                var moveNext = ThreadPoolMoveNext(enumerator);
-
-                Assert.IsTrue(
-                    metricSignal.WaitFor(
-                        ChunkMetric("slow", DiagnosticChunkMetricNames.ConsumerWaitOnEmptyCount),
-                        1,
-                        TimeSpan.FromSeconds(5)
-                    )
+                await watchdog.WaitAsync(source.ProducerStarted.Task, "the held producer");
+                moveNext = TestWatchdog.StartWorker(enumerator.MoveNext);
+                var waiting = metricSignal.Reached(
+                    ChunkMetric("slow", DiagnosticChunkMetricNames.ConsumerWaitOnEmptyCount),
+                    1
                 );
-                source.AllowProduce.Set();
+                await watchdog.ReachedBeforeCompletionAsync(waiting, moveNext, "the consumer wait on the empty queue");
+                source.AllowProduce.TrySetResult();
 
-                Assert.IsTrue(moveNext.Wait(TimeSpan.FromSeconds(5)));
-                Assert.IsTrue(moveNext.Result);
+                await watchdog.WaitAsync(moveNext, "the first chunk");
+                Assert.IsTrue(await moveNext);
                 CollectionAssert.AreEqual(new[] { 1 }, enumerator.Current.ToArray());
                 Assert.IsFalse(enumerator.MoveNext());
 
                 var snapshot = recorder.CreateSnapshot();
-
                 Assert.AreEqual(SourceProfileDiagnosis.SourceBound, snapshot.Diagnosis);
                 AssertMetricAtLeast(
                     snapshot,
@@ -53,52 +52,42 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
                 );
                 AssertMetric(snapshot, ChunkMetric("slow", DiagnosticChunkMetricNames.ChunksProduced), 1);
                 AssertMetric(snapshot, ChunkMetric("slow", DiagnosticChunkMetricNames.RowsConsumed), 1);
-            }
-            finally
+            },
+            () =>
             {
-                source.AllowProduce.Set();
+                source.AllowProduce.TrySetResult();
+                return moveNext ?? Task.CompletedTask;
             }
-        }
+        );
     }
 
     [TestMethod]
-    public void DiagnosticChunkedRowSource_WhenProducerWaitsOnFullQueue_DiagnosesEvaluatorBound()
+    public async Task DiagnosticChunkedRowSource_WhenProducerWaitsOnFullQueue_DiagnosesEvaluatorBound()
     {
+        using var watchdog = new TestWatchdog();
         var recorder = new SourceProfileRecorder("fast", StopwatchProfileClock.Instance);
         var metricSignal = new MetricSignal();
-        var source = new FastProducerBoundedChunkedSource(CreateContext(recorder, metricSignal), "fast");
-        var chunks = source.Chunks;
-
-        using var enumerator = ProfiledChunkedEnumerable<int>.Create(chunks, recorder).GetEnumerator();
-        Assert.IsTrue(source.BeforeSecondWrite.Wait(TimeSpan.FromSeconds(5)));
-        Assert.IsTrue(
-            metricSignal.WaitFor(
-                ChunkMetric("fast", DiagnosticChunkMetricNames.ProducerWaitOnFullCount),
-                1,
-                TimeSpan.FromSeconds(5)
-            )
+        var source = new FastProducerBoundedChunkedSource(
+            CreateContext(recorder, metricSignal, watchdog.Token),
+            "fast"
         );
+        using var enumerator = ProfiledChunkedEnumerable<int>.Create(source.Chunks, recorder).GetEnumerator();
+        var waitOnFull = ChunkMetric("fast", DiagnosticChunkMetricNames.ProducerWaitOnFullCount);
 
+        await watchdog.WaitAsync(metricSignal.Reached(waitOnFull, 1), "the producer's first wait on the full queue");
         Assert.IsTrue(enumerator.MoveNext());
         CollectionAssert.AreEqual(new[] { 1 }, enumerator.Current.ToArray());
-        Assert.IsTrue(
-            metricSignal.WaitFor(
-                ChunkMetric("fast", DiagnosticChunkMetricNames.ProducerWaitOnFullCount),
-                2,
-                TimeSpan.FromSeconds(5)
-            )
-        );
+        await watchdog.WaitAsync(metricSignal.Reached(waitOnFull, 2), "the producer's second wait on the full queue");
         Assert.IsTrue(enumerator.MoveNext());
         CollectionAssert.AreEqual(new[] { 2 }, enumerator.Current.ToArray());
-        Assert.IsTrue(source.SecondWriteCompleted.Wait(TimeSpan.FromSeconds(5)));
+        await watchdog.WaitAsync(source.WritesCompleted.Task, "all producer writes");
         Assert.IsTrue(enumerator.MoveNext());
         CollectionAssert.AreEqual(new[] { 3 }, enumerator.Current.ToArray());
         Assert.IsFalse(enumerator.MoveNext());
 
         var snapshot = recorder.CreateSnapshot();
-
         Assert.AreEqual(SourceProfileDiagnosis.EvaluatorBound, snapshot.Diagnosis);
-        AssertMetric(snapshot, ChunkMetric("fast", DiagnosticChunkMetricNames.ProducerWaitOnFullCount), 2);
+        AssertMetric(snapshot, waitOnFull, 2);
         AssertMetric(snapshot, ChunkMetric("fast", DiagnosticChunkMetricNames.PeakBacklogInChunks), 1);
         AssertMetric(snapshot, ChunkMetric("fast", DiagnosticChunkMetricNames.ChunksConsumed), 3);
         AssertMetric(snapshot, ChunkMetric("fast", DiagnosticChunkMetricNames.RowsConsumed), 3);
@@ -106,42 +95,24 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
 
     private static SourceExecutionContext CreateContext(
         SourceProfileRecorder recorder,
-        MetricSignal? metricSignal = null
+        MetricSignal metricSignal,
+        CancellationToken cancellationToken
     )
     {
         ISchemaColumn[] columns = [new SchemaColumn("Value", 0, typeof(int))];
-        var diagnostics = recorder.CreateDiagnostics();
-        if (metricSignal != null)
-            diagnostics = new SourceDiagnostics(new SignalingDiagnosticsSink(diagnostics, metricSignal));
+        var diagnostics = new SourceDiagnostics(
+            new SignalingDiagnosticsSink(recorder.CreateDiagnostics(), metricSignal)
+        );
 
         return new SourceExecutionContext(
             "queryId",
             SourceExecutionPlan.Empty(SourceIdentity.Empty),
-            CancellationToken.None,
+            cancellationToken,
             columns,
             new Dictionary<string, string>(),
             NullLogger.Instance,
             sourceDiagnostics: diagnostics
         );
-    }
-
-    private static MoveNextResult ThreadPoolMoveNext(IEnumerator<IReadOnlyList<int>> enumerator)
-    {
-        var result = new MoveNextResult();
-
-        ThreadPool.QueueUserWorkItem(_ =>
-        {
-            try
-            {
-                result.SetResult(enumerator.MoveNext());
-            }
-            catch (Exception exception)
-            {
-                result.SetException(exception);
-            }
-        });
-
-        return result;
     }
 
     private static void AssertMetric(SourceProfileSnapshot snapshot, string name, long expected)
@@ -179,7 +150,7 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
     {
         private readonly object _gate = new();
         private readonly Dictionary<string, long> _values = new(StringComparer.Ordinal);
-        private readonly Dictionary<(string Name, long Expected), ManualResetEventSlim> _waiters = [];
+        private readonly Dictionary<(string Name, long Expected), TaskCompletionSource> _waiters = [];
 
         public void Record(string name, long value)
         {
@@ -194,31 +165,20 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
                     .ToArray();
 
                 foreach (var waiter in completedWaiters)
-                    waiter.Set();
+                    waiter.TrySetResult();
             }
         }
 
-        public bool WaitFor(string name, long expected, TimeSpan timeout)
+        public Task Reached(string name, long expected)
         {
-            ManualResetEventSlim waiter;
             lock (_gate)
             {
                 if (_values.TryGetValue(name, out var current) && current >= expected)
-                    return true;
+                    return Task.CompletedTask;
 
-                waiter = new ManualResetEventSlim();
-                _waiters[(name, expected)] = waiter;
-            }
-
-            try
-            {
-                return waiter.Wait(timeout);
-            }
-            finally
-            {
-                lock (_gate)
-                    _waiters.Remove((name, expected));
-                waiter.Dispose();
+                var signal = TestWatchdog.Signal();
+                _waiters.Add((name, expected), signal);
+                return signal.Task;
             }
         }
     }
@@ -226,15 +186,15 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
     private sealed class SlowProducerChunkedSource(SourceExecutionContext context, string sourceName)
         : DiagnosticChunkedRowSource<int>(context, sourceName)
     {
-        public ManualResetEventSlim ProducerStarted { get; } = new();
+        public TaskCompletionSource ProducerStarted { get; } = TestWatchdog.Signal();
 
-        public ManualResetEventSlim AllowProduce { get; } = new();
+        public TaskCompletionSource AllowProduce { get; } = TestWatchdog.Signal();
 
         protected override void CollectChunks(DiagnosticChunkWriter<int> writer)
         {
-            ProducerStarted.Set();
+            ProducerStarted.SetResult();
             var token = writer.CancellationToken;
-            AllowProduce.Wait(token);
+            AllowProduce.Task.WaitAsync(token).GetAwaiter().GetResult();
             writer.Write([1]);
         }
     }
@@ -242,52 +202,14 @@ public sealed class DiagnosticChunkedRowSourceProfilingTests
     private sealed class FastProducerBoundedChunkedSource(SourceExecutionContext context, string sourceName)
         : DiagnosticChunkedRowSource<int>(context, sourceName, new DiagnosticChunkedRowSourceOptions(1))
     {
-        public ManualResetEventSlim BeforeSecondWrite { get; } = new();
-
-        public ManualResetEventSlim SecondWriteCompleted { get; } = new();
+        public TaskCompletionSource WritesCompleted { get; } = TestWatchdog.Signal();
 
         protected override void CollectChunks(DiagnosticChunkWriter<int> writer)
         {
             writer.Write([1]);
-            BeforeSecondWrite.Set();
             writer.Write([2]);
             writer.Write([3]);
-            SecondWriteCompleted.Set();
-        }
-    }
-
-    private sealed class MoveNextResult
-    {
-        private readonly ManualResetEventSlim _completed = new();
-        private bool _result;
-        private Exception? _exception;
-
-        public bool Result
-        {
-            get
-            {
-                if (_exception != null)
-                    throw _exception;
-
-                return _result;
-            }
-        }
-
-        public bool Wait(TimeSpan timeout)
-        {
-            return _completed.Wait(timeout);
-        }
-
-        public void SetResult(bool result)
-        {
-            _result = result;
-            _completed.Set();
-        }
-
-        public void SetException(Exception exception)
-        {
-            _exception = exception;
-            _completed.Set();
+            WritesCompleted.SetResult();
         }
     }
 }

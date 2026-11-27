@@ -6,7 +6,10 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderComputeOffsetWindow(ExecutionComputeOffsetWindow offset)
+    private List<StatementSyntax> RenderComputeOffsetWindow(
+        ExecutionRenderContext renderContext,
+        ExecutionComputeOffsetWindow offset
+    )
     {
         const string indexVariableName = "windowIndex";
         var index = new ExecutionVariable(indexVariableName, typeof(int));
@@ -35,7 +38,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateWindowKeyArrayAssignment(
                     partitionKeys,
                     index.Name,
-                    CreateWindowPartitionKeyExpression(partitionKeys, offset.PartitionKey!)
+                    CreateWindowPartitionKeyExpression(renderContext, partitionKeys, offset.PartitionKey!)
                 )
             );
         }
@@ -46,25 +49,30 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateWindowKeyArrayAssignment(
                     orderKeys,
                     index.Name,
-                    CreateWindowOrderKeyExpression(orderKeys, offset.OrderKeys)
+                    CreateWindowOrderKeyExpression(renderContext, orderKeys, offset.OrderKeys)
                 )
             );
         }
 
         extractionStatements.Add(
-            CreateArrayAssignment(values.Name, index.Name, RenderExpression(offset.Value), valueElementType)
+            CreateArrayAssignment(
+                values.Name,
+                index.Name,
+                RenderExpression(offset.Value, renderContext),
+                valueElementType
+            )
         );
 
         if (!useScalarOffsetArguments)
         {
             extractionStatements.Add(
-                CreateIntArrayAssignment(offsets!.Name, index.Name, RenderExpression(offset.Offset))
+                CreateIntArrayAssignment(offsets!.Name, index.Name, RenderExpression(offset.Offset, renderContext))
             );
             extractionStatements.Add(
                 CreateArrayAssignment(
                     defaultValues!.Name,
                     index.Name,
-                    RenderExpression(offset.DefaultValue),
+                    RenderExpression(offset.DefaultValue, renderContext),
                     resultElementType
                 )
             );
@@ -145,7 +153,7 @@ public sealed partial class ExecutionCSharpRenderer
         AddWindowSortedPartitionDeclarations(statements, offsetSortedPartitions, offsetPartitions, orderKeys);
 
         statements.AddRange(
-            CreateOffsetKernelStatements(offset, values, offsets, defaultValues, offsetSortedPartitions)
+            CreateOffsetKernelStatements(renderContext, offset, values, offsets, defaultValues, offsetSortedPartitions)
         );
 
         return statements;

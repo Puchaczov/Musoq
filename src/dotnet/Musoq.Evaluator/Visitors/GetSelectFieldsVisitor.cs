@@ -10,7 +10,7 @@ namespace Musoq.Evaluator.Visitors;
 public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpressionVisitor
 {
     private readonly Func<Node, EnumTypeDescriptor?>? _enumTypeResolver;
-    private readonly Func<Node, bool>? _nullableInterpretationResolver;
+    private readonly Func<ISchemaColumn, Node, ISchemaColumn>? _preserveInterpretationShape;
     private readonly List<ISchemaColumn> _collectedFieldNames = [];
     private ISchemaColumn[] _cachedFieldNames = [];
     private bool _fieldNamesCacheValid;
@@ -23,11 +23,11 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
 
     internal GetSelectFieldsVisitor(
         Func<Node, EnumTypeDescriptor?> enumTypeResolver,
-        Func<Node, bool> nullableInterpretationResolver
+        Func<ISchemaColumn, Node, ISchemaColumn> preserveInterpretationShape
     )
         : this(enumTypeResolver)
     {
-        _nullableInterpretationResolver = nullableInterpretationResolver;
+        _preserveInterpretationShape = preserveInterpretationShape;
     }
 
     public ISchemaColumn[] CollectedFieldNames
@@ -93,12 +93,7 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
                     null,
                     ColumnStability.Stable
                 );
-        _collectedFieldNames.Add(
-            NullableInterpretationColumn.Preserve(
-                outputColumn,
-                intendedTypeName != null && _nullableInterpretationResolver?.Invoke(node.Expression) == true
-            )
-        );
+        _collectedFieldNames.Add(_preserveInterpretationShape?.Invoke(outputColumn, node.Expression) ?? outputColumn);
         _fieldNamesCacheValid = false;
     }
 
@@ -112,7 +107,7 @@ public class GetSelectFieldsVisitor : NoOpExpressionVisitor, IQueryPartAwareExpr
 
     private static Type ResolveOutputType(FieldNode node)
     {
-        if (node.ReturnType is { } returnType)
+        if (SqlPredicateNullability.ResultType(node.Expression) is { } returnType)
             return returnType;
 
         if (node.Expression is RecordLiteralNode or ArrayLiteralNode)

@@ -113,24 +113,19 @@ internal sealed partial class PhysicalLoweringImplementation
         var aggregate = aggregateResources.Value;
         var groupDictionaries = CreateValueTupleGroupDictionaries(aggregateScopeName, aggregate.Group.Plan);
 
-        var accumulationBlock = CreateAggregateAccumulationBlock(
-            pipeline.Source.Filter,
-            sourceShape,
-            new ExecutionBlock([
-                new ExecutionGetOrAddValueTupleAggregateGroup(
-                    rootGroup,
-                    groupDictionaries,
-                    groupsToFinalize,
-                    currentGroup,
-                    groupKeys,
-                    pipeline.GroupKeyNames,
-                    pipeline.GroupKeyTypes,
-                    aggregate.Group.Plan
-                ),
-                .. aggregate.SetNodes.Nodes,
-                .. aggregate.ValueCapture.Nodes,
-            ])
+        var getGroup = new ExecutionGetOrAddValueTupleAggregateGroup(
+            rootGroup,
+            groupDictionaries,
+            groupsToFinalize,
+            currentGroup,
+            groupKeys,
+            pipeline.GroupKeyNames,
+            pipeline.GroupKeyTypes,
+            aggregate.Group.Plan
         );
+        var updates = new ExecutionBlock([.. aggregate.SetNodes.Nodes, .. aggregate.ValueCapture.Nodes]);
+        var body = pipeline.InitializeConstantGroup ? updates : new ExecutionBlock([getGroup, .. updates.Nodes]);
+        var accumulationBlock = CreateAggregateAccumulationBlock(pipeline.Source.Filter, sourceShape, body);
         var source = aggregateSource.Source.Variable;
         var sourceSetup = aggregateSource.Source.Setup;
         var sourceRows = aggregateSource.Source.Rows;
@@ -173,7 +168,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 finalBlock.Value,
                 projection.PostOperations,
                 pipeline.Project.IsDistinct,
-                projection.FinalProjection
+                projection.FinalProjection,
+                pipeline.InitializeConstantGroup ? getGroup : null
             )
         );
     }

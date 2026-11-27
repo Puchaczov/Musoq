@@ -5,12 +5,15 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderComputePluginWindow(ExecutionComputePluginWindow window)
+    private List<StatementSyntax> RenderComputePluginWindow(
+        ExecutionRenderContext renderContext,
+        ExecutionComputePluginWindow window
+    )
     {
         if (window.LibraryGet is null || window.ContextBuffers is null)
             throw new InvalidOperationException(
                 "Window execution requires a validated typed operation and concrete context buffers; legacy factories are unsupported."
             );
-        return RenderLibraryWindowContext(window);
+        return RenderLibraryWindowContext(renderContext, window);
     }
 }

@@ -21,6 +21,11 @@ internal static class BinarySchemaClrTypeNames
             TypeCode.Decimal => "decimal",
             TypeCode.Boolean => "bool",
             TypeCode.String => "string",
+            TypeCode.Char => "char",
+            TypeCode.DateTime => "global::System.DateTime",
+            TypeCode.Object when type == typeof(DateTimeOffset) => "global::System.DateTimeOffset",
+            TypeCode.Object when type == typeof(TimeSpan) => "global::System.TimeSpan",
+            TypeCode.Object when type == typeof(Guid) => "global::System.Guid",
             _ => "object",
         };
     }

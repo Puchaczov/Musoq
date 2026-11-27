@@ -44,7 +44,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                     "Interpret function source must provide a type parameter in this branch."
                 );
 
-            _binaryInterpretationAliases[_sourceBinding.QueryAlias] = schemaName;
+            _interpretationSchemasByAlias[_sourceBinding.QueryAlias] = schemaName;
 
             var isPartialInterpret = IsPartialResultInterpretFunction(node.Identifier);
             var interpretTable = isPartialInterpret

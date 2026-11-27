@@ -56,13 +56,15 @@ public sealed class BoundedRuntimeCacheTests
     }
 
     [TestMethod]
-    public void GetOrAdd_WhenCalledConcurrentlyForSameKey_ShouldCreateValueOnce()
+    public async Task GetOrAdd_WhenCalledConcurrentlyForSameKey_ShouldCreateValueOnce()
     {
-        var cache = new BoundedRuntimeCache<string, int>(8, StringComparer.Ordinal);
-        var factoryCalls = 0;
-
         using var contention = new SynchronousContention();
-        var results = contention.Run(
+        var cache = new BoundedRuntimeCache<string, int>(8, StringComparer.Ordinal)
+        {
+            EnterMutationGate = contention.EnterMonitor,
+        };
+        var factoryCalls = 0;
+        var results = await contention.RunAsync(
             () =>
                 cache.GetOrAdd(
                     "shared",
@@ -86,48 +88,52 @@ public sealed class BoundedRuntimeCacheTests
     {
         var cache = new BoundedRuntimeCache<string, int>(8, StringComparer.Ordinal);
         cache.GetOrAdd("cached", static _ => 7);
-        using var factoryEntered = new ManualResetEventSlim();
-        using var releaseFactory = new ManualResetEventSlim();
-        var blockedMiss = StartDedicated(() =>
+        using var watchdog = new TestWatchdog();
+        var factoryEntered = TestWatchdog.Signal();
+        var releaseFactory = TestWatchdog.Signal();
+        var blockedMiss = TestWatchdog.StartWorker(() =>
             cache.GetOrAdd(
                 "blocked",
                 _ =>
                 {
-                    factoryEntered.Set();
-                    releaseFactory.Wait();
+                    factoryEntered.SetResult();
+                    releaseFactory.Task.WaitAsync(watchdog.Token).GetAwaiter().GetResult();
                     return 11;
                 }
             )
         );
+        Task<int>? cachedHit = null;
 
-        try
-        {
-            Assert.IsTrue(factoryEntered.Wait(TimeSpan.FromSeconds(5)), "The cache miss factory did not start.");
-            var cachedHit = StartDedicated(() =>
-                cache.GetOrAdd("cached", static _ => throw new AssertFailedException())
-            );
-            Assert.AreEqual(7, await cachedHit.WaitAsync(TimeSpan.FromSeconds(5)));
-        }
-        finally
-        {
-            releaseFactory.Set();
-            await blockedMiss.WaitAsync(TimeSpan.FromSeconds(5));
-        }
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(factoryEntered.Task, blockedMiss, "the miss factory");
+                cachedHit = TestWatchdog.StartWorker(() =>
+                    cache.GetOrAdd("cached", static _ => throw new AssertFailedException())
+                );
+                await watchdog.WaitAsync(cachedHit, "the cache hit while the miss factory is held");
+                Assert.AreEqual(7, await cachedHit);
+            },
+            () =>
+            {
+                releaseFactory.TrySetResult();
+                return Task.WhenAll(blockedMiss, cachedHit ?? Task.CompletedTask);
+            }
+        );
     }
 
-    private static Task<T> StartDedicated<T>(Func<T> action) =>
-        Task.Factory.StartNew(action, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
     [TestMethod]
-    public void GetOrAdd_WhenExistingValueIsStale_ShouldReplaceOnceAndPreserveFifoPosition()
+    public async Task GetOrAdd_WhenExistingValueIsStale_ShouldReplaceOnceAndPreserveFifoPosition()
     {
-        var cache = new BoundedRuntimeCache<string, int>(2, StringComparer.Ordinal);
+        using var contention = new SynchronousContention();
+        var cache = new BoundedRuntimeCache<string, int>(2, StringComparer.Ordinal)
+        {
+            EnterMutationGate = contention.EnterMonitor,
+        };
         cache.GetOrAdd("a", static _ => 1);
         cache.GetOrAdd("b", static _ => 2);
         var replacementCalls = 0;
-
-        using var contention = new SynchronousContention();
-        var results = contention.Run(
+        var results = await contention.RunAsync(
             () =>
                 cache.GetOrAdd(
                     "a",

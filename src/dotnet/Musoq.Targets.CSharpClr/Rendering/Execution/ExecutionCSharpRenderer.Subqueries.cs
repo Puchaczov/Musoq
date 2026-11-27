@@ -25,7 +25,7 @@ public sealed partial class ExecutionCSharpRenderer
                 members = RenderClassMembers(query.Plan, final.TableName, shapeName, final.Shape.Fields);
             else
                 members = RenderClassMembers(query.Plan);
-            var names = new SubqueryMemberNames(query.Identifier, members);
+            var names = new SubqueryMemberNames(query.Identifier, members, query.Plan);
             foreach (var member in members)
                 yield return (MemberDeclarationSyntax)names.Visit(member)!;
             var context = InitializeRenderContext(query.Plan);
@@ -97,6 +97,27 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.ParseExpression("global::Musoq.Evaluator.Runtime.SubqueryExecution.Rows")
                 )
                 .WithArgumentList(CreateArgumentList(table));
+        if (query.Kind == SubqueryResultKind.Rows)
+        {
+            var tableOutput = output.FinalSinkPlans.TableOutput;
+            if (!nativeRows || tableOutput.UsesGeneratedRow || tableOutput.ReturnsOwnedRows)
+                return rows;
+            var project = SyntaxFactory
+                .SimpleLambdaExpression(
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier("row")),
+                    CSharpRenderer.CreateFinalTableRowExpression(tableOutput, "row")
+                )
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.StaticKeyword)));
+            return SyntaxFactory
+                .InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        rows,
+                        SyntaxFactory.IdentifierName("Select")
+                    )
+                )
+                .WithArgumentList(CreateArgumentList(project));
+        }
         var typeArguments = new List<string> { rowType };
         var callArguments = new List<ExpressionSyntax>();
         if (query.Kind is SubqueryResultKind.In or SubqueryResultKind.Any or SubqueryResultKind.All)
@@ -112,7 +133,7 @@ public sealed partial class ExecutionCSharpRenderer
             typeArguments.Add(CreateTypeSyntax(valueType).ToString());
             callArguments.Add(RenderSubqueryRead(query, final.Shape.Fields[0], valueType, nativeRows));
             if (query.Kind is SubqueryResultKind.In or SubqueryResultKind.Any or SubqueryResultKind.All)
-                callArguments.Add(RenderSubqueryComparison(query, valueType, context));
+                callArguments.Add(RenderSubqueryComparison(query, context));
         }
         callArguments.Add(SyntaxFactory.IdentifierName("token"));
         return SyntaxFactory
@@ -135,27 +156,14 @@ public sealed partial class ExecutionCSharpRenderer
             return SyntaxFactory.ParseExpression("static value => value");
 
         var read = nativeRows
-            ? $"row.{(field.AccessStrategy as GeneratedFieldAccess)?.FieldName ?? field.Name}"
+            ? $"row.{EscapeIdentifier((field.AccessStrategy as GeneratedFieldAccess)?.FieldName ?? field.Name)}"
             : $"row.GetValue<{CreateTypeSyntax(field.Type)}>(0)";
         return SyntaxFactory.ParseExpression($"static row => ({CreateTypeSyntax(valueType)}){read}");
     }
 
-    private ExpressionSyntax RenderSubqueryComparison(
-        ExecutionSubquery query,
-        ExecutionTypeRef rightType,
-        ExecutionRenderContext context
-    )
+    private ExpressionSyntax RenderSubqueryComparison(ExecutionSubquery query, ExecutionRenderContext context)
     {
-        var comparison = new ExecutionBinary(
-            query.Comparison,
-            new ExecutionVariableRead(new ExecutionVariable("left", query.Operand!.ReturnType)),
-            new ExecutionVariableRead(new ExecutionVariable("right", rightType)),
-            typeof(bool?)
-        )
-        {
-            UsesSqlNullSemantics = true,
-        };
-        var body = RenderBinary(comparison, context);
+        var body = RenderExpression(query.ComparisonBody!, context);
         return SyntaxFactory
             .ParenthesizedLambdaExpression(
                 SyntaxFactory.ParameterList(

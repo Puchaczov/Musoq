@@ -149,6 +149,13 @@ public class BasicEntityTestBase : MSTestContextTestBase
         return new Dictionary<string, IEnumerable<BasicEntity>> { { "#A", entities } };
     }
 
+    protected void AssertQueryRows(string sql, params object?[][] expected)
+    {
+        using var query = CreateAndRunVirtualMachine(sql, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, expected);
+    }
+
     protected static void AssertColumn(Table table, int index, string expectedName, Type expectedType)
     {
         var column = table.Columns.ElementAt(index);

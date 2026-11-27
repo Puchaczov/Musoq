@@ -150,8 +150,8 @@ namespace GeneratedSample_K25_TypedEmptyWindowFrames
                         {
                             if ((resultSums0BatchPosition & 1023) == 0)
                                 token.ThrowIfCancellationRequested();
-                            resultSums0BatchStarts[resultSums0BatchPosition] = Math.Min(resultSums0PartitionCount, resultSums0BatchPosition + 1);
-                            resultSums0BatchEnds[resultSums0BatchPosition] = Math.Min(resultSums0PartitionCount - 1, resultSums0BatchPosition + 1);
+                            resultSums0BatchStarts[resultSums0BatchPosition] = resultSums0BatchPosition + Math.Min(1, resultSums0PartitionCount - resultSums0BatchPosition);
+                            resultSums0BatchEnds[resultSums0BatchPosition] = resultSums0BatchPosition + Math.Min(1, resultSums0PartitionCount - 1 - resultSums0BatchPosition);
                         }
 
                         var resultSums0BatchContext = new Musoq.Plugins.WindowBatchContext<decimal?, decimal?>(resultSums0BatchValues, new System.ReadOnlySpan<int>(resultSums0PartitionIndices, resultSums0PartitionStart, resultSums0PartitionCount), resultSums0BatchStarts, resultSums0BatchEnds, resultSums0, token);
@@ -160,8 +160,8 @@ namespace GeneratedSample_K25_TypedEmptyWindowFrames
                             for (int resultSums0PartitionIndex = 0; resultSums0PartitionIndex < resultSums0PartitionCount; ++resultSums0PartitionIndex)
                             {
                                 var resultSums0OutputIndex = resultSums0PartitionIndices[resultSums0PartitionStart + resultSums0PartitionIndex];
-                                var resultSums0FrameStart = Math.Min(resultSums0PartitionCount, resultSums0PartitionIndex + 1);
-                                var resultSums0FrameEnd = Math.Min(resultSums0PartitionCount - 1, resultSums0PartitionIndex + 1);
+                                var resultSums0FrameStart = resultSums0PartitionIndex + Math.Min(1, resultSums0PartitionCount - resultSums0PartitionIndex);
+                                var resultSums0FrameEnd = resultSums0PartitionIndex + Math.Min(1, resultSums0PartitionCount - 1 - resultSums0PartitionIndex);
                                 Musoq.Plugins.SumAggregateKernel<decimal>.Reset(ref resultSums0State);
                                 for (var resultSums0FrameIndex = Math.Max(0, resultSums0FrameStart); resultSums0FrameIndex <= resultSums0FrameEnd && resultSums0FrameIndex < resultSums0PartitionCount; resultSums0FrameIndex++)
                                 {
@@ -191,8 +191,8 @@ namespace GeneratedSample_K25_TypedEmptyWindowFrames
                     for (int resultCounts1PartitionIndex = 0; resultCounts1PartitionIndex < resultCounts1PartitionCount; ++resultCounts1PartitionIndex)
                     {
                         var resultCounts1OutputIndex = resultCounts1PartitionIndices[resultCounts1PartitionStart + resultCounts1PartitionIndex];
-                        var resultCounts1FrameStart = Math.Min(resultCounts1PartitionCount, resultCounts1PartitionIndex + 1);
-                        var resultCounts1FrameEnd = Math.Min(resultCounts1PartitionCount - 1, resultCounts1PartitionIndex + 1);
+                        var resultCounts1FrameStart = resultCounts1PartitionIndex + Math.Min(1, resultCounts1PartitionCount - resultCounts1PartitionIndex);
+                        var resultCounts1FrameEnd = resultCounts1PartitionIndex + Math.Min(1, resultCounts1PartitionCount - 1 - resultCounts1PartitionIndex);
                         Musoq.Plugins.CountAllAggregateKernel.Reset(ref resultCounts1State);
                         for (var resultCounts1FrameIndex = Math.Max(0, resultCounts1FrameStart); resultCounts1FrameIndex <= resultCounts1FrameEnd && resultCounts1FrameIndex < resultCounts1PartitionCount; resultCounts1FrameIndex++)
                         {

@@ -10,6 +10,7 @@ using Musoq.Converter.Tests.Schema;
 using Musoq.Evaluator;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
+using Musoq.Tests.Common;
 
 namespace Musoq.Converter.Tests;
 
@@ -131,23 +132,33 @@ public sealed class QualifyCompiledQueryArtifactTests
     {
         var artifact = Compile(PagingQuery, CreateProvider());
         Prime(PagingQuery, artifact);
+        using var watchdog = new TestWatchdog();
         using var barrier = new Barrier(2);
+        void Meet() => watchdog.Rendezvous(barrier, "both artifact executions to enumerate their sources");
         using var first = Activate(
             PagingQuery,
             artifact,
-            CreateProvider(new OverlappingRows(Rows(), barrier)),
+            CreateProvider(new OverlappingRows(Rows(), Meet)),
             CompiledQueryArtifactValidationMode.Fast
         );
         using var second = Activate(
             PagingQuery,
             artifact,
-            CreateProvider(new OverlappingRows(Rows(), barrier)),
+            CreateProvider(new OverlappingRows(Rows(), Meet)),
             CompiledQueryArtifactValidationMode.Fast
         );
         BindPage(first, "A", 0);
         BindPage(second, "B", 1);
 
-        var results = await Task.WhenAll(Task.Run(() => ReadPage(first)), Task.Run(() => ReadPage(second)));
+        var executions = Task.WhenAll(
+            TestWatchdog.StartWorker(() => ReadPage(first)),
+            TestWatchdog.StartWorker(() => ReadPage(second))
+        );
+        await TestWatchdog.WithCleanupAsync(
+            () => watchdog.WaitAsync(executions, "both artifact results"),
+            () => executions
+        );
+        var results = await executions;
 
         CollectionAssert.AreEqual(new[] { "Ada:1|Bob:2", "Evan:2|Faye:3" }, results);
     }
@@ -263,7 +274,7 @@ public sealed class QualifyCompiledQueryArtifactTests
             },
         ];
 
-    private sealed class OverlappingRows(IReadOnlyList<EntitySetEntity> rows, Barrier barrier)
+    private sealed class OverlappingRows(IReadOnlyList<EntitySetEntity> rows, Action rendezvous)
         : IReadOnlyList<EntitySetEntity>
     {
         public int Count => rows.Count;
@@ -271,8 +282,7 @@ public sealed class QualifyCompiledQueryArtifactTests
 
         public IEnumerator<EntitySetEntity> GetEnumerator()
         {
-            if (!barrier.SignalAndWait(TimeSpan.FromSeconds(15)))
-                throw new TimeoutException("The two artifact executions did not overlap at source enumeration.");
+            rendezvous();
             return rows.GetEnumerator();
         }
 

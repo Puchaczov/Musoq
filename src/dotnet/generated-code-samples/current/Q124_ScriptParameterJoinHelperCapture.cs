@@ -10,10 +10,10 @@ param(suffix: string, fallback: string)
 /*
 MultiStatement
   Project [a.Name as a.Name, a.City as a.City, b.Name as b.Name, b.City as b.City]
-    Join [LeftOuter] [((a.City || $suffix) = (b.City || $suffix))]
+    Join [LeftOuter] [((a.City + $suffix) = (b.City + $suffix))]
       SchemaScan [#A.entities() as a]
       SchemaScan [#B.entities() as b]
-  Project [a.Name as Name, Coalesce((b.Name || $suffix), $fallback) as MatchedName]
+  Project [a.Name as Name, Coalesce((b.Name + $suffix), $fallback) as MatchedName]
     CteRef [ab as ab]
 */
 
@@ -21,10 +21,10 @@ MultiStatement
 /*
 PhysicalMultiStatement
   PhysicalProject [a.Name as a.Name, b.Name as b.Name]
-    PhysicalHashJoin [LeftOuter] [build: (b.City || $suffix)] [probe: (a.City || $suffix)]
+    PhysicalHashJoin [LeftOuter] [build: (b.City + $suffix)] [probe: (a.City + $suffix)]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#B.entities() as b]
-  PhysicalProject [a.Name as Name, Coalesce((b.Name || $suffix), $fallback) as MatchedName]
+  PhysicalProject [a.Name as Name, Coalesce((b.Name + $suffix), $fallback) as MatchedName]
     PhysicalCteRef [ab as ab]
 */
 

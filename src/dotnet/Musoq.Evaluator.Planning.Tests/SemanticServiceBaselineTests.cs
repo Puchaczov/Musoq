@@ -147,17 +147,17 @@ public sealed class SemanticServiceBaselineTests
     {
         var service = new SemanticColumnPropertyBindingService(new SourceBindingState(), new ResultShapeState());
 
-        var idProperty = service.TryResolveTypedProperty(
+        var idProperty = SemanticColumnPropertyBindingService.TryResolveTypedProperty(
             typeof(IndexerEntity),
             nameof(IndexerEntity.Id),
             out var idError
         );
-        var valuesProperty = service.TryResolveTypedProperty(
+        var valuesProperty = SemanticColumnPropertyBindingService.TryResolveTypedProperty(
             typeof(IndexerEntity),
             nameof(IndexerEntity.Values),
             out var valuesError
         );
-        var numbersProperty = service.TryResolveTypedProperty(
+        var numbersProperty = SemanticColumnPropertyBindingService.TryResolveTypedProperty(
             typeof(IndexerEntity),
             nameof(IndexerEntity.Numbers),
             out var numbersError

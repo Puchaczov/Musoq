@@ -1,146 +1,99 @@
 using System.Collections.Generic;
+using System.Linq;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser.Nodes;
+using static Musoq.Evaluator.Visitors.Helpers.Subqueries.SubqueryCorrelationUtilities;
 
 namespace Musoq.Evaluator.Visitors;
 
 public partial class SubqueryToCteRewriteVisitor
 {
-    private bool TryRewriteNullAwareNotIn(
-        SubqueryInfo subqueryInfo,
+    private void ApplyNotInNullGuards(
         PredicateSubqueryJoin match,
         ref FromNode currentFrom,
-        ref Node? remainingExpr,
-        List<CteInnerExpressionNode> cteInnerExpressions
+        ref Node? remaining,
+        List<CteInnerExpressionNode> ctes
     )
     {
-        if (
-            subqueryInfo.RequiresLeftJoin
-            || !subqueryInfo.IsIn
-            || !subqueryInfo.IsNegated
-            || !TryCreateNullAwareNotInGuard(subqueryInfo, out var nullGuard)
-        )
-            return false;
+        var nulls = PrepareMembershipPresence(match, ctes, nullMembersOnly: true);
+        currentFrom = new Parser.JoinFromNode(currentFrom, nulls.CteRef, nulls.JoinExpression, JoinType.LeftAntiSemi);
 
-        currentFrom = new Parser.JoinFromNode(currentFrom, match.CteRef, match.JoinExpression, JoinType.LeftAntiSemi);
-        var nullJoin = PreparePredicateSubqueryJoin(nullGuard, cteInnerExpressions);
-        currentFrom = new Parser.JoinFromNode(
-            currentFrom,
-            nullJoin.CteRef,
-            nullJoin.JoinExpression,
-            JoinType.LeftAntiSemi
-        );
-        remainingExpr = AddNotInOuterNullGuard(remainingExpr, subqueryInfo.InQueryNode!.Left);
-        return true;
+        var rows = PrepareMembershipPresence(match, ctes, nullMembersOnly: false);
+        currentFrom = new Parser.JoinFromNode(currentFrom, rows.CteRef, rows.JoinExpression, JoinType.LeftMark);
+        var guard = new OrNode(new IsNullNode(match.Membership!.LeftSide, true), new NotNode(rows.Replacement));
+        remaining = remaining is null ? guard : new AndNode(remaining, guard);
     }
 
-    private static Node? AddNotInOuterNullGuard(Node? expression, Node left)
-    {
-        var guard = new IsNullNode(left, true);
-        return expression == null ? guard : new AndNode(expression, guard);
-    }
-
-    private static bool TryCreateNullAwareNotInGuard(SubqueryInfo subqueryInfo, out SubqueryInfo nullGuard)
-    {
-        if (
-            subqueryInfo.InQueryNode is not { Subquery: QueryNode query }
-            || query.Select.Fields.Length != 1
-            || query.GroupBy != null
-            || query.Window != null
-            || query.Qualify != null
-        )
-        {
-            nullGuard = null!;
-            return false;
-        }
-
-        var predicate = new IsNullNode(query.Select.Fields[0].Expression, false);
-        var guardedQuery = AddSubqueryWherePredicate(query, predicate);
-        nullGuard = SubqueryInfo.CreateExists(new ExistsQueryNode(guardedQuery), true) with
-        {
-            Correlation = subqueryInfo.Correlation,
-        };
-        return true;
-    }
-
-    private bool TryCreateNullAwareNotInMatch(
-        InQueryNode inQuery,
-        SubqueryCorrelationAnalysis analysis,
-        out SubqueryInfo matchInfo,
-        out SubqueryInfo nullInfo
+    private Node PreparePredicateValue(
+        SubqueryInfo info,
+        PredicateSubqueryJoin match,
+        List<CteInnerExpressionNode> ctes,
+        Action<PredicateSubqueryJoin> addMark
     )
     {
-        if (
-            inQuery.Subquery is not QueryNode query
-            || query.Select.Fields.Length != 1
-            || query.GroupBy != null
-            || query.Window != null
-            || query.Qualify != null
-        )
-        {
-            matchInfo = null!;
-            nullInfo = null!;
-            return false;
-        }
+        if (match.Membership is not { } membership)
+            return match.Replacement;
 
-        var value = query.Select.Fields[0].Expression;
-        var matchQuery = AddSubqueryWherePredicate(query, new EqualityNode(value, inQuery.Left));
-        var nullQuery = AddSubqueryWherePredicate(query, new IsNullNode(value, false));
-        var correlation = FindCorrelation(inQuery, analysis);
+        var rows = PrepareMembershipPresence(match, ctes, nullMembersOnly: false);
+        var nulls = PrepareMembershipPresence(match, ctes, nullMembersOnly: true);
+        addMark(rows);
+        addMark(nulls);
 
-        matchInfo = CreateNullAwareNotInExists(matchQuery, correlation);
-        nullInfo = CreateNullAwareNotInExists(nullQuery, correlation);
-        return true;
-    }
-
-    private static SubqueryInfo CreateNullAwareNotInExists(QueryNode query, SubqueryCorrelationInfo? correlation)
-    {
-        return SubqueryInfo.CreateExists(new ExistsQueryNode(query), true) with
-        {
-            RequiresLeftJoin = true,
-            Correlation = correlation,
-        };
-    }
-
-    private static QueryNode AddSubqueryWherePredicate(QueryNode query, Node predicate)
-    {
-        var where =
-            query.Where == null
-                ? new WhereNode(predicate)
-                : new WhereNode(new AndNode(query.Where.Expression, predicate));
-
-        return new QueryNode(
-            query.Select,
-            query.From,
-            where,
-            query.GroupBy,
-            query.OrderBy,
-            query.Skip,
-            query.Take,
-            query.Window,
-            query.Qualify,
-            default
+        var matched = new IsNullNode(new AccessColumnNode(membership.CteColumnName, match.CteRef.Alias, default), true);
+        var unknown = new OrNode(new IsNullNode(membership.LeftSide, false), nulls.Replacement);
+        return new CaseNode(
+            [
+                (new WhenNode(matched), new ThenNode(new BooleanNode(!info.IsNegated))),
+                (new WhenNode(new AndNode(rows.Replacement, unknown)), new ThenNode(new NullNode())),
+            ],
+            new ElseNode(new BooleanNode(info.IsNegated))
         );
     }
 
-    private sealed partial class PredicateSubqueryExpressionRewriter
+    // Probe the completed set, so null detection and emptiness respect DISTINCT, aggregation and paging.
+    private PredicateSubqueryJoin PrepareMembershipPresence(
+        PredicateSubqueryJoin match,
+        List<CteInnerExpressionNode> ctes,
+        bool nullMembersOnly
+    )
     {
-        private Node PrepareNotInSubquery(InQueryNode inQuery)
+        var membership = match.Membership!;
+        var source = match.CteRef.Alias;
+        var name = CreateUniqueSubqueryName();
+        var marker = GeneratedSubqueryContract.CreateKeyColumnName(name);
+        var fields = new List<FieldNode> { new(new IntegerNode(1), 0, marker) };
+        var markerRef = new AccessColumnNode(marker, name, default);
+        Node probe = new EqualityNode(new IntegerNode(1), markerRef);
+        if (membership.CorrelationJoinExpression is { } correlation)
         {
-            var original = SubqueryInfo.CreateIn(inQuery, true);
-            if (!owner.TryCreateNullAwareNotInMatch(inQuery, analysis, out var matchInfo, out var nullInfo))
-                return PrepareSubquery(original).Replacement;
-
-            var match = owner.PreparePredicateSubqueryJoin(matchInfo, cteInnerExpressions);
-            _joins.Add(match);
-
-            var nullMatch = owner.PreparePredicateSubqueryJoin(nullInfo, cteInnerExpressions);
-            _joins.Add(nullMatch);
-
-            return new AndNode(
-                new IsNullNode(inQuery.Left, true),
-                new AndNode(match.Replacement, nullMatch.Replacement)
-            );
+            var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { source };
+            var projections = CollectCorrelationProjections([correlation], aliases, name);
+            foreach (var column in projections)
+                fields.Add(
+                    new FieldNode(
+                        new AccessColumnNode(column.ColumnName, source, column.Span),
+                        fields.Count,
+                        column.CteColumnName
+                    )
+                );
+            probe = new AndNode(probe, RewriteCorrelatedPredicatesForJoin([correlation], projections, aliases, name));
         }
+
+        var value = new AccessColumnNode(membership.CteColumnName, source, default);
+        var query = new QueryNode(
+            new SelectNode(fields.ToArray()),
+            new Parser.ExpressionFromNode(new Parser.InMemoryTableFromNode(source, source)),
+            nullMembersOnly ? new WhereNode(new IsNullNode(value, false)) : null,
+            null,
+            null,
+            null,
+            null
+        );
+        ctes.Add(new CteInnerExpressionNode(query, name));
+        return new PredicateSubqueryJoin(
+            new Parser.InMemoryTableFromNode(name, name),
+            probe,
+            new IsNullNode(markerRef, true)
+        );
     }
 }

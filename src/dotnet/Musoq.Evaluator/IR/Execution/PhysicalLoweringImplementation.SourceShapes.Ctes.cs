@@ -31,7 +31,9 @@ internal sealed partial class PhysicalLoweringImplementation
             };
         }
 
-        return cteIndexes.ContainsKey(cteRef.CteName) ? CreateTableRowShape(cteRef) : null;
+        return cteIndexes.ContainsKey(cteRef.CteName)
+            ? TableRowShape.FromSchema(cteRef.Alias, cteRef.OutputSchema)
+            : null;
     }
 
     private static GeneratedRowShape? ResolveCteGeneratedRowShape(

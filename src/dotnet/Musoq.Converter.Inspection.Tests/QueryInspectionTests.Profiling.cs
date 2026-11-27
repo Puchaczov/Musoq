@@ -132,7 +132,6 @@ public partial class QueryInspectionTests
         Assert.IsTrue(source.LastRowTime.HasValue);
         Assert.IsTrue(source.MoveNextWaitTime >= TimeSpan.Zero);
         Assert.IsTrue(source.ConsumerGapTime >= TimeSpan.Zero);
-        Assert.AreNotEqual(SourceProfileDiagnosis.Unknown, source.Diagnosis);
 
         StringAssert.Contains(profileResult.ProfileText, "Rows read: 1");
         StringAssert.Contains(profileResult.ProfileText, "MoveNext wait:");

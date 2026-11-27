@@ -16,21 +16,14 @@ public partial class InterpreterCodeGenerator
         ArgumentNullException.ThrowIfNull(schema);
 
         _currentSchemaName = schema.Name;
-        _inlineSchemas.Clear();
-        _switchSchemas.Clear();
+        if (!_registry.TryGetSchema(schema.Name, out var registration) || !ReferenceEquals(registration?.Node, schema))
+            _registry.BinaryCompositions.Register(schema.Fields);
         _discardCounter = 0;
         _factoryCounter = 0;
         _currentTypeParameters = schema.TypeParameters ?? Array.Empty<string>();
 
-        var allFields = GetAllFieldsIncludingInherited(schema);
+        var allFields = InterpretationSchemaFields.GetFields(schema, _registry);
         _expressionFields = allFields;
-        foreach (var (name, type) in BinaryCompositionTypes.EnumerateFields(allFields))
-        {
-            if (type is InlineSchemaTypeNode inline)
-                GetOrRegisterInlineSchemaClassName(name, inline, null);
-            if (type is BinarySwitchTypeNode choice)
-                GetOrRegisterSwitchClassName(name, choice);
-        }
         var boundFields = new List<BoundBinaryField>(allFields.Count);
         foreach (var field in allFields)
             boundFields.Add(BindBinaryField(field, allFields));

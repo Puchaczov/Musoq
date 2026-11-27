@@ -44,7 +44,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 throw new UnknownPropertyException(node.ObjectName, "unknown", span);
             }
 
-            PushSemanticNode(node);
+            PushSemanticNode(columnAccess);
             return;
         }
 
@@ -95,7 +95,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (isNotRoot && parentNodeType != null)
             {
-                var propertyAccess = _columnPropertyBindingService.TryResolveTypedProperty(
+                var propertyAccess = SemanticColumnPropertyBindingService.TryResolveTypedProperty(
                     parentNodeType,
                     node.Name,
                     out var error
@@ -157,7 +157,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (parentNodeType != null)
             {
-                var property = _columnPropertyBindingService.TryResolveTypedProperty(
+                var property = SemanticColumnPropertyBindingService.TryResolveTypedProperty(
                     parentNodeType,
                     node.Name,
                     out var error

@@ -77,6 +77,17 @@ Format all added or modified authored C# and MSBuild/XML files with the reposito
 
 Honor `.csharpierignore`: never format generated C# samples, resource designer files, imported fixtures, benchmark history, or build/task outputs. Preserve embedded SQL values and readable setup/action/assertion grouping. CSharpier is development tooling and must not run inside ordinary product builds. Existing line-budget limits may be recalibrated only by the recorded mechanical formatting delta, preserving their previous headroom; blanket limits and behavioral assertions must not be relaxed.
 
+## Documentation audience
+
+Every published passage must help its reader take an action, make a decision,
+understand a supported contract, or diagnose a problem. Document current behavior.
+Put project history, release qualification, test evidence, private protocols, and
+implementation mechanics in contributor records. Put actionable upgrade
+procedures in dedicated migration notes.
+
+Apply this rule to specifications, headings, examples and linked references.
+Review authored changes, retained links and examples before finishing.
+
 ## Testing Guidelines
 
 Tests use MSTest in `*.Tests` projects. Add regression coverage beside the changed module, use descriptive behavior-based names, and avoid timing- or machine-dependent assertions. Choose validation by change impact using the [validation policy](.claude/rules/validation.md#validation-by-change-impact):

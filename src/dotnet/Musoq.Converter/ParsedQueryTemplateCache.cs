@@ -37,30 +37,38 @@ internal static class ParsedQueryTemplateCache
         }
     }
 
-    internal static RootNode GetOrAdd(string script, string parserContract, Func<RootNode> factory)
+    internal static RootNode GetOrAdd(
+        string script,
+        string parserContract,
+        Func<RootNode> factory,
+        Action? incompleteEntrySelected = null
+    )
     {
         ArgumentNullException.ThrowIfNull(factory);
         return GetOrAddTemplate(
             script,
             parserContract,
-            () => new ParsedQueryTemplate(factory(), ImmutableArray<Diagnostic>.Empty)
+            () => new ParsedQueryTemplate(factory(), ImmutableArray<Diagnostic>.Empty),
+            incompleteEntrySelected
         ).Root;
     }
 
     internal static ParsedQueryTemplate GetOrAddWithDiagnostics(
         string script,
         string parserContract,
-        Func<ParsedQueryTemplate> factory
+        Func<ParsedQueryTemplate> factory,
+        Action? incompleteEntrySelected = null
     )
     {
         ArgumentNullException.ThrowIfNull(factory);
-        return GetOrAddTemplate(script, parserContract, factory);
+        return GetOrAddTemplate(script, parserContract, factory, incompleteEntrySelected);
     }
 
     private static ParsedQueryTemplate GetOrAddTemplate(
         string script,
         string parserContract,
-        Func<ParsedQueryTemplate> factory
+        Func<ParsedQueryTemplate> factory,
+        Action? incompleteEntrySelected
     )
     {
         ArgumentNullException.ThrowIfNull(script);
@@ -73,8 +81,7 @@ internal static class ParsedQueryTemplateCache
         var key = new CacheKey(script, parserContract);
         if (Entries.TryGetValue(key, out var existing))
         {
-            Interlocked.Increment(ref _hits);
-            return CloneTemplate(existing.Value);
+            return ReadExistingEntry(existing, incompleteEntrySelected);
         }
 
         var candidate = new Lazy<CacheEntry>(
@@ -88,8 +95,7 @@ internal static class ParsedQueryTemplateCache
         var winner = Entries.GetOrAdd(key, candidate);
         if (!ReferenceEquals(candidate, winner))
         {
-            Interlocked.Increment(ref _hits);
-            return CloneTemplate(winner.Value);
+            return ReadExistingEntry(winner, incompleteEntrySelected);
         }
 
         Interlocked.Increment(ref _misses);
@@ -106,10 +112,16 @@ internal static class ParsedQueryTemplateCache
         }
     }
 
-    internal static RootNode GetOrAdd(string script, Func<RootNode> factory)
+    private static ParsedQueryTemplate ReadExistingEntry(Lazy<CacheEntry> entry, Action? incompleteEntrySelected)
     {
-        return GetOrAdd(script, DefaultParserContract, factory);
+        Interlocked.Increment(ref _hits);
+        if (incompleteEntrySelected is not null && !entry.IsValueCreated)
+            incompleteEntrySelected();
+        return CloneTemplate(entry.Value);
     }
+
+    internal static RootNode GetOrAdd(string script, Func<RootNode> factory, Action? incompleteEntrySelected = null) =>
+        GetOrAdd(script, DefaultParserContract, factory, incompleteEntrySelected);
 
     internal static void Clear()
     {

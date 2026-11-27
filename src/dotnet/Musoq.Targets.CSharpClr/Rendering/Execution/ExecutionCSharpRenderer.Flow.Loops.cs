@@ -55,11 +55,15 @@ public sealed partial class ExecutionCSharpRenderer
         );
         bodyStatements.AddRange(RenderBlock(forEach.Body, context).Statements);
 
-        yield return StatementEmitter.CreateForeach(
+        var loop = StatementEmitter.CreateForeach(
             EscapeIdentifier(forEach.Item.Name),
             RenderExpression(forEach.Source, context),
             StatementEmitter.CreateBlock(bodyStatements)
         );
+        yield return forEach.Source is ExecutionRowStream { HasBaseRowElements: true }
+        && forEach.Item.GeneratedRowTypeName is { } rowType
+            ? loop.WithType(SyntaxFactory.ParseTypeName(rowType))
+            : loop;
     }
 
     private IEnumerable<StatementSyntax> RenderForEachWithOrdinality(

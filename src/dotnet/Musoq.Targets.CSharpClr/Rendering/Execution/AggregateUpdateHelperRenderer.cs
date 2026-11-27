@@ -99,7 +99,11 @@ public sealed partial class ExecutionCSharpRenderer
         if (aggregateUpdateCount < 1)
             return false;
 
-        if (ContainsUnsafeObjectBackedFieldRead(block, scopedVariables))
+        // Subqueries read provider and cancellation services from the enclosing query.
+        if (
+            ExecutionIrAnalysis.CollectExpressions<ExecutionSubquery>(block).Any()
+            || ContainsUnsafeObjectBackedFieldRead(block, scopedVariables)
+        )
             return false;
 
         candidate = new SingleKeyAggregateUpdateCandidate(

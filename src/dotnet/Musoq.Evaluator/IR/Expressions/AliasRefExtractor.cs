@@ -58,6 +58,12 @@ public sealed partial class AliasRefExtractor : IrExpressionVisitor<IReadOnlyLis
 
     protected override IReadOnlyList<string> VisitMethodCall(MethodCall node)
     {
+        if (
+            !string.IsNullOrWhiteSpace(node.Alias)
+            && SourceInjectionMethodFacts.FindInjectedSourceParameter(node.Method) != null
+        )
+            _aliases.Add(node.Alias);
+
         foreach (var argument in node.Arguments)
             Visit(argument);
 

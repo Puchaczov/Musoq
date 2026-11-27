@@ -58,8 +58,6 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         CancellationToken cancellationToken
     )
     {
-        const string interpreterNamespace = "Musoq.Generated.Interpreters";
-
         var codeGenerator = new InterpreterCodeGenerator(registry, limits);
         var sourceCode = codeGenerator.GenerateAll();
         cancellationToken.ThrowIfCancellationRequested();
@@ -70,7 +68,7 @@ public class CompileInterpretationSchemas(BuildChain successor) : BuildChain(suc
         foreach (var registration in registry.Schemas)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            registration.GeneratedTypeName = $"{interpreterNamespace}.{registration.Name}";
+            registration.GeneratedTypeName = InterpretationCSharpNames.Qualified(registration.Name);
         }
 
         return sourceCode;

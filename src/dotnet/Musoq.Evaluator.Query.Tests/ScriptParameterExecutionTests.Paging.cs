@@ -7,6 +7,39 @@ namespace Musoq.Evaluator.Tests;
 public partial class ScriptParameterExecutionTests
 {
     [TestMethod]
+    public void CorrelatedApply_PagingOverridesAreReadForEachExecution()
+    {
+        using var query = CreateAndRunVirtualMachine(
+            """
+            params(offset: int = 1, limit: int = 1)
+            select a.G,d.V,d.Ordinal from values { (G:2),(G:2),(G:9) } a outer apply (
+                select b.G,b.V from values { (G:1,V:1),(G:2,V:20),(G:2,V:21) } b
+                where b.G=a.G order by b.V skip $offset take $limit
+            ) d with ordinality
+            """,
+            CreateEnvironmentVariableSources()
+        );
+        using var first = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(first, [2, 21, 0], [2, 21, 0], [9, null, null]);
+
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "offset", 0);
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "limit", 2);
+        using var second = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            second,
+            [2, 20, 0],
+            [2, 21, 1],
+            [2, 20, 0],
+            [2, 21, 1],
+            [9, null, null]
+        );
+
+        NativeParameterFixture.Set(query.TypedParameters, query.ParameterDefinitions, "limit", 0);
+        using var empty = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertRowsUnordered(empty, [2, null, null], [2, null, null], [9, null, null]);
+    }
+
+    [TestMethod]
     public void Paging_DefaultsAndRepeatedOverrides_ShouldUseCurrentExecutionValues()
     {
         using var query = CreateAndRunVirtualMachine(

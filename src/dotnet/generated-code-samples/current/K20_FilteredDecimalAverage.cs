@@ -7,20 +7,20 @@ select Avg(Integral) filter (where Position > 1) as Average,
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [1 as 1, AggRef(ko3iko.Count(*) filter (where Position > 1)) as ko3iko.Count(*) filter (where Position > 1), AggRef(ko3iko.Avg(ko3iko.Integral) filter (where Position > 1)) as ko3iko.Avg(ko3iko.Integral) filter (where Position > 1)]
+  Project [1 as 1, AggRef(ko3iko.Count(*) filter (where ko3iko.Position > 1)) as ko3iko.Count(*) filter (where ko3iko.Position > 1), AggRef(ko3iko.Avg(ko3iko.Integral) filter (where ko3iko.Position > 1)) as ko3iko.Avg(ko3iko.Integral) filter (where ko3iko.Position > 1)]
     Aggregate [keys: 1] [aggs: Count(*) filter (where Position > 1), Avg(Integral) filter (where Position > 1)]
       SchemaScan [#schema.first() as ko3iko]
-  Project [ko3iko.Avg(ko3iko.Integral) filter (where Position > 1) as Average, ko3iko.Count(*) filter (where Position > 1) as Rows]
+  Project [ko3iko.Avg(ko3iko.Integral) filter (where ko3iko.Position > 1) as Average, ko3iko.Count(*) filter (where ko3iko.Position > 1) as Rows]
     CteRef [ko3ikoScore as ko3ikoScore]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [AggRef(ko3iko.Count(*) filter (where Position > 1)) as ko3iko.Count(*) filter (where Position > 1), AggRef(ko3iko.Avg(ko3iko.Integral) filter (where Position > 1)) as ko3iko.Avg(ko3iko.Integral) filter (where Position > 1)]
+  PhysicalProject [AggRef(ko3iko.Count(*) filter (where ko3iko.Position > 1)) as ko3iko.Count(*) filter (where ko3iko.Position > 1), AggRef(ko3iko.Avg(ko3iko.Integral) filter (where ko3iko.Position > 1)) as ko3iko.Avg(ko3iko.Integral) filter (where ko3iko.Position > 1)]
     PhysicalSingleKeyAggregate [key: 1 (Int16)] [aggs: Count(*) filter (where Position > 1), Avg(Integral) filter (where Position > 1)]
       PhysicalSchemaScan [#schema.first() as ko3iko]
-  PhysicalProject [ko3iko.Avg(ko3iko.Integral) filter (where Position > 1) as Average, ko3iko.Count(*) filter (where Position > 1) as Rows]
+  PhysicalProject [ko3iko.Avg(ko3iko.Integral) filter (where ko3iko.Position > 1) as Average, ko3iko.Count(*) filter (where ko3iko.Position > 1) as Rows]
     PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
@@ -51,7 +51,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     PhaseBoundary [Select]
     ForEach [finalGroup in groupsToFinalize]
-      AppendShape [result <- ResultRow0(Average: ko3iko.Avg(ko3iko.Integral) filter (where Position > 1), Rows: ko3iko.Count(*) filter (where Position > 1))]
+      AppendShape [result <- ResultRow0(Average: ko3iko.Avg(ko3iko.Integral) filter (where ko3iko.Position > 1), Rows: ko3iko.Count(*) filter (where ko3iko.Position > 1))]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
 */
 

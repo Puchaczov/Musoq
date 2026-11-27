@@ -14,7 +14,7 @@ Cte
             ValuesScan [1 rows as seed]
       RecursiveMember
         MultiStatement
-          Project [CASE WHEN (p.Id = 1) THEN 2 ELSE 1 END as case when p.Id = 1 then 2 else 1 end, (p.Depth + 1) as p.Depth + 1, ((p.Path || '->') || CASE WHEN (p.Id = 1) THEN '2' ELSE '1' END) as p.Path + -> + case when p.Id = 1 then 2 else 1 end]
+          Project [CASE WHEN (p.Id = 1) THEN 2 ELSE 1 END as case when p.Id = 1 then 2 else 1 end, (p.Depth + 1) as p.Depth + 1, ((p.Path + '->') + CASE WHEN (p.Id = 1) THEN '2' ELSE '1' END) as p.Path + -> + case when p.Id = 1 then 2 else 1 end]
             CteRef [paths as p]
   Query
     MultiStatement
@@ -34,7 +34,7 @@ PhysicalCte
             PhysicalValuesScan [1 rows as seed]
       RecursiveMember
         PhysicalMultiStatement
-          PhysicalProject [CASE WHEN (p.Id = 1) THEN 2 ELSE 1 END as case when p.Id = 1 then 2 else 1 end, (p.Depth + 1) as p.Depth + 1, ((p.Path || '->') || CASE WHEN (p.Id = 1) THEN '2' ELSE '1' END) as p.Path + -> + case when p.Id = 1 then 2 else 1 end]
+          PhysicalProject [CASE WHEN (p.Id = 1) THEN 2 ELSE 1 END as case when p.Id = 1 then 2 else 1 end, (p.Depth + 1) as p.Depth + 1, ((p.Path + '->') + CASE WHEN (p.Id = 1) THEN '2' ELSE '1' END) as p.Path + -> + case when p.Id = 1 then 2 else 1 end]
             PhysicalCteRef [paths as p]
   Query
     PhysicalMultiStatement

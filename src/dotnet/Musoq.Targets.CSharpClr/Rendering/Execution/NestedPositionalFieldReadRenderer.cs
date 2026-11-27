@@ -24,7 +24,9 @@ internal static class NestedPositionalFieldReadRenderer
             || nestedPositional.PropertyPath.StartsWith(".", StringComparison.Ordinal)
                 ? string.Empty
                 : ".";
-        var value = SyntaxFactory.ParseExpression($"{indexedCell}{separator}{nestedPositional.PropertyPath}");
+        var value = SyntaxFactory.ParseExpression(
+            $"{indexedCell}{separator}{InterpretationCSharpNames.Reference(nestedPositional.PropertyPath)}"
+        );
 
         return fieldRead.ReturnType.RequireClrType() == typeof(object)
             ? value

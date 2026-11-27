@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed partial class PhysicalLoweringImplementation
@@ -17,10 +15,14 @@ internal sealed partial class PhysicalLoweringImplementation
     private static ExecutionExpression ReplaceExecutionAlias(
         ExecutionExpression expression,
         string fromAlias,
-        string toAlias
+        ExecutionVariable candidate
     )
     {
-        var replaced = ReplaceExecutionAliasCore(expression, fromAlias, toAlias);
+        var replaced = new ExecutionRowAliasRewriter(
+            fromAlias,
+            candidate,
+            StringComparison.OrdinalIgnoreCase
+        ).RewriteExpression(expression);
         if (ReferencesExecutionAlias(replaced, fromAlias))
         {
             throw new NotSupportedException(
@@ -28,113 +30,5 @@ internal sealed partial class PhysicalLoweringImplementation
             );
         }
         return replaced;
-    }
-
-    private static ExecutionExpression ReplaceExecutionAliasCore(
-        ExecutionExpression expression,
-        string fromAlias,
-        string toAlias
-    )
-    {
-        return expression switch
-        {
-            ExecutionFieldRead fieldRead
-                when string.Equals(fieldRead.Alias, fromAlias, StringComparison.OrdinalIgnoreCase) => fieldRead with
-            {
-                Alias = toAlias,
-            },
-            ExecutionFieldRead => expression,
-            ExecutionLiteral => expression,
-            ExecutionBinary binary => binary with
-            {
-                Left = ReplaceExecutionAliasCore(binary.Left, fromAlias, toAlias),
-                Right = ReplaceExecutionAliasCore(binary.Right, fromAlias, toAlias),
-            },
-            ExecutionUnary unary => unary with
-            {
-                Operand = ReplaceExecutionAliasCore(unary.Operand, fromAlias, toAlias),
-            },
-            ExecutionStrictCast strictCast => strictCast with
-            {
-                Expression = ReplaceExecutionAliasCore(strictCast.Expression, fromAlias, toAlias),
-            },
-            ExecutionMethodCall method => method with
-            {
-                Arguments = method
-                    .Arguments.Select(argument => ReplaceExecutionAliasCore(argument, fromAlias, toAlias))
-                    .ToArray(),
-                InjectedSource =
-                    method.InjectedSource == null
-                        ? null
-                        : ReplaceExecutionAliasCore(method.InjectedSource, fromAlias, toAlias),
-            },
-            ExecutionIsNullCheck isNull => isNull with
-            {
-                Expression = ReplaceExecutionAliasCore(isNull.Expression, fromAlias, toAlias),
-            },
-            ExecutionInCheck inCheck => inCheck with
-            {
-                Expression = ReplaceExecutionAliasCore(inCheck.Expression, fromAlias, toAlias),
-                Values = inCheck.Values.Select(value => ReplaceExecutionAliasCore(value, fromAlias, toAlias)).ToArray(),
-            },
-            ExecutionPatternMatch
-            or ExecutionStringMatch
-            or ExecutionPrepareLikeMatcher
-            or ExecutionPreparedLikeMatch
-            or ExecutionDynamicLikeMatch
-            or ExecutionLikeMatcherCacheSlot
-            or ExecutionPrepareRLikeMatcher
-            or ExecutionPreparedRLikeMatch
-            or ExecutionDynamicRLikeMatch
-            or ExecutionRLikeMatcherCacheSlot => PatternExpressionFacts.RewriteChildren(
-                expression,
-                child => ReplaceExecutionAliasCore(child, fromAlias, toAlias)
-            ),
-            ExecutionBetween between => between with
-            {
-                Expression = ReplaceExecutionAliasCore(between.Expression, fromAlias, toAlias),
-                Low = ReplaceExecutionAliasCore(between.Low, fromAlias, toAlias),
-                High = ReplaceExecutionAliasCore(between.High, fromAlias, toAlias),
-            },
-            ExecutionCaseWhen caseWhen => caseWhen with
-            {
-                Branches = caseWhen
-                    .Branches.Select(branch => new ExecutionCaseWhenBranch(
-                        ReplaceExecutionAliasCore(branch.Condition, fromAlias, toAlias),
-                        ReplaceExecutionAliasCore(branch.Result, fromAlias, toAlias)
-                    ))
-                    .ToArray(),
-                ElseExpression =
-                    caseWhen.ElseExpression == null
-                        ? null
-                        : ReplaceExecutionAliasCore(caseWhen.ElseExpression, fromAlias, toAlias),
-            },
-            ExecutionStringConcatenation concatenation => concatenation with
-            {
-                Expressions = concatenation
-                    .Expressions.Select(value => ReplaceExecutionAliasCore(value, fromAlias, toAlias))
-                    .ToArray(),
-            },
-            ExecutionCoalesce coalesce => coalesce with
-            {
-                Expressions = coalesce
-                    .Expressions.Select(value => ReplaceExecutionAliasCore(value, fromAlias, toAlias))
-                    .ToArray(),
-            },
-
-            ExecutionValueTupleKey valueTupleKey => valueTupleKey with
-            {
-                Parts = valueTupleKey
-                    .Parts.Select(part => ReplaceExecutionAliasCore(part, fromAlias, toAlias))
-                    .ToArray(),
-            },
-            ExecutionAggregateCall aggregateCall => aggregateCall with
-            {
-                Arguments = aggregateCall
-                    .Arguments.Select(argument => ReplaceExecutionAliasCore(argument, fromAlias, toAlias))
-                    .ToArray(),
-            },
-            _ => expression,
-        };
     }
 }

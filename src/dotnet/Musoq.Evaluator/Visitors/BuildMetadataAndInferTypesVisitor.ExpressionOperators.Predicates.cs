@@ -32,8 +32,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             }
         }
 
-        ValidateBooleanOperand(operand, "NOT", node);
-        PushSemanticNode(new NotNode(operand));
+        PushSemanticNode(new NotNode(BindBooleanOperand(operand, "NOT", node)));
     }
 
     public override void Visit(LikeNode node)
@@ -143,10 +142,12 @@ public partial class BuildMetadataAndInferTypesVisitor
             return;
         }
 
-        ValidateBinaryOperatorOperands(expression, min, BinaryOperatorKind.Relational, node);
-        ValidateBinaryOperatorOperands(expression, max, BinaryOperatorKind.Relational, node);
-
-        PushSemanticNode(new BetweenNode(expression, min, max).CopySpansFrom(node));
+        var lower = BindRangeBound((expression, min), static (l, r) => new GreaterOrEqualNode(l, r), node);
+        var upper = BindRangeBound((expression, max), static (l, r) => new LessOrEqualNode(l, r), node);
+        if (lower is GreaterOrEqualNode low && upper is LessOrEqualNode high && ReferenceEquals(low.Left, high.Left))
+            PushSemanticNode(new BetweenNode(low.Left, low.Right, high.Right).CopySpansFrom(node));
+        else
+            PushSemanticNode(new AndNode(lower, upper).CopySpansFrom(node));
     }
 
     public override void Visit(ContainsNode node)

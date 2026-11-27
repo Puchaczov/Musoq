@@ -16,11 +16,7 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, string>? aggregateSourceFields = null
     )
     {
-        var sourceField = GetWindowAggregateSourceIdentifiers(expression)
-            .SelectMany(identifier => GetWindowAggregateSourceFieldCandidates(identifier, aggregateSourceFields))
-            .Select(identifier => ResolveWindowAggregateSourceField(identifier, sourceLookup))
-            .FirstOrDefault(field => field != null);
-
+        var sourceField = FindWindowAggregateSource(expression, sourceLookup, aggregateSourceFields);
         if (sourceField is null)
             return null;
 
@@ -32,9 +28,19 @@ internal sealed partial class PhysicalLoweringImplementation
         );
     }
 
+    private static WindowAggregateSourceField? FindWindowAggregateSource(
+        IrExpression expression,
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string>? aggregateSourceFields
+    ) =>
+        GetWindowAggregateSourceIdentifiers(expression)
+            .SelectMany(identifier => GetWindowAggregateSourceFieldCandidates(identifier, aggregateSourceFields))
+            .Select(identifier => ResolveWindowAggregateSourceField(identifier, sourceLookup))
+            .FirstOrDefault(field => field != null);
+
     private static IReadOnlyDictionary<string, string> CreateWindowAggregateSourceFieldLookup(PhysicalNode source)
     {
-        var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var lookup = new Dictionary<string, string>(StringComparer.Ordinal);
 
         foreach (var binding in GetWindowAggregateSourceBindings(source))
         {
@@ -207,8 +213,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool MatchesExactWindowAggregateSourceFieldName(string identifier, string candidate)
     {
-        return string.Equals(candidate, identifier, StringComparison.OrdinalIgnoreCase)
-            || candidate.EndsWith($".{identifier}", StringComparison.OrdinalIgnoreCase);
+        return string.Equals(candidate, identifier, StringComparison.Ordinal)
+            || candidate.EndsWith($".{identifier}", StringComparison.Ordinal);
     }
 
     private static bool MatchesWindowAggregateSourceField(string? normalizedIdentifier, FieldBinding field)
@@ -226,8 +232,8 @@ internal sealed partial class PhysicalLoweringImplementation
         if (string.IsNullOrWhiteSpace(normalizedCandidate))
             return false;
 
-        return string.Equals(normalizedCandidate, normalizedIdentifier, StringComparison.OrdinalIgnoreCase)
-            || normalizedCandidate.EndsWith($".{normalizedIdentifier}", StringComparison.OrdinalIgnoreCase);
+        return string.Equals(normalizedCandidate, normalizedIdentifier, StringComparison.Ordinal)
+            || normalizedCandidate.EndsWith($".{normalizedIdentifier}", StringComparison.Ordinal);
     }
 
     private static bool IsAggregateLikeMethodCall(MethodCall methodCall)

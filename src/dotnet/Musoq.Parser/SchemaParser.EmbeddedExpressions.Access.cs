@@ -11,7 +11,7 @@ public partial class SchemaParser
     private Node ComposeIdentifierOrFunctionCall()
     {
         var token = ConsumeAndGetToken(Current.TokenType);
-        var name = token.Value;
+        var name = IdentifierSpelling(token);
 
         if (Current.TokenType == TokenType.LeftParenthesis)
         {
@@ -37,7 +37,7 @@ public partial class SchemaParser
         return result;
     }
 
-    private Node ComposePostfixAccess(Node node)
+    private Node ComposePostfixAccess(Node node, bool allowCast = true)
     {
         while (true)
             if (Current.TokenType == TokenType.Dot)
@@ -77,8 +77,9 @@ public partial class SchemaParser
                     );
 
                 var memberToken = ConsumeAndGetToken(Current.TokenType);
-                var memberNode = new IdentifierNode(memberToken.Value, null, memberToken.Span);
-                node = new DotNode(node, memberNode, memberToken.Value);
+                var memberName = IdentifierSpelling(memberToken);
+                var memberNode = new IdentifierNode(memberName, null, memberToken.Span);
+                node = new DotNode(node, memberNode, memberName);
             }
             else if (Current.TokenType == TokenType.LeftSquareBracket)
             {
@@ -88,7 +89,7 @@ public partial class SchemaParser
                 var elementType = node.ReturnType?.IsArray == true ? node.ReturnType.GetElementType() : typeof(void);
                 node = new ArrayIndexNode(node, indexExpr, elementType);
             }
-            else if (Current.TokenType == TokenType.DoubleColon)
+            else if (allowCast && Current.TokenType == TokenType.DoubleColon)
             {
                 node = ComposeSchemaPostfixCast(node);
             }

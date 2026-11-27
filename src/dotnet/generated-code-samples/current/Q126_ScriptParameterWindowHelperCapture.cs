@@ -14,7 +14,7 @@ param(country: string, label: string)
 /*
 MultiStatement
   Project [ko3iko.Name as Name, WindowRef(0) as rn, $label as WindowLabel]
-    Window [RowNumber(idx:0; partition: CASE WHEN (ko3iko.Country = $country) THEN $country ELSE ko3iko.Country END; order: (ko3iko.Name || $label))]
+    Window [RowNumber(idx:0; partition: CASE WHEN (ko3iko.Country = $country) THEN $country ELSE ko3iko.Country END; order: (ko3iko.Name + $label))]
       SchemaScan [#A.entities() as ko3iko]
 */
 
@@ -22,7 +22,7 @@ MultiStatement
 /*
 PhysicalMultiStatement
   PhysicalProject [ko3iko.Name as Name, WindowRef(0) as rn, $label as WindowLabel]
-    PhysicalWindow [RowNumber(idx:0; partition: CASE WHEN (ko3iko.Country = $country) THEN $country ELSE ko3iko.Country END; order: (ko3iko.Name || $label))]
+    PhysicalWindow [RowNumber(idx:0; partition: CASE WHEN (ko3iko.Country = $country) THEN $country ELSE ko3iko.Country END; order: (ko3iko.Name + $label))]
       PhysicalMaterialize
         PhysicalSchemaScan [#A.entities() as ko3iko]
 */

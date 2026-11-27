@@ -23,8 +23,6 @@ public class IsDistinctFromNode : BinaryNode
 
     public override string ToString()
     {
-        return IsNegated
-            ? $"{Left.ToString()} is not distinct from {Right.ToString()}"
-            : $"{Left.ToString()} is distinct from {Right.ToString()}";
+        return FormatInfix(IsNegated ? "is not distinct from" : "is distinct from");
     }
 }

@@ -6,7 +6,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Schema;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -16,6 +18,7 @@ public sealed class CompiledQueryAsyncExecutionTests
     [TestMethod]
     public async Task RunAsync_ShouldUseTrueAsyncRunnableWithoutCallingSynchronousRun()
     {
+        using var watchdog = new TestWatchdog();
         using var runnable = new AsyncParameterizedRunnable();
         using var query = new CompiledQuery(runnable);
         global::Musoq.Tests.Common.NativeParameterFixture.Set(
@@ -26,19 +29,26 @@ public sealed class CompiledQueryAsyncExecutionTests
         );
 
         var execution = query.RunAsync().AsTask();
-        Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
-
-        Assert.Throws<InvalidOperationException>(() => query.TypedParameters.Set("value", 2));
-        runnable.Release.TrySetResult(true);
-
-        var result = await execution;
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(runnable.Started.Task, execution, "the async runnable");
+                Assert.Throws<InvalidOperationException>(() => query.TypedParameters.Set("value", 2));
+            },
+            () =>
+            {
+                runnable.Release.TrySetResult(true);
+                return execution;
+            }
+        );
+        using var result = await execution;
 
         Assert.AreEqual(1, runnable.AsyncRunCount);
         Assert.AreEqual(0, runnable.SynchronousRunCount);
         Assert.AreEqual(1, result[0].ReadValue(0));
 
         query.TypedParameters.Set("value", 2);
-        var next = await query.RunAsync();
+        using var next = await query.RunAsync();
         Assert.AreEqual(2, next[0].ReadValue(0));
     }
 
@@ -57,22 +67,36 @@ public sealed class CompiledQueryAsyncExecutionTests
     [TestMethod]
     public async Task RunAsync_ShouldPreserveCancellationDuringTrueAsyncExecution()
     {
+        using var watchdog = new TestWatchdog();
         using var runnable = new AsyncParameterizedRunnable();
         using var query = new CompiledQuery(runnable);
         using var cancellation = new CancellationTokenSource();
 
         var execution = query.RunAsync(cancellation.Token).AsTask();
-        Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
-        cancellation.Cancel();
-
-        await AssertThrowsAsync<OperationCanceledException>(() => execution);
+        var cancellationAssertion = AssertThrowsAsync<OperationCanceledException>(() => execution);
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(runnable.Started.Task, execution, "the async runnable");
+                cancellation.Cancel();
+                await watchdog.WaitAsync(cancellationAssertion, "query cancellation");
+            },
+            () =>
+            {
+                cancellation.Cancel();
+                runnable.Release.TrySetResult(true);
+                return cancellationAssertion;
+            }
+        );
     }
 
     [TestMethod]
     public async Task Dispose_ShouldWaitForTrueAsyncExecutionAndRejectLaterRuns()
     {
+        using var watchdog = new TestWatchdog();
         using var runnable = new AsyncParameterizedRunnable();
-        var query = new CompiledQuery(runnable);
+        var probe = new CompiledQueryDrainProbe(CompiledQuery.DrainStage.ActiveRuns, watchdog);
+        using var query = new CompiledQuery(runnable) { DisposalWait = probe.Wait };
         global::Musoq.Tests.Common.NativeParameterFixture.Set(
             query.TypedParameters,
             query.ParameterDefinitions,
@@ -81,13 +105,23 @@ public sealed class CompiledQueryAsyncExecutionTests
         );
 
         var execution = query.RunAsync().AsTask();
-        Assert.IsTrue(runnable.Started.Wait(TimeSpan.FromSeconds(5)));
-
-        var dispose = Task.Run(query.Dispose);
-
-        runnable.Release.TrySetResult(true);
-        await execution;
-        await dispose;
+        Task? disposal = null;
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(runnable.Started.Task, execution, "the async runnable");
+                disposal = TestWatchdog.StartWorker(query.Dispose);
+                await probe.ObserveAsync(disposal);
+                runnable.Release.TrySetResult(true);
+                await watchdog.WaitAsync(Task.WhenAll(execution, disposal), "execution and disposal");
+            },
+            () =>
+            {
+                runnable.Release.TrySetResult(true);
+                return Task.WhenAll(execution, disposal ?? Task.CompletedTask);
+            }
+        );
+        using var result = await execution;
 
         Assert.IsFalse(runnable.DisposedBeforeExecutionCompleted);
         await AssertThrowsAsync<ObjectDisposedException>(() => query.RunAsync().AsTask());
@@ -143,7 +177,7 @@ public sealed class CompiledQueryAsyncExecutionTests
             ITypedParameterizedRunnable,
             IDisposable
     {
-        internal readonly ManualResetEventSlim Started = new(false);
+        internal readonly TaskCompletionSource Started = TestWatchdog.Signal();
         internal readonly TaskCompletionSource<bool> Release = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private int _executionCompleted;
         private int _disposedBeforeExecutionCompleted;
@@ -169,7 +203,7 @@ public sealed class CompiledQueryAsyncExecutionTests
         public async ValueTask<Table> RunAsync(CancellationToken token)
         {
             AsyncRunCount++;
-            Started.Set();
+            Started.TrySetResult();
             try
             {
                 await Release.Task.WaitAsync(token);
@@ -185,7 +219,6 @@ public sealed class CompiledQueryAsyncExecutionTests
         {
             if (Volatile.Read(ref _executionCompleted) == 0)
                 Volatile.Write(ref _disposedBeforeExecutionCompleted, 1);
-            Started.Dispose();
         }
     }
 

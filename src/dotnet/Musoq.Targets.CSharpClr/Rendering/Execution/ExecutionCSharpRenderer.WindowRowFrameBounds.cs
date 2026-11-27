@@ -29,14 +29,10 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateIntLiteral(bound.Offset)
                 )
             ),
-            ExecutionWindowFrameBoundKind.OffsetFollowing => CreateMathInvocation(
-                nameof(Math.Min),
-                SyntaxFactory.IdentifierName(partitionCountName),
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.AddExpression,
-                    SyntaxFactory.IdentifierName(partitionIndexName),
-                    CreateIntLiteral(bound.Offset)
-                )
+            ExecutionWindowFrameBoundKind.OffsetFollowing => CreateFollowingFrameBound(
+                partitionIndexName,
+                bound.Offset,
+                SyntaxFactory.IdentifierName(partitionCountName)
             ),
             _ => throw new ArgumentOutOfRangeException(nameof(bound), bound, null),
         };
@@ -68,16 +64,24 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateIntLiteral(bound.Offset)
                 )
             ),
-            ExecutionWindowFrameBoundKind.OffsetFollowing => CreateMathInvocation(
-                nameof(Math.Min),
-                lastIndex,
-                SyntaxFactory.BinaryExpression(
-                    SyntaxKind.AddExpression,
-                    SyntaxFactory.IdentifierName(partitionIndexName),
-                    CreateIntLiteral(bound.Offset)
-                )
+            ExecutionWindowFrameBoundKind.OffsetFollowing => CreateFollowingFrameBound(
+                partitionIndexName,
+                bound.Offset,
+                lastIndex
             ),
             _ => throw new ArgumentOutOfRangeException(nameof(bound), bound, null),
         };
+    }
+
+    private static ExpressionSyntax CreateFollowingFrameBound(
+        string partitionIndexName,
+        int offset,
+        ExpressionSyntax limit
+    )
+    {
+        var index = SyntaxFactory.IdentifierName(partitionIndexName);
+        var remaining = SyntaxFactory.BinaryExpression(SyntaxKind.SubtractExpression, limit, index);
+        var distance = CreateMathInvocation(nameof(Math.Min), CreateIntLiteral(offset), remaining);
+        return SyntaxFactory.BinaryExpression(SyntaxKind.AddExpression, index, distance);
     }
 }

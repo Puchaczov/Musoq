@@ -17,7 +17,8 @@ internal static class CommonColumnTypeResolver
     )
     {
         var hasNull = expressions.Any(expression =>
-            IsExplicitNullType(expression.ReturnType) || IsNullableValueType(expression.ReturnType)
+            IsExplicitNullType(expression.ReturnType)
+            || IsNullableValueType(SqlPredicateNullability.ResultType(expression))
         );
         var nonNullTypes = expressions
             .Select(expression => expression.ReturnType)
@@ -28,7 +29,7 @@ internal static class CommonColumnTypeResolver
             .ToArray();
 
         if (nonNullTypes.Length == 0)
-            return typeof(object);
+            return NullNode.NullType.Instance;
 
         var typeErrorSpan = FindTypeErrorSpan(expressions, nonNullTypes, errorSpan);
 

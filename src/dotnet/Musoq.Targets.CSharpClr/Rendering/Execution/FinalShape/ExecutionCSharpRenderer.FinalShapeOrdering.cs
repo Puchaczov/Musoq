@@ -370,6 +370,17 @@ public sealed partial class ExecutionCSharpRenderer
         ExecutionRenderContext context
     )
     {
+        var sink =
+            context.Session.FinalShapeYieldSink
+            ?? throw new InvalidOperationException("Final shape sink is not active.");
+        return CreateDistinctRowsExpression(sourceRowsName, sink.Fields);
+    }
+
+    private static ExpressionSyntax CreateDistinctRowsExpression(
+        string sourceRowsName,
+        IReadOnlyList<FieldBinding> fields
+    )
+    {
         return SyntaxFactory
             .InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
@@ -378,22 +389,19 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxFactory.IdentifierName("DistinctBy")
                 )
             )
-            .WithArgumentList(CreateArgumentList(CreateFinalShapeDistinctKeySelector(context)));
+            .WithArgumentList(CreateArgumentList(CreateDistinctKeySelector(fields)));
     }
 
-    private SimpleLambdaExpressionSyntax CreateFinalShapeDistinctKeySelector(ExecutionRenderContext context)
+    private static SimpleLambdaExpressionSyntax CreateDistinctKeySelector(IReadOnlyList<FieldBinding> fields)
     {
         const string rowName = "__musoqDistinctRow";
-        var sink =
-            context.Session.FinalShapeYieldSink
-            ?? throw new InvalidOperationException("Final shape sink is not active.");
-        ExpressionSyntax keyExpression = sink.Fields.Count switch
+        ExpressionSyntax keyExpression = fields.Count switch
         {
             0 => CreateIntLiteral(0),
-            1 => CreateFinalShapeFieldRead(rowName, sink.Fields[0]),
+            1 => CreateFinalShapeFieldRead(rowName, fields[0]),
             _ => SyntaxFactory.TupleExpression(
                 SyntaxFactory.SeparatedList(
-                    sink.Fields.Select(field => SyntaxFactory.Argument(CreateFinalShapeFieldRead(rowName, field)))
+                    fields.Select(field => SyntaxFactory.Argument(CreateFinalShapeFieldRead(rowName, field)))
                 )
             ),
         };

@@ -36,6 +36,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private ExpressionStatementSyntax CreateFusedIntOrderBuilderAddStatement(
+        ExecutionRenderContext renderContext,
         ExecutionVariable builder,
         ExecutionWindowKeyArray? partitionKeys,
         ExecutionComputeRankingWindow ranking,
@@ -43,6 +44,7 @@ public sealed partial class ExecutionCSharpRenderer
     )
     {
         return CreateFusedIntOrderBuilderAddStatement(
+            renderContext,
             builder,
             partitionKeys,
             ranking.PartitionKey,
@@ -52,6 +54,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private ExpressionStatementSyntax CreateFusedIntOrderBuilderAddStatement(
+        ExecutionRenderContext renderContext,
         ExecutionVariable builder,
         ExecutionWindowKeyArray? partitionKeys,
         ExecutionExpression? partitionKey,
@@ -70,12 +73,15 @@ public sealed partial class ExecutionCSharpRenderer
                 );
             arguments.Add(
                 HasGeneratedWindowKeyType(partitionKeys)
-                    ? CreateWindowPartitionKeyExpression(partitionKeys, requiredPartitionKey)
-                    : CastIfNeeded(RenderExpression(requiredPartitionKey), GetArrayElementType(partitionKeys.Variable))
+                    ? CreateWindowPartitionKeyExpression(renderContext, partitionKeys, requiredPartitionKey)
+                    : CastIfNeeded(
+                        RenderExpression(requiredPartitionKey, renderContext),
+                        GetArrayElementType(partitionKeys.Variable)
+                    )
             );
         }
 
-        arguments.Add(CastIfNeeded(RenderExpression(orderKey), typeof(int)));
+        arguments.Add(CastIfNeeded(RenderExpression(orderKey, renderContext), typeof(int)));
         arguments.Add(SyntaxFactory.IdentifierName(indexVariableName));
 
         return SyntaxFactory.ExpressionStatement(

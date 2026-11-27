@@ -18,8 +18,5 @@ public class OrNode : BinaryNode
         visitor.Visit(this);
     }
 
-    public override string ToString()
-    {
-        return $"{Left.ToString()} or {Right.ToString()}";
-    }
+    public override string ToString() => FormatInfix("or");
 }

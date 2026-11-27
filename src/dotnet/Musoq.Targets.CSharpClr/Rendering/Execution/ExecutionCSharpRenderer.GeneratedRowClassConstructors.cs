@@ -67,14 +67,19 @@ public sealed partial class ExecutionCSharpRenderer
         IReadOnlyList<StatementSyntax> contextAssignments
     )
     {
-        var valueParameters = fields.Select(CreateGeneratedRowValueParameter);
-        var assignments = fields.Select(CreateGeneratedRowFieldAssignment);
+        var parameters = SyntaxFactory.SeparatedList(
+            fields.Select(CreateGeneratedRowValueParameter).Concat(contextParameters)
+        );
+        var parameterNames = parameters
+            .Select(parameter => parameter.Identifier.ValueText)
+            .ToHashSet(StringComparer.Ordinal);
+        var assignments = fields.Select(
+            (field, index) => CreateGeneratedRowFieldAssignment(field, index, parameterNames)
+        );
         return SyntaxFactory
             .ConstructorDeclaration(typeName)
             .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-            .WithParameterList(
-                SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(valueParameters.Concat(contextParameters)))
-            )
+            .WithParameterList(SyntaxFactory.ParameterList(parameters))
             .WithBody(StatementEmitter.CreateBlock(assignments.Concat(contextAssignments)));
     }
 
@@ -83,14 +88,18 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateParameter(CreateGeneratedRowValueParameterName(index), CreateGeneratedFieldTypeSyntax(field));
     }
 
-    private static StatementSyntax CreateGeneratedRowFieldAssignment(FieldBinding field, int index)
+    private static StatementSyntax CreateGeneratedRowFieldAssignment(
+        FieldBinding field,
+        int index,
+        IReadOnlySet<string> parameters
+    )
     {
+        var name = GetGeneratedFieldName(field);
+        var value = SyntaxFactory.IdentifierName(CreateGeneratedRowValueParameterName(index));
+        if (parameters.Contains(name))
+            return CreateGeneratedRowThisAssignment(name, value);
         return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.AssignmentExpression(
-                SyntaxKind.SimpleAssignmentExpression,
-                CreateIdentifierName(GetGeneratedFieldName(field)),
-                SyntaxFactory.IdentifierName(CreateGeneratedRowValueParameterName(index))
-            )
+            SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression, CreateIdentifierName(name), value)
         );
     }
 

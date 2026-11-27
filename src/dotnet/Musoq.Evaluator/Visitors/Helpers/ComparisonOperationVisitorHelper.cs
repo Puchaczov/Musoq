@@ -15,6 +15,9 @@ public static class ComparisonOperationVisitorHelper
     public static void ProcessEqualityOperation(Stack<Node> nodes, TextSpan span = default) =>
         ProcessComparisonOperation(nodes, (left, right) => new EqualityNode(left, right), span);
 
+    internal static void ProcessEqualityOperation(Stack<Node> nodes, EqualityNode original) =>
+        ProcessComparisonOperation(nodes, MaterializedInEqualityNode.GetRebindFactory(original), original.Span);
+
     /// <summary>Processes a GreaterOrEqual operation.</summary>
     public static void ProcessGreaterOrEqualOperation(Stack<Node> nodes, TextSpan span = default) =>
         ProcessComparisonOperation(nodes, (left, right) => new GreaterOrEqualNode(left, right), span);

@@ -39,10 +39,7 @@ internal sealed class AggregateStrategySelectionPass : IPhysicalOptimizationPass
     )
     {
         var input = Rewrite(aggregate.Input, state);
-        var strategy = PhysicalStrategyRules.ChooseAggregateStrategy(
-            aggregate.GroupKeys.Length,
-            aggregate.GroupKeyTypes
-        );
+        var strategy = PhysicalStrategyRules.ChooseAggregateStrategy(aggregate.GroupKeys, aggregate.GroupKeyTypes);
         state.AddDecision(
             new PlanningDecision(
                 PlanningDecisionCategory.AggregateStrategy,
@@ -63,14 +60,20 @@ internal sealed class AggregateStrategySelectionPass : IPhysicalOptimizationPass
                 aggregate.GroupKeyTypes[0],
                 aggregate.Bindings,
                 input
-            ),
+            )
+            {
+                InitializeConstantGroup = strategy.InitializeConstantGroup,
+            },
             AggregateStrategyKind.ValueTuple => new PhysicalValueTupleAggregateNode(
                 aggregate.GroupKeys,
                 aggregate.GroupKeyNames,
                 aggregate.GroupKeyTypes,
                 aggregate.Bindings,
                 input
-            ),
+            )
+            {
+                InitializeConstantGroup = strategy.InitializeConstantGroup,
+            },
             _ => throw new NotSupportedException(strategy.Reason),
         };
     }

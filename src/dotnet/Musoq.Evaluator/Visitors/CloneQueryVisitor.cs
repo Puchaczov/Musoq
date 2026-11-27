@@ -121,7 +121,8 @@ public partial class CloneQueryVisitor : DefensiveVisitorBase
     public override void Visit(ShortCircuitingNodeRight node) =>
         SemanticNodeCloneSupport.CloneShortCircuit(node, Nodes);
 
-    public override void Visit(EqualityNode node) => CloneBinaryNode(node, (l, r) => new EqualityNode(l, r));
+    public override void Visit(EqualityNode node) =>
+        CloneBinaryNode(node, MaterializedInEqualityNode.GetRebindFactory(node));
 
     public override void Visit(IsDistinctFromNode node) =>
         CloneBinaryNode(node, (l, r) => new IsDistinctFromNode(l, r, node.IsNegated));

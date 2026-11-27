@@ -7,6 +7,7 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private StatementSyntax CreateLibraryWindowPeerLoop(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel,
         string indices,
         string start,
@@ -21,7 +22,7 @@ public sealed partial class ExecutionCSharpRenderer
         );
         var accumulate = string.Join(
             Environment.NewLine,
-            CreateWindowAggregateAccumulateStatements(kernel)
+            CreateWindowAggregateAccumulateStatements(renderContext, kernel)
                 .Select(static statement => statement.NormalizeWhitespace().ToFullString())
         );
         var keys =

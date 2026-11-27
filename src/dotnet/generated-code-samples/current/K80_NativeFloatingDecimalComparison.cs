@@ -8,7 +8,7 @@ select Position, Floating from #schema.first() where Floating > Amount order by 
 MultiStatement
   Sort [ko3iko.Position]
     Project [ko3iko.Position as Position, ko3iko.Floating as Floating]
-      Filter [(ToDecimal(ko3iko.Floating) > ToDecimal(ko3iko.Amount))]
+      Filter [(ToComparisonDecimal(ko3iko.Floating) > ko3iko.Amount)]
         SchemaScan [#schema.first() as ko3iko]
 */
 
@@ -17,7 +17,7 @@ MultiStatement
 PhysicalMultiStatement
   PhysicalSort [ko3iko.Position]
     PhysicalProject [ko3iko.Position as Position, ko3iko.Floating as Floating]
-      PhysicalFilter [(ToDecimal(ko3iko.Floating) > ToDecimal(ko3iko.Amount))]
+      PhysicalFilter [(ToComparisonDecimal(ko3iko.Floating) > ko3iko.Amount)]
         PhysicalSchemaScan [#schema.first() as ko3iko]
 */
 
@@ -42,12 +42,11 @@ ExecutionPlan [compiled]
     PhaseBoundary [From]
     SourceScan [ko3iko: LibraryExecutionEntity] -> ko3ikoRows
     CreateRecordList [resultOrderRecords: ResultRow0WithSortKeys]
-    CreateObject [__resultOrderRecordsLibraryBase0: LibraryBase]
     PhaseBoundary [Where]
     PhaseBoundary [Select]
     ChunkedForEach [ko3iko in ko3ikoRows]
       Let [floating: double? = ko3iko.Floating]
-      If [(ToDecimal(floating) > ToDecimal(ko3iko.Amount))]
+      If [(ToComparisonDecimal(floating) > ko3iko.Amount)]
         AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: ko3iko.Position, Floating: floating)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Position ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
@@ -121,7 +120,6 @@ namespace GeneratedSample_K80_NativeFloatingDecimalComparison
                 var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultOrderRecords = new List<ResultRow0WithSortKeys>();
-                var __resultOrderRecordsLibraryBase0 = new Musoq.Plugins.LibraryBase();
                 OnPhaseChanged("compiled", QueryPhase.Where);
                 OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var ko3ikoChunk in ko3ikoRows)
@@ -140,7 +138,7 @@ namespace GeneratedSample_K80_NativeFloatingDecimalComparison
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 double? floating = ko3iko.Floating;
-                                if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                                if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
                                 }
@@ -161,7 +159,7 @@ namespace GeneratedSample_K80_NativeFloatingDecimalComparison
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 double? floating = ko3iko.Floating;
-                                if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                                if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
                                 }
@@ -180,7 +178,7 @@ namespace GeneratedSample_K80_NativeFloatingDecimalComparison
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         double? floating = ko3iko.Floating;
-                        if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                        if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                         {
                             resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
                         }

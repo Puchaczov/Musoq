@@ -124,8 +124,11 @@ public partial class BuildMetadataAndInferTypesVisitor
             else if (exp is IdentifierNode identifierNode)
             {
                 var hasProperty =
-                    _columnPropertyBindingService.TryResolveTypedProperty(root.ReturnType, identifierNode.Name, out _)
-                    != null;
+                    SemanticColumnPropertyBindingService.TryResolveTypedProperty(
+                        root.ReturnType,
+                        identifierNode.Name,
+                        out _
+                    ) != null;
 
                 if (!hasProperty)
                 {

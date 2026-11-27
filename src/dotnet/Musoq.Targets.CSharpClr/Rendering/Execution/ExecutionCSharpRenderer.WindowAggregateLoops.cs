@@ -7,6 +7,7 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private ForStatementSyntax CreateWindowAggregateRunningLoop(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel,
         string partitionIndicesName,
         string partitionStartName,
@@ -27,7 +28,7 @@ public sealed partial class ExecutionCSharpRenderer
         };
 
         body.AddRange(CreateIndexedItemDeclarations(kernel.Item, kernel.Buffer, currentIndex, kernel.RowAccessMode));
-        body.AddRange(CreateWindowAggregateAccumulateStatements(kernel));
+        body.AddRange(CreateWindowAggregateAccumulateStatements(renderContext, kernel));
         body.Add(
             CreateWindowResultAssignment(
                 kernel.Results.Name,
@@ -44,6 +45,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private ForStatementSyntax CreateWindowAggregateAccumulationLoop(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel,
         string partitionIndicesName,
         string partitionStartName,
@@ -64,7 +66,7 @@ public sealed partial class ExecutionCSharpRenderer
         };
 
         body.AddRange(CreateIndexedItemDeclarations(kernel.Item, kernel.Buffer, currentIndex, kernel.RowAccessMode));
-        body.AddRange(CreateWindowAggregateAccumulateStatements(kernel));
+        body.AddRange(CreateWindowAggregateAccumulateStatements(renderContext, kernel));
 
         return CreatePartitionIndexedForLoop(
             partitionIndexName,

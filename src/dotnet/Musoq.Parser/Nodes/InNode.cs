@@ -20,6 +20,6 @@ public class InNode : BinaryNode
 
     public override string ToString()
     {
-        return $"{Left.ToString()} in ({Right.ToString()})";
+        return $"{InfixExpressionText.FormatPredicateOperand(Left)} in ({Right.ToString()})";
     }
 }

@@ -529,6 +529,11 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Header : BytesInterpreterBase<Header>, IBytesInterpreterStatus<Header>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Kind { get; set; }
+        public int Value { get; set; }
+        public byte Count { get; set; }
+        public byte[] Tail { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Kind", "Value", "Count", "Tail" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -573,15 +578,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Kind field value.</summary>
-        public byte Kind { get; set; }
-        /// <summary>Gets the Value field value.</summary>
-        public int Value { get; set; }
-        /// <summary>Gets the Count field value.</summary>
-        public byte Count { get; set; }
-        /// <summary>Gets the Tail field value.</summary>
-        public byte[] Tail { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Header";
 
         public override Header InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Header>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -604,8 +600,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _kind = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Kind = _kind;
+                var _field4_Kind = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Kind = _field4_Kind;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Value");
                 if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure2)
@@ -613,8 +609,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.Value = _value;
+                var _field5_Value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Value = _field5_Value;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("Count");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure3)
@@ -622,11 +618,11 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure3);
                 }
 
-                var _count = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Count = _count;
+                var _field5_Count = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Count = _field5_Count;
                 base.RecordParsedFieldSlot(2);
                 SetCurrentField("Tail");
-                var __musoqReadResult5 = base.ResolveSizeValueStatus<byte>((byte?)(_count), ParseErrorCode.InvalidSize);
+                var __musoqReadResult5 = base.ResolveSizeValueStatus<byte>((byte?)(_field5_Count), ParseErrorCode.InvalidSize);
                 if (!__musoqReadResult5.Succeeded)
                 {
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadResult5.Failure!);
@@ -638,8 +634,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Failed(__parsedValue, __musoqReadFailure6);
                 }
 
-                var _tail = base.ReadPreparedByteArray(data, __musoqReadSize4);
-                __parsedValue.Tail = _tail;
+                var _field4_Tail = base.ReadPreparedByteArray(data, __musoqReadSize4);
+                __parsedValue.Tail = _field4_Tail;
                 base.RecordParsedFieldSlot(3);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Header>.Success(__parsedValue);
             }
