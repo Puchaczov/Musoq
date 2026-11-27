@@ -202,10 +202,7 @@ public sealed class InterpretedSwitchArrayNullabilityTests
             new TestsLoggerResolver(),
             new CompilationOptions()
         );
-        Assert.Contains(
-            "ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.SampleSlot>",
-            inspection.GeneratedCSharpCode
-        );
+        Assert.Contains("RecordApplyRows<Musoq.Generated.Interpreters.SampleSlot>", inspection.GeneratedCSharpCode);
         Assert.Contains("?.Score", inspection.GeneratedCSharpCode);
         using var query = Compile(sql);
         using var table = query.Run();

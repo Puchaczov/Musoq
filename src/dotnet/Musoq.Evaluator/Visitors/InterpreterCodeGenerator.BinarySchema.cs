@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Text;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -7,7 +8,7 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
-    private string GenerateBinaryInterpreterClass(BinarySchemaNode schema)
+    private string GenerateBinaryInterpreterClass(BinarySchemaNode schema, BinaryFieldReaderPlan? reader = null)
     {
         var plan = BuildBinaryPlan(schema);
 
@@ -45,7 +46,10 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("/// </summary>");
         var properties = plan
             .Fields.Where(static field => field.EmitsProperty)
-            .Select(static field => new PayloadProperty(field.Name, field.PropertyClrType!))
+            .Select(field => new PayloadProperty(
+                field.Name,
+                reader?.Demand(field.Name) == BinaryFieldDemand.Length ? "int?" : field.PropertyClrType!
+            ))
             .ToArray();
         var declaration = new InterpreterDeclaration(
             className,
@@ -78,7 +82,15 @@ public partial class InterpreterCodeGenerator
             switch (field.Source)
             {
                 case FieldDefinitionNode parsedField:
-                    builder.Append(Indent(GenerateFieldReadCodeWithModifiers(parsedField), 2));
+                    builder.Append(
+                        Indent(
+                            GenerateFieldReadCodeWithModifiers(
+                                parsedField,
+                                reader?.Demand(field.Name) ?? BinaryFieldDemand.Value
+                            ),
+                            2
+                        )
+                    );
                     break;
                 case ComputedFieldNode computedField:
                     builder.Append(Indent(GenerateComputedFieldCode(computedField, allFields), 2));
@@ -87,10 +99,11 @@ public partial class InterpreterCodeGenerator
 
             if (field.EmitsProperty)
             {
-                AppendGeneratedLine(
-                    builder,
-                    $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};"
-                );
+                if (reader?.Demand(field.Name) != BinaryFieldDemand.Discard)
+                    AppendGeneratedLine(
+                        builder,
+                        $"        __parsedValue.{field.PropertyName} = {field.LocalVariableName};"
+                    );
                 AppendGeneratedLine(builder, $"        base.RecordParsedFieldSlot({completionIndex++});");
             }
         }
@@ -102,12 +115,18 @@ public partial class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private string GenerateFieldReadCodeWithModifiers(FieldDefinitionNode field)
+    private string GenerateFieldReadCodeWithModifiers(
+        FieldDefinitionNode field,
+        BinaryFieldDemand demand = BinaryFieldDemand.Value
+    )
     {
         _activeSchemaFieldName = field.Name;
         var builder = new StringBuilder();
         var localVar = GetLocalVarName(field.Name);
         var clrTypeName = GetClrTypeNameForFieldDefinition(field);
+
+        if (field is { Name: "_", Constraint: null, ValueValidation: null, TypeAnnotation: ByteArrayTypeNode })
+            demand = BinaryFieldDemand.Discard;
 
         if (field.WhenCondition != null)
         {
@@ -144,10 +163,13 @@ public partial class InterpreterCodeGenerator
                 defaultValue = "null";
             }
 
-            builder.AppendLine(
-                System.Globalization.CultureInfo.InvariantCulture,
-                $"{nullableTypeName} {localVar} = {defaultValue};"
-            );
+            if (demand == BinaryFieldDemand.Length)
+                builder.AppendLine($"int? {localVar} = null;");
+            else if (demand == BinaryFieldDemand.Value)
+                builder.AppendLine(
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    $"{nullableTypeName} {localVar} = {defaultValue};"
+                );
             builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"if (({condition}) == true)");
             builder.AppendLine("{");
 
@@ -164,7 +186,10 @@ public partial class InterpreterCodeGenerator
                 builder.Append(StatusCheck($"base.SeekWithStatus({offset})"));
             }
 
-            var innerReadCode = GenerateFieldReadCodeInner(field, localVar);
+            var innerReadCode =
+                demand == BinaryFieldDemand.Value
+                    ? GenerateFieldReadCodeInner(field, localVar)
+                    : GenerateByteRegionRead(localVar, (ByteArrayTypeNode)field.TypeAnnotation, demand, declare: false);
             builder.Append(Indent(innerReadCode, 1));
 
             if (field.Constraint != null)
@@ -201,7 +226,11 @@ public partial class InterpreterCodeGenerator
                 builder.Append(StatusCheck($"base.SeekWithStatus({offset})"));
             }
 
-            builder.AppendLine(GenerateBinaryValueRead(localVar, field.Name, field.TypeAnnotation));
+            builder.AppendLine(
+                demand == BinaryFieldDemand.Value
+                    ? GenerateBinaryValueRead(localVar, field.Name, field.TypeAnnotation)
+                    : GenerateByteRegionRead(localVar, (ByteArrayTypeNode)field.TypeAnnotation, demand, declare: true)
+            );
 
             if (field.Constraint != null)
             {

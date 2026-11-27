@@ -8,7 +8,11 @@ namespace Musoq.Evaluator.IR.Execution;
 
 public sealed partial class ExecutionShapeResolver
 {
-    private static RowShape CreateSourceShape(string alias, Type entityType, IReadOnlyList<ColumnSchema> columns)
+    private static SourceEntityShape CreateSourceShape(
+        string alias,
+        Type entityType,
+        IReadOnlyList<ColumnSchema> columns
+    )
     {
         var resolvedColumns = ResolveColumns(entityType, columns);
 

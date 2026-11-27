@@ -180,7 +180,7 @@ namespace GeneratedSample_Q59_BinaryNestedGenericInterpret
                         }
 
                         Statement0Row0 fc = __storedTable0Rows[__storedTable0Index];
-                        var pRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>>(fc?.c_Items?.Data);
+                        var pRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Generated.Interpreters.Pair<Musoq.Generated.Interpreters.ByteValue, Musoq.Generated.Interpreters.ShortValue>>(fc?.c_Items?.Data);
                         foreach (var pChunk in pRows)
                         {
                             for (int pIndex = 0, pIndexCount = pChunk.Count; pIndex < pIndexCount; ++pIndex)
@@ -692,7 +692,6 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue.Count = _field5_Count;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Data");
-                var __field4_Data_list = new System.Collections.Generic.List<T>();
                 var __musoqReadResult2 = base.ResolveSizeValueStatus<byte>((byte?)(_field5_Count), ParseErrorCode.InvalidSize);
                 if (!__musoqReadResult2.Succeeded)
                 {
@@ -700,6 +699,7 @@ namespace Musoq.Generated.Interpreters
                 }
 
                 var __field4_Data_count = __musoqReadResult2.Value!;
+                var __field4_Data_list = __field4_Data_count == 0 ? null : new System.Collections.Generic.List<T>();
                 for (int __field4_Data_i = 0; __field4_Data_i < __field4_Data_count; __field4_Data_i++)
                 {
                     var ___field4_Data_elem_interpreter = (__factory0 is null ? new T() : __factory0.Invoke(__parsedValue, __parentContext));
@@ -710,10 +710,10 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __field4_Data_elem = __musoqReadResult3.Value!;
-                    __field4_Data_list.Add(__field4_Data_elem);
+                    __field4_Data_list!.Add(__field4_Data_elem);
                 }
 
-                var _field4_Data = __field4_Data_list.ToArray();
+                var _field4_Data = __field4_Data_list?.ToArray() ?? System.Array.Empty<T>();
                 __parsedValue.Data = _field4_Data;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<LengthPrefixed<T>>.Success(__parsedValue);

@@ -160,9 +160,7 @@ public abstract partial class BytesInterpreterBase<TOut>
     {
         try
         {
-            var strictEncoding = (Encoding)encoding.Clone();
-            strictEncoding.DecoderFallback = DecoderFallback.ExceptionFallback;
-            return strictEncoding.GetString(bytes);
+            return BinaryStringEncodings.StrictDecoder(encoding).GetString(bytes);
         }
         catch (DecoderFallbackException exception)
         {

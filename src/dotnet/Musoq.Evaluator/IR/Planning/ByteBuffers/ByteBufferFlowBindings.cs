@@ -5,15 +5,33 @@ using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Evaluator.IR.Planning;
 
-internal sealed class ByteBufferFlowValue(int identity, MethodCall producer)
+internal sealed class ByteBufferFlowValue(int identity, MethodCall? producer)
 {
+    // An ordinary datasource column has a known origin, but never owns a planned representation.
+    internal static readonly ByteBufferFlowValue External = new(-1, null)
+    {
+        Requirement = ByteBufferRequirement.Complete,
+    };
+
     internal int Identity { get; } = identity;
-    internal MethodCall Producer { get; } = producer;
+    internal MethodCall? Producer { get; } = producer;
     internal ByteBufferFlowValue? Input { get; set; }
     internal ByteBufferRequirement Requirement { get; private set; } = ByteBufferRequirement.Prefix(0);
-    internal bool UsesView => !Requirement.RequiresCompleteArray && Requirement.ObservesLength;
+    internal bool IsParsedField => Producer is null && !ReferenceEquals(this, External);
+    internal bool StoresLength => IsParsedField && Requirement == ByteBufferRequirement.Length;
+    internal bool UsesView => !IsParsedField && !Requirement.RequiresCompleteArray && Requirement.ObservesLength;
 
-    internal void Require(ByteBufferRequirement requirement) => Requirement = Requirement.Combine(requirement);
+    internal void Require(ByteBufferRequirement requirement)
+    {
+        if (!ReferenceEquals(this, External))
+            Requirement = Requirement.Combine(IsParsedField ? ByteBufferRequirement.Complete : requirement);
+    }
+
+    internal void ObserveLength()
+    {
+        if (!ReferenceEquals(this, External))
+            Requirement = Requirement.Combine(ByteBufferRequirement.Length);
+    }
 }
 
 /// <summary>Field bindings for one physical row boundary, including qualified intermediate names.</summary>
@@ -40,6 +58,25 @@ internal sealed class ByteBufferFlowBindings
 
     internal ByteBufferFlowValue? ResolveName(string name) => _names.GetValueOrDefault(name);
 
+    // Some source schemas bind a complete member path as one scalar column.
+    // Observing the scalar still requires the receiver from which that member is read.
+    internal void ObserveFieldPath(ColumnRef column)
+    {
+        if (Resolve(column) is { IsParsedField: true } direct)
+            direct.Require(ByteBufferRequirement.Complete);
+        var path = string.IsNullOrEmpty(column.Alias) ? column.ColumnName : $"{column.Alias}.{column.ColumnName}";
+        RequirePathReceivers(path);
+        if (path.Length != column.ColumnName.Length)
+            RequirePathReceivers(column.ColumnName);
+    }
+
+    private void RequirePathReceivers(string path)
+    {
+        for (var i = 1; i < path.Length; ++i)
+            if (path[i] is '.' or '[' && ResolveName(path[..i]) is { IsParsedField: true } value)
+                value.Require(ByteBufferRequirement.Complete);
+    }
+
     internal void RequireComplete()
     {
         foreach (var value in Values)
@@ -49,7 +86,8 @@ internal sealed class ByteBufferFlowBindings
     internal static ByteBufferFlowBindings Source(
         OutputSchema schema,
         string alias,
-        ByteBufferFlowBindings? producer = null
+        ByteBufferFlowBindings? producer = null,
+        bool identifyExternalBuffers = false
     )
     {
         var result = new ByteBufferFlowBindings();
@@ -57,7 +95,16 @@ internal sealed class ByteBufferFlowBindings
         result.Columns =
             schema.Columns.Length == 0 && producer is not null
                 ? producer.Columns
-                : schema.Columns.Select(column => (column.Name, producer?.ResolveName(column.Name))).ToArray();
+                : schema
+                    .Columns.Select(column =>
+                        (
+                            column.Name,
+                            identifyExternalBuffers && producer is null && column.Type == typeof(byte[])
+                                ? ByteBufferFlowValue.External
+                                : producer?.ResolveName(column.Name)
+                        )
+                    )
+                    .ToArray();
         if (
             producer is not null
             && schema.Columns.Any(column => column.Type == typeof(byte[]) && producer.ResolveName(column.Name) is null)
@@ -69,6 +116,16 @@ internal sealed class ByteBufferFlowBindings
             result.Add($"{alias}.{name}", value);
         }
         return result;
+    }
+
+    internal void BindParsedFields(string alias, IReadOnlyDictionary<string, ByteBufferFlowValue> fields)
+    {
+        foreach (var (name, value) in fields)
+        {
+            _names[name] = value;
+            _names[$"{alias}.{name}"] = value;
+        }
+        Columns = Columns.Select(column => (column.Name, ResolveName(column.Name))).ToArray();
     }
 
     internal static ByteBufferFlowBindings Project(

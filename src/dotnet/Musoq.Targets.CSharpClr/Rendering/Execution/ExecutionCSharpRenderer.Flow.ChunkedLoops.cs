@@ -266,7 +266,8 @@ public sealed partial class ExecutionCSharpRenderer
             RenderExpression(source, context),
             breakTarget,
             createBodyStatements,
-            prepareChunk
+            prepareChunk,
+            source is not ExecutionRowStream { HasRecordBatches: true }
         );
     }
 

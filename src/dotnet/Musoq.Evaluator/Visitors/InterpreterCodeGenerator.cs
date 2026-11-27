@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
@@ -50,7 +51,9 @@ public partial class InterpreterCodeGenerator
     /// </summary>
     /// <param name="namespaceName">The namespace for the generated classes.</param>
     /// <returns>Complete C# source code containing all generated interpreter classes.</returns>
-    public string GenerateAll(string namespaceName = "Musoq.Generated.Interpreters")
+    public string GenerateAll(string namespaceName = "Musoq.Generated.Interpreters") => GenerateAll(namespaceName, []);
+
+    internal string GenerateAll(string namespaceName, IReadOnlyList<BinaryFieldReaderPlan> readers)
     {
         var intrinsicName = "__MusoqSchemaIntrinsics";
         while (_registry.TryGetSchema(intrinsicName, out _))
@@ -112,6 +115,18 @@ public partial class InterpreterCodeGenerator
                 builder.AppendLine();
             }
 
+        foreach (var reader in readers)
+        {
+            if (
+                !_registry.TryGetSchema(reader.SchemaName, out var registration)
+                || registration?.Node is not BinarySchemaNode schema
+            )
+                throw new InvalidOperationException($"Cannot generate field reader for schema '{reader.SchemaName}'.");
+            builder.AppendLine($"    internal static class {reader.Container}");
+            builder.AppendLine("    {");
+            builder.AppendLine(Indent(GenerateBinaryInterpreterClass(schema, reader), 2));
+            builder.AppendLine("    }");
+        }
         if (_intrinsicCallCount > 0)
             builder.AppendLine(Indent(SchemaIntrinsicCodeEmitter.Emit(intrinsicName), 1));
         var concatenationCallbacks = _stringConcatenation.EmitCallbackClass();

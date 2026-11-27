@@ -12,15 +12,17 @@ internal static class ChunkedLoopSyntaxFactory
         ExpressionSyntax sourceExpression,
         string breakTarget,
         Func<ExpressionSyntax, string, List<StatementSyntax>> createBodyStatements,
-        Func<string, string, StatementSyntax, StatementSyntax>? prepareChunk = null
+        Func<string, string, StatementSyntax, StatementSyntax>? prepareChunk = null,
+        bool specializeChunkViews = true
     )
     {
         var chunkVariableName = CreateIdentifierCandidate($"{item.Name}Chunk", 0);
         var indexVariableName = CreateIdentifierCandidate($"{item.Name}Index", 0);
 
-        StatementSyntax body = TryCreateFastPathItemType(item, out var itemType)
-            ? CreateChunkFastPathStatement(itemType, chunkVariableName, indexVariableName, createBodyStatements)
-            : CreateGenericChunkLoop(chunkVariableName, indexVariableName, createBodyStatements);
+        StatementSyntax body =
+            specializeChunkViews && TryCreateFastPathItemType(item, out var itemType)
+                ? CreateChunkFastPathStatement(itemType, chunkVariableName, indexVariableName, createBodyStatements)
+                : CreateGenericChunkLoop(chunkVariableName, indexVariableName, createBodyStatements);
         var inputName = chunkVariableName;
         if (prepareChunk != null)
         {

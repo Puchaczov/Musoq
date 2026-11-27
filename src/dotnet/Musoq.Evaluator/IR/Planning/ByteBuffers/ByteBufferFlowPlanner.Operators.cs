@@ -20,7 +20,11 @@ internal sealed partial class ByteBufferFlowPlanner
         {
             foreach (var argument in scan.Arguments)
                 Observe(argument, correlated);
-            return ByteBufferFlowBindings.Source(scan.OutputSchema, scan.Alias);
+            return ByteBufferFlowBindings.Source(
+                scan.OutputSchema,
+                scan.Alias,
+                identifyExternalBuffers: registry is not null
+            );
         }
         var input = ByteBufferFlowBindings.Merge(node.Children.Select(child => Analyze(child, scope, correlated)));
         var expressions = node switch
@@ -45,7 +49,7 @@ internal sealed partial class ByteBufferFlowPlanner
             return new ByteBufferFlowBindings();
         }
         foreach (var expression in expressions)
-            Observe(expression, input);
+            Observe(expression, input, allowFieldLength: node is PhysicalFilterNode);
         return input;
     }
 
@@ -71,6 +75,22 @@ internal sealed partial class ByteBufferFlowPlanner
         foreach (var argument in source.Arguments.Skip(1))
             Observe(argument, input);
         var output = ByteBufferFlowBindings.Source(source.OutputSchema, source.Alias);
+        var candidates = BinaryFieldReaderPlan.EligibleFields(source, registry);
+        if (candidates.Count > 0)
+        {
+            var fields = candidates.ToDictionary(
+                name => name,
+                name =>
+                {
+                    var value = new ByteBufferFlowValue(_values.Count, null);
+                    _values.Add(value);
+                    return value;
+                },
+                StringComparer.OrdinalIgnoreCase
+            );
+            output.BindParsedFields(source.Alias, fields);
+            _parsedFields.Add(source, fields);
+        }
         _boundaries.Add(source, new(input, output, []));
         return output;
     }

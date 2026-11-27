@@ -25,6 +25,7 @@ public sealed record SourceEntityShape : RowShape
     public ExecutionTypeRef EntityType { get; init; }
 
     public string? GeneratedTypeName { get; init; }
+    internal bool IsRecordEnumerable { get; init; }
     public ExecutionInterpretationShape? ElementInterpretationShape { get; init; }
 
     public override IReadOnlyList<FieldBinding> Fields

@@ -1,4 +1,5 @@
 using System.Text;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -36,12 +37,27 @@ public partial class InterpreterCodeGenerator
         return $"global::System.Buffers.Binary.BinaryPrimitives.Read{number}{order}({bytes})";
     }
 
-    private string GenerateByteArrayReadCode(string localVar, ByteArrayTypeNode byteArrayType)
+    private string GenerateByteArrayReadCode(string localVar, ByteArrayTypeNode bytes) =>
+        GenerateByteRegionRead(localVar, bytes, BinaryFieldDemand.Value, declare: true);
+
+    private string GenerateByteRegionRead(
+        string localVar,
+        ByteArrayTypeNode bytes,
+        BinaryFieldDemand demand,
+        bool declare
+    )
     {
         var size = NextStatusName("__musoqReadSize");
-        return StatusSizeDeclaration(size, byteArrayType.SizeExpression)
+        var read = demand switch
+        {
+            BinaryFieldDemand.Value => $"var {localVar} = base.ReadPreparedByteArray(data, {size});",
+            BinaryFieldDemand.Length =>
+                $"{(declare ? "int? " : "")}{localVar} = base.TakePreparedBytes(data, {size}).Length;",
+            _ => $"base.TakePreparedBytes(data, {size});",
+        };
+        return StatusSizeDeclaration(size, bytes.SizeExpression)
             + StatusCheck($"base.PrepareByteArrayStatus(data, {size})")
-            + $"var {localVar} = base.ReadPreparedByteArray(data, {size});";
+            + read;
     }
 
     private string GenerateStringReadCode(string localVar, StringTypeNode stringType, string fieldName)
@@ -131,7 +147,7 @@ public partial class InterpreterCodeGenerator
             StringEncoding.Ascii => "System.Text.Encoding.ASCII",
             StringEncoding.Latin1 => "System.Text.Encoding.Latin1",
             StringEncoding.Ebcdic =>
-                "System.Text.CodePagesEncodingProvider.Instance.GetEncoding(37, System.Text.EncoderFallback.ExceptionFallback, System.Text.DecoderFallback.ExceptionFallback) ?? throw new System.NotSupportedException(\"IBM EBCDIC code page 037 is unavailable.\")",
+                "System.Text.CodePagesEncodingProvider.Instance.GetEncoding(37) ?? throw new System.NotSupportedException(\"IBM EBCDIC code page 037 is unavailable.\")",
             _ => "System.Text.Encoding.UTF8",
         };
     }

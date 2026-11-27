@@ -14,15 +14,21 @@ namespace Musoq.Evaluator.IR.Planning;
 /// <summary>Selects byte-buffer execution before physical expressions enter executable lowering.</summary>
 internal static class ByteBufferPlanner
 {
-    internal static PhysicalNode Plan(PhysicalNode root, SchemaRegistry? registry, CancellationToken cancellationToken)
+    internal static PhysicalNode Plan(
+        PhysicalNode root,
+        SchemaRegistry? registry,
+        CancellationToken cancellationToken,
+        bool planFieldReaders = true
+    )
     {
         var expressions = new ProducerPlanner(cancellationToken);
         var bounds = registry is null ? null : new BinarySchemaReadBounds(registry, cancellationToken);
         var hasOwnedProjection = false;
+        var hasFieldCandidates = false;
         var local = Rewrite(root);
-        if (!hasOwnedProjection)
+        if (!hasOwnedProjection && !hasFieldCandidates)
             return local;
-        return new ByteBufferFlowPlanner(bounds, cancellationToken).Plan(local);
+        return new ByteBufferFlowPlanner(bounds, hasFieldCandidates ? registry : null, cancellationToken).Plan(local);
 
         PhysicalNode Rewrite(PhysicalNode node)
         {
@@ -56,6 +62,7 @@ internal static class ByteBufferPlanner
 
         PhysicalNode RewriteInterpret(PhysicalInterpretSourceNode source)
         {
+            hasFieldCandidates |= planFieldReaders && BinaryFieldReaderPlan.HasByteFields(source, registry);
             IrExpression[]? arguments = null;
             for (var index = 0; index < source.Arguments.Length; index++)
             {

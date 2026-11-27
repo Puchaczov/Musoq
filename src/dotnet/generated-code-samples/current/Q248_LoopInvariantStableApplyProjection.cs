@@ -173,46 +173,9 @@ namespace GeneratedSample_Q248_LoopInvariantStableApplyProjection
                         Statement0Row0 ab = __storedTable0Rows[__storedTable0Index];
                         int abaValue = ab.a_Value;
                         int abbValue = ab.b_Value;
-                        var cRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf>(ab.b_Leaves);
+                        var cRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf>(ab.b_Leaves);
                         foreach (var cChunk in cRows)
                         {
-                            if (cChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf> cChunkView)
-                            {
-                                if (cChunkView.Source is Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf[] cChunkViewArray)
-                                {
-                                    int cChunkViewOffset = cChunkView.Offset;
-                                    for (int cIndex = 0, cIndexCount = cChunkView.Count; cIndex < cIndexCount; ++cIndex)
-                                    {
-                                        if ((cIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var c = cChunkViewArray[cChunkViewOffset + cIndex];
-                                        __musoqFinalShapeRows.Add(new ResultRow0(abaValue, abbValue, c.Value));
-                                    }
-
-                                    continue;
-                                }
-
-                                if (cChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleLeaf> cChunkViewList)
-                                {
-                                    int cChunkViewOffset = cChunkView.Offset;
-                                    for (int cIndex = 0, cIndexCount = cChunkView.Count; cIndex < cIndexCount; ++cIndex)
-                                    {
-                                        if ((cIndex & 1023) == 0)
-                                        {
-                                            token.ThrowIfCancellationRequested();
-                                        }
-
-                                        var c = cChunkViewList[cChunkViewOffset + cIndex];
-                                        __musoqFinalShapeRows.Add(new ResultRow0(abaValue, abbValue, c.Value));
-                                    }
-
-                                    continue;
-                                }
-                            }
-
                             for (int cIndex = 0, cIndexCount = cChunk.Count; cIndex < cIndexCount; ++cIndex)
                             {
                                 if ((cIndex & 1023) == 0)
@@ -281,46 +244,9 @@ namespace GeneratedSample_Q248_LoopInvariantStableApplyProjection
 
                             var a = aChunkViewArray[aChunkViewOffset + aIndex];
                             int aValue = a.Value;
-                            var statement0_bRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle>(a.Middles);
+                            var statement0_bRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle>(a.Middles);
                             foreach (var bChunk in statement0_bRows)
                             {
-                                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle> bChunkView)
-                                {
-                                    if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] bChunkViewArray)
-                                    {
-                                        int bChunkViewOffset = bChunkView.Offset;
-                                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                                        {
-                                            if ((bIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aValue, b.Value, b.Leaves));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle> bChunkViewList)
-                                    {
-                                        int bChunkViewOffset = bChunkView.Offset;
-                                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                                        {
-                                            if ((bIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aValue, b.Value, b.Leaves));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
                                 for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                                 {
                                     if ((bIndex & 1023) == 0)
@@ -349,46 +275,9 @@ namespace GeneratedSample_Q248_LoopInvariantStableApplyProjection
 
                             var a = aChunkViewList[aChunkViewOffset + aIndex];
                             int aValue = a.Value;
-                            var statement0_bRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle>(a.Middles);
+                            var statement0_bRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle>(a.Middles);
                             foreach (var bChunk in statement0_bRows)
                             {
-                                if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle> bChunkView)
-                                {
-                                    if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] bChunkViewArray)
-                                    {
-                                        int bChunkViewOffset = bChunkView.Offset;
-                                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                                        {
-                                            if ((bIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aValue, b.Value, b.Leaves));
-                                        }
-
-                                        continue;
-                                    }
-
-                                    if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle> bChunkViewList)
-                                    {
-                                        int bChunkViewOffset = bChunkView.Offset;
-                                        for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                                        {
-                                            if ((bIndex & 1023) == 0)
-                                            {
-                                                token.ThrowIfCancellationRequested();
-                                            }
-
-                                            var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                            statement0.Add(new Statement0Row0(aValue, b.Value, b.Leaves));
-                                        }
-
-                                        continue;
-                                    }
-                                }
-
                                 for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                                 {
                                     if ((bIndex & 1023) == 0)
@@ -415,46 +304,9 @@ namespace GeneratedSample_Q248_LoopInvariantStableApplyProjection
 
                     var a = aChunk[aIndex];
                     int aValue = a.Value;
-                    var statement0_bRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle>(a.Middles);
+                    var statement0_bRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle>(a.Middles);
                     foreach (var bChunk in statement0_bRows)
                     {
-                        if (bChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle> bChunkView)
-                        {
-                            if (bChunkView.Source is Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle[] bChunkViewArray)
-                            {
-                                int bChunkViewOffset = bChunkView.Offset;
-                                for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                                {
-                                    if ((bIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var b = bChunkViewArray[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(aValue, b.Value, b.Leaves));
-                                }
-
-                                continue;
-                            }
-
-                            if (bChunkView.Source is List<Musoq.Evaluator.Tests.Schema.Generated.LoopInvariantSampleMiddle> bChunkViewList)
-                            {
-                                int bChunkViewOffset = bChunkView.Offset;
-                                for (int bIndex = 0, bIndexCount = bChunkView.Count; bIndex < bIndexCount; ++bIndex)
-                                {
-                                    if ((bIndex & 1023) == 0)
-                                    {
-                                        token.ThrowIfCancellationRequested();
-                                    }
-
-                                    var b = bChunkViewList[bChunkViewOffset + bIndex];
-                                    statement0.Add(new Statement0Row0(aValue, b.Value, b.Leaves));
-                                }
-
-                                continue;
-                            }
-                        }
-
                         for (int bIndex = 0, bIndexCount = bChunk.Count; bIndex < bIndexCount; ++bIndex)
                         {
                             if ((bIndex & 1023) == 0)

@@ -174,7 +174,7 @@ namespace GeneratedSample_Q55_BinaryInlineArrayInterpret
 
                         Statement0Row0 fp = __storedTable0Rows[__storedTable0Index];
                         byte fppCount = fp.p_Count;
-                        var itRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Inline_Items>(fp.p_Items);
+                        var itRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Generated.Interpreters.Inline_Items>(fp.p_Items);
                         foreach (var itChunk in itRows)
                         {
                             for (int itIndex = 0, itIndexCount = itChunk.Count; itIndex < itIndexCount; ++itIndex)
@@ -448,7 +448,6 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue.Count = _field5_Count;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Items");
-                var __field5_Items_list = new System.Collections.Generic.List<Inline_Items>();
                 var __musoqReadResult2 = base.ResolveSizeValueStatus<byte>((byte?)(_field5_Count), ParseErrorCode.InvalidSize);
                 if (!__musoqReadResult2.Succeeded)
                 {
@@ -456,6 +455,8 @@ namespace Musoq.Generated.Interpreters
                 }
 
                 var __field5_Items_count = __musoqReadResult2.Value!;
+                var __field5_Items_array = __field5_Items_count == 0 ? System.Array.Empty<Inline_Items>() : base.BitOffset == 0 && __field5_Items_count <= (data.Length - base.ParsePosition) / 3 ? new Inline_Items[__field5_Items_count] : null;
+                var __field5_Items_list = __field5_Items_array is null ? new System.Collections.Generic.List<Inline_Items>() : null;
                 for (int __field5_Items_i = 0; __field5_Items_i < __field5_Items_count; __field5_Items_i++)
                 {
                     var ___field5_Items_elem_interpreter = new Inline_Items();
@@ -466,10 +467,13 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __field5_Items_elem = __musoqReadResult3.Value!;
-                    __field5_Items_list.Add(__field5_Items_elem);
+                    if (__field5_Items_array is not null)
+                        __field5_Items_array[__field5_Items_i] = __field5_Items_elem;
+                    else
+                        __field5_Items_list!.Add(__field5_Items_elem);
                 }
 
-                var _field5_Items = __field5_Items_list.ToArray();
+                var _field5_Items = __field5_Items_array ?? __field5_Items_list!.ToArray();
                 __parsedValue.Items = _field5_Items;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<InlineArrayPacket>.Success(__parsedValue);

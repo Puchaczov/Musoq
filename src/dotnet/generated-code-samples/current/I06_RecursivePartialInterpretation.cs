@@ -605,8 +605,8 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new SampleBatch();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Blocks");
-                var __field6_Blocks_list = new System.Collections.Generic.List<SampleBlock>();
                 var __field6_Blocks_count = 2;
+                var __field6_Blocks_list = __field6_Blocks_count == 0 ? null : new System.Collections.Generic.List<SampleBlock>();
                 for (int __field6_Blocks_i = 0; __field6_Blocks_i < __field6_Blocks_count; __field6_Blocks_i++)
                 {
                     var ___field6_Blocks_elem_interpreter = new SampleBlock();
@@ -617,10 +617,10 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __field6_Blocks_elem = __musoqReadResult1.Value!;
-                    __field6_Blocks_list.Add(__field6_Blocks_elem);
+                    __field6_Blocks_list!.Add(__field6_Blocks_elem);
                 }
 
-                var _field6_Blocks = __field6_Blocks_list.ToArray();
+                var _field6_Blocks = __field6_Blocks_list?.ToArray() ?? System.Array.Empty<SampleBlock>();
                 __parsedValue.Blocks = _field6_Blocks;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<SampleBatch>.Success(__parsedValue);

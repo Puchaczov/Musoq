@@ -163,7 +163,7 @@ namespace GeneratedSample_Q306_SpecBinaryDiscardRepeatUntilEof
                         }
 
                         Statement0Row0 fs = __storedTable0Rows[__storedTable0Index];
-                        var iRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Item>(fs.s_Items);
+                        var iRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Generated.Interpreters.Item>(fs.s_Items);
                         foreach (var iChunk in iRows)
                         {
                             for (int iIndex = 0, iIndexCount = iChunk.Count; iIndex < iIndexCount; ++iIndex)
@@ -420,7 +420,7 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Item>.Failed(__parsedValue, __musoqReadFailure3);
                 }
 
-                var _discard0 = base.ReadPreparedByteArray(data, __musoqReadSize2);
+                base.TakePreparedBytes(data, __musoqReadSize2);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Item>.Success(__parsedValue);
             }
             catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)

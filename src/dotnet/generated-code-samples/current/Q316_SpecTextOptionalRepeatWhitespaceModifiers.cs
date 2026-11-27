@@ -189,7 +189,7 @@ namespace GeneratedSample_Q316_SpecTextOptionalRepeatWhitespaceModifiers
                         string fddOptionalCode = fd.d_OptionalCode;
                         string fddPrefix = fd.d_Prefix;
                         string fddTail = fd.d_Tail;
-                        var iRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Item>(fd.d_Items);
+                        var iRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Generated.Interpreters.Item>(fd.d_Items);
                         foreach (var iChunk in iRows)
                         {
                             for (int iIndex = 0, iIndexCount = iChunk.Count; iIndex < iIndexCount; ++iIndex)

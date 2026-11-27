@@ -20,8 +20,8 @@ PhysicalMultiStatement
   PhysicalProject [r.Id as r.Id, p.Value as p.Value, p.Tail as p.Tail]
     PhysicalNestedLoopApply [Cross]
       PhysicalSchemaScan [#perf.rows() as r]
-      PhysicalInterpretSource [#LargePacket(r.Payload) as p]
-  PhysicalProject [r.Id as Id, p.Value as Value, Length(p.Tail) as TailLength]
+      PhysicalInterpretSource [#LargePacket(r.Payload) as p] [byte fields: Tail=Length]
+  PhysicalProject [r.Id as Id, p.Value as Value, p.Tail as TailLength]
     PhysicalCteRef [rp as rp]
 */
 
@@ -34,7 +34,7 @@ ExecutionPlan [compiled]
       Payload: byte[] <- property Payload
     SourceEntity [p: object]
       Value: int <- property Value
-      Tail: byte[] <- property Tail
+      Tail: int? <- property Tail
     Generated [ResultRow0]
       Id: int <- field Id
       Value: int <- field Value
@@ -47,12 +47,11 @@ ExecutionPlan [compiled]
     PhaseBoundary [Select]
     SourceScan [r: PerformanceRow] -> rRows
     CreateShapeRows [result: ResultRow0 from ResultRow0]
-    CreateObject [__resultLibraryBase0: LibraryBase]
     ChunkedForEach [r in rRows]
       Let [rId: int = r.Id]
       InterpretSource [LargePacket.Interpret(r.Payload) -> pRows]
       ScalarForEach [p in pRows]
-        AppendShape [result <- ResultRow0(Id: rId, Value: p.Value, TailLength: Length(p.Tail))]
+        AppendShape [result <- ResultRow0(Id: rId, Value: p.Value, TailLength: p.Tail)]
     PhaseBoundary [End:cte0]
     ReturnDeferredTable [result: ResultRow0 <- ResultRow0]
 */
@@ -122,14 +121,12 @@ namespace GeneratedSample_B27_Binary4KiB_BenchmarkTable
                 OnPhaseChanged("compiled", QueryPhase.Begin);
                 OnPhaseChanged("compiled", QueryPhase.From);
                 OnPhaseChanged("compiled:cte0", QueryPhase.Begin);
-                Musoq.Plugins.LibraryBase __resultLibraryBase0 = default!;
                 try
                 {
                     OnPhaseChanged("compiled", QueryPhase.Select);
                     var __rSchema = provider.GetSchema("#perf");
                     var rRowsSource = SourceInvocation<Musoq.Benchmarks.Scenarios.PerformanceRow>.Open(__rSchema, "rows", new SourceExecutionContext("r:1", sourceExecutionPlans["r:1"], token, __schemaColumns_compiled_r_0, sourceRuntimeSettingsBySourceContextId["r:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["r:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                     var rRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Benchmarks.Scenarios.PerformanceRow>(rRowsSource.Chunks, __musoqProgressContext, "r:1") : rRowsSource.Chunks;
-                    __resultLibraryBase0 = new Musoq.Plugins.LibraryBase();
                     foreach (var rChunk in rRows)
                     {
                         if (rChunk is global::Musoq.Schema.DataSources.RowChunk<Musoq.Benchmarks.Scenarios.PerformanceRow> rChunkView)
@@ -146,13 +143,13 @@ namespace GeneratedSample_B27_Binary4KiB_BenchmarkTable
 
                                     var r = rChunkViewArray[rChunkViewOffset + rIndex];
                                     int rId = r.Id;
-                                    var _interpreter_LargePacket = new Musoq.Generated.Interpreters.LargePacket();
+                                    var _interpreter_LargePacket = new Musoq.Generated.Interpreters.__MusoqFieldReader0.LargePacket();
                                     var pRows = _interpreter_LargePacket.Interpret(r.Payload);
                                     if (pRows != null)
                                     {
                                         token.ThrowIfCancellationRequested();
                                         var p = pRows;
-                                        yield return new ResultRow0(rId, p.Value, (int?)__resultLibraryBase0.Length<byte>(p.Tail));
+                                        yield return new ResultRow0(rId, p.Value, p.Tail);
                                     }
                                 }
 
@@ -171,13 +168,13 @@ namespace GeneratedSample_B27_Binary4KiB_BenchmarkTable
 
                                     var r = rChunkViewList[rChunkViewOffset + rIndex];
                                     int rId = r.Id;
-                                    var _interpreter_LargePacket = new Musoq.Generated.Interpreters.LargePacket();
+                                    var _interpreter_LargePacket = new Musoq.Generated.Interpreters.__MusoqFieldReader0.LargePacket();
                                     var pRows = _interpreter_LargePacket.Interpret(r.Payload);
                                     if (pRows != null)
                                     {
                                         token.ThrowIfCancellationRequested();
                                         var p = pRows;
-                                        yield return new ResultRow0(rId, p.Value, (int?)__resultLibraryBase0.Length<byte>(p.Tail));
+                                        yield return new ResultRow0(rId, p.Value, p.Tail);
                                     }
                                 }
 
@@ -194,13 +191,13 @@ namespace GeneratedSample_B27_Binary4KiB_BenchmarkTable
 
                             var r = rChunk[rIndex];
                             int rId = r.Id;
-                            var _interpreter_LargePacket = new Musoq.Generated.Interpreters.LargePacket();
+                            var _interpreter_LargePacket = new Musoq.Generated.Interpreters.__MusoqFieldReader0.LargePacket();
                             var pRows = _interpreter_LargePacket.Interpret(r.Payload);
                             if (pRows != null)
                             {
                                 token.ThrowIfCancellationRequested();
                                 var p = pRows;
-                                yield return new ResultRow0(rId, p.Value, (int?)__resultLibraryBase0.Length<byte>(p.Tail));
+                                yield return new ResultRow0(rId, p.Value, p.Tail);
                             }
                         }
                     }
@@ -384,6 +381,92 @@ namespace Musoq.Generated.Interpreters
             catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
             {
                 return global::Musoq.Schema.Interpreters.ParseAttempt<LargePacket>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+            }
+        }
+    }
+
+    internal static class __MusoqFieldReader0
+    {
+        /// <summary>
+        /// Generated interpreter for binary schema 'LargePacket'.
+        /// </summary>
+        [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
+        public sealed class LargePacket : BytesInterpreterBase<LargePacket>, IBytesInterpreterStatus<LargePacket>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
+        {
+            public int Value { get; set; }
+            public int? Tail { get; set; }
+
+            private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Value", "Tail" });
+            global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
+
+            private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
+            public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
+            protected override void AttachPartialFieldNames(LargePacket value, System.Collections.Generic.IReadOnlySet<string> completedFields)
+            {
+                value.__completedFieldNames = completedFields;
+            }
+
+            public void WriteJson(global::System.Text.Json.Utf8JsonWriter writer, global::System.Text.Json.JsonSerializerOptions? options = null)
+            {
+                writer.WriteStartObject();
+                if (IsFieldComplete("Value"))
+                {
+                    writer.WritePropertyName("Value");
+                    var fieldValue = this.Value;
+                    global::Musoq.Plugins.JsonPayloadWriter.Write(writer, in fieldValue, options);
+                }
+
+                if (IsFieldComplete("Tail"))
+                {
+                    writer.WritePropertyName("Tail");
+                    var fieldValue = this.Tail;
+                    global::Musoq.Plugins.JsonPayloadWriter.Write(writer, in fieldValue, options);
+                }
+
+                writer.WriteEndObject();
+            }
+
+            public override string SchemaName => "LargePacket";
+
+            public override LargePacket InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<LargePacket>)this).ReadAt(data, offset).GetValueOrThrow();
+            global::Musoq.Schema.Interpreters.ParseAttempt<LargePacket> global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<LargePacket>.ReadAt(ReadOnlySpan<byte> data, int offset)
+            {
+                LargePacket? __parsedValue = null;
+                try
+                {
+                    if (base.InitializeParsePositionStatus(data, offset)is { } __musoqReadFailure0)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<LargePacket>.Failed(__parsedValue, __musoqReadFailure0);
+                    }
+
+                    SetCurrentField(null);
+                    __parsedValue = new LargePacket();
+                    RecordParsedValue(__parsedValue);
+                    SetCurrentField("Value");
+                    if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure1)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<LargePacket>.Failed(__parsedValue, __musoqReadFailure1);
+                    }
+
+                    var _field5_Value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                    __parsedValue.Value = _field5_Value;
+                    base.RecordParsedFieldSlot(0);
+                    SetCurrentField("Tail");
+                    var __musoqReadSize2 = 4092;
+                    if (base.PrepareByteArrayStatus(data, __musoqReadSize2)is { } __musoqReadFailure3)
+                    {
+                        return global::Musoq.Schema.Interpreters.ParseAttempt<LargePacket>.Failed(__parsedValue, __musoqReadFailure3);
+                    }
+
+                    int? _field4_Tail = base.TakePreparedBytes(data, __musoqReadSize2).Length;
+                    __parsedValue.Tail = _field4_Tail;
+                    base.RecordParsedFieldSlot(1);
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<LargePacket>.Success(__parsedValue);
+                }
+                catch (global::Musoq.Schema.Interpreters.ParseException __parseFailure)
+                {
+                    return global::Musoq.Schema.Interpreters.ParseAttempt<LargePacket>.Failed(__parsedValue, global::Musoq.Schema.Interpreters.ParseFailure.FromException(__parseFailure));
+                }
             }
         }
     }

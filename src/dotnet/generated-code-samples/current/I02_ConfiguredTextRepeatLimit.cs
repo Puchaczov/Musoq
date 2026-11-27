@@ -312,7 +312,7 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
                 }
 
                 Statement0Row0 fp = __storedTable0Rows[__storedTable0Index];
-                var statement1_rRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Item>(fp.p_Records);
+                var statement1_rRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Generated.Interpreters.Item>(fp.p_Records);
                 foreach (var rChunk in statement1_rRows)
                 {
                     for (int rIndex = 0, rIndexCount = rChunk.Count; rIndex < rIndexCount; ++rIndex)

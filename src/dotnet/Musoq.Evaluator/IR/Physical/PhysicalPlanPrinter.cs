@@ -156,13 +156,15 @@ public static partial class PhysicalPlanPrinter
                 PrintUnpivot(unpivot, sb, prefix, indent);
                 break;
             case PhysicalInterpretSourceNode interpret:
-                sb.Append(prefix)
-                    .Append(
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        $"PhysicalInterpretSource [{PlanPrinterHelpers.FormatSchemaName(interpret.SchemaName)}("
-                    );
-                PlanPrinterHelpers.AppendExpressions(sb, interpret.Arguments);
-                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $") as {interpret.Alias}]");
+                PlanPrinterHelpers
+                    .AppendInterpretSource(
+                        sb.Append(prefix),
+                        "PhysicalInterpretSource",
+                        interpret.SchemaName,
+                        interpret.Arguments,
+                        interpret.Alias
+                    )
+                    .AppendLine(interpret.FieldReader?.Describe());
                 break;
             case PhysicalPropertySourceNode property:
                 sb.Append(prefix)

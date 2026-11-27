@@ -20,6 +20,7 @@ internal static class ExecutionRowStreams
             {
                 HasBaseRowElements = stream.HasBaseRowElements,
                 HasDirectScalarElements = stream.HasDirectScalarElements,
+                HasRecordBatches = stream.HasRecordBatches,
                 IsValueEnumerable = stream.IsValueEnumerable,
             },
             ExecutionScalarRowStream => new ExecutionScalarRowStream(variable),

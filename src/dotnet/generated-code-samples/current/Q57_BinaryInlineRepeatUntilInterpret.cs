@@ -164,7 +164,7 @@ namespace GeneratedSample_Q57_BinaryInlineRepeatUntilInterpret
                         }
 
                         Statement0Row0 fp = __storedTable0Rows[__storedTable0Index];
-                        var itRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Inline_Items>(fp.p_Items);
+                        var itRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Generated.Interpreters.Inline_Items>(fp.p_Items);
                         foreach (var itChunk in itRows)
                         {
                             for (int itIndex = 0, itIndexCount = itChunk.Count; itIndex < itIndexCount; ++itIndex)

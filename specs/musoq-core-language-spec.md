@@ -121,7 +121,6 @@ This document is the core specification in a family of related documents:
 |----------|-------|
 | **Musoq Core SQL Language Specification** (this document) | Core SQL dialect: syntax, semantics, type system, built-in functions, error catalog |
 | **Musoq Interpretation Schemas: Language Extension Specification** (`musoq-binary-text-spec.md`) | `binary` and `text` schema extensions for declarative parsing of binary and textual data |
-| **Musoq AI Interpretation Schemas: Language Extension Specification** (`musoq-ai-spec.md`) | `ai` schema extension for structured extraction from unstructured content via LLMs |
 | **Musoq TABLE/COUPLE Statements Specification** (`musoq-table-couple-spec.md`) | `TABLE` and `COUPLE` statements for defining explicit type schemas and selecting source runtime settings profiles for data sources |
 
 Satellite specifications extend the core language with new statement types and schema kinds. They inherit the core specification’s lexical rules, type system, expression semantics, and notation conventions.
@@ -131,7 +130,6 @@ Satellite specifications extend the core language with new statement types and s
 A conforming implementation MUST support all features defined in this core specification. The extension specifications (§1.6) define optional profiles:
 
 - **Binary/Text Interpretation profile**: `binary` and `text` schema definitions, `Interpret<Schema>()`, `Parse<Schema>()`, and related functions
-- **AI Interpretation profile**: `ai` schema definitions, `Infer()`, `TryInfer()`, and related functions
 - **TABLE/COUPLE profile**: `TABLE` and `COUPLE` statements for explicit type binding and source runtime settings profile selection
 
 An implementation MAY support any combination of profiles. An implementation that claims conformance to a profile MUST implement all features defined in the corresponding satellite specification.

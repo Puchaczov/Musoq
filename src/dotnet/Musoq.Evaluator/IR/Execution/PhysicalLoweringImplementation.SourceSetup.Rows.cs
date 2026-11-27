@@ -73,10 +73,12 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         var rows = new ExecutionVariable(CreateSourceRowsName(alias, sourceRowsScope), typeof(object));
 
-        var directScalar = IsDirectScalarSource(sourceShape);
+        var mode = CreateEnumerableChunkMode(sourceShape);
+        var directScalar = mode == ExecutionEnumerableChunkMode.DirectScalar;
         return new ExecutionRowStream(rows, directScalar ? ExecutionRowStreamKind.Rows : ExecutionRowStreamKind.Chunks)
         {
             HasDirectScalarElements = directScalar,
+            HasRecordBatches = mode == ExecutionEnumerableChunkMode.DirectRecord,
             IsValueEnumerable = directScalar && enumerableType.IsValueType,
         };
     }
@@ -106,13 +108,21 @@ internal sealed partial class PhysicalLoweringImplementation
         if (IsDirectScalarSource(sourceShape))
             return ExecutionEnumerableChunkMode.DirectScalar;
 
-        return
-            sourceShape is SourceEntityShape { EntityType: not null } source
-            && source.EntityType.ResolveClrType() != typeof(object)
-            && RowShapeLookup.CanReferenceType(source.EntityType.ResolveClrType())
-            && !RowShapeLookup.UsesReflectedMemberAccess(source)
-            ? ExecutionEnumerableChunkMode.Direct
-            : ExecutionEnumerableChunkMode.ObjectOrReflected;
+        if (sourceShape is SourceEntityShape { GeneratedTypeName: not null })
+            return ExecutionEnumerableChunkMode.DirectRecord;
+
+        if (sourceShape is not SourceEntityShape source)
+            return ExecutionEnumerableChunkMode.ObjectOrReflected;
+        var type = source.EntityType.ResolveClrType();
+        if (
+            type == typeof(object)
+            || !RowShapeLookup.CanReferenceType(type)
+            || RowShapeLookup.UsesReflectedMemberAccess(source)
+        )
+            return ExecutionEnumerableChunkMode.ObjectOrReflected;
+        return source.IsRecordEnumerable
+            ? ExecutionEnumerableChunkMode.DirectRecord
+            : ExecutionEnumerableChunkMode.Direct;
     }
 
     private static bool IsDirectScalarSource(RowShape sourceShape)

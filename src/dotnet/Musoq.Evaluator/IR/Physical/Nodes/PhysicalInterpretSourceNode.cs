@@ -16,5 +16,7 @@ public sealed record PhysicalInterpretSourceNode(
     OutputSchema OutputSchema
 ) : PhysicalNode(OutputSchema)
 {
+    internal BinaryFieldReaderPlan? FieldReader { get; init; }
+
     public override IReadOnlyList<PhysicalNode> Children { get; } = Array.Empty<PhysicalNode>();
 }

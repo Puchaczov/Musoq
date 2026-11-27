@@ -27,5 +27,7 @@ internal sealed partial record PlanningContext(
     CancellationToken CancellationToken = default
 )
 {
+    internal bool IsSubquery { get; init; }
+
     public LogicalNode LogicalPlan => LogicalArtifacts.OptimizedLogicalPlan;
 }

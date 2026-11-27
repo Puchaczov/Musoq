@@ -4,6 +4,7 @@ using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Plugins;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -48,6 +49,19 @@ public sealed partial class ExecutionShapeResolver
         ArgumentNullException.ThrowIfNull(interpret);
         var entityType = ResolveInterpretEntityType(interpret);
         var columns = ResolveInterpretColumns(interpret);
+        if (interpret.FieldReader is { } reader)
+            columns = columns
+                .Select(column =>
+                    reader.Demand(column.Name) == BinaryFieldDemand.Length
+                        ? column with
+                        {
+                            Type = typeof(int?),
+                            SourceReadType = typeof(int?),
+                            IntendedTypeName = null,
+                        }
+                        : column
+                )
+                .ToArray();
         if (HasGeneratedInterpreterTypeName(interpret.SchemaName))
         {
             _schemaRegistry!.TryGetSchema(interpret.SchemaName, out var registration);
@@ -56,7 +70,7 @@ public sealed partial class ExecutionShapeResolver
                 columns,
                 interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
                     ? $"Musoq.Schema.Interpreters.PartialInterpretResult<{registration?.GeneratedTypeName}>"
-                    : registration?.GeneratedTypeName,
+                    : interpret.FieldReader?.TypeName ?? registration?.GeneratedTypeName,
                 column =>
                     column == "ParsedFields"
                     && interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
@@ -168,14 +182,14 @@ public sealed partial class ExecutionShapeResolver
     )
     {
         var elementType = ResolveEnumerableElementType(resultType);
-        var scalarShape = IsScalar(elementType) ? CreateEnumerableScalarSourceShape(alias, elementType, columns) : null;
-        if (scalarShape != null)
-            return scalarShape;
-
         if (IsScalar(elementType))
-            return CreateSourceShape(alias, typeof(PrimitiveTypeEntity<>).MakeGenericType(elementType), columns);
+            return CreateEnumerableScalarSourceShape(alias, elementType, columns)
+                ?? CreateSourceShape(alias, typeof(PrimitiveTypeEntity<>).MakeGenericType(elementType), columns);
 
-        return CreateSourceShape(alias, elementType, columns);
+        return CreateSourceShape(alias, elementType, columns) with
+        {
+            IsRecordEnumerable = true,
+        };
     }
 
     private static SourceEntityShape? CreateEnumerableScalarSourceShape(

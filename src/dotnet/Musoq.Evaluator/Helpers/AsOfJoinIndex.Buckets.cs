@@ -45,83 +45,38 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
 
             var index = comparisonKind switch
             {
-                BinaryOpKind.GreaterOrEqual => FindLastCandidateBeforeProbe(probeValue, comparer, includeEqual: true),
-                BinaryOpKind.GreaterThan => FindLastCandidateBeforeProbe(probeValue, comparer, includeEqual: false),
-                BinaryOpKind.LessOrEqual => FindFirstCandidateAfterProbe(probeValue, comparer, includeEqual: true),
-                BinaryOpKind.LessThan => FindFirstCandidateAfterProbe(probeValue, comparer, includeEqual: false),
+                BinaryOpKind.GreaterOrEqual => FindLastCandidateBeforeProbe(
+                    _entries,
+                    probeValue,
+                    comparer,
+                    includeEqual: true
+                ),
+                BinaryOpKind.GreaterThan => FindLastCandidateBeforeProbe(
+                    _entries,
+                    probeValue,
+                    comparer,
+                    includeEqual: false
+                ),
+                BinaryOpKind.LessOrEqual => FindFirstCandidateAfterProbe(
+                    _entries,
+                    probeValue,
+                    comparer,
+                    includeEqual: true
+                ),
+                BinaryOpKind.LessThan => FindFirstCandidateAfterProbe(
+                    _entries,
+                    probeValue,
+                    comparer,
+                    includeEqual: false
+                ),
                 _ => throw new InvalidOperationException($"Unsupported ASOF comparison kind '{comparisonKind}'."),
             };
 
             return index < 0 ? null : _entries[index].Row;
         }
-
-        private int FindLastCandidateBeforeProbe(TKey probeValue, IComparer<TKey> comparer, bool includeEqual)
-        {
-            var low = 0;
-            var high = _entries.Length - 1;
-            var result = -1;
-
-            while (low <= high)
-            {
-                var middle = low + ((high - low) / 2);
-                var comparison = comparer.Compare(probeValue, _entries[middle].Key);
-                var matches = includeEqual ? comparison >= 0 : comparison > 0;
-
-                if (matches)
-                {
-                    result = middle;
-                    low = middle + 1;
-                }
-                else
-                {
-                    high = middle - 1;
-                }
-            }
-
-            return MoveToFirstEntryWithSameKey(result, comparer);
-        }
-
-        private int FindFirstCandidateAfterProbe(TKey probeValue, IComparer<TKey> comparer, bool includeEqual)
-        {
-            var low = 0;
-            var high = _entries.Length - 1;
-            var result = -1;
-
-            while (low <= high)
-            {
-                var middle = low + ((high - low) / 2);
-                var comparison = comparer.Compare(probeValue, _entries[middle].Key);
-                var matches = includeEqual ? comparison <= 0 : comparison < 0;
-
-                if (matches)
-                {
-                    result = middle;
-                    high = middle - 1;
-                }
-                else
-                {
-                    low = middle + 1;
-                }
-            }
-
-            return result;
-        }
-
-        private int MoveToFirstEntryWithSameKey(int index, IComparer<TKey> comparer)
-        {
-            if (index <= 0)
-                return index;
-
-            while (index > 0 && comparer.Compare(_entries[index].Key, _entries[index - 1].Key) == 0)
-            {
-                index--;
-            }
-
-            return index;
-        }
     }
 
-    private readonly record struct AsOfJoinEntry(TKey Key, T Row, int Ordinal);
+    private readonly record struct AsOfJoinEntry(TKey Key, T Row, int Ordinal) : IOrderedEntry;
 
     private sealed class AsOfJoinTieBucket<TTie> : IAsOfJoinBucket
     {
@@ -164,81 +119,130 @@ public sealed partial class AsOfJoinIndex<T, TKey, TEquality>
 
             var index = comparisonKind switch
             {
-                BinaryOpKind.GreaterOrEqual => FindLastCandidateBeforeProbe(probeValue, comparer, includeEqual: true),
-                BinaryOpKind.GreaterThan => FindLastCandidateBeforeProbe(probeValue, comparer, includeEqual: false),
-                BinaryOpKind.LessOrEqual => FindFirstCandidateAfterProbe(probeValue, comparer, includeEqual: true),
-                BinaryOpKind.LessThan => FindFirstCandidateAfterProbe(probeValue, comparer, includeEqual: false),
+                BinaryOpKind.GreaterOrEqual => FindLastCandidateBeforeProbe(
+                    _entries,
+                    probeValue,
+                    comparer,
+                    includeEqual: true
+                ),
+                BinaryOpKind.GreaterThan => FindLastCandidateBeforeProbe(
+                    _entries,
+                    probeValue,
+                    comparer,
+                    includeEqual: false
+                ),
+                BinaryOpKind.LessOrEqual => FindFirstCandidateAfterProbe(
+                    _entries,
+                    probeValue,
+                    comparer,
+                    includeEqual: true
+                ),
+                BinaryOpKind.LessThan => FindFirstCandidateAfterProbe(
+                    _entries,
+                    probeValue,
+                    comparer,
+                    includeEqual: false
+                ),
                 _ => throw new InvalidOperationException($"Unsupported ASOF comparison kind '{comparisonKind}'."),
             };
 
             return index < 0 ? null : _entries[index].Row;
         }
-
-        private int FindLastCandidateBeforeProbe(TKey probeValue, IComparer<TKey> comparer, bool includeEqual)
-        {
-            var low = 0;
-            var high = _entries.Length - 1;
-            var result = -1;
-
-            while (low <= high)
-            {
-                var middle = low + ((high - low) / 2);
-                var comparison = comparer.Compare(probeValue, _entries[middle].Key);
-                var matches = includeEqual ? comparison >= 0 : comparison > 0;
-
-                if (matches)
-                {
-                    result = middle;
-                    low = middle + 1;
-                }
-                else
-                {
-                    high = middle - 1;
-                }
-            }
-
-            return MoveToFirstEntryWithSameKey(result, comparer);
-        }
-
-        private int FindFirstCandidateAfterProbe(TKey probeValue, IComparer<TKey> comparer, bool includeEqual)
-        {
-            var low = 0;
-            var high = _entries.Length - 1;
-            var result = -1;
-
-            while (low <= high)
-            {
-                var middle = low + ((high - low) / 2);
-                var comparison = comparer.Compare(probeValue, _entries[middle].Key);
-                var matches = includeEqual ? comparison <= 0 : comparison < 0;
-
-                if (matches)
-                {
-                    result = middle;
-                    high = middle - 1;
-                }
-                else
-                {
-                    low = middle + 1;
-                }
-            }
-
-            return result;
-        }
-
-        private int MoveToFirstEntryWithSameKey(int index, IComparer<TKey> comparer)
-        {
-            if (index <= 0)
-                return index;
-
-            while (index > 0 && comparer.Compare(_entries[index].Key, _entries[index - 1].Key) == 0)
-            {
-                index--;
-            }
-
-            return index;
-        }
     }
 
-    private readonly record struct AsOfJoinTieEntry<TTie>(TKey Key, T Row, TTie TieBreakKey, int Ordinal);
+    private readonly record struct AsOfJoinTieEntry<TTie>(TKey Key, T Row, TTie TieBreakKey, int Ordinal)
+        : IOrderedEntry;
+
+    private static int FindLastCandidateBeforeProbe<TEntry>(
+        TEntry[] entries,
+        TKey probeValue,
+        IComparer<TKey> comparer,
+        bool includeEqual
+    )
+        where TEntry : struct, IOrderedEntry
+    {
+        var low = 0;
+        var high = entries.Length - 1;
+        var result = -1;
+
+        while (low <= high)
+        {
+            var middle = low + ((high - low) / 2);
+            var comparison = comparer.Compare(probeValue, entries[middle].Key);
+            var matches = includeEqual ? comparison >= 0 : comparison > 0;
+
+            if (matches)
+            {
+                result = middle;
+                low = middle + 1;
+            }
+            else
+            {
+                high = middle - 1;
+            }
+        }
+
+        return FirstEqual(entries, result, comparer);
+    }
+
+    private static int FindFirstCandidateAfterProbe<TEntry>(
+        TEntry[] entries,
+        TKey probeValue,
+        IComparer<TKey> comparer,
+        bool includeEqual
+    )
+        where TEntry : struct, IOrderedEntry
+    {
+        var low = 0;
+        var high = entries.Length - 1;
+        var result = -1;
+
+        while (low <= high)
+        {
+            var middle = low + ((high - low) / 2);
+            var comparison = comparer.Compare(probeValue, entries[middle].Key);
+            var matches = includeEqual ? comparison <= 0 : comparison < 0;
+
+            if (matches)
+            {
+                result = middle;
+                high = middle - 1;
+            }
+            else
+            {
+                low = middle + 1;
+            }
+        }
+
+        return result;
+    }
+
+    private interface IOrderedEntry
+    {
+        TKey Key { get; }
+    }
+
+    private static int FirstEqual<TEntry>(TEntry[] entries, int index, IComparer<TKey> comparer)
+        where TEntry : struct, IOrderedEntry
+    {
+        if (index <= 0)
+            return index;
+
+        var key = entries[index].Key;
+        if (comparer.Compare(key, entries[index - 1].Key) != 0)
+            return index;
+
+        var low = 0;
+        var high = index - 1;
+        while (low < high)
+        {
+            var middle = low + ((high - low) / 2);
+            if (comparer.Compare(entries[middle].Key, key) < 0)
+                low = middle + 1;
+            else
+                high = middle;
+        }
+
+        return low;
+    }
 }
