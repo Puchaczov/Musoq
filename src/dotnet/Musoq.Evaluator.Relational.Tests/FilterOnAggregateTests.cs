@@ -10,6 +10,19 @@ namespace Musoq.Evaluator.Tests;
 public class FilterOnAggregateTests : BasicEntityTestBase
 {
     [TestMethod]
+    [DataRow("1 + Count(*) filter (where N=1)", 2L)]
+    [DataRow("Count(*) filter (where N=1) + 2 * Count(*) filter (where N=2)", 3L)]
+    [DataRow("case when Count(*) filter (where N=1) > 0 then Count(*) filter (where N=2) else 10 end", 1L)]
+    public void FilteredAggregateInsideProjection_ShouldPreserveSurroundingOperands(string expression, long expected)
+    {
+        var sql = $"select {expression} as S from values {{ (N: 1), (N: 2), (N: null) }} v";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [expected]);
+    }
+
+    [TestMethod]
     public void FilteredAggregateValues_ShouldExcludeRowsRatherThanSubstituteNull()
     {
         const string query =

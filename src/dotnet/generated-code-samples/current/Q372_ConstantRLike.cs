@@ -8,7 +8,7 @@ select Id, Name from #A.entities() where Name rlike r'\A[A-Z][a-z]+\z' order by 
 MultiStatement
   Sort [ko3iko.Id]
     Project [ko3iko.Id as Id, ko3iko.Name as Name]
-      Filter [ko3iko.Name RLIKE '\A[A-Z][a-z]+\z']
+      Filter [ko3iko.Name RLIKE '\\A[A-Z][a-z]+\\z']
         SchemaScan [#A.entities() as ko3iko]
 */
 
@@ -17,8 +17,8 @@ MultiStatement
 PhysicalMultiStatement
   PhysicalSort [ko3iko.Id]
     PhysicalProject [ko3iko.Id as Id, ko3iko.Name as Name]
-      PhysicalFilter [ko3iko.Name RLIKE '\A[A-Z][a-z]+\z']
-        PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: ko3iko.Name RLIKE '\A[A-Z][a-z]+\z']
+      PhysicalFilter [ko3iko.Name RLIKE '\\A[A-Z][a-z]+\\z']
+        PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: ko3iko.Name RLIKE '\\A[A-Z][a-z]+\\z']
 */
 
 // === Execution Plan ===

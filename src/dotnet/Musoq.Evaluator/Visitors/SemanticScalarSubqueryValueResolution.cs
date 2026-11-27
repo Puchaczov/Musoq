@@ -6,6 +6,9 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
+    private static bool IsScalarCardinalityAggregate(string name) =>
+        name is nameof(LibraryBase.__ScalarSubqueryValue) or nameof(LibraryBase.__CorrelatedScalarSubqueryValue);
+
     private const string CorrelatedScalarSubqueryResultName = "__CorrelatedScalarSubqueryResult";
 
     private bool TryElideCorrelatedScalarSubqueryResultAccessor(AccessMethodNode node, ArgsListNode args)
@@ -43,16 +46,11 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (BuildMetadataAndInferTypesVisitorUtilities.ContainsAggregateFunction(wrappedExpression))
         {
-            PushDeferredScalarSubqueryValue(wrappedExpression);
+            PushSemanticNode(wrappedExpression);
             return true;
         }
 
         node.IsScalarSubqueryValueWrapper = false;
         return false;
-    }
-
-    private void PushDeferredScalarSubqueryValue(Node node)
-    {
-        PushSemanticNode(node);
     }
 }

@@ -26,14 +26,17 @@ public sealed class SchemaNullPredicateTests : SchemaParserTestsBase
     }
 
     [TestMethod]
-    public void SchemaKeywordFieldFollowedByIs_ShouldRemainAFieldReference()
+    [DataRow("Case")]
+    [DataRow("case")]
+    public void SchemaKeywordFieldFollowedByIs_ShouldRemainAFieldReference(string name)
     {
-        var schema = ParseBinarySchema("binary Rec { Case: byte, Present: Case IS NOT NULL }");
+        var schema = ParseBinarySchema($"binary Rec {{ {name}: byte, Present: {name} IS NOT NULL }}");
 
         var field = Assert.IsInstanceOfType<ComputedFieldNode>(schema.Fields[1]);
         var predicate = Assert.IsInstanceOfType<IsNullNode>(field.Expression);
 
-        Assert.AreEqual("case", Assert.IsInstanceOfType<IdentifierNode>(predicate.Expression).Name);
+        Assert.AreEqual(name, schema.Fields[0].Name);
+        Assert.AreEqual(name, Assert.IsInstanceOfType<IdentifierNode>(predicate.Expression).Name);
     }
 
     [TestMethod]

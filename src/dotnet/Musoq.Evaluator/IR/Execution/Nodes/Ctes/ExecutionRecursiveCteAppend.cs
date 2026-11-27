@@ -1,3 +1,7 @@
+using System.Collections.Generic;
+using System.Linq;
+using Musoq.Evaluator.IR.Planning;
+
 namespace Musoq.Evaluator.IR.Execution;
 
 public sealed record ExecutionRecursiveCteAppend(
@@ -8,4 +12,14 @@ public sealed record ExecutionRecursiveCteAppend(
     int[] IdentityFieldIndexes,
     int MaxRows,
     ExecutionAppendRow AppendRow
-) : ExecutionNode;
+) : ExecutionNode
+{
+    internal IReadOnlyList<int> NaNDistinctFieldIndexes { get; } =
+        ExecutionIrCollections.Freeze(
+            IdentityFieldIndexes
+                .Where(index =>
+                    SetOperationEqualityTypes.IsNanSensitive(AppendRow.RowShape.Fields[index].Type.ResolveClrType())
+                )
+                .ToArray()
+        );
+}

@@ -60,7 +60,7 @@ internal static class QuantifiedFilterPredicate
         return exists.CopySpansFrom(node);
     }
 
-    private static bool IsSimple(Node node) =>
+    internal static bool IsSimple(Node node) =>
         node is AccessColumnNode or IdentifierNode or ConstantValueNode
         || node is DotNode { Root: IdentifierNode, Expression: IdentifierNode };
 
@@ -100,16 +100,21 @@ internal static class QuantifiedFilterPredicate
 
     private static OrNode CreateAllQuantifiedPredicate(Node left, TokenType operatorType, Node right)
     {
+        var lhs = CloneQuantifiedOperand(left);
+        var rhs = CloneQuantifiedOperand(right);
+        // Ordered comparisons against NaN and their opposite are both false.
+        Node counterexample = operatorType switch
+        {
+            TokenType.Equality => new DiffNode(lhs, rhs),
+            TokenType.Diff => new EqualityNode(lhs, rhs),
+            _ => new NotNode(CreateComparisonPredicate(lhs, operatorType, rhs)),
+        };
         return new OrNode(
             new OrNode(
                 new IsNullNode(CloneQuantifiedOperand(left), false),
                 new IsNullNode(CloneQuantifiedOperand(right), false)
             ),
-            CreateComparisonPredicate(
-                CloneQuantifiedOperand(left),
-                InvertComparisonOperator(operatorType),
-                CloneQuantifiedOperand(right)
-            )
+            counterexample
         );
     }
 
@@ -138,20 +143,6 @@ internal static class QuantifiedFilterPredicate
                 identifier.Span
             ),
             _ => node,
-        };
-    }
-
-    private static TokenType InvertComparisonOperator(TokenType operatorType)
-    {
-        return operatorType switch
-        {
-            TokenType.GreaterEqual => TokenType.Less,
-            TokenType.Greater => TokenType.LessEqual,
-            TokenType.LessEqual => TokenType.Greater,
-            TokenType.Less => TokenType.GreaterEqual,
-            TokenType.Equality => TokenType.Diff,
-            TokenType.Diff => TokenType.Equality,
-            _ => throw new InvalidOperationException($"{operatorType} is not a quantified comparison operator."),
         };
     }
 

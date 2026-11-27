@@ -297,7 +297,7 @@ public sealed class RangeJoinIndex<TRow, TKey>
     {
         try
         {
-            return Comparer<TKey>.Default.Compare(left, right);
+            return RowOrderingComparison.GetComparer<TKey>().Compare(left, right);
         }
         catch (ArgumentException ex)
         {

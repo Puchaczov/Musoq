@@ -9,6 +9,7 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(AccessMethodNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        _hasScalarRowNumber |= ResultRowNumberProjection.IsRowNumber(node);
         VisitAccessMethod(node);
     }
 

@@ -28,14 +28,14 @@ internal static partial class TextPatternCompiler
             else if (current == ']' && inCharacterClass)
                 inCharacterClass = false;
 
-            if (!inCharacterClass && current is '*' or '+')
+            if (!inCharacterClass && current == '(' && i + 1 < pattern.Length && pattern[i + 1] == '?')
             {
-                builder.Append(current);
-                AppendQuantifierMode(builder, pattern, ref i, greedy, lazy);
+                builder.Append("(?");
+                i++;
                 continue;
             }
 
-            if (!inCharacterClass && current == '?' && (i == 0 || pattern[i - 1] != '('))
+            if (!inCharacterClass && current is '*' or '+' or '?')
             {
                 builder.Append(current);
                 AppendQuantifierMode(builder, pattern, ref i, greedy, lazy);

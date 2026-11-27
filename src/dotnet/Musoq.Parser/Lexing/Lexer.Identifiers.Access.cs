@@ -39,11 +39,11 @@ public sealed partial class Lexer
 
         var methodStart = identifierEnd + 1;
         var input = Input.AsSpan();
-        if (!IsMethodNameStart(input, methodStart))
+        if (!FastCharacterClassifier.IsIdentifierStart(input, methodStart))
             return false;
 
         var methodEnd = methodStart + FastCharacterClassifier.GetIdentifierCodePointLength(input, methodStart);
-        while (methodEnd < Input.Length && IsMethodNameContinue(input, methodEnd))
+        while (methodEnd < Input.Length && FastCharacterClassifier.IsIdentifierContinue(input, methodEnd))
             methodEnd += FastCharacterClassifier.GetIdentifierCodePointLength(input, methodEnd);
 
         if (methodEnd >= Input.Length || Input[methodEnd] != '(')
@@ -107,17 +107,6 @@ public sealed partial class Lexer
         }
 
         return false;
-    }
-
-    private static bool IsMethodNameStart(ReadOnlySpan<char> input, int index)
-    {
-        return index < input.Length && (input[index] == '-' || FastCharacterClassifier.IsIdentifierStart(input, index));
-    }
-
-    private static bool IsMethodNameContinue(ReadOnlySpan<char> input, int index)
-    {
-        return index < input.Length
-            && (input[index] == '-' || FastCharacterClassifier.IsIdentifierContinue(input, index));
     }
 
     private static bool IsKeyAccessConstChar(char value)

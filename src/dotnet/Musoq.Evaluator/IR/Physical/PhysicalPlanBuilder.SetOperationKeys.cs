@@ -15,6 +15,14 @@ public sealed partial class PhysicalPlanBuilder
         [NotNullWhen(true)] out Type? type
     )
     {
+        var column = ResolveKeyColumn(columns, keyName);
+        if (column is not null)
+        {
+            index = column.Index;
+            type = column.Type;
+            return true;
+        }
+
         if (projectFields is not null)
         {
             foreach (var projectField in projectFields)
@@ -28,14 +36,6 @@ public sealed partial class PhysicalPlanBuilder
                     return true;
                 }
             }
-        }
-
-        var column = ResolveKeyColumn(columns, keyName);
-        if (column is not null)
-        {
-            index = column.Index;
-            type = column.Type;
-            return true;
         }
 
         index = 0;

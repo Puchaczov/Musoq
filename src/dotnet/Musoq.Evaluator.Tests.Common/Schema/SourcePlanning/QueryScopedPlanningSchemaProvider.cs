@@ -20,7 +20,7 @@ internal sealed class QueryScopedPlanningSchemaProvider(
     internal SourcePlanningRecorder Recorder { get; } = new();
     internal ConcurrentBag<QueryScopedRowSourceRequest> Executions { get; } = [];
     internal IReadOnlyList<IReadOnlyDictionary<string, object?>>? InnerRows { get; init; }
-    internal Barrier? OuterSourceBarrier { get; set; }
+    internal Action<CancellationToken>? OuterSourceRendezvous { get; set; }
 
     public ISchema GetSchema(string schema) => new PlanningSchema(this);
 
@@ -82,12 +82,8 @@ internal sealed class QueryScopedPlanningSchemaProvider(
             TArguments parameters
         )
         {
-            if (
-                request.ExecutionContext.Plan.Identity.Alias == "d"
-                && provider.OuterSourceBarrier is { } barrier
-                && !barrier.SignalAndWait(TimeSpan.FromSeconds(30), request.ExecutionContext.EndWorkToken)
-            )
-                throw new TimeoutException("Correlated executions did not overlap at their outer source boundary.");
+            if (request.ExecutionContext.Plan.Identity.Alias == "d")
+                provider.OuterSourceRendezvous?.Invoke(request.ExecutionContext.EndWorkToken);
             provider.Executions.Add(request);
             provider.Recorder.RecordExecutionPlan(request.ExecutionContext.Plan);
             var input =

@@ -97,7 +97,13 @@ internal sealed partial class ExecutionMembershipSyntaxFactory
     {
         if (comparison.Kind == ExecutionMembershipEqualityKind.NeverMatch)
             return SyntaxFactory.ParseExpression($"({operand} is null && {member} is null)");
+        if (comparison.Kind == ExecutionMembershipEqualityKind.CharacterTextEquality)
+            return SyntaxFactory.ParseExpression($"Operators.{nameof(Operators.SqlTextEquals)}({operand}, {member})");
         var type = CreateTypeSyntax(comparison.ComparisonType).ToString();
+        if (comparison.Kind == ExecutionMembershipEqualityKind.DecimalFloatingEquality)
+            return SyntaxFactory.ParseExpression(
+                $"Operators.{nameof(Operators.SqlDecimalEquals)}<{type}>({operand}, {member})"
+            );
         if (comparison.Kind == ExecutionMembershipEqualityKind.NumericEquality)
             return SyntaxFactory.ParseExpression($"(({type}){operand} == ({type}){member})");
         return SyntaxFactory.ParseExpression(

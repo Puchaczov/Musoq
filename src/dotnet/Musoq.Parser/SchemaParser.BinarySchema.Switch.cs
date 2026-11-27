@@ -15,6 +15,14 @@ public partial class SchemaParser
 
         var selectorSpan = Current.Span;
         var selector = ComposeIdentifierOrWord();
+        var reference = ComposePostfixAccess(new IdentifierNode(selector, null, selectorSpan), allowCast: false);
+        if (reference is not IdentifierNode)
+        {
+            var source = _lexer.Input.AsSpan(selectorSpan.Start, Current.Span.Start - selectorSpan.Start).TrimEnd();
+            selectorSpan = new TextSpan(selectorSpan.Start, source.Length);
+            reference.WithSpan(selectorSpan);
+            selector = reference.ToString() ?? selector;
+        }
 
         Consume(TokenType.LBracket);
 
@@ -41,7 +49,7 @@ public partial class SchemaParser
         ValidateBinarySwitchCases(cases);
 
         return (BinarySwitchTypeNode)
-            new BinarySwitchTypeNode(selector, cases.ToArray(), selectorSpan).WithSpan(
+            new BinarySwitchTypeNode(selector, cases.ToArray(), selectorSpan, reference).WithSpan(
                 switchToken.Span.Through(closingToken.Span)
             );
     }

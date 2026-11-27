@@ -61,7 +61,10 @@ public sealed partial class ExpressionConverter
             ),
             AggregateIdentifierNode n => new Literal(n.ObjValue, RequireReturnType(n), n.DisplayName),
             ConstantValueNode n => new Literal(n.ObjValue, RequireReturnType(n)),
-            NullNode n => new Literal(null, expectedType ?? RequireReturnType(n)),
+            NullNode n => new Literal(null, expectedType ?? RequireReturnType(n))
+            {
+                GeneratedTypeName = n.IntendedTypeName,
+            },
             StringConcatenationNode n => ConvertBinaryOp(n, BinaryOpKind.SqlStringConcatenate),
             AddNode n => ConvertBinaryOp(
                 n,
@@ -145,6 +148,7 @@ public sealed partial class ExpressionConverter
             node.ReturnType
         )
         {
+            BindingKey = node.BindingKey,
             Comparison = node.Comparison switch
             {
                 Musoq.Parser.Tokens.TokenType.Greater => BinaryOpKind.GreaterThan,
@@ -246,7 +250,7 @@ public sealed partial class ExpressionConverter
     {
         var left = Convert(node.Left);
         var right = Convert(node.Right);
-        (left, right) = NumericComparisonBinding.Normalize(kind, left, right);
+        (left, right) = ComparisonOperandBinding.Normalize(kind, left, right);
         return new(
             kind,
             left,
@@ -255,6 +259,7 @@ public sealed partial class ExpressionConverter
         )
         {
             UsesSqlNullSemantics = IrExpressionNullSemantics.IsSqlComparison(kind),
+            IsMaterializedMembershipEquality = node is MaterializedInEqualityNode,
         };
     }
 
@@ -332,6 +337,7 @@ public sealed partial class ExpressionConverter
             IrExpressionNullSemantics.CaseResultType(returnType, branches, elseExpr)
         )
         {
+            InterpretationTypeName = InterpretationPropertyBinding.GetIntendedTypeName(node),
             EnumType = ResolveCommonEnumType(
                 branches.Select(static branch => (IrExpression?)branch.Result).Append(elseExpr)
             ),

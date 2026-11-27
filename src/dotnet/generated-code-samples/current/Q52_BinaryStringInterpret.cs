@@ -294,6 +294,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class TextPacket : BytesInterpreterBase<TextPacket>, IBytesInterpreterStatus<TextPacket>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Length { get; set; }
+        public string Text { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Length", "Text" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -324,11 +327,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Length field value.</summary>
-        public byte Length { get; set; }
-        /// <summary>Gets the Text field value.</summary>
-        public string Text { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "TextPacket";
 
         public override TextPacket InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<TextPacket>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -351,11 +349,11 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<TextPacket>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _length = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Length = _length;
+                var _field6_Length = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Length = _field6_Length;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Text");
-                var __musoqReadResult4 = base.ResolveSizeValueStatus<byte>((byte?)(_length), ParseErrorCode.InvalidSize);
+                var __musoqReadResult4 = base.ResolveSizeValueStatus<byte>((byte?)(_field6_Length), ParseErrorCode.InvalidSize);
                 if (!__musoqReadResult4.Succeeded)
                 {
                     return global::Musoq.Schema.Interpreters.ParseAttempt<TextPacket>.Failed(__parsedValue, __musoqReadResult4.Failure!);
@@ -368,8 +366,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<TextPacket>.Failed(__parsedValue, __musoqReadFailure5);
                 }
 
-                var _text = ReadString(data, __musoqReadSize2, __musoqReadEncoding3).Trim();
-                __parsedValue.Text = _text;
+                var _field4_Text = ReadString(data, __musoqReadSize2, __musoqReadEncoding3).Trim();
+                __parsedValue.Text = _field4_Text;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<TextPacket>.Success(__parsedValue);
             }

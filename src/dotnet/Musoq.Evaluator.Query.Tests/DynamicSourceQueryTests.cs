@@ -428,4 +428,20 @@ inner join #location.all() location on weather.Location = location.Name
             Assert.AreEqual($"value:{column}", table[0].ReadValue(index));
         }
     }
+
+    [TestMethod]
+    public void NumericPredicate_WhenDynamicSourceDeclaresConcreteColumns_ShouldRetainMatchingRows()
+    {
+        const string sql = "select Id, Name from #dynamic.all() where Id = 100 order by Name";
+        var rows = new List<dynamic>
+        {
+            CreateExpandoObject(100, "second"),
+            CreateExpandoObject(101, "excluded"),
+            CreateExpandoObject(100, "first"),
+        };
+        using var query = CreateAndRunVirtualMachine(sql, rows);
+        using var table = query.Run(TestContext.CancellationToken);
+        TableMaterializationTestHelper.AssertColumns(table, ("Id", typeof(int)), ("Name", typeof(string)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [100, "first"], [100, "second"]);
+    }
 }

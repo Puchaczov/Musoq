@@ -6,7 +6,10 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderWindowAggregateKernel(ExecutionWindowAggregateKernel kernel)
+    private List<StatementSyntax> RenderWindowAggregateKernel(
+        ExecutionRenderContext renderContext,
+        ExecutionWindowAggregateKernel kernel
+    )
     {
         const string indexVariableName = "windowIndex";
         var index = new ExecutionVariable(indexVariableName, typeof(int));
@@ -18,7 +21,7 @@ public sealed partial class ExecutionCSharpRenderer
                     Frame.Kind: ExecutionWindowFrameKind.Range,
                     Descriptor.Mode: ExecutionWindowAggregateMode.BoundedRows
                 }
-            && WindowRangeFrameSyntax.HasRangeOffsetBound(kernel.Frame)
+            && kernel.Frame.HasNumericRangeOffset
             && (kernel.BoundariesOwner == null || kernel.BoundariesOwner == kernel.Results);
         var rangeKeys = requiresRangeKeys
             ? new ExecutionVariable(
@@ -32,7 +35,7 @@ public sealed partial class ExecutionCSharpRenderer
         var partitionBuilder = CreateWindowPartitionBuilderVariable(kernel.Results, partitionKeys, kernel.Partitions);
 
         if (CanUseFusedIntOrderAggregateKernel(kernel))
-            return RenderFusedIntOrderAggregateKernel(kernel, partitionKeys!);
+            return RenderFusedIntOrderAggregateKernel(renderContext, kernel, partitionKeys!);
 
         AddWindowMethodTargetDeclarations(statements, kernel.MethodTargets);
 
@@ -49,7 +52,7 @@ public sealed partial class ExecutionCSharpRenderer
                     partitionKeys,
                     partitionBuilder,
                     index.Name,
-                    CreateWindowPartitionKeyExpression(partitionKeys, kernel.PartitionKey!)
+                    CreateWindowPartitionKeyExpression(renderContext, partitionKeys, kernel.PartitionKey!)
                 )
             );
 
@@ -59,7 +62,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateWindowKeyArrayAssignment(
                     orderKeys,
                     index.Name,
-                    CreateWindowOrderKeyExpression(orderKeys, kernel.OrderKeys)
+                    CreateWindowOrderKeyExpression(renderContext, orderKeys, kernel.OrderKeys)
                 )
             );
         }
@@ -142,13 +145,16 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateSizedArrayCreation(kernel.Descriptor.ResultType, CreateBufferCountExpression(kernel.Buffer))
             )
         );
-        AddLibraryWindowBatchValues(kernel, statements);
-        statements.Add(CreateWindowAggregateKernelPartitionLoop(kernel, GetWindowAggregateKernelPartitions(kernel)));
+        AddLibraryWindowBatchValues(renderContext, kernel, statements);
+        statements.Add(
+            CreateWindowAggregateKernelPartitionLoop(renderContext, kernel, GetWindowAggregateKernelPartitions(kernel))
+        );
 
         return statements;
     }
 
     private List<StatementSyntax> RenderFusedIntOrderAggregateKernel(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel,
         ExecutionWindowKeyArray? partitionKeys
     )
@@ -167,6 +173,7 @@ public sealed partial class ExecutionCSharpRenderer
         );
         extractionStatements.Add(
             CreateFusedIntOrderBuilderAddStatement(
+                renderContext,
                 builder,
                 partitionKeys,
                 kernel.PartitionKey,
@@ -192,8 +199,10 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateSizedArrayCreation(kernel.Descriptor.ResultType, CreateBufferCountExpression(kernel.Buffer))
             )
         );
-        AddLibraryWindowBatchValues(kernel, statements);
-        statements.Add(CreateWindowAggregateKernelPartitionLoop(kernel, GetWindowAggregateKernelPartitions(kernel)));
+        AddLibraryWindowBatchValues(renderContext, kernel, statements);
+        statements.Add(
+            CreateWindowAggregateKernelPartitionLoop(renderContext, kernel, GetWindowAggregateKernelPartitions(kernel))
+        );
 
         return statements;
     }
@@ -217,6 +226,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private ForStatementSyntax CreateWindowAggregateKernelPartitionLoop(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel,
         ExecutionWindowPartitionSet partitions
     )
@@ -239,13 +249,27 @@ public sealed partial class ExecutionCSharpRenderer
         if (kernel.Descriptor.UseRunningPeers)
         {
             body.AddRange(CreateWindowAggregateAccumulatorDeclarations(kernel));
-            body.Add(CreateLibraryWindowPeerLoop(kernel, partitionIndicesName, partitionStartName, partitionCountName));
+            body.Add(
+                CreateLibraryWindowPeerLoop(
+                    renderContext,
+                    kernel,
+                    partitionIndicesName,
+                    partitionStartName,
+                    partitionCountName
+                )
+            );
         }
         else if (kernel.Descriptor.Mode == ExecutionWindowAggregateMode.Running)
         {
             body.AddRange(CreateWindowAggregateAccumulatorDeclarations(kernel));
             body.Add(
-                CreateWindowAggregateRunningLoop(kernel, partitionIndicesName, partitionStartName, partitionCountName)
+                CreateWindowAggregateRunningLoop(
+                    renderContext,
+                    kernel,
+                    partitionIndicesName,
+                    partitionStartName,
+                    partitionCountName
+                )
             );
         }
         else if (kernel.Descriptor.Mode == ExecutionWindowAggregateMode.WholePartition)
@@ -253,6 +277,7 @@ public sealed partial class ExecutionCSharpRenderer
             body.AddRange(CreateWindowAggregateAccumulatorDeclarations(kernel));
             body.Add(
                 CreateWindowAggregateAccumulationLoop(
+                    renderContext,
                     kernel,
                     partitionIndicesName,
                     partitionStartName,
@@ -281,12 +306,19 @@ public sealed partial class ExecutionCSharpRenderer
             body.Add(
                 HasLibraryWindowBatch(kernel)
                     ? CreateLibraryWindowBatchPartition(
+                        renderContext,
                         kernel,
                         partitionIndicesName,
                         partitionStartName,
                         partitionCountName
                     )
-                    : CreateLibraryWindowFrameLoop(kernel, partitionIndicesName, partitionStartName, partitionCountName)
+                    : CreateLibraryWindowFrameLoop(
+                        renderContext,
+                        kernel,
+                        partitionIndicesName,
+                        partitionStartName,
+                        partitionCountName
+                    )
             );
         }
 

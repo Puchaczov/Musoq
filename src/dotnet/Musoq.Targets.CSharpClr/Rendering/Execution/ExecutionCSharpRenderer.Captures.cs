@@ -173,6 +173,13 @@ public sealed partial class ExecutionCSharpRenderer
 
         foreach (var current in ExecutionIrAnalysis.FlattenExpressions(expression))
         {
+            if (ExpressionUsesInjectQueryStats(current))
+                AddHelperCapture(
+                    new CapturedLocal(StatsVariableName, typeof(AmendableQueryStats)),
+                    excludedNames,
+                    captures
+                );
+
             switch (current)
             {
                 case ExecutionVariableRead variableRead:

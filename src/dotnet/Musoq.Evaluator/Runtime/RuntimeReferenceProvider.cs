@@ -35,6 +35,8 @@ internal sealed class RuntimeReferenceProvider : IRuntimeReferenceProvider
     private readonly IReadOnlyList<string> _essentialAssemblyNames;
     private readonly Lazy<MetadataReference[]> _references;
 
+    internal Action? IncompleteLoadSelected { private get; init; }
+
     public RuntimeReferenceProvider(IMetadataReferenceCache referenceCache)
         : this(referenceCache, GetDefaultRuntimeDirectory, DefaultEssentialAssemblyNames) { }
 
@@ -53,7 +55,12 @@ internal sealed class RuntimeReferenceProvider : IRuntimeReferenceProvider
 
     public MetadataReference[] References
     {
-        get => _references.Value.ToArray();
+        get
+        {
+            if (IncompleteLoadSelected is { } observe && !_references.IsValueCreated)
+                observe();
+            return _references.Value.ToArray();
+        }
     }
 
     public void CreateReferences()

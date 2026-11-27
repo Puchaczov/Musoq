@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.Helpers;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -26,14 +27,14 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
     {
         ArgumentNullException.ThrowIfNull(node);
 
-        if (IsNullLiteral(node.Left))
+        if (CoalesceOperandFacts.IsNullLiteral(node.Left))
         {
             node.Right.Accept(this);
             node.Accept(Visitor);
             return;
         }
 
-        if (IsStaticallyNonNullableLiteralValue(node.Left))
+        if (node.Left is ConstantValueNode && CoalesceOperandFacts.IsRequiredValue(node.Left.ReturnType))
         {
             node.Left.Accept(this);
             node.Accept(Visitor);
@@ -47,25 +48,6 @@ public class ExtractRawColumnsTraverseVisitor(IQueryPartAwareExpressionVisitor v
     {
         ArgumentNullException.ThrowIfNull(node);
         node.Accept(Visitor);
-    }
-
-    private static bool IsStaticallyNonNullableLiteralValue(Node node)
-    {
-        if (node is not ConstantValueNode)
-            return false;
-
-        var type = node.ReturnType;
-        return type is { IsValueType: true } && Nullable.GetUnderlyingType(type) == null && !IsNullType(type);
-    }
-
-    private static bool IsNullLiteral(Node node)
-    {
-        return node is NullNode || IsNullType(node.ReturnType);
-    }
-
-    private static bool IsNullType(Type? type)
-    {
-        return type is NullNode.NullType;
     }
 
     public override void Visit(DotNode node)

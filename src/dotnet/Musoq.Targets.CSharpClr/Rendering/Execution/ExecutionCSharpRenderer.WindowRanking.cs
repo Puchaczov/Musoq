@@ -6,7 +6,10 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private List<StatementSyntax> RenderComputeRankingWindow(ExecutionComputeRankingWindow ranking)
+    private List<StatementSyntax> RenderComputeRankingWindow(
+        ExecutionRenderContext renderContext,
+        ExecutionComputeRankingWindow ranking
+    )
     {
         const string indexVariableName = "windowIndex";
         var index = new ExecutionVariable(indexVariableName, typeof(int));
@@ -17,7 +20,7 @@ public sealed partial class ExecutionCSharpRenderer
         var extractionHelper = CreateRankingWindowKeyExtractionHelper(ranking, generatedRowTypeName: null);
 
         if (CanUseFusedIntOrderRankingWindow(ranking))
-            return RenderFusedIntOrderRankingWindow(ranking, partitionKeys);
+            return RenderFusedIntOrderRankingWindow(renderContext, ranking, partitionKeys);
 
         if ((partitionKeys?.ShouldExtract ?? false) || orderKeys.ShouldExtract)
         {
@@ -31,7 +34,7 @@ public sealed partial class ExecutionCSharpRenderer
                         partitionKeys,
                         extractionHelper.PartitionBuilder,
                         index.Name,
-                        CreateRankingPartitionKeyExpression(partitionKeys, ranking.PartitionKey!)
+                        CreateRankingPartitionKeyExpression(renderContext, partitionKeys, ranking.PartitionKey!)
                     )
                 );
 
@@ -41,7 +44,7 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateWindowKeyArrayAssignment(
                         orderKeys,
                         index.Name,
-                        CreateRankingOrderKeyExpression(orderKeys, ranking.OrderKeys)
+                        CreateRankingOrderKeyExpression(renderContext, orderKeys, ranking.OrderKeys)
                     )
                 );
             }
@@ -122,6 +125,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private List<StatementSyntax> RenderFusedIntOrderRankingWindow(
+        ExecutionRenderContext renderContext,
         ExecutionComputeRankingWindow ranking,
         ExecutionWindowKeyArray? partitionKeys
     )
@@ -136,7 +140,7 @@ public sealed partial class ExecutionCSharpRenderer
             CreateIndexedItemDeclarations(ranking.Item, ranking.Buffer, index, ranking.RowAccessMode)
         );
         extractionStatements.Add(
-            CreateFusedIntOrderBuilderAddStatement(builder, partitionKeys, ranking, indexVariableName)
+            CreateFusedIntOrderBuilderAddStatement(renderContext, builder, partitionKeys, ranking, indexVariableName)
         );
 
         statements.Add(

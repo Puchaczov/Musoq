@@ -169,6 +169,7 @@ internal static partial class CteStrategyPlanner
         );
         if (
             producerPipeline == null
+            || producerPipeline.Project.IsDistinct
             || producerPipeline.PostOperations.Count != 0
             || !CanInlineReadOnceCteProjectionSource(producerPipeline.Source)
             || !IsReadOnceCtePipelineDeterministic(producerPipeline)

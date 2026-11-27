@@ -40,10 +40,14 @@ internal static partial class PhysicalStrategyRules
             return null;
 
         var residual = CreateResidualPredicate(residuals);
-        if (ShouldBuildHashJoinOnLeft(kind, left, right, cardinalityFacts, out var buildSideReason))
-            return new HashJoinDecomposition([.. leftKeys], [.. rightKeys], residual, buildSideReason);
-
-        return new HashJoinDecomposition([.. rightKeys], [.. leftKeys], residual, buildSideReason);
+        var buildOnLeft = ShouldBuildHashJoinOnLeft(kind, left, right, cardinalityFacts, out var buildSideReason);
+        var buildKeys = buildOnLeft ? leftKeys : rightKeys;
+        var probeKeys = buildOnLeft ? rightKeys : leftKeys;
+        // Rejecting NaN on the probe is sufficient. Keep the build column eligible for a shared CTE index.
+        for (var i = 0; i < buildKeys.Count; i++)
+            if (buildKeys[i] is UnaryOp { Kind: UnaryOpKind.NullIfNaN } checkedKey)
+                buildKeys[i] = checkedKey.Operand;
+        return new HashJoinDecomposition([.. buildKeys], [.. probeKeys], residual, buildSideReason);
     }
 
     private static bool ShouldBuildHashJoinOnLeft(

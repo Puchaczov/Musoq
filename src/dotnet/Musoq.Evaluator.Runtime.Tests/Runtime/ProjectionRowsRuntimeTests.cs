@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.Runtime;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -146,9 +147,9 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
 
     [TestMethod]
     [DoNotParallelize]
-    [Timeout(30_000, CooperativeCancellation = true)]
     public void ProjectChunkedValuesParallel_ShouldProcessChunksConcurrently()
     {
+        using var watchdog = new TestWatchdog(TestContext.CancellationToken);
         using var bothWorkersStarted = new CountdownEvent(2);
         var startedWorkers = 0;
 
@@ -163,12 +164,12 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
                     {
                         Interlocked.Increment(ref startedWorkers);
                         bothWorkersStarted.Signal();
-                        bothWorkersStarted.Wait(TestContext.CancellationToken);
+                        bothWorkersStarted.Wait(watchdog.Token);
                     }
 
                     return value;
                 },
-                CancellationToken.None
+                watchdog.Token
             )
             .Take(2)
             .ToArray();
@@ -203,9 +204,9 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
 
     [TestMethod]
     [DoNotParallelize]
-    [Timeout(30_000, CooperativeCancellation = true)]
     public void ProjectChunkedValuesParallel_WhenChunksCompleteOutOfOrder_ShouldPreserveSourceOrder()
     {
+        using var watchdog = new TestWatchdog(TestContext.CancellationToken);
         using var secondChunkStarted = new ManualResetEventSlim();
 
         var projected = TypedProjectionRows
@@ -216,14 +217,14 @@ public sealed class ProjectionRowsRuntimeTests : MSTestContextTestBase
                 value =>
                 {
                     if (value == 0)
-                        secondChunkStarted.Wait(TestContext.CancellationToken);
+                        secondChunkStarted.Wait(watchdog.Token);
 
                     if (value == 2_048)
                         secondChunkStarted.Set();
 
                     return value;
                 },
-                CancellationToken.None
+                watchdog.Token
             )
             .ToArray();
 

@@ -14,27 +14,17 @@ public sealed partial class ExecutionCSharpRenderer
         var helperSets = new List<HashJoinHelperSet>();
         var usedFunctionNames = new Dictionary<string, int>(StringComparer.Ordinal);
         var nodes = block.Nodes;
-        var pending = new List<ExecutionNode>();
+        var storedNodes = CollectStoredTableNodes(block);
 
         for (var index = 0; index < nodes.Count; index++)
         {
             var node = nodes[index];
-            if (node is ExecutionStoreTable store && TryCreateStoredTableBuild(nodes, index, pending, store, out _))
-            {
-                pending.Clear();
+            if (storedNodes.Contains(node))
                 continue;
-            }
-
-            if (IsInsidePendingStoredTableBuild(nodes, index, pending))
-            {
-                pending.Add(node);
-                continue;
-            }
 
             if (TryCreateHashBuildHelperCandidate(node, out var buildLoop, out var hashAdd))
             {
                 buildLoopsByHashName.TryAdd(hashAdd.Hash.Name, (index, buildLoop, hashAdd));
-                pending.Add(node);
                 continue;
             }
 
@@ -43,7 +33,6 @@ public sealed partial class ExecutionCSharpRenderer
                 || !buildLoopsByHashName.TryGetValue(hashProbe.Hash.Name, out var build)
             )
             {
-                pending.Add(node);
                 continue;
             }
 
@@ -57,33 +46,9 @@ public sealed partial class ExecutionCSharpRenderer
             var probeHelper = CreateHashProbeHelper(probeFunctionName, probeLoop, hashProbe);
 
             helperSets.Add(new HashJoinHelperSet(build.Index, index, buildHelper, probeHelper));
-            pending.Add(node);
         }
 
         return helperSets;
-    }
-
-    private static bool IsInsidePendingStoredTableBuild(
-        IReadOnlyList<ExecutionNode> nodes,
-        int currentIndex,
-        IReadOnlyList<ExecutionNode> pending
-    )
-    {
-        var pendingTableNames = pending
-            .OfType<ExecutionCreateTable>()
-            .Select(static createTable => createTable.Table.Name)
-            .ToHashSet(StringComparer.Ordinal);
-
-        if (pendingTableNames.Count == 0)
-            return false;
-
-        for (var index = currentIndex + 1; index < nodes.Count; index++)
-        {
-            if (nodes[index] is ExecutionStoreTable store && pendingTableNames.Contains(store.Table.Name))
-                return true;
-        }
-
-        return false;
     }
 
     private static bool TryCreateHashBuildHelperCandidate(

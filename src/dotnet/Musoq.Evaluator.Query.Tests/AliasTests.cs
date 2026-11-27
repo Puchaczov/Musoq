@@ -13,6 +13,19 @@ namespace Musoq.Evaluator.Tests;
 public class AliasTests : MultiSchemaTestBase
 {
     [TestMethod]
+    [DataRow("__value0")]
+    [DataRow("__value1")]
+    public void OutputAliasMatchingConstructorParameter_ShouldPreserveEveryValue(string alias)
+    {
+        var sql = $"select N as [{alias}], N + 1 as B from values {{ (N: 7) }} v";
+        using var compiled = CreateAndRunVirtualMachine(sql, [], []);
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(result, (alias, typeof(int)), ("B", typeof(int)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [7, 8]);
+    }
+
+    [TestMethod]
     public void WhenUniqueColumnAcrossJoinedDataSetOccurred_ShouldNotNeedToUseAlias()
     {
         const string query = "select ZeroItem from #schema.first() first inner join #schema.second() second on 1 = 1";

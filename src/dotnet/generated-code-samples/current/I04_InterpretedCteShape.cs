@@ -354,6 +354,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Inner : BytesInterpreterBase<Inner>, IBytesInterpreterStatus<Inner>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte X { get; set; }
+        public byte Y { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "X", "Y" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -384,11 +387,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the X field value.</summary>
-        public byte X { get; set; }
-        /// <summary>Gets the Y field value.</summary>
-        public byte Y { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Inner";
 
         public override Inner InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Inner>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -411,8 +409,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Inner>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _x = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.X = _x;
+                var _field1_X = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.X = _field1_X;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Y");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure2)
@@ -420,8 +418,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Inner>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _y = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Y = _y;
+                var _field1_Y = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Y = _field1_Y;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Inner>.Success(__parsedValue);
             }
@@ -438,6 +436,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Outer : BytesInterpreterBase<Outer>, IBytesInterpreterStatus<Outer>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public Inner Inner { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Inner" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -461,9 +461,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Inner field value.</summary>
-        public Inner Inner { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Outer";
 
         public override Outer InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Outer>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -481,15 +478,15 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new Outer();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Inner");
-                var __inner_interpreter = new Inner();
-                var __musoqReadResult1 = base.InterpretNestedStatus(__inner_interpreter, data, "Inner");
+                var __field5_Inner_interpreter = new Inner();
+                var __musoqReadResult1 = base.InterpretNestedStatus(__field5_Inner_interpreter, data, "Inner");
                 if (!__musoqReadResult1.Succeeded)
                 {
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Outer>.Failed(__parsedValue, __musoqReadResult1.Failure!);
                 }
 
-                var _inner = __musoqReadResult1.Value!;
-                __parsedValue.Inner = _inner;
+                var _field5_Inner = __musoqReadResult1.Value!;
+                __parsedValue.Inner = _field5_Inner;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Outer>.Success(__parsedValue);
             }

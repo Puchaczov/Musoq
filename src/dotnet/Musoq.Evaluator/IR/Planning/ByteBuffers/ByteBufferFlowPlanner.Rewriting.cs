@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
 using Musoq.Evaluator.IR.Expressions;
@@ -31,7 +32,11 @@ internal sealed partial class ByteBufferFlowPlanner
             rewritten = new PhysicalProjectNode(fields, project.Input) { IsDistinct = project.IsDistinct };
         }
         if (rewritten is PhysicalInterpretSourceNode source)
-            rewritten = source with { Arguments = source.Arguments.Select(expressions.Visit).ToArray() };
+            rewritten = source with
+            {
+                Arguments = source.Arguments.Select(expressions.Visit).ToArray(),
+                FieldReader = CreateReader((PhysicalInterpretSourceNode)node),
+            };
         if (rewritten is PhysicalFilterNode filter)
             rewritten = filter with { Predicate = expressions.Visit(filter.Predicate) };
         var columns = rewritten
@@ -42,6 +47,13 @@ internal sealed partial class ByteBufferFlowPlanner
                         index < boundary.Output.Columns.Count && boundary.Output.Columns[index].Name == column.Name
                             ? boundary.Output.Columns[index].Value
                             : boundary.Output.ResolveName(column.Name);
+                    if (value is { StoresLength: true })
+                        return column with
+                        {
+                            Type = typeof(int?),
+                            SourceReadType = typeof(int?),
+                            IntendedTypeName = null,
+                        };
                     return value is { UsesView: true }
                         ? column with
                         {
@@ -54,9 +66,30 @@ internal sealed partial class ByteBufferFlowPlanner
         return rewritten with { OutputSchema = new OutputSchema(columns) };
     }
 
+    private BinaryFieldReaderPlan? CreateReader(PhysicalInterpretSourceNode source)
+    {
+        if (!_parsedFields.TryGetValue(source, out var fields))
+            return null;
+        var demands = fields
+            .Where(field => !field.Value.Requirement.RequiresCompleteArray)
+            .ToImmutableDictionary(
+                field => field.Key,
+                field => field.Value.StoresLength ? BinaryFieldDemand.Length : BinaryFieldDemand.Discard,
+                StringComparer.OrdinalIgnoreCase
+            );
+        if (demands.Count == 0)
+            return null;
+        string container;
+        do
+        {
+            container = $"__MusoqFieldReader{_nextReaderId++}";
+        } while (registry!.ContainsSchema(container));
+        return new(source.SchemaName, container, demands);
+    }
+
     private static MethodCall Refine(ByteBufferFlowValue value)
     {
-        var plan = value.Producer.BufferPlan!;
+        var plan = value.Producer!.BufferPlan!;
         var program = plan.Program! with
         {
             Requirement = value.Requirement,
@@ -70,6 +103,12 @@ internal sealed partial class ByteBufferFlowPlanner
     {
         protected override IrExpression VisitMethodCall(MethodCall node)
         {
+            if (
+                node.BufferSemantics?.Kind == ByteBufferCallableKind.Length
+                && node.Arguments[0] is ColumnRef field
+                && input.Resolve(field) is { StoresLength: true }
+            )
+                return VisitColumnRef(field);
             var call = (MethodCall)base.VisitMethodCall(node);
             if (call.BufferPlan is { Program: { } program } plan && ResolveInput(program, input) is { UsesView: true })
                 return call with { BufferPlan = plan with { Program = program with { InputIsView = true } } };
@@ -77,11 +116,11 @@ internal sealed partial class ByteBufferFlowPlanner
         }
 
         protected override IrExpression VisitColumnRef(ColumnRef node) =>
-            input.Resolve(node) is { UsesView: true }
-                ? node with
-                {
-                    GeneratedTypeName = ByteBufferStorageTypes.OwnedView,
-                }
-                : node;
+            input.Resolve(node) switch
+            {
+                { StoresLength: true } => node with { ReturnType = typeof(int?), GeneratedTypeName = null },
+                { UsesView: true } => node with { GeneratedTypeName = ByteBufferStorageTypes.OwnedView },
+                _ => node,
+            };
     }
 }

@@ -108,6 +108,7 @@ internal static class ExecutionSyntaxFactory
     internal static bool IsSqlComparison(BinaryOpKind kind) =>
         kind
             is BinaryOpKind.Equal
+                or BinaryOpKind.FloatingMembershipEqual
                 or BinaryOpKind.NotEqual
                 or BinaryOpKind.GreaterThan
                 or BinaryOpKind.LessThan
@@ -134,6 +135,11 @@ internal static class ExecutionSyntaxFactory
             _ => false,
         };
     }
+
+    internal static ExpressionSyntax TypeStringNullLiteral(ExecutionExpression operand, ExpressionSyntax value) =>
+        operand is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null }
+            ? SyntaxFactory.CastExpression(CreateTypeSyntax(typeof(string)), value)
+            : value;
 
     internal static bool CanExecutionExpressionBeNull(ExecutionExpression expression)
     {
@@ -220,8 +226,13 @@ internal static class ExecutionSyntaxFactory
         if (
             binary.Left is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null }
             || binary.Right is ExecutionLiteral { Value.Kind: ExecutionConstantKind.Null }
+            || binary.Left.ReturnType.RequireClrType() == typeof(DBNull)
+            || binary.Right.ReturnType.RequireClrType() == typeof(DBNull)
         )
             return SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression);
+
+        if (binary.Kind == BinaryOpKind.FloatingMembershipEqual)
+            return CreateFloatingMembershipEquality(left, right);
 
         if (
             IsRelationalComparison(binary.Kind)
@@ -254,6 +265,20 @@ internal static class ExecutionSyntaxFactory
 
         return SyntaxFactory.ParenthesizedExpression(
             SyntaxFactory.BinaryExpression(GetBinaryExpressionKind(binary.Kind), left, right)
+        );
+    }
+
+    internal static ExpressionSyntax CreateFloatingMembershipEquality(ExpressionSyntax left, ExpressionSyntax right)
+    {
+        var doubleType = CreateTypeSyntax(typeof(double));
+        var receiver = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(doubleType, left));
+        return SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                receiver,
+                SyntaxFactory.IdentifierName(nameof(double.Equals))
+            ),
+            CreateArgumentList(SyntaxFactory.CastExpression(doubleType, right))
         );
     }
 

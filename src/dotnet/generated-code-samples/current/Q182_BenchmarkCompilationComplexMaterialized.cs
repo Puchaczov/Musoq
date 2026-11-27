@@ -17,7 +17,7 @@ MultiStatement
         Filter [(ko3iko.Population > 500000)]
           SchemaScan [#test.entities() as ko3iko]
   Sort [ko3iko.Population DESC]
-    Project [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Population as Population, (((ko3iko.City || ' (') || ko3iko.Country) || ')') as CityCountry]
+    Project [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Population as Population, (((ko3iko.City + ' (') + ko3iko.Country) + ')') as CityCountry]
       CteRef [ko3ikoScore as ko3ikoScore]
 */
 
@@ -30,7 +30,7 @@ PhysicalMultiStatement
         PhysicalFilter [(ko3iko.Population > 500000)]
           PhysicalSchemaScan [#test.entities() as ko3iko] [pushdown: (ko3iko.Population > 500000)]
   PhysicalSort [ko3iko.Population DESC]
-    PhysicalProject [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Population as Population, (((ko3iko.City || ' (') || ko3iko.Country) || ')') as CityCountry]
+    PhysicalProject [ko3iko.City as City, ko3iko.Country as Country, ko3iko.Population as Population, (((ko3iko.City + ' (') + ko3iko.Country) + ')') as CityCountry]
       PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 

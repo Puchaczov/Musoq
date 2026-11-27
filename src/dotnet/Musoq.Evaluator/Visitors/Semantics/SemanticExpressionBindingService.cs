@@ -1,4 +1,5 @@
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.Helpers;
 using Musoq.Parser.Nodes;
 using Musoq.Schema.Managers;
 using static Musoq.Evaluator.Visitors.BinaryOperatorTypeRules;
@@ -10,13 +11,18 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
 {
     public Node BindCoalesce(CoalesceNode original, Node left, Node right)
     {
-        if (IsNullLiteral(left))
+        if (
+            CommonColumnTypeResolver.IsExplicitNullType(left.ReturnType)
+            && CommonColumnTypeResolver.IsExplicitNullType(right.ReturnType)
+        )
+            return NullArithmeticBinding.PreserveNullOperands(left, right, original);
+        if (CoalesceOperandFacts.IsNullLiteral(left))
             return FoldNullLeftOperand(right);
 
         ValidateCoalesceFallback(left, right, original);
         var returnType = ResolveCoalesceReturnType(left, right);
         var convertedLeft = ConvertCoalesceOperand(left, returnType);
-        if (IsStaticallyNonNullableValueType(left.ReturnType))
+        if (CoalesceOperandFacts.IsRequiredValue(left.ReturnType))
             return convertedLeft;
 
         var result = new CoalesceNode(
@@ -33,8 +39,10 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
     private static Node ConvertCoalesceOperand(Node operand, Type resultType)
     {
         var sourceType = operand.ReturnType;
-        if (sourceType is null || IsNullLiteral(operand))
+        if (sourceType is null || CoalesceOperandFacts.IsNullLiteral(operand))
             return operand;
+        if (CommonColumnTypeResolver.IsExplicitNullType(sourceType))
+            return NullArithmeticBinding.AsNullable(operand, resultType);
         var sourceValue = Nullable.GetUnderlyingType(sourceType) ?? sourceType;
         var resultValue = Nullable.GetUnderlyingType(resultType) ?? resultType;
         if (
@@ -64,12 +72,12 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
 
     private static Node FoldNullLeftOperand(Node right)
     {
-        return IsNullLiteral(right) ? new NullNode(typeof(object), right.Span) : right;
+        return CoalesceOperandFacts.IsNullLiteral(right) ? new NullNode(typeof(object), right.Span) : right;
     }
 
     private static Node RetypeNullFallback(Node right, Node left)
     {
-        if (!IsNullLiteral(right))
+        if (!CoalesceOperandFacts.IsNullLiteral(right))
             return right;
 
         return new NullNode(ResolveCoalesceReturnType(left, right), right.Span);
@@ -148,16 +156,6 @@ internal sealed class SemanticExpressionBindingService(SemanticDiagnosticReporte
             return leftType;
 
         return rightType.IsAssignableFrom(leftType) ? rightType : typeof(object);
-    }
-
-    private static bool IsStaticallyNonNullableValueType(Type? type)
-    {
-        return type is { IsValueType: true } && Nullable.GetUnderlyingType(type) == null && !IsNullNodeType(type);
-    }
-
-    private static bool IsNullLiteral(Node node)
-    {
-        return node is NullNode || IsNullNodeType(node.ReturnType);
     }
 
     private static bool IsNullNodeType(Type? type)

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.Visitors.Helpers.Subqueries;
@@ -19,14 +20,37 @@ internal sealed partial class PhysicalLoweringImplementation
         foreach (var definition in cte.Definitions)
         {
             var valueColumnName = GeneratedSubqueryContract.CreateValueColumnName(definition.Name);
-            if (definition.Plan.OutputSchema.FindByName(valueColumnName) == null)
+            var output = definition.Plan switch
+            {
+                PhysicalMultiStatementNode { Statements: [.., PhysicalProjectNode final] } => final,
+                PhysicalProjectNode project => project,
+                _ => null,
+            };
+            var field = output?.Fields.FirstOrDefault(item =>
+                string.Equals(item.OutputName, valueColumnName, StringComparison.OrdinalIgnoreCase)
+            );
+            if (field == null)
                 continue;
 
             var bindings = CollectAggregateBindings(definition.Plan);
-            if (bindings.Count != 1 || bindings[0].Kernel is not { } kernel)
+            if (bindings.Count == 0)
                 continue;
 
-            results[definition.Name] = new ScalarSubqueryEmptyResultSpec(definition.Name, valueColumnName, kernel);
+            var expression = AggregateRefRewriter.Rewrite(field.Expression, CreateAggregateBindingsMap(bindings));
+            var references = IrExpressionTraversal
+                .SelfAndDescendants(expression)
+                .OfType<AggregateRef>()
+                .Select(reference => reference.Identifier)
+                .ToHashSet(StringComparer.Ordinal);
+            var projectedBindings = bindings.Where(binding => references.Contains(binding.Identifier)).ToArray();
+            if (projectedBindings.Length != 0 && projectedBindings.All(binding => binding.Kernel != null))
+                results[definition.Name] = new ScalarSubqueryEmptyResultSpec(
+                    field with
+                    {
+                        Expression = expression,
+                    },
+                    projectedBindings
+                );
         }
 
         return results;
@@ -82,7 +106,7 @@ internal sealed partial class PhysicalLoweringImplementation
                 target.Add(binding);
     }
 
-    private static bool TryCreateScalarSubqueryEmptyResultLowering(
+    private bool TryCreateScalarSubqueryEmptyResultLowering(
         LoweringScope scope,
         PhysicalNode buildNode,
         string variablePrefix,
@@ -100,17 +124,37 @@ internal sealed partial class PhysicalLoweringImplementation
             return false;
         }
 
-        valueColumnName = spec.ValueColumnName;
-        var kernel = spec.Kernel;
+        valueColumnName = spec.Projection.OutputName;
+        var projection = ConvertProjectedExpression(spec.Projection, RowShapeLookup.EmptySourceShapeLookup());
+        var values = new Dictionary<string, ExecutionExpression>(StringComparer.Ordinal);
+        var prelude = new List<ExecutionNode>();
+        foreach (var binding in spec.Bindings)
+        {
+            var prefix = spec.Bindings.Count == 1 ? variablePrefix : $"{variablePrefix}Agg{values.Count}";
+            var empty = CreateEmptyAggregateResult(prefix, binding.Kernel!);
+            values.Add(binding.Identifier, empty.Value);
+            prelude.AddRange(empty.PreludeNodes);
+        }
+
+        var value = new ExecutionExpressionSubstitutionRewriter(candidate =>
+            candidate is ExecutionAggregateResultRef aggregate ? values[aggregate.Identifier] : null
+        ).RewriteExpression(projection);
+        lowering = new ScalarSubqueryEmptyResultLowering(value, prelude);
+        return true;
+    }
+
+    private static ScalarSubqueryEmptyResultLowering CreateEmptyAggregateResult(
+        string variablePrefix,
+        AggregateKernelDescriptor kernel
+    )
+    {
         switch (kernel.ResultDescriptor.EmptyResultBehavior)
         {
             case AggregateEmptyResultBehavior.Null:
-                lowering = new ScalarSubqueryEmptyResultLowering(new ExecutionLiteral(null, kernel.ResultType), []);
-                return true;
+                return new ScalarSubqueryEmptyResultLowering(new ExecutionLiteral(null, kernel.ResultType), []);
             case AggregateEmptyResultBehavior.Zero:
                 var zero = CreateClrDefaultValue(kernel.UnderlyingResultType);
-                lowering = new ScalarSubqueryEmptyResultLowering(new ExecutionLiteral(zero, kernel.ResultType), []);
-                return true;
+                return new ScalarSubqueryEmptyResultLowering(new ExecutionLiteral(zero, kernel.ResultType), []);
             case AggregateEmptyResultBehavior.Custom:
                 var state = new ExecutionVariable($"{variablePrefix}EmptyState", kernel.StateType);
                 var variable = new ExecutionVariable($"{variablePrefix}EmptyValue", kernel.ResultType);
@@ -120,7 +164,7 @@ internal sealed partial class PhysicalLoweringImplementation
                     null,
                     kernel.ResultType
                 );
-                lowering = new ScalarSubqueryEmptyResultLowering(
+                return new ScalarSubqueryEmptyResultLowering(
                     new ExecutionVariableRead(variable),
                     [
                         new ExecutionInitializeAggregateState(
@@ -130,7 +174,6 @@ internal sealed partial class PhysicalLoweringImplementation
                         new ExecutionLet(variable, call),
                     ]
                 );
-                return true;
             default:
                 throw new ArgumentOutOfRangeException(
                     nameof(kernel.ResultDescriptor.EmptyResultBehavior),

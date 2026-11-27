@@ -350,6 +350,15 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class EncodedRecord : BytesInterpreterBase<EncodedRecord>, IBytesInterpreterStatus<EncodedRecord>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte[] FixedBytes { get; set; }
+        public byte Length { get; set; }
+        public byte[] DynamicBytes { get; set; }
+        public string AsciiValue { get; set; }
+        public string Utf8Value { get; set; }
+        public string Utf16Value { get; set; }
+        public string LatinValue { get; set; }
+        public string NullTermValue { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "FixedBytes", "Length", "DynamicBytes", "AsciiValue", "Utf8Value", "Utf16Value", "LatinValue", "NullTermValue" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -422,23 +431,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the FixedBytes field value.</summary>
-        public byte[] FixedBytes { get; set; }
-        /// <summary>Gets the Length field value.</summary>
-        public byte Length { get; set; }
-        /// <summary>Gets the DynamicBytes field value.</summary>
-        public byte[] DynamicBytes { get; set; }
-        /// <summary>Gets the AsciiValue field value.</summary>
-        public string AsciiValue { get; set; }
-        /// <summary>Gets the Utf8Value field value.</summary>
-        public string Utf8Value { get; set; }
-        /// <summary>Gets the Utf16Value field value.</summary>
-        public string Utf16Value { get; set; }
-        /// <summary>Gets the LatinValue field value.</summary>
-        public string LatinValue { get; set; }
-        /// <summary>Gets the NullTermValue field value.</summary>
-        public string NullTermValue { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "EncodedRecord";
 
         public override EncodedRecord InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<EncodedRecord>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -462,8 +454,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _fixedBytes = base.ReadPreparedByteArray(data, __musoqReadSize1);
-                __parsedValue.FixedBytes = _fixedBytes;
+                var _field10_FixedBytes = base.ReadPreparedByteArray(data, __musoqReadSize1);
+                __parsedValue.FixedBytes = _field10_FixedBytes;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Length");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure3)
@@ -471,11 +463,11 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure3);
                 }
 
-                var _length = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Length = _length;
+                var _field6_Length = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Length = _field6_Length;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("DynamicBytes");
-                var __musoqReadResult5 = base.ResolveSizeValueStatus<byte>((byte?)(_length), ParseErrorCode.InvalidSize);
+                var __musoqReadResult5 = base.ResolveSizeValueStatus<byte>((byte?)(_field6_Length), ParseErrorCode.InvalidSize);
                 if (!__musoqReadResult5.Succeeded)
                 {
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadResult5.Failure!);
@@ -487,8 +479,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure6);
                 }
 
-                var _dynamicBytes = base.ReadPreparedByteArray(data, __musoqReadSize4);
-                __parsedValue.DynamicBytes = _dynamicBytes;
+                var _field12_DynamicBytes = base.ReadPreparedByteArray(data, __musoqReadSize4);
+                __parsedValue.DynamicBytes = _field12_DynamicBytes;
                 base.RecordParsedFieldSlot(2);
                 SetCurrentField("AsciiValue");
                 var __musoqReadSize7 = 4;
@@ -498,8 +490,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure9);
                 }
 
-                var _asciiValue = ReadString(data, __musoqReadSize7, __musoqReadEncoding8).Trim();
-                __parsedValue.AsciiValue = _asciiValue;
+                var _field10_AsciiValue = ReadString(data, __musoqReadSize7, __musoqReadEncoding8).Trim();
+                __parsedValue.AsciiValue = _field10_AsciiValue;
                 base.RecordParsedFieldSlot(3);
                 SetCurrentField("Utf8Value");
                 var __musoqReadSize10 = 8;
@@ -509,8 +501,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure12);
                 }
 
-                var _utf8Value = ReadString(data, __musoqReadSize10, __musoqReadEncoding11).TrimEnd();
-                __parsedValue.Utf8Value = _utf8Value;
+                var _field9_Utf8Value = ReadString(data, __musoqReadSize10, __musoqReadEncoding11).TrimEnd();
+                __parsedValue.Utf8Value = _field9_Utf8Value;
                 base.RecordParsedFieldSlot(4);
                 SetCurrentField("Utf16Value");
                 var __musoqReadSize13 = 8;
@@ -520,8 +512,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure15);
                 }
 
-                var _utf16Value = ReadString(data, __musoqReadSize13, __musoqReadEncoding14).Trim();
-                __parsedValue.Utf16Value = _utf16Value;
+                var _field10_Utf16Value = ReadString(data, __musoqReadSize13, __musoqReadEncoding14).Trim();
+                __parsedValue.Utf16Value = _field10_Utf16Value;
                 base.RecordParsedFieldSlot(5);
                 SetCurrentField("LatinValue");
                 var __musoqReadSize16 = 4;
@@ -531,8 +523,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure18);
                 }
 
-                var _latinValue = ReadString(data, __musoqReadSize16, __musoqReadEncoding17).TrimStart();
-                __parsedValue.LatinValue = _latinValue;
+                var _field10_LatinValue = ReadString(data, __musoqReadSize16, __musoqReadEncoding17).TrimStart();
+                __parsedValue.LatinValue = _field10_LatinValue;
                 base.RecordParsedFieldSlot(6);
                 SetCurrentField("NullTermValue");
                 var __musoqReadSize19 = 8;
@@ -542,8 +534,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Failed(__parsedValue, __musoqReadFailure21);
                 }
 
-                var _nullTermValue = ReadNullTerminatedString(data, __musoqReadSize19, __musoqReadEncoding20);
-                __parsedValue.NullTermValue = _nullTermValue;
+                var _field13_NullTermValue = ReadNullTerminatedString(data, __musoqReadSize19, __musoqReadEncoding20);
+                __parsedValue.NullTermValue = _field13_NullTermValue;
                 base.RecordParsedFieldSlot(7);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<EncodedRecord>.Success(__parsedValue);
             }

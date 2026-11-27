@@ -41,7 +41,7 @@ internal sealed class WindowPlanLowerer(IWindowLoweringService handlers)
                 "result",
                 scope.GeneratedTypePrefix + "ResultRow0",
                 new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase),
-                null,
+                scope.CreateCapturedCteShapes(),
                 0,
                 scope
             )

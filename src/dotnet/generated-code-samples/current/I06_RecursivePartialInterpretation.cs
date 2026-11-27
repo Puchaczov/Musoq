@@ -474,6 +474,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class SampleBlock : BytesInterpreterBase<SampleBlock>, IBytesInterpreterStatus<SampleBlock>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte ValueCount { get; set; }
+        public byte[] Values { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "ValueCount", "Values" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -504,11 +507,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the ValueCount field value.</summary>
-        public byte ValueCount { get; set; }
-        /// <summary>Gets the Values field value.</summary>
-        public byte[] Values { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "SampleBlock";
 
         public override SampleBlock InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<SampleBlock>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -531,11 +529,11 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<SampleBlock>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _valueCount = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.ValueCount = _valueCount;
+                var _field10_ValueCount = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.ValueCount = _field10_ValueCount;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Values");
-                var __musoqReadResult3 = base.ResolveSizeValueStatus<byte>((byte?)(_valueCount), ParseErrorCode.InvalidSize);
+                var __musoqReadResult3 = base.ResolveSizeValueStatus<byte>((byte?)(_field10_ValueCount), ParseErrorCode.InvalidSize);
                 if (!__musoqReadResult3.Succeeded)
                 {
                     return global::Musoq.Schema.Interpreters.ParseAttempt<SampleBlock>.Failed(__parsedValue, __musoqReadResult3.Failure!);
@@ -547,8 +545,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<SampleBlock>.Failed(__parsedValue, __musoqReadFailure4);
                 }
 
-                var _values = base.ReadPreparedByteArray(data, __musoqReadSize2);
-                __parsedValue.Values = _values;
+                var _field6_Values = base.ReadPreparedByteArray(data, __musoqReadSize2);
+                __parsedValue.Values = _field6_Values;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<SampleBlock>.Success(__parsedValue);
             }
@@ -565,6 +563,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class SampleBatch : BytesInterpreterBase<SampleBatch>, IBytesInterpreterStatus<SampleBatch>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public SampleBlock[] Blocks { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Blocks" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -588,9 +588,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Blocks field value.</summary>
-        public SampleBlock[] Blocks { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "SampleBatch";
 
         public override SampleBatch InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<SampleBatch>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -608,23 +605,23 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new SampleBatch();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Blocks");
-                var __blocks_list = new System.Collections.Generic.List<SampleBlock>();
-                var __blocks_count = 2;
-                for (int __blocks_i = 0; __blocks_i < __blocks_count; __blocks_i++)
+                var __field6_Blocks_count = 2;
+                var __field6_Blocks_list = __field6_Blocks_count == 0 ? null : new System.Collections.Generic.List<SampleBlock>();
+                for (int __field6_Blocks_i = 0; __field6_Blocks_i < __field6_Blocks_count; __field6_Blocks_i++)
                 {
-                    var ___blocks_elem_interpreter = new SampleBlock();
-                    var __musoqReadResult1 = base.InterpretNestedStatus(___blocks_elem_interpreter, data, "Blocks");
+                    var ___field6_Blocks_elem_interpreter = new SampleBlock();
+                    var __musoqReadResult1 = base.InterpretNestedStatus(___field6_Blocks_elem_interpreter, data, "Blocks");
                     if (!__musoqReadResult1.Succeeded)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<SampleBatch>.Failed(__parsedValue, __musoqReadResult1.Failure!);
                     }
 
-                    var __blocks_elem = __musoqReadResult1.Value!;
-                    __blocks_list.Add(__blocks_elem);
+                    var __field6_Blocks_elem = __musoqReadResult1.Value!;
+                    __field6_Blocks_list!.Add(__field6_Blocks_elem);
                 }
 
-                var _blocks = __blocks_list.ToArray();
-                __parsedValue.Blocks = _blocks;
+                var _field6_Blocks = __field6_Blocks_list?.ToArray() ?? System.Array.Empty<SampleBlock>();
+                __parsedValue.Blocks = _field6_Blocks;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<SampleBatch>.Success(__parsedValue);
             }

@@ -380,6 +380,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class BitsRepeatPacket : BytesInterpreterBase<BitsRepeatPacket>, IBytesInterpreterStatus<BitsRepeatPacket>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte[] Flags { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Flags" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -403,9 +405,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Flags field value.</summary>
-        public byte[] Flags { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "BitsRepeatPacket";
 
         public override BitsRepeatPacket InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<BitsRepeatPacket>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -423,12 +422,12 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new BitsRepeatPacket();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Flags");
-                var __flags_list = new System.Collections.Generic.List<byte>();
-                byte __flags_lastElem;
-                var __flags_iteration = 0;
+                var __field5_Flags_list = new System.Collections.Generic.List<byte>();
+                byte __field5_Flags_lastElem;
+                var __field5_Flags_iteration = 0;
                 do
                 {
-                    if (base.CheckRepeatIterationStatus("Flags", __flags_iteration++, 10000)is { } __musoqReadFailure1)
+                    if (base.CheckRepeatIterationStatus("Flags", __field5_Flags_iteration++, 10000)is { } __musoqReadFailure1)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket>.Failed(__parsedValue, __musoqReadFailure1);
                     }
@@ -438,13 +437,13 @@ namespace Musoq.Generated.Interpreters
                         return global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket>.Failed(__parsedValue, __musoqReadFailure2);
                     }
 
-                    var __flags_lastElem_value = (byte)ReadBits(data, 1);
-                    __flags_lastElem = __flags_lastElem_value;
-                    __flags_list.Add(__flags_lastElem);
+                    var __field5_Flags_lastElem_value = (byte)ReadBits(data, 1);
+                    __field5_Flags_lastElem = __field5_Flags_lastElem_value;
+                    __field5_Flags_list.Add(__field5_Flags_lastElem);
                 }
-                while (((__flags_lastElem == 0)) != true);
-                var _flags = __flags_list.ToArray();
-                __parsedValue.Flags = _flags;
+                while (((__field5_Flags_lastElem == 0)) != true);
+                var _field5_Flags = __field5_Flags_list.ToArray();
+                __parsedValue.Flags = _field5_Flags;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<BitsRepeatPacket>.Success(__parsedValue);
             }

@@ -39,48 +39,25 @@ internal static partial class PhysicalStrategyRules
         if (!allowConstantKeys && (leftIsConstant || rightIsConstant))
             return false;
 
-        IrExpression? leftExpression = null;
-        IrExpression? rightExpression = null;
-
-        if (leftIsLeft && rightIsRight)
-        {
-            leftExpression = equality.Left;
-            rightExpression = equality.Right;
-        }
-        else if (leftIsRight && rightIsLeft)
-        {
-            leftExpression = equality.Right;
-            rightExpression = equality.Left;
-        }
-        else if (leftIsConstant && rightIsRight)
-        {
-            leftExpression = equality.Left;
-            rightExpression = equality.Right;
-        }
-        else if (leftIsConstant && rightIsLeft)
-        {
-            leftExpression = equality.Right;
-            rightExpression = equality.Left;
-        }
-        else if (rightIsConstant && leftIsLeft)
-        {
-            leftExpression = equality.Left;
-            rightExpression = equality.Right;
-        }
-        else if (rightIsConstant && leftIsRight)
-        {
-            leftExpression = equality.Right;
-            rightExpression = equality.Left;
-        }
-
-        if (leftExpression == null || rightExpression == null)
+        var direct = (leftIsLeft || leftIsConstant) && (rightIsRight || rightIsConstant);
+        var reversed = (leftIsRight || leftIsConstant) && (rightIsLeft || rightIsConstant);
+        if (!direct && !reversed)
             return false;
 
+        var leftExpression = direct ? equality.Left : equality.Right;
+        var rightExpression = direct ? equality.Right : equality.Left;
         var leftType = Nullable.GetUnderlyingType(leftExpression.ReturnType) ?? leftExpression.ReturnType;
         var rightType = Nullable.GetUnderlyingType(rightExpression.ReturnType) ?? rightExpression.ReturnType;
 
         if (leftType != rightType)
             return false;
+
+        if (!equality.IsMaterializedMembershipEquality && (leftType == typeof(float) || leftType == typeof(double)))
+        {
+            var nullableType = leftType == typeof(float) ? typeof(float?) : typeof(double?);
+            leftExpression = new UnaryOp(UnaryOpKind.NullIfNaN, leftExpression, nullableType);
+            rightExpression = new UnaryOp(UnaryOpKind.NullIfNaN, rightExpression, nullableType);
+        }
 
         leftKeys.Add(leftExpression);
         rightKeys.Add(rightExpression);

@@ -13,6 +13,7 @@ using Musoq.Evaluator.Tests.Schema.SourcePlanning;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
 using Musoq.Schema.Exceptions;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -104,20 +105,26 @@ public sealed class Alpha14CorrectnessRegressionTests : BasicEntityTestBase
                 ]
         );
 
+        using var watchdog = new TestWatchdog(TestContext.CancellationToken);
         using var barrier = new Barrier(2);
-        provider.OuterSourceBarrier = barrier;
+        void Meet(CancellationToken token) => watchdog.Rendezvous(barrier, "both correlated source executions", token);
+        provider.OuterSourceRendezvous = Meet;
         var independentProvider = new QueryScopedPlanningSchemaProvider(
             [Row(6, "outer"), Row(7, "outer"), Row(8, "outer")],
             mode
         )
         {
             InnerRows = [Row(7, "inner")],
-            OuterSourceBarrier = barrier,
+            OuterSourceRendezvous = Meet,
         };
         using var independent = CreateAndRunVirtualMachine(query, schemaProvider: independentProvider);
-        await Task.WhenAll(
-            Task.Run(() => AssertCorrelationRows(compiled, general ? [6, 7] : [6, 7, 8])),
-            Task.Run(() => AssertCorrelationRows(independent, general ? [6] : [7]))
+        var executions = Task.WhenAll(
+            TestWatchdog.StartWorker(() => AssertCorrelationRows(compiled, general ? [6, 7] : [6, 7, 8])),
+            TestWatchdog.StartWorker(() => AssertCorrelationRows(independent, general ? [6] : [7]))
+        );
+        await TestWatchdog.WithCleanupAsync(
+            () => watchdog.WaitAsync(executions, "the correlated executions"),
+            () => executions
         );
         foreach (var execution in independentProvider.Executions)
         {
@@ -310,37 +317,31 @@ public sealed class Alpha14CorrectnessRegressionTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void ProviderBacktrackingTimeout_ShouldUseTheNegotiatedBudgetAndPublicException()
+    public void AcceptedProviderTimeout_ShouldUseTheNegotiatedBudgetAndPublicException()
     {
-        const string pattern = "^(?=(a+)+$)a+$";
-        var input = new string('a', 50_000) + "!";
-        SourcePredicateRegexMatch? supplied = null;
+        const string input = "value";
+        const string sql = "select d.Id from #sp.items() d where d.Name rlike 'v.lue'";
         var timeout = TimeSpan.FromMilliseconds(1);
-        var publicProvider = new RegexPlanningSchemaProvider([new SourcePlanningEntity { Id = 1, Name = input }])
+        SourcePredicateRegexMatch? supplied = null;
+        RegexMatchTimeoutException? injected = null;
+        var provider = new RegexPlanningSchemaProvider([new SourcePlanningEntity { Id = 1, Name = input }])
         {
             PlanFactory = request =>
             {
-                supplied = (SourcePredicateRegexMatch)request.Predicate!;
+                supplied = Assert.IsInstanceOfType<SourcePredicateRegexMatch>(request.Predicate);
                 return SourcePlanResult.AcceptAll(request);
             },
             FailureFactory = () =>
             {
-                var predicate = supplied!;
-                try
-                {
-                    _ = Regex.IsMatch(input, predicate.Pattern, RegexOptions.None, predicate.MatchTimeout);
-                }
-                catch (RegexMatchTimeoutException exception)
-                {
-                    return exception;
-                }
-                return new InvalidOperationException("Expected the backtracking regex to time out.");
+                Assert.IsNotNull(supplied);
+                return injected = new RegexMatchTimeoutException(input, supplied.Pattern, supplied.MatchTimeout);
             },
         };
+
         using var compiled = InstanceCreator.CompileForExecution(
-            $"select d.Id from #sp.items() d where d.Name rlike '{pattern}'",
+            sql,
             Guid.NewGuid().ToString(),
-            publicProvider,
+            provider,
             LoggerResolver,
             TestCompilationOptions.WithRegexMatchTimeout(timeout)
         );
@@ -349,10 +350,12 @@ public sealed class Alpha14CorrectnessRegressionTests : BasicEntityTestBase
             using var result = compiled.Run(TestContext.CancellationToken);
             _ = result.Count;
         });
+
         Assert.AreEqual(DiagnosticCode.MQ7017_RegexMatchTimeout, failure.Envelope!.Code);
         Assert.AreEqual("1", failure.Envelope.Arguments["timeoutMilliseconds"]);
         var lifecycle = Assert.IsInstanceOfType<DataSourceLifecycleException>(failure.InnerException);
         var cause = Assert.IsInstanceOfType<RegexMatchTimeoutException>(lifecycle.InnerException);
+        Assert.AreSame(injected, cause);
         Assert.AreEqual(timeout, cause.MatchTimeout);
     }
 

@@ -10,5 +10,6 @@ public sealed record GeneratedRowNestedAccess(
     bool IsRowCarrier = false
 ) : FieldAccessStrategy
 {
+    public ExecutionTypeRef? PositionalRootType { get; init; }
     public bool IsNullSafe { get; init; }
 }

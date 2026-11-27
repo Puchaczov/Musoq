@@ -5,6 +5,9 @@ namespace Musoq.Evaluator.Helpers;
 
 public static partial class StrictCastRuntime
 {
+    /// <summary>Produces a typed SQL NULL after evaluating the null-only source expression.</summary>
+    public static TResult FromNull<TResult>(DBNull? value) => default!;
+
     public static IReadOnlyList<string> SupportedTypeNames { get; } =
     [
         "Boolean",

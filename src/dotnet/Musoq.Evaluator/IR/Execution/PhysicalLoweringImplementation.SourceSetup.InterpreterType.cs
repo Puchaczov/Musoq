@@ -7,6 +7,8 @@ internal sealed partial class PhysicalLoweringImplementation
 {
     private string ResolveInterpreterTypeName(PhysicalInterpretSourceNode interpret)
     {
+        if (interpret.FieldReader is { } reader)
+            return reader.TypeName;
         if (
             _schemaRegistry != null
             && _schemaRegistry.TryGetSchema(interpret.SchemaName, out var registration)

@@ -9,6 +9,7 @@ public sealed partial class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 {
     private readonly List<BinaryFromNode> _joinedTables = [];
     internal IntermediateSourceRegistry IntermediateSources { get; } = new();
+    private bool _hasScalarRowNumber;
     private int _queryIndex;
     private Scope? _scopeValue;
     private RootNode? _rootScript;
@@ -41,13 +42,21 @@ public sealed partial class RewriteQueryVisitor : IScopeAwareExpressionVisitor
 
     private Stack<Node> Nodes { get; } = new();
 
-    internal void RewriteSubqueryScope(Action rewrite)
+    private readonly Dictionary<Node, Node> _rewrittenSubqueries = new(ReferenceEqualityComparer.Instance);
+
+    internal void RewriteSubqueryScope(Node query, Action rewrite)
     {
+        if (_rewrittenSubqueries.TryGetValue(query, out var previous))
+        {
+            Nodes.Push(previous);
+            return;
+        }
         var joins = _joinedTables.ToArray();
         _joinedTables.Clear();
         try
         {
             rewrite();
+            _rewrittenSubqueries.Add(query, Nodes.Peek());
         }
         finally
         {

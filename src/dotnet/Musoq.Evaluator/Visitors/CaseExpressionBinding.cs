@@ -14,7 +14,11 @@ internal static class CaseExpressionBinding
         Func<AccessColumnNode, bool> isStableColumn
     )
     {
-        var common = SemanticTypeInferenceService.FindGreatestCommonSubtype(resultTypes);
+        var common = resultTypes.All(type =>
+            CommonColumnTypeResolver.IsExplicitNullType(type) || type == typeof(DBNull)
+        )
+            ? typeof(DBNull)
+            : SemanticTypeInferenceService.FindGreatestCommonSubtype(resultTypes);
         if (
             common == typeof(object)
             && resultTypes.Contains(typeof(byte[]))

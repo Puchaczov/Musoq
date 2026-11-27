@@ -36,14 +36,11 @@ public sealed partial class ExecutionShapeResolver
 
         try
         {
-            var fieldsByName = new Dictionary<string, SchemaFieldNode>(StringComparer.OrdinalIgnoreCase);
-
-            AddInheritedBinaryFields(binary, fieldsByName, context.SchemaRegistry);
-
-            foreach (var field in binary.Fields)
-                fieldsByName[field.Name] = field;
-
-            return CreateBinaryColumnsFromFields(fieldsByName.Values, generatedType, context);
+            IEnumerable<SchemaFieldNode> fields =
+                context.SchemaRegistry == null
+                    ? binary.Fields
+                    : InterpretationSchemaFields.GetFields(binary, context.SchemaRegistry);
+            return CreateBinaryColumnsFromFields(fields, generatedType, context);
         }
         finally
         {
@@ -79,7 +76,7 @@ public sealed partial class ExecutionShapeResolver
 
         foreach (var field in schemaFields)
         {
-            if (field.Name.StartsWith('_'))
+            if (field.Name == "_")
                 continue;
 
             if (field is FieldDefinitionNode { TypeAnnotation: AlignmentNode })
@@ -97,7 +94,12 @@ public sealed partial class ExecutionShapeResolver
             }
 
             var shapeField = field is ComputedFieldNode computed
-                ? (SchemaFieldNode?)Visitors.BinarySchemaRecordAliases.Resolve(computed.Expression, schemaFields)
+                ? (SchemaFieldNode?)
+                    Visitors.BinarySchemaRecordAliases.Resolve(
+                        computed.Expression,
+                        schemaFields,
+                        context.SchemaRegistry
+                    )
                     ?? field
                 : field;
             var intendedTypeName = InterpretationPropertyTypeNameResolver.ResolveFieldTypeName(
@@ -132,28 +134,6 @@ public sealed partial class ExecutionShapeResolver
         }
 
         return typeof(object);
-    }
-
-    private static void AddInheritedBinaryFields(
-        BinarySchemaNode binary,
-        IDictionary<string, SchemaFieldNode> fieldsByName,
-        SchemaRegistry? schemaRegistry
-    )
-    {
-        if (
-            string.IsNullOrWhiteSpace(binary.Extends)
-            || schemaRegistry == null
-            || !schemaRegistry.TryGetSchema(binary.Extends, out var registration)
-            || registration?.Node is not BinarySchemaNode parent
-        )
-        {
-            return;
-        }
-
-        AddInheritedBinaryFields(parent, fieldsByName, schemaRegistry);
-
-        foreach (var field in parent.Fields)
-            fieldsByName[field.Name] = field;
     }
 
     private sealed record NestedBinarySchema(

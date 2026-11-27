@@ -18,6 +18,6 @@ public class RowPresenceNode(Node expression, bool isPresent) : Node
 
     public override string ToString()
     {
-        return IsPresent ? $"{Expression} is present" : $"{Expression} is missing";
+        return $"{Expression.ToString()} is {(IsPresent ? "present" : "missing")}";
     }
 }

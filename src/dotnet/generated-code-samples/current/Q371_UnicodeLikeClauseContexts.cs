@@ -6,26 +6,26 @@ select City, City like 'Ł%' as IsPolish, Count(Name) filter (where Name like '�
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%')) as ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%')]
+  Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(ko3iko.Name) filter (where ko3iko.Name like 'Ż%')) as ko3iko.Count(ko3iko.Name) filter (where ko3iko.Name like 'Ż%')]
     Having [ko3iko.City LIKE 'Ł%']
       Aggregate [keys: City] [aggs: Count(Name) filter (where Name like 'Ż%')]
         Filter [(ko3iko.Name LIKE '%ó%' OR ko3iko.City LIKE 'Ł%')]
           SchemaScan [#A.entities() as ko3iko]
   Sort [ko3iko.City]
-    Project [ko3iko.City as City, ko3iko.City LIKE 'Ł%' as IsPolish, ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%') as MatchingNames]
+    Project [ko3iko.City as City, ko3iko.City LIKE 'Ł%' as IsPolish, ko3iko.Count(ko3iko.Name) filter (where ko3iko.Name like 'Ż%') as MatchingNames]
       CteRef [ko3ikoScore as ko3ikoScore]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%')) as ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%')]
+  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(ko3iko.Name) filter (where ko3iko.Name like 'Ż%')) as ko3iko.Count(ko3iko.Name) filter (where ko3iko.Name like 'Ż%')]
     PhysicalHaving [ko3iko.City LIKE 'Ł%']
       PhysicalSingleKeyAggregate [key: City (String)] [aggs: Count(Name) filter (where Name like 'Ż%')]
         PhysicalFilter [(ko3iko.Name LIKE '%ó%' OR ko3iko.City LIKE 'Ł%')]
           PhysicalSchemaScan [#A.entities() as ko3iko] [pushdown: (ko3iko.Name LIKE '%ó%' OR ko3iko.City LIKE 'Ł%')]
   PhysicalSort [ko3iko.City]
-    PhysicalProject [ko3iko.City as City, ko3iko.City LIKE 'Ł%' as IsPolish, ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%') as MatchingNames]
+    PhysicalProject [ko3iko.City as City, ko3iko.City LIKE 'Ł%' as IsPolish, ko3iko.Count(ko3iko.Name) filter (where ko3iko.Name like 'Ż%') as MatchingNames]
       PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
@@ -63,7 +63,7 @@ ExecutionPlan [compiled]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
       If [PREPARED_LIKE(finalGroup.City, __likeMatcher1)]
-        AppendShape [result <- ResultShape0(City: finalGroup.City, IsPolish: PREPARED_LIKE(finalGroup.City, __likeMatcher1), MatchingNames: ko3iko.Count(ko3iko.Name) filter (where Name like 'Ż%'))]
+        AppendShape [result <- ResultShape0(City: finalGroup.City, IsPolish: PREPARED_LIKE(finalGroup.City, __likeMatcher1), MatchingNames: ko3iko.Count(ko3iko.Name) filter (where ko3iko.Name like 'Ż%'))]
     SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */

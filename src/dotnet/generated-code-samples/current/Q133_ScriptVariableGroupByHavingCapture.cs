@@ -11,7 +11,7 @@ let suffix: string = '_country'
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [(ko3iko.Country || $suffix) as ko3iko.Country + $suffix, AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
+  Project [(ko3iko.Country + $suffix) as ko3iko.Country + $suffix, AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
     Having [(AggRef(ko3iko.Count(ko3iko.Name)) >= $minCount)]
       Aggregate [keys: Country + $suffix] [aggs: Count(Name)]
         SchemaScan [#A.entities() as ko3iko]
@@ -22,7 +22,7 @@ MultiStatement
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [(ko3iko.Country || $suffix) as ko3iko.Country + $suffix, AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
+  PhysicalProject [(ko3iko.Country + $suffix) as ko3iko.Country + $suffix, AggRef(ko3iko.Count(ko3iko.Name)) as ko3iko.Count(ko3iko.Name)]
     PhysicalHaving [(AggRef(ko3iko.Count(ko3iko.Name)) >= $minCount)]
       PhysicalSingleKeyAggregate [key: Country + $suffix (String)] [aggs: Count(Name)]
         PhysicalSchemaScan [#A.entities() as ko3iko]

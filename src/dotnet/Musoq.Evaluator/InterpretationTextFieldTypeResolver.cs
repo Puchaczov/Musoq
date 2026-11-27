@@ -28,26 +28,31 @@ internal static class InterpretationTextFieldTypeResolver
         }
     }
 
+    internal static bool MayBeNull(TextFieldDefinitionNode field) =>
+        (field.Modifiers & TextFieldModifier.Optional) != 0
+        || field.FieldType == TextFieldType.Switch && field.SwitchCases.Any(arm => MayBeNull(arm.Body));
+
     internal static (Type ClrType, string? IntendedTypeName) Resolve(
         string schemaName,
         TextFieldDefinitionNode field,
-        SchemaRegistry? registry = null
+        SchemaRegistry? registry = null,
+        TextResultTypeNames? names = null
     )
     {
         if (field is { FieldType: TextFieldType.Repeat, RepeatElement: { } element })
         {
-            var elementShape = Resolve(schemaName, element, registry);
+            var elementShape = Resolve(schemaName, element, registry, names);
             var intendedTypeName = elementShape.IntendedTypeName is { } intended ? $"{intended}[]" : null;
             return (elementShape.ClrType.MakeArrayType(), intendedTypeName);
         }
 
-        if (registry != null)
+        if (registry != null && field.FieldType == TextFieldType.Switch)
         {
             var shape = new TextResultShapeBinding(registry).Field(schemaName, field);
             var name = shape.TypeName;
             if (shape.Alternatives.Count > 0 || shape.Element?.Alternatives.Count > 0)
             {
-                name = $"Musoq.Generated.Interpreters.{schemaName}.TextSwitch_{field.Name}";
+                name = registry.TextResultTypes(schemaName).Qualified(field);
                 if (shape.Element != null)
                     name += "[]";
             }
@@ -56,16 +61,13 @@ internal static class InterpretationTextFieldTypeResolver
 
         return field.FieldType switch
         {
-            TextFieldType.Repeat => (typeof(object[]), $"Musoq.Generated.Interpreters.{field.PrimaryValue}[]"),
-            TextFieldType.SchemaReference => (typeof(object), $"Musoq.Generated.Interpreters.{field.PrimaryValue}"),
+            TextFieldType.Repeat => (typeof(object[]), $"{InterpretationCSharpNames.Qualified(field.PrimaryValue!)}[]"),
+            TextFieldType.SchemaReference => (typeof(object), InterpretationCSharpNames.Qualified(field.PrimaryValue!)),
             TextFieldType.Pattern when field.CaptureGroups.Length > 0 => (
                 typeof(object),
-                $"Musoq.Generated.Interpreters.{schemaName}.CaptureResult_{field.Name}"
+                (names ?? registry!.TextResultTypes(schemaName)).Qualified(field)
             ),
-            TextFieldType.Switch => (
-                typeof(object),
-                $"Musoq.Generated.Interpreters.{schemaName}.TextSwitch_{field.Name}"
-            ),
+            TextFieldType.Switch => (typeof(object), names!.Qualified(field)),
             _ => (typeof(string), null),
         };
     }

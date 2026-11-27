@@ -117,13 +117,15 @@ public static class LogicalPlanPrinter
                 break;
 
             case InterpretSourceNode interpret:
-                sb.Append(prefix)
-                    .Append(
-                        System.Globalization.CultureInfo.InvariantCulture,
-                        $"InterpretSource [{PlanPrinterHelpers.FormatSchemaName(interpret.SchemaName)}("
-                    );
-                PlanPrinterHelpers.AppendExpressions(sb, interpret.Arguments);
-                sb.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $") as {interpret.Alias}]");
+                PlanPrinterHelpers
+                    .AppendInterpretSource(
+                        sb.Append(prefix),
+                        "InterpretSource",
+                        interpret.SchemaName,
+                        interpret.Arguments,
+                        interpret.Alias
+                    )
+                    .AppendLine();
                 break;
 
             case PropertySourceNode property:

@@ -5,25 +5,6 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class BuildMetadataAndInferTypesVisitor
 {
-    private SchemaFieldNode[]? FindInlineSchemaFields(string fieldName) =>
-        FindBinaryCompositionType<InlineSchemaTypeNode>(fieldName)?.Fields;
-
-    private BinarySwitchTypeNode? FindSwitchSchemaType(string fieldName) =>
-        FindBinaryCompositionType<BinarySwitchTypeNode>(fieldName);
-
-    private T? FindBinaryCompositionType<T>(string fieldName)
-        where T : TypeAnnotationNode
-    {
-        if (SchemaRegistry == null)
-            return null;
-        foreach (var registration in SchemaRegistry.Schemas)
-            if (registration.Node is BinarySchemaNode binary)
-                foreach (var (name, type) in BinaryCompositionTypes.EnumerateFields(GetAllBinarySchemaFields(binary)))
-                    if (type is T matching && string.Equals(name, fieldName, StringComparison.OrdinalIgnoreCase))
-                        return matching;
-        return null;
-    }
-
     private SchemaFieldNode[]? ResolveInlineSchemaFields(string? intendedTypeName)
     {
         if (string.IsNullOrEmpty(intendedTypeName))
@@ -34,11 +15,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             : intendedTypeName;
         var schemaName = ParseSchemaReferenceFromTypeName(elementIntendedTypeName).SchemaName;
 
-        if (!schemaName.StartsWith("Inline_", StringComparison.Ordinal))
-            return null;
-
-        var fieldName = schemaName.Substring("Inline_".Length);
-        return FindInlineSchemaFields(fieldName);
+        return SchemaRegistry?.BinaryCompositions.Find<InlineSchemaTypeNode>(schemaName)?.Fields;
     }
 
     private (Type ClrType, string? IntendedTypeName) ResolveBinaryFieldClrTypeWithIntendedName(
@@ -56,14 +33,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         IReadOnlyDictionary<string, string> typeParamMap
     )
     {
-        if (field.TypeAnnotation is BinarySwitchTypeNode)
-            return (typeof(object), CreateSwitchSchemaIntendedTypeName(field.Name));
-
         var (type, intendedTypeName) = ResolveTypeAnnotationWithSubstitution(field.TypeAnnotation, typeParamMap);
 
         return ApplyBinaryFieldIntendedTypeName(field, (type, intendedTypeName));
     }
-
-    private static string CreateSwitchSchemaIntendedTypeName(string fieldName) =>
-        $"Musoq.Generated.Interpreters.Switch_{fieldName}";
 }

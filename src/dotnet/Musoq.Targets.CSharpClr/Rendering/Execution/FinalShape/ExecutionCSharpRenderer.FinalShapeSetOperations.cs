@@ -537,9 +537,7 @@ public sealed partial class ExecutionCSharpRenderer
         var arguments = sink
             .Fields.Select(
                 (field, index) =>
-                    SyntaxFactory.Argument(
-                        CreateTypedSetFieldRead(rowVariableName, index, field.Type.RequireClrType(), sourceShape)
-                    )
+                    SyntaxFactory.Argument(CreateSetOutputFieldRead(rowVariableName, index, field, sourceShape))
             )
             .ToArray();
 

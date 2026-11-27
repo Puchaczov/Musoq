@@ -37,9 +37,10 @@ public abstract class IrExpressionRewriter : ExpressionArrayRewriter
         if (ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right))
             return node;
 
-        return new BinaryOp(node.Kind, left, right, node.ReturnType)
+        return node with
         {
-            UsesSqlNullSemantics = node.UsesSqlNullSemantics,
+            Left = left,
+            Right = right,
         };
     }
 
@@ -119,7 +120,11 @@ public abstract class IrExpressionRewriter : ExpressionArrayRewriter
         if (!branchesChanged && ReferenceEquals(elseExpression, node.ElseExpression))
             return node;
 
-        return new CaseWhen(branches, elseExpression, node.ReturnType);
+        return node with
+        {
+            Branches = branches,
+            ElseExpression = elseExpression,
+        };
     }
 
     protected override IrExpression VisitCoalesce(Coalesce node)
@@ -129,7 +134,10 @@ public abstract class IrExpressionRewriter : ExpressionArrayRewriter
         if (!changed)
             return node;
 
-        return new Coalesce(expressions, node.ReturnType);
+        return node with
+        {
+            Expressions = expressions,
+        };
     }
 
     protected override IrExpression VisitAggregateRef(AggregateRef node)

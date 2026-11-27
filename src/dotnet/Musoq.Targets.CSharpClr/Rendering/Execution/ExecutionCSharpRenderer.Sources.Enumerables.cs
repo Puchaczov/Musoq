@@ -11,7 +11,8 @@ public sealed partial class ExecutionCSharpRenderer
     private static LocalDeclarationStatementSyntax CreateEnumerableChunksDeclaration(
         string rowsVariableName,
         ExpressionSyntax sourceExpression,
-        TypeSyntax elementType
+        TypeSyntax elementType,
+        string methodName = nameof(EvaluationHelper.ConvertEnumerableOutputToChunks)
     )
     {
         var invocation = SyntaxFactory
@@ -20,7 +21,7 @@ public sealed partial class ExecutionCSharpRenderer
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
                     SyntaxFactory
-                        .GenericName(nameof(EvaluationHelper.ConvertEnumerableOutputToChunks))
+                        .GenericName(methodName)
                         .WithTypeArgumentList(
                             SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(elementType))
                         )
@@ -36,10 +37,27 @@ public sealed partial class ExecutionCSharpRenderer
         ExpressionSyntax sourceExpression,
         Type enumerableType,
         ExecutionEnumerableChunkMode chunkMode,
-        string? enumerableTypeName = null
+        string? enumerableTypeName,
+        bool checkStreamingCancellation
     )
     {
         var generatedElementTypeName = ResolveGeneratedEnumerableElementTypeName(enumerableTypeName);
+        if (chunkMode == ExecutionEnumerableChunkMode.DirectRecord)
+        {
+            var recordType =
+                generatedElementTypeName ?? CreateTypeSyntax(ResolveEnumerableElementType(enumerableType)).ToString();
+            // A streamed batch holds one row. Recursive loops can omit their index-zero check.
+            var arguments = checkStreamingCancellation
+                ? CreateArgumentList(sourceExpression, SyntaxFactory.IdentifierName("token"))
+                : CreateArgumentList(sourceExpression);
+            var batches = SyntaxFactory
+                .ObjectCreationExpression(
+                    SyntaxFactory.ParseTypeName($"global::Musoq.Evaluator.Helpers.RecordApplyRows<{recordType}>")
+                )
+                .WithArgumentList(arguments);
+            return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, batches);
+        }
+
         if (!string.IsNullOrWhiteSpace(generatedElementTypeName))
         {
             return CreateEnumerableChunksDeclaration(
@@ -67,23 +85,12 @@ public sealed partial class ExecutionCSharpRenderer
             return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, rows);
         }
 
-        var invocation = SyntaxFactory
-            .InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.IdentifierName(nameof(EvaluationHelper)),
-                    SyntaxFactory
-                        .GenericName(ResolveTypedChunksMethodName(elementType))
-                        .WithTypeArgumentList(
-                            SyntaxFactory.TypeArgumentList(
-                                SyntaxFactory.SingletonSeparatedList(CreateTypeSyntax(elementType))
-                            )
-                        )
-                )
-            )
-            .WithArgumentList(CreateArgumentList(sourceExpression));
-
-        return CreateLocalDeclaration(SyntaxFactory.IdentifierName("var"), rowsVariableName, invocation);
+        return CreateEnumerableChunksDeclaration(
+            rowsVariableName,
+            sourceExpression,
+            CreateTypeSyntax(elementType),
+            ResolveTypedChunksMethodName(elementType)
+        );
     }
 
     private static string? ResolveGeneratedEnumerableElementTypeName(string? enumerableTypeName)

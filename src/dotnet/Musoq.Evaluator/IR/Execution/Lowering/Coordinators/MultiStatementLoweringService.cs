@@ -18,12 +18,14 @@ internal sealed class MultiStatementLoweringService(IMultiStatementLoweringOpera
         operations.CanBuildTableProducingMultiStatement(statement);
 
     public MultiStatementIndexes CreateMultiStatementIndexes(
+        LoweringScope scope,
         PhysicalMultiStatementNode statement,
         IReadOnlyDictionary<string, int>? existingCteIndexes = null,
         IReadOnlyDictionary<string, GeneratedRowShape>? existingCteShapesByName = null,
         string? statementNamePrefix = null
     ) =>
         operations.CreateMultiStatementIndexes(
+            scope,
             statement,
             existingCteIndexes,
             existingCteShapesByName,

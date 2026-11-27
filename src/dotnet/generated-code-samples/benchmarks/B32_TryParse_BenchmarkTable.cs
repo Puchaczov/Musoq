@@ -412,6 +412,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Valid : TextInterpreterBase<Valid>, ITextInterpreterStatus<Valid>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Prefix { get; set; }
+        public string? Message { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Prefix", "Message" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -442,11 +445,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Prefix field value.</summary>
-        public string? Prefix { get; set; }
-        /// <summary>Gets the Message field value.</summary>
-        public string? Message { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Valid";
 
         public override Valid ParseAt(ReadOnlySpan<char> data, int offset)
@@ -472,8 +470,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Valid>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                 }
 
-                var _prefix = __musoqReadResult0.Value!;
-                __parsedValue.Prefix = _prefix;
+                var _field6_Prefix = __musoqReadResult0.Value!;
+                __parsedValue.Prefix = _field6_Prefix;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Message");
                 var __musoqReadResult1 = base.ReadRestStatus(data, fieldName: "Message");
@@ -482,8 +480,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Valid>.Failed(__parsedValue, __musoqReadResult1.Failure!);
                 }
 
-                var _message = __musoqReadResult1.Value!;
-                __parsedValue.Message = _message;
+                var _field7_Message = __musoqReadResult1.Value!;
+                __parsedValue.Message = _field7_Message;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Valid>.Success(__parsedValue);
             }

@@ -6,7 +6,7 @@ public class ExpressionFromNode : FromNode
         : base(GetAlias(from))
     {
         Expression = from;
-        Id = $"{nameof(ExpressionFromNode)}{from.ToString()}";
+        Id = GetId(from);
     }
 
     public ExpressionFromNode(FromNode from, Type returnType)
@@ -14,7 +14,7 @@ public class ExpressionFromNode : FromNode
     {
         ArgumentNullException.ThrowIfNull(from);
         Expression = from;
-        Id = $"{nameof(ExpressionFromNode)}{from.ToString()}";
+        Id = GetId(from);
     }
 
     public FromNode Expression { get; }
@@ -22,6 +22,22 @@ public class ExpressionFromNode : FromNode
     public override string Alias => Expression.Alias;
 
     public override string Id { get; }
+
+    private static string GetId(FromNode from) =>
+        $"{nameof(ExpressionFromNode)}{from.ToString()}:{InlineSourceIdentity(from)}";
+
+    // SQL display keeps the join kind; inline source identity also keeps literal types.
+    private static string InlineSourceIdentity(FromNode source) =>
+        source switch
+        {
+            ValuesFromNode or DerivedTableFromNode => source.Id,
+            JoinNode join => InlineSourceIdentity(join.Join),
+            ApplyNode apply => InlineSourceIdentity(apply.Apply),
+            BinaryFromNode binary => $"({InlineSourceIdentity(binary.Source)},{InlineSourceIdentity(binary.With)})",
+            ExpressionFromNode expression => InlineSourceIdentity(expression.Expression),
+            UnpivotFromNode unpivot => InlineSourceIdentity(unpivot.Source),
+            _ => string.Empty,
+        };
 
     public override void Accept(IExpressionVisitor visitor)
     {

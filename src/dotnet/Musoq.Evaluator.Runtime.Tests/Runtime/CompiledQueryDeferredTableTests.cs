@@ -8,8 +8,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Runtime;
 using Musoq.Evaluator.Tables;
+using Musoq.Evaluator.Tests.Components;
 using Musoq.Parser.Diagnostics;
 using Musoq.Schema;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -172,15 +174,20 @@ public sealed class CompiledQueryDeferredTableTests
     [TestMethod]
     public async Task Dispose_ShouldWaitUntilDeferredResultIsMaterialized()
     {
+        using var watchdog = new TestWatchdog();
+        var probe = new CompiledQueryDrainProbe(CompiledQuery.DrainStage.DeferredResults, watchdog);
         var materialized = 0;
         var owner = new TrackingLifetimeOwner(() => Volatile.Read(ref materialized) != 0);
         var query = new CompiledQuery(
             new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
             owner
-        );
+        )
+        {
+            DisposalWait = probe.Wait,
+        };
 
         using var table = query.Run(CancellationToken.None);
-        await AssertDisposalWaits(query, table, () => Assert.AreEqual(1, table.Count), owner);
+        await AssertDisposalWaits(query, table, () => Assert.AreEqual(1, table.Count), probe, watchdog);
         Assert.IsFalse(owner.DisposedBeforeRelease);
         Assert.IsTrue(owner.IsDisposed);
         return;
@@ -196,12 +203,17 @@ public sealed class CompiledQueryDeferredTableTests
     [TestMethod]
     public async Task TableDispose_ShouldReleaseDeferredResultLifetime()
     {
+        using var watchdog = new TestWatchdog();
+        var probe = new CompiledQueryDrainProbe(CompiledQuery.DrainStage.DeferredResults, watchdog);
         var tableDisposeStarted = 0;
         var owner = new TrackingLifetimeOwner(() => Volatile.Read(ref tableDisposeStarted) != 0);
         var query = new CompiledQuery(
             new DeferredTableRunnable((_, token) => QueryRows.DeferredTable("result", Columns, Rows, token)),
             owner
-        );
+        )
+        {
+            DisposalWait = probe.Wait,
+        };
 
         using var table = query.Run(CancellationToken.None);
         await AssertDisposalWaits(
@@ -212,7 +224,8 @@ public sealed class CompiledQueryDeferredTableTests
                 Volatile.Write(ref tableDisposeStarted, 1);
                 table.Dispose();
             },
-            owner
+            probe,
+            watchdog
         );
         Assert.IsFalse(owner.DisposedBeforeRelease);
         Assert.IsTrue(owner.IsDisposed);
@@ -229,54 +242,25 @@ public sealed class CompiledQueryDeferredTableTests
         CompiledQuery query,
         Table table,
         Action releaseResult,
-        TrackingLifetimeOwner owner
+        CompiledQueryDrainProbe probe,
+        TestWatchdog watchdog
     )
     {
-        var timeout = TimeSpan.FromMinutes(2);
-        using var started = new ManualResetEventSlim();
-        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var worker = new Thread(() =>
-        {
-            started.Set();
-            try
+        var disposal = TestWatchdog.StartWorker(query.Dispose);
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
             {
-                query.Dispose();
-                completion.SetResult();
-            }
-            catch (Exception failure)
-            {
-                completion.SetException(failure);
-            }
-        })
-        {
-            IsBackground = true,
-        };
-        worker.Start();
-        try
-        {
-            Assert.IsTrue(started.Wait(timeout));
-            Assert.IsTrue(
-                SpinWait.SpinUntil(
-                    () => completion.Task.IsCompleted || (worker.ThreadState & ThreadState.WaitSleepJoin) != 0,
-                    timeout
-                )
-            );
-            Assert.IsFalse(completion.Task.IsCompleted, "Query disposal must wait for the outstanding result.");
-            Assert.IsFalse(owner.IsDisposed);
-        }
-        finally
-        {
-            try
-            {
+                await probe.ObserveAsync(disposal);
+                Assert.ThrowsExactly<ObjectDisposedException>(() => query.Run());
                 releaseResult();
-            }
-            finally
+                await watchdog.WaitAsync(disposal, "query disposal");
+            },
+            () =>
             {
                 table.Dispose();
-                await completion.Task.WaitAsync(timeout);
-                Assert.IsTrue(worker.Join(timeout));
+                return disposal;
             }
-        }
+        );
     }
 
     private sealed class TrackingLifetimeOwner(Func<bool> releaseObserved) : IDisposable

@@ -116,7 +116,7 @@ public sealed class RoslynRuntimeSeamTests
     }
 
     [TestMethod]
-    public void RuntimeReferenceProvider_WhenReferencesAreRequestedConcurrently_ShouldLoadOnce()
+    public async Task RuntimeReferenceProvider_WhenReferencesAreRequestedConcurrently_ShouldLoadOnce()
     {
         using var directory = new TempDirectory();
         directory.CreateFile("System.Runtime.dll");
@@ -132,8 +132,11 @@ public sealed class RoslynRuntimeSeamTests
             cache,
             () => directory.DirectoryPath,
             ["System.Runtime.dll", "System.Collections.dll"]
-        );
-        var results = contention.Run(() => provider.References, 16);
+        )
+        {
+            IncompleteLoadSelected = contention.ObserveContender,
+        };
+        var results = await contention.RunAsync(() => provider.References, 16);
 
         var first = results.First();
         Assert.AreEqual(2, first.Length);

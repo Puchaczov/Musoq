@@ -144,6 +144,8 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private string? ResolvePropertyEnumerableTypeName(PhysicalPropertySourceNode property)
     {
-        return InterpretationPropertyTypeNameResolver.ResolveEnumerableTypeName(property, _schemaRegistry);
+        return InterpretationTypeNames.Executable(
+            InterpretationPropertyTypeNameResolver.ResolveEnumerableTypeName(property, _schemaRegistry)
+        );
     }
 }

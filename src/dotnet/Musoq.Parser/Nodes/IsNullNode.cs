@@ -18,6 +18,7 @@ public class IsNullNode(Node expression, bool isNegated) : Node
 
     public override string ToString()
     {
-        return IsNegated ? $"{Expression.ToString()} is not null" : $"{Expression.ToString()} is null";
+        var operand = InfixExpressionText.FormatPredicateOperand(Expression);
+        return IsNegated ? $"{operand} is not null" : $"{operand} is null";
     }
 }

@@ -146,6 +146,7 @@ public static partial class ExecutionPlanPrinter
         {
             UnaryOpKind.Not => $"NOT {operand}",
             UnaryOpKind.Negate => $"-{operand}",
+            UnaryOpKind.NullIfNaN => $"NullIfNaN({operand})",
             _ => $"?{operand}",
         };
     }

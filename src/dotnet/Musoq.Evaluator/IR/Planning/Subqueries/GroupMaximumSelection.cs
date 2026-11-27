@@ -27,7 +27,11 @@ internal static class GroupMaximumSelection
                         Left: IsNullCheck { IsNegated: false, Expression: ColumnRef probe },
                         Right: IsNullCheck { IsNegated: false, Expression: ColumnRef build }
                     },
-                    Right: BinaryOp { Kind: BinaryOpKind.LessOrEqual } comparison
+                    Right: UnaryOp
+                    {
+                        Kind: UnaryOpKind.Not,
+                        Operand: BinaryOp { Kind: BinaryOpKind.GreaterThan } comparison
+                    }
                 }
             || comparison.Left != probe
             || comparison.Right != build

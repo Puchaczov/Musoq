@@ -75,10 +75,15 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!materialization.IsBuilt)
             return TableBuildResult.Unsupported(materialization.UnsupportedReason);
 
-        var qualifyTopRankPlan = CreateWindowQualifyTopRankPlan(pipeline.QualifyPredicate, registrationsResult.Value);
+        var qualifyTopRankPlan = WindowQualifyBounds.Create(pipeline.QualifyPredicate, registrationsResult.Value);
 
+        var qualifiedPosition = pipeline.QualifyPredicate is null
+            ? null
+            : registrationsResult.Value.FirstOrDefault(item => item.Registration!.NumbersQualifiedRows);
         var computations = CreateWindowComputations(
-            registrationsResult.Value,
+            qualifiedPosition is null
+                ? registrationsResult.Value
+                : registrationsResult.Value.Where(item => item != qualifiedPosition).ToArray(),
             buffer,
             source,
             rowAccessMode,
@@ -95,6 +100,52 @@ internal sealed partial class PhysicalLoweringImplementation
             computation => computation.Registration!.WindowIndex,
             computation => computation.Results
         );
+
+        IReadOnlyList<ExecutionNode> positionSetup = [];
+        ExecutionVariable? qualifiedMask = null;
+        if (qualifyTopRankPlan.Predicate is { } predicate && qualifiedPosition is not null)
+        {
+            var condition = ConvertWindowExpression(
+                predicate,
+                sourceLookup,
+                aggregateSourceFields,
+                windowResults,
+                windowIndex
+            );
+            if (!condition.IsBuilt)
+                return TableBuildResult.Unsupported(condition.UnsupportedReason);
+            qualifiedMask = new ExecutionVariable(resultTableName + "QualifiedRows", typeof(bool[]));
+            var qualifiedPositions = new ExecutionVariable(resultTableName + "QualifiedPositions", typeof(long[]));
+            var survivors = CreateWindowRowsBufferVariable(
+                resultTableName + "Survivors",
+                source,
+                windowSource.Source.GeneratedRowShape
+            );
+            var position = CreateWindowComputations(
+                [qualifiedPosition],
+                survivors,
+                source,
+                rowAccessMode,
+                sourceLookup,
+                aggregateSourceFields,
+                resultTableName + "Survivors",
+                new Dictionary<int, long>()
+            );
+            if (!position.IsBuilt)
+                return TableBuildResult.Unsupported(position.UnsupportedReason);
+            positionSetup = CreateQualifiedPositions(
+                source,
+                windowIndex,
+                buffer,
+                qualifiedMask,
+                qualifiedPositions,
+                survivors,
+                windowSource.Source.GeneratedRowShape,
+                position.Value,
+                condition.Value
+            );
+            windowResults[qualifiedPosition.Registration!.WindowIndex] = qualifiedPositions;
+        }
 
         var preserveWindowAppendContexts =
             ShouldPreserveWindowAppendContexts(pipeline)
@@ -113,22 +164,30 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!appendRow.IsBuilt)
             return TableBuildResult.Unsupported(appendRow.UnsupportedReason);
 
-        var appendBlock = CreateWindowAppendBlock(
-            qualifyTopRankPlan.Predicate,
-            appendRow.Value,
-            sourceLookup,
-            aggregateSourceFields,
-            windowResults,
-            windowIndex
-        );
+        var appendBlock = qualifiedMask is not null
+            ? LoweringAttempt<ExecutionBlock>.Built(
+                CreateFilteredAppendBlock(
+                    new ExecutionWindowValueRead(qualifiedMask, windowIndex, typeof(bool)),
+                    appendRow.Value
+                )
+            )
+            : CreateWindowAppendBlock(
+                qualifyTopRankPlan.Predicate,
+                appendRow.Value,
+                sourceLookup,
+                aggregateSourceFields,
+                windowResults,
+                windowIndex
+            );
 
         if (!appendBlock.IsBuilt)
             return TableBuildResult.Unsupported(appendBlock.UnsupportedReason);
 
-        var boundedRanking = computations.Value
-            is [{ Node: ExecutionComputeRankingWindow { WinnerPositions: not null } ranking }]
-            ? ranking
-            : null;
+        var boundedRanking =
+            qualifiedPosition is null
+            && computations.Value is [{ Node: ExecutionComputeRankingWindow { WinnerPositions: not null } ranking }]
+                ? ranking
+                : null;
         var windowKernelNodes = CreateWindowKernelPlanNodes(computations.Value);
         var nodes = new List<ExecutionNode>(
             sourceSetup.Count + pipeline.PostOperations.Count + windowKernelNodes.Count + 4
@@ -136,6 +195,7 @@ internal sealed partial class PhysicalLoweringImplementation
         nodes.AddRange(sourceSetup);
         nodes.Add(materialization.Value);
         nodes.AddRange(windowKernelNodes);
+        nodes.AddRange(positionSetup);
         nodes.Add(
             CreateTable(
                 resultTable,

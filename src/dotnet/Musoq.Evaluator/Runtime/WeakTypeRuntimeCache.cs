@@ -16,6 +16,8 @@ internal sealed class WeakTypeRuntimeCache<TValue>
     private ConditionalWeakTable<Type, Entry> _values = new();
     private int _entryCount;
 
+    internal Action<object>? EnterMutationGate { private get; init; }
+
     public WeakTypeRuntimeCache(int maxSize)
     {
         if (maxSize <= 0)
@@ -41,7 +43,12 @@ internal sealed class WeakTypeRuntimeCache<TValue>
         ArgumentNullException.ThrowIfNull(key);
         ArgumentNullException.ThrowIfNull(factory);
 
-        lock (_gate)
+        if (EnterMutationGate is { } enter)
+            enter(_gate);
+        else
+            Monitor.Enter(_gate);
+
+        try
         {
             PruneCollectedKeys();
             if (_values.TryGetValue(key, out var existing))
@@ -53,6 +60,10 @@ internal sealed class WeakTypeRuntimeCache<TValue>
             _insertionOrder.Enqueue(new WeakReference<Type>(key));
             _entryCount++;
             return value;
+        }
+        finally
+        {
+            Monitor.Exit(_gate);
         }
     }
 

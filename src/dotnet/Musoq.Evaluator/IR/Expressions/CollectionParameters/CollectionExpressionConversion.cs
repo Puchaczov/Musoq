@@ -1,4 +1,5 @@
 using Musoq.Evaluator.IR.Expressions.CollectionParameters;
+using Musoq.Evaluator.Visitors;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.IR.Expressions;
@@ -17,6 +18,11 @@ public sealed partial class ExpressionConverter
                 $"Collection IN parameter '${collection.Name}' is missing an element type."
             );
 
-        return new CollectionInCheck(expression, collection, elementType, RequireReturnType(node));
+        return new CollectionInCheck(
+            expression,
+            collection,
+            elementType,
+            SqlPredicateNullability.ResultType(node) ?? typeof(bool)
+        );
     }
 }

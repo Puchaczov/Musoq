@@ -294,6 +294,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class OptionalPacket : BytesInterpreterBase<OptionalPacket>, IBytesInterpreterStatus<OptionalPacket>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte HasValue { get; set; }
+        public int? Value { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "HasValue", "Value" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -324,11 +327,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the HasValue field value.</summary>
-        public byte HasValue { get; set; }
-        /// <summary>Gets the Value field value.</summary>
-        public int? Value { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "OptionalPacket";
 
         public override OptionalPacket InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<OptionalPacket>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -351,23 +349,23 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<OptionalPacket>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _hasValue = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.HasValue = _hasValue;
+                var _field8_HasValue = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.HasValue = _field8_HasValue;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Value");
-                int? _value = null;
-                if (((((int)(_hasValue)) == ((int)(1)))) == true)
+                int? _field5_Value = null;
+                if (((((int)(_field8_HasValue)) == ((int)(1)))) == true)
                 {
                     if (base.PrepareByteInputStatus(data, 4)is { } __musoqReadFailure2)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<OptionalPacket>.Failed(__parsedValue, __musoqReadFailure2);
                     }
 
-                    var _value_value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
-                    _value = _value_value;
+                    var _field5_Value_value = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                    _field5_Value = _field5_Value_value;
                 }
 
-                __parsedValue.Value = _value;
+                __parsedValue.Value = _field5_Value;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<OptionalPacket>.Success(__parsedValue);
             }

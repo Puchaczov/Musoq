@@ -15,12 +15,9 @@ internal sealed partial class PhysicalLoweringImplementation
     )
     {
         var indexes = CreateMultiStatementIndexes(
+            scope,
             multiStatement,
-            existingCteShapesByName: scope.SubqueryCtes.ToDictionary(
-                static binding => binding.Name,
-                static binding => binding.Shape,
-                StringComparer.OrdinalIgnoreCase
-            ),
+            existingCteShapesByName: scope.CreateCapturedCteShapes(),
             statementNamePrefix: string.IsNullOrEmpty(scope.GeneratedTypePrefix) ? null : scope.GeneratedTypePrefix
         );
         var result = BuildMultiStatementTable(

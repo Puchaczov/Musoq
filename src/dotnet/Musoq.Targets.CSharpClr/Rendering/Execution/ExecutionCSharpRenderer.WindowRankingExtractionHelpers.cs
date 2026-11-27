@@ -7,7 +7,10 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private MethodDeclarationSyntax CreateRankingWindowKeyExtractionFunction(RankingWindowKeyExtractionHelper helper)
+    private MethodDeclarationSyntax CreateRankingWindowKeyExtractionFunction(
+        ExecutionRenderContext renderContext,
+        RankingWindowKeyExtractionHelper helper
+    )
     {
         return SyntaxFactory
             .MethodDeclaration(
@@ -17,7 +20,7 @@ public sealed partial class ExecutionCSharpRenderer
             .WithAttributeLists(SyntaxFactory.SingletonList(CreateAggressiveInliningAttribute()))
             .WithModifiers(CreatePrivateStaticModifiers())
             .WithParameterList(CreateRankingWindowKeyExtractionParameterList(helper))
-            .WithBody(StatementEmitter.CreateBlock(CreateRankingWindowKeyExtractionBody(helper)));
+            .WithBody(StatementEmitter.CreateBlock(CreateRankingWindowKeyExtractionBody(renderContext, helper)));
     }
 
     private static ExpressionStatementSyntax CreateRankingWindowKeyExtractionInvocation(
@@ -27,7 +30,10 @@ public sealed partial class ExecutionCSharpRenderer
         return CreateHelperInvocation(helper.FunctionName, CreateRankingWindowKeyExtractionArguments(helper));
     }
 
-    private IReadOnlyList<StatementSyntax> CreateRankingWindowKeyExtractionBody(RankingWindowKeyExtractionHelper helper)
+    private IReadOnlyList<StatementSyntax> CreateRankingWindowKeyExtractionBody(
+        ExecutionRenderContext renderContext,
+        RankingWindowKeyExtractionHelper helper
+    )
     {
         const string indexVariableName = "windowIndex";
         var index = new ExecutionVariable(indexVariableName, typeof(int));
@@ -44,7 +50,11 @@ public sealed partial class ExecutionCSharpRenderer
                     helper.PartitionKeys,
                     helper.PartitionBuilder,
                     index.Name,
-                    CreateRankingPartitionKeyExpression(helper.PartitionKeys, helper.Ranking.PartitionKey!)
+                    CreateRankingPartitionKeyExpression(
+                        renderContext,
+                        helper.PartitionKeys,
+                        helper.Ranking.PartitionKey!
+                    )
                 )
             );
 
@@ -54,7 +64,7 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateWindowKeyArrayAssignment(
                     helper.OrderKeys,
                     index.Name,
-                    CreateRankingOrderKeyExpression(helper.OrderKeys, helper.Ranking.OrderKeys)
+                    CreateRankingOrderKeyExpression(renderContext, helper.OrderKeys, helper.Ranking.OrderKeys)
                 )
             );
         }

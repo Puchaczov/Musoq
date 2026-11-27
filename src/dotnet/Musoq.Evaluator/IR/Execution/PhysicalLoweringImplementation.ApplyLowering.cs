@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical;
 using Musoq.Evaluator.IR.Physical.Nodes;
 using Musoq.Evaluator.Tables;
@@ -20,6 +21,28 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         if (source is PhysicalNestedLoopApplyNode apply)
             return BuildNestedApplySource(apply, cteIndexes, cteShapesByName, schemaFromIndex, sourceLookup, scope);
+
+        if (
+            source is PhysicalAccessMethodSourceNode
+            {
+                MethodCallExpression: SubqueryExpression { Kind: SubqueryResultKind.Rows } query
+            } lateral
+        )
+        {
+            var rowShape = _shapeResolver.ResolveAccessMethodSourceShape(lateral);
+            var rowsExpression = SubqueryExecutionLowering.Convert(query, sourceLookup, cteIndexes, null);
+            return SourceBuildResult.Success(
+                new JoinSource(
+                    source,
+                    rowShape,
+                    new ExecutionVariable(lateral.Alias, typeof(Row)),
+                    [],
+                    rowsExpression,
+                    [rowShape],
+                    0
+                )
+            );
+        }
 
         if (
             source

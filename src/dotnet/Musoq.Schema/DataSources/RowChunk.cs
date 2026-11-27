@@ -9,14 +9,18 @@ public sealed class RowChunk<T> : IReadOnlyList<T>
     {
         Source = source ?? throw new ArgumentNullException(nameof(source));
 
+        ValidateRange(source, offset, count);
+        Offset = offset;
+        Count = count;
+    }
+
+    internal static void ValidateRange(IReadOnlyList<T> source, int offset, int count)
+    {
         if ((uint)offset > (uint)source.Count)
             throw new ArgumentOutOfRangeException(nameof(offset));
 
         if (count < 0 || count > source.Count - offset)
             throw new ArgumentOutOfRangeException(nameof(count));
-
-        Offset = offset;
-        Count = count;
     }
 
     public IReadOnlyList<T> Source { get; }

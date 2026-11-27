@@ -45,7 +45,7 @@ public sealed partial class ExecutionCSharpRenderer
         if (acceptedRowCounter != null)
             acceptedStatements.Add(acceptedRowCounter);
         yield return SyntaxFactory.IfStatement(
-            RecursiveCteIdentitySyntaxFactory.CreateSeenAddExpression(append, candidateVariables),
+            RecursiveCteIdentitySyntaxFactory.CreateAdmissionCondition(append, candidateVariables),
             StatementEmitter.CreateBlock(acceptedStatements)
         );
     }

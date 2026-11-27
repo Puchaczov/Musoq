@@ -45,25 +45,31 @@ internal sealed class SemanticSetOperatorFactService
     public bool TryGetFieldPosition(QueryNode node, string key, out int position)
     {
         ArgumentNullException.ThrowIfNull(node);
-        position = 0;
-
-        for (var i = 0; i < node.Select.Fields.Length; i++)
+        var fields = node.Select.Fields;
+        for (var i = 0; i < fields.Length; i++)
         {
-            if (!MatchesKey(node.Select.Fields[i], key))
+            if (string.Equals(fields[i].FieldName, key, StringComparison.OrdinalIgnoreCase))
+            {
+                position = i;
+                return true;
+            }
+        }
+
+        for (var i = 0; i < fields.Length; i++)
+        {
+            if (!MatchesKey(fields[i], key))
                 continue;
 
             position = i;
             return true;
         }
 
+        position = 0;
         return false;
     }
 
     private static bool MatchesKey(FieldNode field, string key)
     {
-        if (string.Equals(field.FieldName, key, StringComparison.OrdinalIgnoreCase))
-            return true;
-
         if (
             !string.IsNullOrWhiteSpace(field.FieldName)
             && field.FieldName.EndsWith($".{key}", StringComparison.OrdinalIgnoreCase)

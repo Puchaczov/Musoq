@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -8,213 +9,116 @@ namespace Musoq.Targets.CSharpClr;
 
 internal static class WindowRangeFrameSyntax
 {
-    internal static ExpressionSyntax CreateAggregateFrameStartExpressionForKernel(
+    internal static ExpressionSyntax CreateAggregateFrameExpression(
         ExecutionWindowAggregateKernel kernel,
-        ExecutionWindowFrameBound bound,
-        string partitionIndicesName,
-        string partitionStartName,
-        string partitionIndexName,
-        string partitionCountName
-    )
-    {
-        return IsBoundedRangeBound(kernel, bound)
-            ? CreateWindowAggregateRangeFrameExpression(
-                kernel,
-                nameof(WindowFunctionHelpers.ResolveRangeFrameStart),
-                bound,
-                partitionIndicesName,
-                partitionStartName,
-                partitionIndexName,
-                partitionCountName
-            )
-            : ExecutionCSharpRenderer.CreateWindowAggregateFrameStartExpression(
-                bound,
-                partitionIndexName,
-                partitionCountName
-            );
-    }
-
-    internal static ExpressionSyntax CreateAggregateFrameEndExpressionForKernel(
-        ExecutionWindowAggregateKernel kernel,
-        ExecutionWindowFrameBound bound,
-        string partitionIndicesName,
-        string partitionStartName,
-        string partitionIndexName,
-        string partitionCountName
-    )
-    {
-        return IsBoundedRangeBound(kernel, bound)
-            ? CreateWindowAggregateRangeFrameExpression(
-                kernel,
-                nameof(WindowFunctionHelpers.ResolveRangeFrameEnd),
-                bound,
-                partitionIndicesName,
-                partitionStartName,
-                partitionIndexName,
-                partitionCountName
-            )
-            : ExecutionCSharpRenderer.CreateWindowAggregateFrameEndExpression(
-                bound,
-                partitionIndexName,
-                partitionCountName
-            );
-    }
-
-    private static bool IsBoundedRangeBound(ExecutionWindowAggregateKernel kernel, ExecutionWindowFrameBound bound)
-    {
-        return kernel.Frame?.Kind == ExecutionWindowFrameKind.Range
-            && bound.Kind
-                is ExecutionWindowFrameBoundKind.CurrentRow
-                    or ExecutionWindowFrameBoundKind.OffsetPreceding
-                    or ExecutionWindowFrameBoundKind.OffsetFollowing;
-    }
-
-    private static ExpressionSyntax CreateWindowAggregateRangeFrameExpression(
-        ExecutionWindowAggregateKernel kernel,
-        string helperName,
-        ExecutionWindowFrameBound bound,
-        string partitionIndicesName,
-        string partitionStartName,
-        string partitionIndexName,
-        string partitionCountName
-    )
-    {
-        var orderKeysName = kernel.OrderKeyArray?.Variable.Name ?? $"{kernel.Results.Name}OrderKeys";
-
-        if (bound.Kind == ExecutionWindowFrameBoundKind.CurrentRow)
-        {
-            var peerHelperName =
-                helperName == nameof(WindowFunctionHelpers.ResolveRangeFrameStart)
-                    ? nameof(WindowFunctionHelpers.ResolveRangePeerFrameStart)
-                    : nameof(WindowFunctionHelpers.ResolveRangePeerFrameEnd);
-
-            return CreateWindowHelperInvocation(
-                peerHelperName,
-                SyntaxFactory.IdentifierName(orderKeysName),
-                SyntaxFactory.IdentifierName(partitionIndicesName),
-                SyntaxFactory.IdentifierName(partitionStartName),
-                SyntaxFactory.IdentifierName(partitionCountName),
-                SyntaxFactory.IdentifierName(partitionIndexName)
-            );
-        }
-
-        if (kernel.OrderKeys.Count != 1)
-            throw new InvalidOperationException("Offset RANGE frames require exactly one order key.");
-
-        var offset = bound.Kind switch
-        {
-            ExecutionWindowFrameBoundKind.OffsetPreceding => -bound.Offset,
-            ExecutionWindowFrameBoundKind.OffsetFollowing => bound.Offset,
-            _ => 0,
-        };
-
-        return CreateWindowHelperInvocation(
-            helperName,
-            SyntaxFactory.IdentifierName(GetAggregateRangeKeysName(kernel)),
-            SyntaxFactory.IdentifierName(orderKeysName),
-            SyntaxFactory.IdentifierName(partitionIndicesName),
-            SyntaxFactory.IdentifierName(partitionStartName),
-            SyntaxFactory.IdentifierName(partitionCountName),
-            SyntaxFactory.IdentifierName(partitionIndexName),
-            CreateIntLiteral(offset),
-            CreateBooleanLiteral(kernel.OrderKeys[0].Descending),
-            CreateBooleanLiteral(IsNullsFirst(kernel.OrderKeys[0]))
-        );
-    }
-
-    private static bool IsNullsFirst(ExecutionWindowOrderKey orderKey)
-    {
-        return orderKey.NullOrdering == NullOrdering.First
-            || orderKey.NullOrdering == NullOrdering.Default && !orderKey.Descending;
-    }
-
-    internal static bool HasRangeOffsetBound(ExecutionWindowFrame frame)
-    {
-        return frame.Start.Kind
-                is ExecutionWindowFrameBoundKind.OffsetPreceding
-                    or ExecutionWindowFrameBoundKind.OffsetFollowing
-            || frame.End.Kind
-                is ExecutionWindowFrameBoundKind.OffsetPreceding
-                    or ExecutionWindowFrameBoundKind.OffsetFollowing;
-    }
-
-    internal static string GetAggregateRangeKeysName(ExecutionWindowAggregateKernel kernel)
-    {
-        return $"{(kernel.BoundariesOwner ?? kernel.Results).Name}RangeKeys";
-    }
-
-    internal static ExpressionSyntax CreatePluginWindowFrameExpression(
-        ExecutionComputePluginWindow plugin,
-        ExecutionWindowFrameBound bound,
         bool isStart,
-        ExecutionWindowKeyArray? orderKeys,
-        ExecutionVariable? rangeKeys,
-        string partitionIndicesName,
-        string partitionStartName,
-        string partitionIndexName,
-        string partitionCountName
+        WindowPartitionPositionSyntax partition,
+        string position
+    ) =>
+        CreateFrameExpression(
+            kernel.Frame!,
+            isStart,
+            kernel.OrderKeys,
+            kernel.OrderKeyArray?.Variable.Name ?? $"{kernel.Results.Name}OrderKeys",
+            GetAggregateRangeKeysName(kernel),
+            partition,
+            position
+        );
+
+    internal static ExpressionSyntax CreateFrameExpression(
+        ExecutionWindowFrame frame,
+        bool isStart,
+        IReadOnlyList<ExecutionWindowOrderKey> orderKeys,
+        string? sortedKeys,
+        string? numericKeys,
+        WindowPartitionPositionSyntax partition,
+        string position
     )
     {
-        if (
-            plugin.Frame?.Kind != ExecutionWindowFrameKind.Range
-            || bound.Kind
-                is not (
-                    ExecutionWindowFrameBoundKind.CurrentRow
-                    or ExecutionWindowFrameBoundKind.OffsetPreceding
-                    or ExecutionWindowFrameBoundKind.OffsetFollowing
-                )
-        )
+        var bound = isStart ? frame.Start : frame.End;
+        var unbounded =
+            bound.Kind
+            is ExecutionWindowFrameBoundKind.UnboundedPreceding
+                or ExecutionWindowFrameBoundKind.UnboundedFollowing;
+        if (frame.Kind != ExecutionWindowFrameKind.Range || unbounded)
         {
-            return isStart
-                ? ExecutionCSharpRenderer.CreateWindowAggregateFrameStartExpression(
-                    bound,
-                    partitionIndexName,
-                    partitionCountName
+            var endpoint = isStart
+                ? ExecutionCSharpRenderer.CreateWindowAggregateFrameStartExpression(bound, position, partition.Count)
+                : ExecutionCSharpRenderer.CreateWindowAggregateFrameEndExpression(bound, position, partition.Count);
+            if (
+                !frame.HasNumericRangeOffset
+                || Nullable.GetUnderlyingType(orderKeys[0].Expression.ReturnType.RequireClrType()) == null
+            )
+                return endpoint;
+
+            // A bounded RANGE on a null key uses the null peer group at both ends.
+            var row = CreateElementAccess(
+                SyntaxFactory.IdentifierName(partition.Indices),
+                SyntaxFactory.BinaryExpression(
+                    SyntaxKind.AddExpression,
+                    SyntaxFactory.IdentifierName(partition.Start),
+                    SyntaxFactory.IdentifierName(position)
                 )
-                : ExecutionCSharpRenderer.CreateWindowAggregateFrameEndExpression(
-                    bound,
-                    partitionIndexName,
-                    partitionCountName
-                );
-        }
-
-        if (orderKeys == null)
-            throw new InvalidOperationException("RANGE value windows require an order key array.");
-
-        if (bound.Kind == ExecutionWindowFrameBoundKind.CurrentRow)
-        {
-            return CreateWindowHelperInvocation(
-                isStart
-                    ? nameof(WindowFunctionHelpers.ResolveRangePeerFrameStart)
-                    : nameof(WindowFunctionHelpers.ResolveRangePeerFrameEnd),
-                SyntaxFactory.IdentifierName(orderKeys.Variable.Name),
-                SyntaxFactory.IdentifierName(partitionIndicesName),
-                SyntaxFactory.IdentifierName(partitionStartName),
-                SyntaxFactory.IdentifierName(partitionCountName),
-                SyntaxFactory.IdentifierName(partitionIndexName)
+            );
+            var key = CreateElementAccess(SyntaxFactory.IdentifierName(numericKeys!), row);
+            return SyntaxFactory.ConditionalExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    key,
+                    SyntaxFactory.IdentifierName("HasValue")
+                ),
+                endpoint,
+                CreatePeerBoundary(isStart, sortedKeys!, partition, position)
             );
         }
 
-        if (plugin.OrderKeys.Count != 1 || rangeKeys == null)
-            throw new InvalidOperationException("Offset RANGE value windows require one numeric order key.");
+        if (sortedKeys == null)
+            throw new InvalidOperationException("RANGE frames require an order key array.");
+        if (bound.Kind == ExecutionWindowFrameBoundKind.CurrentRow)
+            return CreatePeerBoundary(isStart, sortedKeys, partition, position);
+        if (orderKeys.Count != 1 || numericKeys == null)
+            throw new InvalidOperationException("Offset RANGE frames require one numeric order key.");
 
+        var orderKey = orderKeys[0];
         var offset = bound.Kind == ExecutionWindowFrameBoundKind.OffsetPreceding ? -bound.Offset : bound.Offset;
-        var orderKey = plugin.OrderKeys[0];
         return CreateWindowHelperInvocation(
             isStart
                 ? nameof(WindowFunctionHelpers.ResolveRangeFrameStart)
                 : nameof(WindowFunctionHelpers.ResolveRangeFrameEnd),
-            SyntaxFactory.IdentifierName(rangeKeys.Name),
-            SyntaxFactory.IdentifierName(orderKeys.Variable.Name),
-            SyntaxFactory.IdentifierName(partitionIndicesName),
-            SyntaxFactory.IdentifierName(partitionStartName),
-            SyntaxFactory.IdentifierName(partitionCountName),
-            SyntaxFactory.IdentifierName(partitionIndexName),
+            SyntaxFactory.IdentifierName(numericKeys),
+            SyntaxFactory.IdentifierName(sortedKeys),
+            SyntaxFactory.IdentifierName(partition.Indices),
+            SyntaxFactory.IdentifierName(partition.Start),
+            SyntaxFactory.IdentifierName(partition.Count),
+            SyntaxFactory.IdentifierName(position),
             CreateIntLiteral(offset),
             CreateBooleanLiteral(orderKey.Descending),
-            CreateBooleanLiteral(IsNullsFirst(orderKey))
+            CreateBooleanLiteral(
+                orderKey.NullOrdering == NullOrdering.First
+                    || orderKey.NullOrdering == NullOrdering.Default && !orderKey.Descending
+            )
         );
     }
+
+    private static ExpressionSyntax CreatePeerBoundary(
+        bool isStart,
+        string keys,
+        WindowPartitionPositionSyntax partition,
+        string position
+    ) =>
+        CreateWindowHelperInvocation(
+            isStart
+                ? nameof(WindowFunctionHelpers.ResolveRangePeerFrameStart)
+                : nameof(WindowFunctionHelpers.ResolveRangePeerFrameEnd),
+            SyntaxFactory.IdentifierName(keys),
+            SyntaxFactory.IdentifierName(partition.Indices),
+            SyntaxFactory.IdentifierName(partition.Start),
+            SyntaxFactory.IdentifierName(partition.Count),
+            SyntaxFactory.IdentifierName(position)
+        );
+
+    internal static string GetAggregateRangeKeysName(ExecutionWindowAggregateKernel kernel) =>
+        $"{(kernel.BoundariesOwner ?? kernel.Results).Name}RangeKeys";
 
     internal static StatementSyntax CreateStreamingPeerRowsLoop(
         string resultName,

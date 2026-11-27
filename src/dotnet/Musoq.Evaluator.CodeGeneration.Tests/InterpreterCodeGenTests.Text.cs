@@ -211,7 +211,7 @@ public partial class InterpreterCodeGenTests
         Assert.Contains("ResolveSizeExpressionStatus<int>", code);
         Assert.Contains("PrepareByteArrayStatus", code);
         Assert.Contains("ReadPreparedByteArray(data,", code);
-        Assert.Contains("checked((int?)((_total - _headerSize)))", code);
+        Assert.Contains("checked((int?)((_field5_Total - _field10_HeaderSize)))", code);
     }
 
     [TestMethod]
@@ -235,7 +235,7 @@ public partial class InterpreterCodeGenTests
 
         // Assert
 
-        Assert.Contains("string? _optional = null;", code, $"Expected 'string? _optional = null;' but got:\n{code}");
+        Assert.Contains("string? _field8_Optional = null;", code);
         Assert.Contains(
             "ParsePosition = __musoqOptionalPosition",
             code,

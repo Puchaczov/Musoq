@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser.Nodes.InterpretationSchema;
@@ -9,44 +8,45 @@ internal static class TextSwitchPropertyResolver
 {
     internal static (Type ClrType, string? IntendedTypeName)? Resolve(
         SchemaRegistry registry,
-        Func<TextSchemaNode, List<TextFieldDefinitionNode>> fields,
         string intendedTypeName,
         string propertyName
     )
     {
-        const string prefix = "Musoq.Generated.Interpreters.";
-        const string marker = ".TextSwitch_";
-        if (!intendedTypeName.StartsWith(prefix, StringComparison.Ordinal))
+        var receiver = Find(registry, intendedTypeName, out var fieldName);
+        if (receiver is null)
             return null;
+        var member = RequireMember(receiver, fieldName, propertyName);
+        var typeName = member.Alternatives.Count == 0 ? member.TypeName : $"{intendedTypeName}.{propertyName}";
+        return (member.ClrType, typeName);
+    }
 
-        var markerIndex = intendedTypeName.IndexOf(marker, prefix.Length, StringComparison.Ordinal);
-        if (markerIndex < 0)
+    internal static TextResultShape RequireMember(TextResultShape receiver, string? fieldName, string propertyName) =>
+        receiver.Member(propertyName)
+        ?? throw new SourcePlanContractException(
+            $"Switch field '{fieldName}' does not declare property '{propertyName}' in any branch."
+        );
+
+    internal static TextResultShape? Find(SchemaRegistry registry, string intendedTypeName) =>
+        Find(registry, intendedTypeName, out _);
+
+    private static TextResultShape? Find(SchemaRegistry registry, string intendedTypeName, out string? fieldName)
+    {
+        fieldName = null;
+        var offset = TextResultTypeNames.NestedTypeOffset(intendedTypeName, TextResultTypeNames.SwitchPrefix);
+        if (offset < 0)
             return null;
-
-        var schemaName = intendedTypeName[prefix.Length..markerIndex];
+        var schemaName = intendedTypeName[TextResultTypeNames.NamespacePrefix.Length..(offset - 1)].TrimStart('@');
         if (!registry.TryGetSchema(schemaName, out var registration) || registration?.Node is not TextSchemaNode schema)
             return null;
-
-        var path = intendedTypeName[(markerIndex + marker.Length)..].Split('.');
-        var switchField = InterpretationTextFieldTypeResolver
-            .EnumerateDefinitions(fields(schema))
-            .FirstOrDefault(field =>
-                field.FieldType == TextFieldType.Switch && string.Equals(field.Name, path[0], StringComparison.Ordinal)
-            );
-        if (switchField == null)
+        var path = intendedTypeName[offset..].Split('.');
+        var switchField = registry.TextResultTypes(schema).Find(path[0]);
+        if (switchField is null)
             return null;
-        var shape = new TextResultShapeBinding(registry).Field(schema.Name, switchField);
-        if (shape.Element != null)
-            shape = shape.Element;
-        foreach (var part in path.Skip(1).Append(propertyName))
-            shape =
-                shape.Member(part)
-                ?? throw new SourcePlanContractException(
-                    $"Switch field '{switchField.Name}' does not declare property '{part}' in any branch."
-                );
-        var typeName = shape.TypeName;
-        if (shape.Alternatives.Count > 0)
-            typeName = $"{intendedTypeName}.{propertyName}";
-        return (shape.ClrType, typeName);
+        fieldName = switchField.Name;
+        var result = new TextResultShapeBinding(registry).Field(schema.Name, switchField);
+        TextResultShape? shape = result.Element ?? result;
+        foreach (var part in path.Skip(1))
+            shape = shape?.Member(part);
+        return shape;
     }
 }

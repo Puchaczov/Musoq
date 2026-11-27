@@ -145,20 +145,6 @@ internal sealed partial class PhysicalLoweringImplementation
         );
     }
 
-    private static string ResolveOuterJoinNullAlias(JoinKind kind, JoinSources joinSources)
-    {
-        return kind switch
-        {
-            JoinKind.LeftOuter => RowShapeLookup.ResolveSourceAlias(joinSources.Right.Shape),
-            JoinKind.RightOuter => RowShapeLookup.ResolveSourceAlias(joinSources.Left.Shape),
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(kind),
-                kind,
-                @"Only outer join kinds have a null-extended side."
-            ),
-        };
-    }
-
     private static OuterNestedLoopSides ResolveOuterNestedLoopSides(JoinKind kind, JoinSources joinSources)
     {
         return kind switch
@@ -183,7 +169,8 @@ internal sealed partial class PhysicalLoweringImplementation
     {
         var sourceLookup = RowShapeLookup.CreateSourceShapeLookup(joinSources.Left.Shape, joinSources.Right.Shape);
         var resultTable = new ExecutionVariable(resultTableName, typeof(object));
-        var nullAlias = ResolveOuterJoinNullAlias(join.Kind, joinSources);
+        var sides = ResolveOuterNestedLoopSides(join.Kind, joinSources);
+        var nullAlias = RowShapeLookup.ResolveSourceAlias(sides.Inner.Shape);
         var projection = CreateNullExtendedProjection(
             new NullExtendedProjectionContext(
                 resultShapeName,
@@ -227,7 +214,6 @@ internal sealed partial class PhysicalLoweringImplementation
             join.WithOrdinality && join.OnPredicate != null
                 ? ExecutionExpressionConverter.Convert(join.OnPredicate, sourceLookup)
                 : null;
-        var sides = ResolveOuterNestedLoopSides(join.Kind, joinSources);
         var nodes = CreateJoinPrelude(joinSources, resultTable, projection.ResultShape);
         var innerRows = CreateNestedLoopInnerRows(sides.Inner, nodes);
         var innerLoop =

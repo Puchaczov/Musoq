@@ -28,7 +28,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             throw new FromNodeIsNull(span);
         }
 
-        groupBy = ExpandGroupByAllIfNeeded(select, NormalizeGroupByOrdinals(select, groupBy, node.GroupBy));
+        groupBy = GroupByAllExpansion.ExpandIfNeeded(select, NormalizeGroupByOrdinals(select, groupBy, node.GroupBy));
         if (groupBy == null && _methodResolution.RefreshMethods.Count > 0)
             groupBy = new GroupByNode([new FieldNode(new IntegerNode("1", "s"), 0, string.Empty)], null);
 

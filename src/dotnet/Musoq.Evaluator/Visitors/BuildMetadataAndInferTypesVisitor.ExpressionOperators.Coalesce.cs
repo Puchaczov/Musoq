@@ -11,6 +11,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         var right = PopSemanticNode("Visit(CoalesceNode) right");
         var left = PopSemanticNode("Visit(CoalesceNode) left");
 
-        PushSemanticNode(_expressionBindingService.BindCoalesce(node, left, right));
+        var result = _expressionBindingService.BindCoalesce(node, left, right);
+        if (result is CoalesceNode && result.ReturnType?.IsValueType == false)
+            RegisterCoalesceInterpretationPresence(result, left, right);
+        PushSemanticNode(result);
     }
 }

@@ -66,6 +66,7 @@ internal sealed partial class PhysicalLoweringImplementation
     }
 
     private static MultiStatementIndexes CreateMultiStatementIndexes(
+        LoweringScope scope,
         PhysicalMultiStatementNode multiStatement,
         IReadOnlyDictionary<string, int>? existingCteIndexes = null,
         IReadOnlyDictionary<string, GeneratedRowShape>? existingCteShapesByName = null,
@@ -83,7 +84,10 @@ internal sealed partial class PhysicalLoweringImplementation
                 : new Dictionary<string, GeneratedRowShape>(existingCteShapesByName, StringComparer.OrdinalIgnoreCase);
         var nextTableIndex = cteIndexes.Count == 0 ? 0 : cteIndexes.Values.Max() + 1;
 
-        foreach (var producer in IntermediateSourceProducers.Resolve(multiStatement))
+        var producers = IntermediateSourceProducers.Resolve(multiStatement);
+        nextTableIndex =
+            scope.Cte.ParallelIntermediateSlots?.Reserve(nextTableIndex, producers.Count) ?? nextTableIndex;
+        foreach (var producer in producers)
         {
             if (cteIndexes.ContainsKey(producer.Key))
                 throw new InvalidOperationException("An intermediate storage name conflicts with a visible CTE.");

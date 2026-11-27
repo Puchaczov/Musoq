@@ -140,7 +140,7 @@ public partial class Parser
             var col =
                 recursiveToken != null && !isRecursive
                     ? new IdentifierNode(recursiveToken.Value, null, recursiveToken.Span)
-                    : ComposeBaseTypes() as IdentifierNode;
+                    : ComposeCteName();
             if (col == null)
                 throw new SyntaxException(
                     $"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
@@ -165,7 +165,7 @@ public partial class Parser
             {
                 Consume(TokenType.Comma);
 
-                if (ComposeBaseTypes() is not IdentifierNode nextColumn)
+                if (ComposeCteName() is not { } nextColumn)
                     throw new SyntaxException(
                         $"Expected token is {TokenType.Identifier} but received {Current.TokenType}",
                         _lexer.AlreadyResolvedQueryPart
@@ -198,6 +198,18 @@ public partial class Parser
         {
             PopFromAliasesScope();
         }
+    }
+
+    private IdentifierNode? ComposeCteName()
+    {
+        if (Current.TokenType != TokenType.Function)
+            return ComposeBaseTypes() as IdentifierNode;
+
+        // The lexer classifies a name directly followed by '(' as a function.
+        // In a WITH declaration the parentheses introduce the output column list.
+        var name = ConsumeAndGetToken(TokenType.Function);
+        _sourceCapture?.Mark(name, Syntax.SyntaxTokenRole.Identifier);
+        return new IdentifierNode(name.Value, null, name.Span);
     }
 
     private CteColumnName[] ComposeOptionalCteColumnList()

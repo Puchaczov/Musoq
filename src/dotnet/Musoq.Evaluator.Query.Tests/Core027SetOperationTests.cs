@@ -12,6 +12,20 @@ namespace Musoq.Evaluator.Tests;
 public sealed class Core027SetOperationTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void ExplicitSetKey_PrefersExportedAliasOverAnotherFieldsSourceColumn()
+    {
+        const string sql = """
+            select a.K as P, 1 as K from values { (K: 9) } a
+            union (K)
+            select 9 as Q, 2 as R from values { (N: 0) } b
+            """;
+        using var query = CreateAndRunVirtualMachine(sql, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [9, 1], [9, 2]);
+    }
+
+    [TestMethod]
     public void UnionAndUnionAll_ShouldDistinguishDuplicateRows()
     {
         const string union = "select Id, Name from #A.Entities() union select Id, Name from #B.Entities()";

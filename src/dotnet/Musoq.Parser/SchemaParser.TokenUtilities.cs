@@ -22,13 +22,20 @@ public partial class SchemaParser
             return ConsumeAndGetToken(TokenType.Property).Value;
 
         if (AllowedKeywordTokenTypes.Contains(Current.TokenType))
-            return ConsumeAndGetToken(Current.TokenType).Value;
+            return IdentifierSpelling(ConsumeAndGetToken(Current.TokenType));
 
         throw new SyntaxException(
             $"Expected identifier but found '{Current.TokenType}' ({Current.Value})",
             _lexer.AlreadyResolvedQueryPart
         );
     }
+
+    private string IdentifierSpelling(Token token) =>
+        AllowedKeywordTokenTypes.Contains(token.TokenType)
+        && token.Span.Length > 0
+        && token.Span.End <= _lexer.Input.Length
+            ? _lexer.Input[token.Span.Start..token.Span.End]
+            : token.Value;
 
     private string ComposeStringLiteral()
     {

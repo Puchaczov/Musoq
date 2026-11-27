@@ -4,27 +4,6 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal static partial class PhysicalStrategyRules
 {
-    public static AggregateStrategyDecision ChooseAggregateStrategy(int groupKeyCount, Type[] groupKeyTypes)
-    {
-        ArgumentNullException.ThrowIfNull(groupKeyTypes);
-        if (groupKeyCount == 0)
-            return new AggregateStrategyDecision(AggregateStrategyKind.AggregateOnly, "No group keys exist.");
-
-        if (CanUseSingleKeyStrategy(groupKeyTypes))
-            return new AggregateStrategyDecision(AggregateStrategyKind.SingleKey, "One resolved group key exists.");
-
-        if (CanUseValueTupleStrategy(groupKeyTypes))
-            return new AggregateStrategyDecision(
-                AggregateStrategyKind.ValueTuple,
-                "Multiple resolved group keys exist."
-            );
-
-        return new AggregateStrategyDecision(
-            AggregateStrategyKind.Unsupported,
-            "Aggregate group key types must be resolved before physical planning."
-        );
-    }
-
     public static TakeStrategyDecision ChooseTakeStrategy(TakeNode take)
     {
         ArgumentNullException.ThrowIfNull(take);
@@ -48,24 +27,5 @@ internal static partial class PhysicalStrategyRules
             RequiresMaterialization: true,
             "Window computation requires a materialized input boundary."
         );
-    }
-
-    private static bool CanUseSingleKeyStrategy(Type[] keyTypes)
-    {
-        return keyTypes is [not null];
-    }
-
-    private static bool CanUseValueTupleStrategy(Type[] keyTypes)
-    {
-        if (keyTypes.Length < 2)
-            return false;
-
-        foreach (var keyType in keyTypes)
-        {
-            if (keyType == null)
-                return false;
-        }
-
-        return true;
     }
 }

@@ -57,6 +57,7 @@ public class CloneTraverseVisitor(IExpressionVisitor visitor) : RawTraverseVisit
     public override void Visit(BinarySwitchTypeNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        node.SelectorExpression.Accept(this);
 
         foreach (var switchCase in node.Cases)
         {

@@ -19,7 +19,7 @@ Cte
   Definition [u]
     MultiStatement
       Project [__unpivot.Label as Label, __unpivot.Metric as Metric, __unpivot.Value as Value]
-        Unpivot [name: Metric; value: Value; entries: s.NullableValue as NullableValue, NULL as ExplicitNull; keep: ((s.Name || ':') || s.Country) as Label] as __unpivot
+        Unpivot [name: Metric; value: Value; entries: s.NullableValue as NullableValue, NULL as ExplicitNull; keep: ((s.Name + ':') + s.Country) as Label] as __unpivot
           SchemaScan [#A.entities() as s]
   Query
     MultiStatement
@@ -36,7 +36,7 @@ PhysicalCte
   Definition [u]
     PhysicalMultiStatement
       PhysicalProject [__unpivot.Label as Label, __unpivot.Metric as Metric, __unpivot.Value as Value]
-        PhysicalUnpivot [name: Metric; value: Value; entries: s.NullableValue as NullableValue, NULL as ExplicitNull; keep: ((s.Name || ':') || s.Country) as Label] as __unpivot
+        PhysicalUnpivot [name: Metric; value: Value; entries: s.NullableValue as NullableValue, NULL as ExplicitNull; keep: ((s.Name + ':') + s.Country) as Label] as __unpivot
           PhysicalSchemaScan [#A.entities() as s]
   Query
     PhysicalMultiStatement

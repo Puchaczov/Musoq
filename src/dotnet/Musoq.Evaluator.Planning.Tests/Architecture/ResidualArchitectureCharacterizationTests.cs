@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -208,12 +209,12 @@ public sealed class ResidualArchitectureCharacterizationTests
     }
 
     [TestMethod]
-    public void CompiledQuery_ShouldCurrentlySerializeRunsThroughOneGate()
+    public async Task CompiledQuery_ShouldCurrentlySerializeRunsThroughOneGate()
     {
         using var contention = new global::Musoq.Tests.Common.SynchronousContention();
         var runnable = new ConcurrencyCharacterizationRunnable(contention);
-        using var query = new CompiledQuery(runnable);
-        _ = contention.Run(() =>
+        using var query = new CompiledQuery(runnable) { SynchronousAdmissionWait = contention.WaitForAdmission };
+        _ = await contention.RunAsync(() =>
         {
             using var table = query.Run();
             return table.Count;

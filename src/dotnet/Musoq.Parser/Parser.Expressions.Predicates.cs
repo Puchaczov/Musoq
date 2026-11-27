@@ -14,7 +14,10 @@ public partial class Parser
         using var sourceRegion = _sourceCapture?.Begin(Syntax.SyntaxKind.Predicate, Current);
         var node = ComposeArithmeticExpression(0);
 
-        while (IsEqualityOperator(Current))
+        while (
+            IsEqualityOperator(Current)
+            || (Current.TokenType == TokenType.Not && _lexer.Peek().TokenType == TokenType.Between)
+        )
             switch (Current.TokenType)
             {
                 case TokenType.GreaterEqual:
@@ -65,6 +68,10 @@ public partial class Parser
                     break;
                 case TokenType.Between:
                     node = ComposeBetween(node);
+                    break;
+                case TokenType.Not:
+                    Consume(TokenType.Not);
+                    node = new NotNode(ComposeBetween(node));
                     break;
                 default:
                     throw new SyntaxException(

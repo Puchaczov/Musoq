@@ -60,7 +60,8 @@ internal sealed class PhysicalPlanningPipeline
         var inputPlanned = ByteBufferPlanner.Plan(
             optimizationResult.OptimizedPlan,
             context.SchemaRegistry,
-            context.CancellationToken
+            context.CancellationToken,
+            planFieldReaders: !context.IsSubquery
         );
 
         context.CancellationToken.ThrowIfCancellationRequested();

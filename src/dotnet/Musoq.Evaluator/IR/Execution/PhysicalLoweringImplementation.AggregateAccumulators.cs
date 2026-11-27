@@ -16,7 +16,7 @@ internal sealed partial class PhysicalLoweringImplementation
     )
     {
         var nodes = new List<ExecutionNode>();
-        var typedAccumulators = new Dictionary<string, AggregateAccumulatorField>(StringComparer.OrdinalIgnoreCase);
+        var typedAccumulators = new Dictionary<string, AggregateAccumulatorField>(StringComparer.Ordinal);
 
         foreach (var binding in bindings)
         {

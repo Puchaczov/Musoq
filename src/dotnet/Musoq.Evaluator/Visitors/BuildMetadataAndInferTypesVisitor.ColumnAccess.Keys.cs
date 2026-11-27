@@ -79,7 +79,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
             if (!isRoot)
             {
-                var propertyAccess = _columnPropertyBindingService.TryResolveTypedProperty(
+                var propertyAccess = SemanticColumnPropertyBindingService.TryResolveTypedProperty(
                     parentNodeType,
                     node.Name,
                     out var error
@@ -130,7 +130,7 @@ public partial class BuildMetadataAndInferTypesVisitor
                 return;
             }
 
-            var property = _columnPropertyBindingService.TryResolveTypedProperty(
+            var property = SemanticColumnPropertyBindingService.TryResolveTypedProperty(
                 parentNodeType,
                 node.Name,
                 out var rootError

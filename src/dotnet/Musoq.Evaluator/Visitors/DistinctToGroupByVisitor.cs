@@ -1,4 +1,3 @@
-using Musoq.Parser;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.Visitors;
@@ -25,7 +24,18 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
         var from =
             Nodes.Pop() as FromNode ?? throw new InvalidOperationException("Distinct rewrite requires a FROM node.");
 
-        if (select is { IsDistinct: true } && groupBy == null && !ContainsWindowFunction(select))
+        // Method overloads, including provider aggregates, are resolved during binding.
+        // Keep DISTINCT on their result instead of introducing a grouping key containing the call.
+        if (
+            select is { IsDistinct: true }
+            && groupBy == null
+            && !ParserNodeChildTraversal.ContainsProjectionCall(select)
+            && (
+                ParserNodeChildTraversal.Contains<IdentifierNode>(select)
+                || ParserNodeChildTraversal.Contains<AccessColumnNode>(select)
+                || ParserNodeChildTraversal.Contains<AllColumnsNode>(select)
+            )
+        )
         {
             groupBy = Array.Exists(select.Fields, static field => field.Expression is AllColumnsNode)
                 ? new GroupByNode([], null, isAll: true)
@@ -59,30 +69,5 @@ public class DistinctToGroupByVisitor : CloneQueryVisitor
         }
 
         return fields;
-    }
-
-    private static bool ContainsWindowFunction(SelectNode select)
-    {
-        var detector = new WindowFunctionDetector();
-        var traverser = new WindowFunctionTraverser(detector);
-
-        foreach (var field in select.Fields)
-        {
-            field.Expression.Accept(traverser);
-            if (detector.Found)
-                return true;
-        }
-
-        return false;
-    }
-
-    private sealed class WindowFunctionTraverser(IExpressionVisitor visitor)
-        : RawTraverseVisitor<IExpressionVisitor>(visitor);
-
-    private sealed class WindowFunctionDetector : NoOpExpressionVisitor
-    {
-        public bool Found { get; private set; }
-
-        public override void Visit(WindowFunctionNode node) => Found = true;
     }
 }

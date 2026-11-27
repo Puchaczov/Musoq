@@ -77,7 +77,8 @@ public sealed partial class ExecutionCSharpRenderer
             sourceExpression,
             enumerable.EnumerableType.RequireClrType(),
             enumerable.ChunkMode,
-            enumerable.EnumerableTypeName
+            enumerable.EnumerableTypeName,
+            context.Session is { EmitChunkLoopCancellationChecks: true, SkipInitialLoopCancellationCheck: true }
         );
     }
 

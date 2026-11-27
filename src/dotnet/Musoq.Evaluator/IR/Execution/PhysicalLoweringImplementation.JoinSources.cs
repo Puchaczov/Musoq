@@ -210,17 +210,33 @@ internal sealed partial class PhysicalLoweringImplementation
         if (!table.IsBuilt)
             return SourceBuildResult.Unsupported(table.UnsupportedReason);
 
-        var transitionShape = CreateMaterializedTransitionTableRowShape(sourceAlias, table.RowShape);
-        var source = new ExecutionVariable(sourceAlias, typeof(Row));
+        var generatedRow = CanUseTypedStoredRows(table.RowShape) ? table.RowShape : null;
+        var transitionShape =
+            generatedRow == null
+                ? CreateMaterializedTransitionTableRowShape(sourceAlias, table.RowShape)
+                : CreateTypedMaterializedTransitionTableRowShape(sourceAlias, generatedRow);
+        var source = new ExecutionVariable(sourceAlias, typeof(Row), generatedRow?.TypeName);
         var rows = new ExecutionRowStream(
             table.Table,
             ExecutionRowStreamKind.Rows,
             ExecutionRowStreamRowsAccess.TableRows
-        );
+        )
+        {
+            HasBaseRowElements = generatedRow != null,
+        };
         var shapes = table.Shapes.Concat([transitionShape]).ToArray();
 
         return SourceBuildResult.Success(
-            new JoinSource(join, transitionShape, source, table.Nodes.ToList(), rows, shapes, CountSchemaScans(join))
+            new JoinSource(
+                join,
+                transitionShape,
+                source,
+                table.Nodes.ToList(),
+                rows,
+                shapes,
+                CountSchemaScans(join),
+                GeneratedRowShape: generatedRow
+            )
         );
     }
 

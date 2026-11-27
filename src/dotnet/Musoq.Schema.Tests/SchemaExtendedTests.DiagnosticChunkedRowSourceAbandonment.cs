@@ -1,5 +1,5 @@
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Diagnostics;
@@ -9,43 +9,22 @@ namespace Musoq.Schema.Tests;
 public partial class SchemaExtendedTests
 {
     [TestMethod]
-    public void DiagnosticChunkedRowSource_WhenProducerIgnoresCancellation_ShouldReportAbandonment()
+    public Task DiagnosticChunkedRowSource_WhenProducerIgnoresCancellation_ShouldReportAbandonment()
     {
         var sink = new CapturingChunkDiagnosticsSink();
-        var source = new NonCooperativeDiagnosticChunkedSource(
+        var producer = new ControlledChunkProducer(cooperates: false);
+        var source = new GatedDiagnosticChunkedSource(
             CreateSourceContext(new SourceDiagnostics(sink)),
-            "items"
+            "items",
+            producer
+        )
+        {
+            ProducerShutdownWait = TimeSpan.Zero,
+        };
+
+        return producer.VerifyConsumerDisposalAsync(
+            source.Chunks,
+            () => AssertMetric(sink, ChunkMetric("items", DiagnosticChunkMetricNames.ProducerAbandonedCount), 1)
         );
-
-        using (var enumerator = source.Chunks.GetEnumerator())
-        {
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual(1, enumerator.Current[0]);
-        }
-
-        AssertMetric(sink, ChunkMetric("items", DiagnosticChunkMetricNames.ProducerAbandonedCount), 1);
-
-        source.ReleaseProducer.Set();
-        Assert.IsTrue(source.ProducerExited.Wait(TimeSpan.FromSeconds(2)));
-    }
-
-    private sealed class NonCooperativeDiagnosticChunkedSource(SourceExecutionContext context, string sourceName)
-        : DiagnosticChunkedRowSource<int>(context, sourceName, new DiagnosticChunkedRowSourceOptions(1))
-    {
-        public ManualResetEventSlim ReleaseProducer { get; } = new();
-        public ManualResetEventSlim ProducerExited { get; } = new();
-
-        protected override void CollectChunks(DiagnosticChunkWriter<int> writer)
-        {
-            try
-            {
-                writer.Write([1]);
-                ReleaseProducer.Wait();
-            }
-            finally
-            {
-                ProducerExited.Set();
-            }
-        }
     }
 }

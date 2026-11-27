@@ -1,6 +1,6 @@
 namespace Musoq.Parser.Nodes;
 
-public class IntegerNode : ConstantValueNode
+public class IntegerNode : NumericLiteralNode
 {
     public IntegerNode(string value, string abbreviation)
         : this(value, abbreviation, default) { }
@@ -47,6 +47,8 @@ public class IntegerNode : ConstantValueNode
     {
         return ObjValue.ToString() ?? string.Empty;
     }
+
+    protected override NumericLiteralNode CreateCopy() => new IntegerNode(ObjValue, Span);
 
     public override void Accept(IExpressionVisitor visitor)
     {

@@ -93,11 +93,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(AndNode node)
     {
         var nodes = PopSemanticNodes(2, VisitorOperationNames.VisitAndNode);
-        var left = nodes[0];
-        var right = nodes[1];
-
-        ValidateBooleanOperand(left, "AND", node);
-        ValidateBooleanOperand(right, "AND", node);
+        var left = BindBooleanOperand(nodes[0], "AND", node);
+        var right = BindBooleanOperand(nodes[1], "AND", node);
 
         PushSemanticNode(new AndNode(left, right).CopySpansFrom(node));
     }
@@ -105,11 +102,8 @@ public partial class BuildMetadataAndInferTypesVisitor
     public override void Visit(OrNode node)
     {
         var nodes = PopSemanticNodes(2, VisitorOperationNames.VisitOrNode);
-        var left = nodes[0];
-        var right = nodes[1];
-
-        ValidateBooleanOperand(left, "OR", node);
-        ValidateBooleanOperand(right, "OR", node);
+        var left = BindBooleanOperand(nodes[0], "OR", node);
+        var right = BindBooleanOperand(nodes[1], "OR", node);
 
         PushSemanticNode(new OrNode(left, right).CopySpansFrom(node));
     }

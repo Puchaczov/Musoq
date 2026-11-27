@@ -12,6 +12,18 @@ namespace Musoq.Evaluator.Tests;
 public class DistinctTests : BasicEntityTestBase
 {
     [TestMethod]
+    [DataRow("'all'")]
+    [DataRow("null")]
+    [DataRow("2::int")]
+    public void DistinctConstantProjection_OnEmptyInput_ShouldReturnZeroRows(string projection)
+    {
+        var sql = $$"""select distinct {{projection}} as G from values {(K:1),(K:1)} v where v.K=0""";
+        using var query = CreateAndRunVirtualMachine(sql, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = query.Run(TestContext.CancellationToken);
+        Assert.AreEqual(0, table.Count);
+    }
+
+    [TestMethod]
     public void DistinctToGroupByVisitor_TransformsQueryCorrectly()
     {
         // Arrange

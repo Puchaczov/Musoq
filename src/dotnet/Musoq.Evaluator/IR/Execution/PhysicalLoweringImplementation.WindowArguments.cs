@@ -15,8 +15,25 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyDictionary<string, string> aggregateSourceFields
     )
     {
-        return ResolveWindowAggregateSourceRead(expression, sourceLookup, aggregateSourceFields)
-            ?? ExecutionExpressionConverter.Convert(expression, sourceLookup);
+        if (expression is not (ColumnRef or Literal))
+            expression = new WindowAggregateInputRewriter(sourceLookup, aggregateSourceFields).Visit(expression);
+        return ExecutionExpressionConverter.Convert(expression, sourceLookup);
+    }
+
+    private sealed class WindowAggregateInputRewriter(
+        IReadOnlyDictionary<string, RowShape> sourceLookup,
+        IReadOnlyDictionary<string, string> aggregateSourceFields
+    ) : IrExpressionRewriter
+    {
+        protected override IrExpression VisitAggregateRef(AggregateRef node) => ResolveGroupField(node) ?? node;
+
+        protected override IrExpression VisitMethodCall(MethodCall node) =>
+            ResolveGroupField(node) ?? base.VisitMethodCall(node);
+
+        private IrExpression? ResolveGroupField(IrExpression expression) =>
+            FindWindowAggregateSource(expression, sourceLookup, aggregateSourceFields) is { } source
+                ? new ColumnRef(source.Alias, source.Field.Name, expression.ReturnType)
+                : null;
     }
 
     private static PluginWindowArgumentsBuildResult CreatePluginWindowArguments(

@@ -6,6 +6,18 @@ namespace Musoq.Evaluator.Tests;
 public partial class WindowFunctionFrameTests
 {
     [TestMethod]
+    [DataRow("current row and 2147483647 following", 3, 2)]
+    [DataRow("2147483647 following and unbounded following", null, null)]
+    public void FollowingRowsBoundBeyondPartition_ShouldClampWithoutWrapping(string bounds, int? first, int? second)
+    {
+        var sql = $"select N, Sum(N) over (order by N rows between {bounds}) as S from values {{ (N: 1), (N: 2) }} v";
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, first], [2, second]);
+    }
+
+    [TestMethod]
     public void WhenRowsBetweenUnboundedPrecedingAndCurrentRow_ShouldComputeRunningSum()
     {
         var query = (

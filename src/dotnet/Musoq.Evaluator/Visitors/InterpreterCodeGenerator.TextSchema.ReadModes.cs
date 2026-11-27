@@ -162,11 +162,11 @@ public partial class InterpreterCodeGenerator
         if (pattern.Pattern.CaptureGroups.Count == 0)
             return StatusRead(localVar, $"base.ReadPreparedPatternStatus(data, {pattern.Name}, \"{fieldName}\")");
 
-        return GeneratePreparedCaptureRead(field.Name, localVar, fieldName, pattern);
+        return GeneratePreparedCaptureRead(field, localVar, fieldName, pattern);
     }
 
     private string GeneratePreparedCaptureRead(
-        string field,
+        TextFieldDefinitionNode field,
         string localVar,
         string fieldName,
         PreparedPatternMember pattern
@@ -182,7 +182,7 @@ public partial class InterpreterCodeGenerator
         );
         builder.Append(
             System.Globalization.CultureInfo.InvariantCulture,
-            $"var {localVar} = new CaptureResult_{field} {{ "
+            $"var {localVar} = new {_textResultTypes.Name(field)} {{ "
         );
         var groupInits = new List<string>(pattern.Pattern.CaptureGroups.Count);
         for (var slot = 0; slot < pattern.Pattern.CaptureGroups.Count; slot++)

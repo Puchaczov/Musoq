@@ -15,7 +15,7 @@ internal static partial class ExecutionExpressionFingerprint
 
     internal static string ForWindowExpression(IrExpression expression)
     {
-        var expressionText = IrExpressionPrinter.Print(expression);
+        var expressionText = IrExpressionPrinter.PrintForBinding(expression);
         var returnType = expression.ReturnType.FullName ?? expression.ReturnType.Name;
 
         return string.Concat(

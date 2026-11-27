@@ -10,22 +10,22 @@ pivot #A.entities()
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*) filter (where Month = 'Feb')) as ko3iko.Count(*) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Count(*) filter (where Month = 'Jan')) as ko3iko.Count(*) filter (where Month = 'Jan'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
+  Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*) filter (where ko3iko.Month = 'Feb')) as ko3iko.Count(*) filter (where ko3iko.Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'), AggRef(ko3iko.Count(*) filter (where ko3iko.Month = 'Jan')) as ko3iko.Count(*) filter (where ko3iko.Month = 'Jan'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')]
     Aggregate [keys: City] [aggs: Count(*) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Feb'), Count(*) filter (where Month = 'Jan'), Sum(Money) filter (where Month = 'Jan')]
       SchemaScan [#A.entities() as ko3iko]
   Sort [ko3iko.City]
-    Project [ko3iko.City as City, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan') as Jan_Sales, ko3iko.Count(*) filter (where Month = 'Jan') as Jan_Orders, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb') as Feb_Sales, ko3iko.Count(*) filter (where Month = 'Feb') as Feb_Orders]
+    Project [ko3iko.City as City, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan') as Jan_Sales, ko3iko.Count(*) filter (where ko3iko.Month = 'Jan') as Jan_Orders, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb') as Feb_Sales, ko3iko.Count(*) filter (where ko3iko.Month = 'Feb') as Feb_Orders]
       CteRef [ko3ikoScore as ko3ikoScore]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*) filter (where Month = 'Feb')) as ko3iko.Count(*) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Count(*) filter (where Month = 'Jan')) as ko3iko.Count(*) filter (where Month = 'Jan'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
+  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Count(*) filter (where ko3iko.Month = 'Feb')) as ko3iko.Count(*) filter (where ko3iko.Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'), AggRef(ko3iko.Count(*) filter (where ko3iko.Month = 'Jan')) as ko3iko.Count(*) filter (where ko3iko.Month = 'Jan'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')]
     PhysicalSingleKeyAggregate [key: City (String)] [aggs: Count(*) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Feb'), Count(*) filter (where Month = 'Jan'), Sum(Money) filter (where Month = 'Jan')]
       PhysicalSchemaScan [#A.entities() as ko3iko]
   PhysicalSort [ko3iko.City]
-    PhysicalProject [ko3iko.City as City, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan') as Jan_Sales, ko3iko.Count(*) filter (where Month = 'Jan') as Jan_Orders, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb') as Feb_Sales, ko3iko.Count(*) filter (where Month = 'Feb') as Feb_Orders]
+    PhysicalProject [ko3iko.City as City, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan') as Jan_Sales, ko3iko.Count(*) filter (where ko3iko.Month = 'Jan') as Jan_Orders, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb') as Feb_Sales, ko3iko.Count(*) filter (where ko3iko.Month = 'Feb') as Feb_Orders]
       PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
@@ -64,7 +64,7 @@ ExecutionPlan [compiled]
       TypedAggregateSet [Set(group.__agg3, ko3iko.Money) filter __expr1]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
-      AppendShape [result <- ResultShape0(City: finalGroup.City, Jan_Sales: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Jan_Orders: ko3iko.Count(*) filter (where Month = 'Jan'), Feb_Sales: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), Feb_Orders: ko3iko.Count(*) filter (where Month = 'Feb'))]
+      AppendShape [result <- ResultShape0(City: finalGroup.City, Jan_Sales: ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan'), Jan_Orders: ko3iko.Count(*) filter (where ko3iko.Month = 'Jan'), Feb_Sales: ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'), Feb_Orders: ko3iko.Count(*) filter (where ko3iko.Month = 'Feb'))]
     SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */

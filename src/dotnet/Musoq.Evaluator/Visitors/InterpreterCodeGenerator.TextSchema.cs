@@ -23,70 +23,25 @@ public partial class InterpreterCodeGenerator
             $"/// Generated interpreter for text schema '{className}'."
         );
         builder.AppendLine("/// </summary>");
-        builder.AppendLine(
-            "[global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]"
-        );
-        builder.AppendLine(
-            System.Globalization.CultureInfo.InvariantCulture,
-            $"public sealed class {className} : TextInterpreterBase<{className}>, ITextInterpreterStatus<{className}>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload"
-        );
-        builder.AppendLine("{");
-        var completion = CompletionLayoutCodeEmitter.Create(
-            plan.Fields.Where(static field => field.EmitsProperty).Select(static field => field.Name)
-        );
-        builder.Append(completion);
+        var properties = plan
+            .Fields.Where(static field => field.EmitsProperty)
+            .Select(static field => new PayloadProperty(field.Name, field.PropertyClrType!))
+            .ToArray();
+        var declaration = new InterpreterDeclaration(className, "TextInterpreterBase", "ITextInterpreterStatus");
+        OpenInterpreterClass(builder, declaration, properties);
         AppendPreparedPatternMembers(builder, allFields, className);
-        builder.Append(PartialPayloadCodeEmitter.Members(className));
-        builder.Append(
-            PartialPayloadCodeEmitter.JsonMembers(
-                plan.Fields.Where(static field => field.EmitsProperty)
-                    .Select(static field =>
-                        (
-                            field.Name,
-                            field.PropertyName
-                                ?? throw new InvalidOperationException(
-                                    "An emitted payload field requires a property name."
-                                )
-                        )
-                    )
-            )
-        );
 
-        foreach (var field in plan.Fields)
-        {
-            if (!field.EmitsProperty)
-                continue;
-
-            var summary = field.IsCaptureResult ? "capture result" : "field value";
-            builder.AppendLine(
-                System.Globalization.CultureInfo.InvariantCulture,
-                $"    /// <summary>Gets the {field.Name} {summary}.</summary>"
-            );
-            builder.AppendLine(
-                System.Globalization.CultureInfo.InvariantCulture,
-                $"    public {field.PropertyClrType} {field.PropertyName} {{ get; set; }}"
-            );
-            builder.AppendLine();
-        }
-
-        builder.AppendLine("    /// <inheritdoc />");
-        builder.AppendLine(
-            System.Globalization.CultureInfo.InvariantCulture,
-            $"    public override string SchemaName => \"{className}\";"
-        );
-        builder.AppendLine();
-
-        BeginStatusMethod(className);
+        BeginStatusMethod(declaration.TypeName);
         _statusNames.UnionWith(allFields.Select(static field => field.LocalVariableName));
         _textInputName = "__musoqTextInput";
         while (!_statusNames.Add(_textInputName))
             _textInputName += "_";
-        builder.Append(InterpreterStatusCodeEmitter.BeginText(className, _textInputName));
+        builder.Append(InterpreterStatusCodeEmitter.BeginText(declaration.TypeName, _textInputName));
         builder.AppendLine("        ParsePosition = offset;");
         builder.AppendLine("        SetCurrentField(null);");
         builder.AppendLine(
             System.Globalization.CultureInfo.InvariantCulture,
-            $"        __parsedValue = new {className}();"
+            $"        __parsedValue = new {declaration.TypeName}();"
         );
         builder.AppendLine("        RecordParsedValue(__parsedValue);");
         builder.AppendLine();
@@ -116,7 +71,7 @@ public partial class InterpreterCodeGenerator
             }
         }
 
-        builder.Append(InterpreterStatusCodeEmitter.End(className));
+        builder.Append(InterpreterStatusCodeEmitter.End(declaration.TypeName));
 
         foreach (var field in allFields)
         {
@@ -126,7 +81,7 @@ public partial class InterpreterCodeGenerator
             builder.AppendLine();
             builder.AppendLine(
                 System.Globalization.CultureInfo.InvariantCulture,
-                $"    public sealed class CaptureResult_{field.Name}"
+                $"    public sealed class {_textResultTypes.Name(field.Source)}"
             );
             builder.AppendLine("    {");
             foreach (var group in field.CaptureGroups)

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
@@ -8,33 +7,26 @@ internal static class TextCapturePropertyResolver
 {
     internal static (Type ClrType, string? IntendedTypeName)? Resolve(
         SchemaRegistry? registry,
-        Func<TextSchemaNode, List<TextFieldDefinitionNode>> fields,
         string intendedTypeName,
         string propertyName
     )
     {
-        const string prefix = "Musoq.Generated.Interpreters.";
-        const string captureMarker = ".CaptureResult_";
-        if (registry == null || !intendedTypeName.StartsWith(prefix, StringComparison.Ordinal))
+        var field = Find(registry, intendedTypeName);
+        return field?.CaptureGroups.Contains(propertyName, StringComparer.Ordinal) == true
+            ? (typeof(string), null)
+            : null;
+    }
+
+    internal static TextFieldDefinitionNode? Find(SchemaRegistry? registry, string intendedTypeName)
+    {
+        var offset = TextResultTypeNames.NestedTypeOffset(intendedTypeName, TextResultTypeNames.CapturePrefix);
+        if (registry == null || offset < 0)
             return null;
 
-        var markerIndex = intendedTypeName.IndexOf(captureMarker, prefix.Length, StringComparison.Ordinal);
-        if (markerIndex < 0)
-            return null;
-
-        var schemaName = intendedTypeName[prefix.Length..markerIndex];
+        var schemaName = intendedTypeName[TextResultTypeNames.NamespacePrefix.Length..(offset - 1)].TrimStart('@');
         if (!registry.TryGetSchema(schemaName, out var registration) || registration?.Node is not TextSchemaNode schema)
             return null;
 
-        var fieldName = intendedTypeName[(markerIndex + captureMarker.Length)..];
-        var field = InterpretationTextFieldTypeResolver
-            .EnumerateDefinitions(fields(schema))
-            .FirstOrDefault(candidate =>
-                candidate.FieldType == TextFieldType.Pattern
-                && string.Equals(candidate.Name, fieldName, StringComparison.OrdinalIgnoreCase)
-            );
-        return field?.CaptureGroups.Any(group => string.Equals(group, propertyName, StringComparison.Ordinal)) == true
-            ? (typeof(string), null)
-            : null;
+        return registry.TextResultTypes(schema).Find(intendedTypeName[offset..]);
     }
 }

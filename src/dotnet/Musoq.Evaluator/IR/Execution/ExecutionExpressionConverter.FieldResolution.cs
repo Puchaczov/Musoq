@@ -66,7 +66,11 @@ public static partial class ExecutionExpressionConverter
                 field.AccessStrategy,
                 field.GeneratedTypeName
                     ?? InterpretationTypeNames.Executable(column.GeneratedTypeName)
-                    ?? (field.AccessStrategy as GeneratedRowNestedAccess)?.ValueTypeName
+                    ?? (
+                        field.AccessStrategy is GeneratedRowNestedAccess { FieldIndex: null } generatedRead
+                            ? generatedRead.ValueTypeName
+                            : null
+                    )
             )
             {
                 Stability = field.Stability,

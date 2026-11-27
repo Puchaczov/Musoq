@@ -18,5 +18,5 @@ public sealed class StringConcatenationNode : BinaryNode
         visitor.Visit(this);
     }
 
-    public override string ToString() => $"{Left} || {Right}";
+    public override string ToString() => FormatInfix("||");
 }

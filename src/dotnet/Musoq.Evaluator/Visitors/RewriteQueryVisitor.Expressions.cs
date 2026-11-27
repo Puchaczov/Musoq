@@ -111,10 +111,7 @@ public sealed partial class RewriteQueryVisitor
         );
     }
 
-    public void Visit(EqualityNode node)
-    {
-        ComparisonOperationVisitorHelper.ProcessEqualityOperation(Nodes, node.Span);
-    }
+    public void Visit(EqualityNode node) => ComparisonOperationVisitorHelper.ProcessEqualityOperation(Nodes, node);
 
     public void Visit(IsDistinctFromNode node)
     {
@@ -224,31 +221,31 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(DecimalNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new DecimalNode(node.Value, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public void Visit(IntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new IntegerNode(node.ObjValue, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public void Visit(HexIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new HexIntegerNode(node.ObjValue, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public void Visit(BinaryIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new BinaryIntegerNode(node.ObjValue, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public void Visit(OctalIntegerNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new OctalIntegerNode(node.ObjValue, node.Span));
+        Nodes.Push(node.Copy());
     }
 
     public void Visit(BooleanNode node)
@@ -272,7 +269,7 @@ public sealed partial class RewriteQueryVisitor
     public void Visit(NullNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
-        Nodes.Push(new NullNode(node.ReturnType, node.Span));
+        Nodes.Push(new NullNode(node.ReturnType, node.Span) { IntendedTypeName = node.IntendedTypeName });
     }
 
     public void Visit(ContainsNode node)

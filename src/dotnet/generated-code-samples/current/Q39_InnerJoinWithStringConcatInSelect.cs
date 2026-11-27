@@ -10,7 +10,7 @@ MultiStatement
     Join [Inner] [(a.Id = b.Id)]
       SchemaScan [#A.entities() as a]
       SchemaScan [#A.entities() as b]
-  Project [((a.Name || ' - ') || b.Country) as a.Name +  -  + b.Country, b.Population as Population]
+  Project [((a.Name + ' - ') + b.Country) as a.Name +  -  + b.Country, b.Population as Population]
     CteRef [ab as ab]
 */
 
@@ -21,7 +21,7 @@ PhysicalMultiStatement
     PhysicalHashJoin [Inner] [build: b.Id] [probe: a.Id]
       PhysicalSchemaScan [#A.entities() as a]
       PhysicalSchemaScan [#A.entities() as b]
-  PhysicalProject [((a.Name || ' - ') || b.Country) as a.Name +  -  + b.Country, b.Population as Population]
+  PhysicalProject [((a.Name + ' - ') + b.Country) as a.Name +  -  + b.Country, b.Population as Population]
     PhysicalCteRef [ab as ab]
 */
 

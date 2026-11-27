@@ -7,13 +7,14 @@ namespace Musoq.Targets.CSharpClr;
 public sealed partial class ExecutionCSharpRenderer
 {
     private ForStatementSyntax CreateLibraryWindowFrameLoop(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel,
         string indices,
         string start,
         string count
     )
     {
-        var frame = kernel.Frame!;
+        var partition = new WindowPartitionPositionSyntax(indices, start, count);
         var position = $"{kernel.Results.Name}PartitionIndex";
         var outputIndex = $"{kernel.Results.Name}OutputIndex";
         var frameStart = $"{kernel.Results.Name}FrameStart";
@@ -31,14 +32,7 @@ public sealed partial class ExecutionCSharpRenderer
                 frameStart,
                 "FrameStarts",
                 outputIndex,
-                WindowRangeFrameSyntax.CreateAggregateFrameStartExpressionForKernel(
-                    kernel,
-                    frame.Start,
-                    indices,
-                    start,
-                    position,
-                    count
-                )
+                WindowRangeFrameSyntax.CreateAggregateFrameExpression(kernel, true, partition, position)
             )
         );
         body.Add(
@@ -47,14 +41,7 @@ public sealed partial class ExecutionCSharpRenderer
                 frameEnd,
                 "FrameEnds",
                 outputIndex,
-                WindowRangeFrameSyntax.CreateAggregateFrameEndExpressionForKernel(
-                    kernel,
-                    frame.End,
-                    indices,
-                    start,
-                    position,
-                    count
-                )
+                WindowRangeFrameSyntax.CreateAggregateFrameExpression(kernel, false, partition, position)
             )
         );
         body.Add(
@@ -62,7 +49,9 @@ public sealed partial class ExecutionCSharpRenderer
                 CreateKernelStateResetInvocation(kernel.Descriptor.LibraryKernel!.ResetMethod.RequireClrMethod(), state)
             )
         );
-        body.Add(CreateLibraryWindowFrameAccumulation(kernel, indices, start, count, frameStart, frameEnd));
+        body.Add(
+            CreateLibraryWindowFrameAccumulation(renderContext, kernel, indices, start, count, frameStart, frameEnd)
+        );
         body.Add(
             CreateWindowResultAssignment(
                 kernel.Results.Name,
@@ -74,6 +63,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private ForStatementSyntax CreateLibraryWindowFrameAccumulation(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel,
         string indices,
         string start,
@@ -113,7 +103,7 @@ public sealed partial class ExecutionCSharpRenderer
         else
         {
             body.AddRange(CreateIndexedItemDeclarations(kernel.Item, kernel.Buffer, current, kernel.RowAccessMode));
-            body.AddRange(CreateWindowAggregateAccumulateStatements(kernel));
+            body.AddRange(CreateWindowAggregateAccumulateStatements(renderContext, kernel));
         }
         var limit = SyntaxFactory.BinaryExpression(
             SyntaxKind.LogicalAndExpression,

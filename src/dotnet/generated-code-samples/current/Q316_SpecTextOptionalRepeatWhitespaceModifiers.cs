@@ -189,7 +189,7 @@ namespace GeneratedSample_Q316_SpecTextOptionalRepeatWhitespaceModifiers
                         string fddOptionalCode = fd.d_OptionalCode;
                         string fddPrefix = fd.d_Prefix;
                         string fddTail = fd.d_Tail;
-                        var iRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Item>(fd.d_Items);
+                        var iRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Generated.Interpreters.Item>(fd.d_Items);
                         foreach (var iChunk in iRows)
                         {
                             for (int iIndex = 0, iIndexCount = iChunk.Count; iIndex < iIndexCount; ++iIndex)
@@ -413,6 +413,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Item : TextInterpreterBase<Item>, ITextInterpreterStatus<Item>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Value { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Value" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -436,9 +438,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Value field value.</summary>
-        public string? Value { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Item";
 
         public override Item ParseAt(ReadOnlySpan<char> data, int offset)
@@ -464,8 +463,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Item>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                 }
 
-                var _value = __musoqReadResult0.Value!;
-                __parsedValue.Value = _value;
+                var _field5_Value = __musoqReadResult0.Value!;
+                __parsedValue.Value = _field5_Value;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Item>.Success(__parsedValue);
             }
@@ -482,10 +481,14 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Document : TextInterpreterBase<Document>, ITextInterpreterStatus<Document>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Prefix { get; set; }
+        public string? OptionalCode { get; set; }
+        public Item[]? Items { get; set; }
+        public string? Tail { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Prefix", "OptionalCode", "Items", "Tail" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
-        private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0 = new(@"[0-9]+", (global::Musoq.Schema.Interpreters.TextPatternModifiers)0);
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Document value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -527,17 +530,9 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Prefix field value.</summary>
-        public string? Prefix { get; set; }
-        /// <summary>Gets the OptionalCode field value.</summary>
-        public string? OptionalCode { get; set; }
-        /// <summary>Gets the Items field value.</summary>
-        public Item[]? Items { get; set; }
-        /// <summary>Gets the Tail field value.</summary>
-        public string? Tail { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Document";
 
+        private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0 = new(@"[0-9]+", (global::Musoq.Schema.Interpreters.TextPatternModifiers)0);
         public override Document ParseAt(ReadOnlySpan<char> data, int offset)
         {
             var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
@@ -561,8 +556,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Document>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                 }
 
-                var _prefix = __musoqReadResult0.Value!;
-                __parsedValue.Prefix = _prefix;
+                var _field6_Prefix = __musoqReadResult0.Value!;
+                __parsedValue.Prefix = _field6_Prefix;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("_");
                 if (base.SkipWhitespaceStatus(data, false, fieldName: "_")is { } __musoqReadFailure1)
@@ -571,7 +566,7 @@ namespace Musoq.Generated.Interpreters
                 }
 
                 SetCurrentField("OptionalCode");
-                string? _optionalCode = null;
+                string? _field12_OptionalCode = null;
                 {
                     var __musoqOptionalPosition4 = ParsePosition;
                     try
@@ -583,7 +578,7 @@ namespace Musoq.Generated.Interpreters
                         }
 
                         var __musoqOptionalValue5 = __musoqReadResult6.Value!;
-                        _optionalCode = __musoqOptionalValue5;
+                        _field12_OptionalCode = __musoqOptionalValue5;
                     }
                     catch (global::Musoq.Schema.Interpreters.ParseException)
                     {
@@ -597,7 +592,7 @@ namespace Musoq.Generated.Interpreters
                         ;
                 }
 
-                __parsedValue.OptionalCode = _optionalCode;
+                __parsedValue.OptionalCode = _field12_OptionalCode;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("_");
                 if (base.SkipOptionalWhitespaceStatus(data, fieldName: "_")is { } __musoqReadFailure7)
@@ -606,34 +601,34 @@ namespace Musoq.Generated.Interpreters
                 }
 
                 SetCurrentField("Items");
-                var _list__items = new System.Collections.Generic.List<Item>();
-                var _interp_Item = new Item();
-                var _iteration__items = 0;
+                var _list__field5_Items = new System.Collections.Generic.List<Item>();
+                var _interp__field5_Items = new Item();
+                var _iteration__field5_Items = 0;
                 while (!IsAtEnd(data))
                 {
-                    if (base.CheckRepeatIterationStatus("Items", _iteration__items++, 10000)is { } __musoqReadFailure9)
+                    if (base.CheckRepeatIterationStatus("Items", _iteration__field5_Items++, 10000)is { } __musoqReadFailure9)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Document>.Failed(__parsedValue, __musoqReadFailure9);
                     }
 
-                    var _startPos__items = ParsePosition;
-                    var __musoqReadResult8 = base.ParseNestedStatus(_interp_Item, ref __musoqTextInput, "Items");
+                    var _startPos__field5_Items = ParsePosition;
+                    var __musoqReadResult8 = base.ParseNestedStatus(_interp__field5_Items, ref __musoqTextInput, "Items");
                     if (!__musoqReadResult8.Succeeded)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Document>.Failed(__parsedValue, __musoqReadResult8.Failure!);
                     }
 
-                    var _item__items = __musoqReadResult8.Value!;
-                    if (base.CheckRepeatProgressStatus("Items", _startPos__items)is { } __musoqReadFailure10)
+                    var _item__field5_Items = __musoqReadResult8.Value!;
+                    if (base.CheckRepeatProgressStatus("Items", _startPos__field5_Items)is { } __musoqReadFailure10)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Document>.Failed(__parsedValue, __musoqReadFailure10);
                     }
 
-                    _list__items.Add(_item__items);
+                    _list__field5_Items.Add(_item__field5_Items);
                 }
 
-                var _items = _list__items.ToArray();
-                __parsedValue.Items = _items;
+                var _field5_Items = _list__field5_Items.ToArray();
+                __parsedValue.Items = _field5_Items;
                 base.RecordParsedFieldSlot(2);
                 SetCurrentField("Tail");
                 var __musoqReadResult11 = base.ReadRestStatus(data, trim: true, fieldName: "Tail");
@@ -642,8 +637,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Document>.Failed(__parsedValue, __musoqReadResult11.Failure!);
                 }
 
-                var _tail = __musoqReadResult11.Value!;
-                __parsedValue.Tail = _tail;
+                var _field4_Tail = __musoqReadResult11.Value!;
+                __parsedValue.Tail = _field4_Tail;
                 base.RecordParsedFieldSlot(3);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Document>.Success(__parsedValue);
             }

@@ -86,7 +86,63 @@ internal static class BinarySchemaGenericResolver
         return ResolveReference(ParseReference(trimmedTypeArgument), outerBindings);
     }
 
-    private static SchemaReferenceTypeNode ParseReference(string typeName)
+    internal static IReadOnlyList<SchemaFieldNode> BindFields(
+        IReadOnlyList<SchemaFieldNode> fields,
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings
+    )
+    {
+        if (bindings.Count == 0)
+            return fields;
+        return fields
+            .Select(field =>
+            {
+                if (field is not FieldDefinitionNode parsed)
+                    return field;
+                var type = BindAnnotation(parsed.TypeAnnotation, bindings);
+                return type == parsed.TypeAnnotation
+                    ? field
+                    : new FieldDefinitionNode(
+                        parsed.Name,
+                        type,
+                        parsed.Constraint,
+                        parsed.AtOffset,
+                        parsed.WhenCondition,
+                        parsed.ValueValidation
+                    );
+            })
+            .ToArray();
+    }
+
+    private static TypeAnnotationNode BindAnnotation(
+        TypeAnnotationNode type,
+        IReadOnlyDictionary<string, SchemaReferenceTypeNode> bindings
+    )
+    {
+        switch (type)
+        {
+            case SchemaReferenceTypeNode reference:
+                return ResolveReference(reference, bindings);
+            case ArrayTypeNode array:
+                var item = BindAnnotation(array.ElementType, bindings);
+                return item == array.ElementType ? array : new ArrayTypeNode(item, array.SizeExpression);
+            case RepeatUntilTypeNode repeat:
+                var element = BindAnnotation(repeat.ElementType, bindings);
+                if (element == repeat.ElementType)
+                    return repeat;
+                return repeat.Condition is null
+                    ? RepeatUntilTypeNode.EndOfInput(element, repeat.FieldName)
+                    : new RepeatUntilTypeNode(element, repeat.Condition, repeat.FieldName);
+            case SubstreamTypeNode { Target: { } target } substream:
+                var bound = BindAnnotation(target, bindings);
+                return bound == target
+                    ? substream
+                    : new SubstreamTypeNode(substream.SizeExpression, substream.Mode, bound);
+            default:
+                return type;
+        }
+    }
+
+    internal static SchemaReferenceTypeNode ParseReference(string typeName)
     {
         var openIndex = typeName.IndexOf('<', StringComparison.Ordinal);
         if (openIndex < 0)

@@ -934,9 +934,11 @@ public static partial class ExecutionPlanPrinter
 
     private static string FormatRecursiveIdentity(ExecutionRecursiveCteAppend append)
     {
-        return append.Seen == null
-            ? "none"
-            : $"{append.Seen.Name} ({FormatRecursiveIdentityFields(append.AppendRow.RowShape, append.IdentityFieldIndexes)})";
+        if (append.Seen == null)
+            return "none";
+        var fields = FormatRecursiveIdentityFields(append.AppendRow.RowShape, append.IdentityFieldIndexes);
+        var nan = append.NaNDistinctFieldIndexes.Count == 0 ? "" : "; NaN always distinct";
+        return $"{append.Seen.Name} ({fields}){nan}";
     }
 
     private static string FormatRecursiveIdentityFields(GeneratedRowShape shape, int[] fieldIndexes)

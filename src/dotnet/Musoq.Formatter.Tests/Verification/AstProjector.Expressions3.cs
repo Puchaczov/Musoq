@@ -12,6 +12,8 @@ internal sealed partial class AstProjector
 
     private void Project(global::Musoq.Parser.Nodes.NullNode value)
     {
+        Member(nameof(value.IntendedTypeName));
+        Write(value.IntendedTypeName);
         Member(nameof(value.ReturnType));
         Write(value.ReturnType);
     }

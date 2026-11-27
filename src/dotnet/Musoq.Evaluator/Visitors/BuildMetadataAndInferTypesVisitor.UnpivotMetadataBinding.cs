@@ -93,7 +93,11 @@ public partial class BuildMetadataAndInferTypesVisitor
         foreach (var keepField in keepFields)
         {
             columns.Add(
-                new SchemaColumn(keepField.FieldName, columns.Count, keepField.Expression.ReturnType ?? typeof(object))
+                new SchemaColumn(
+                    keepField.FieldName,
+                    columns.Count,
+                    SqlPredicateNullability.ResultType(keepField.Expression) ?? typeof(object)
+                )
             );
         }
 

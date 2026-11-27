@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Parser;
@@ -40,8 +39,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
         ValidateGenericParameters(node);
         var typeParameters = new HashSet<string>(node.TypeParameters, StringComparer.OrdinalIgnoreCase);
-        var declaredFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var declaredFieldTypes = new Dictionary<string, Type?>(StringComparer.OrdinalIgnoreCase);
+        var declaredFields = new HashSet<string>(StringComparer.Ordinal);
+        var declaredFieldTypes = new Dictionary<string, Type?>(StringComparer.Ordinal);
         AddInheritedFields(
             node.Extends,
             node.Name,
@@ -50,7 +49,7 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
             new HashSet<string>(StringComparer.OrdinalIgnoreCase) { node.Name }
         );
 
-        var localFields = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var localFields = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var field in node.Fields)
         {
@@ -569,8 +568,8 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
         if (field.Constraint != null)
         {
-            var constraintFields = new HashSet<string>(declaredFields, StringComparer.OrdinalIgnoreCase) { field.Name };
-            var constraintTypes = new Dictionary<string, Type?>(declaredFieldTypes, StringComparer.OrdinalIgnoreCase)
+            var constraintFields = new HashSet<string>(declaredFields, StringComparer.Ordinal) { field.Name };
+            var constraintTypes = new Dictionary<string, Type?>(declaredFieldTypes, StringComparer.Ordinal)
             {
                 [field.Name] = field.TypeAnnotation.ReturnType,
             };
@@ -637,14 +636,11 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
                 if (repeatUntil.Condition != null)
                 {
-                    var repeatFields = new HashSet<string>(declaredFields, StringComparer.OrdinalIgnoreCase)
+                    var repeatFields = new HashSet<string>(declaredFields, StringComparer.Ordinal)
                     {
                         repeatUntil.FieldName,
                     };
-                    var repeatFieldTypes = new Dictionary<string, Type?>(
-                        declaredFieldTypes,
-                        StringComparer.OrdinalIgnoreCase
-                    )
+                    var repeatFieldTypes = new Dictionary<string, Type?>(declaredFieldTypes, StringComparer.Ordinal)
                     {
                         [repeatUntil.FieldName] = repeatUntil.ClrType,
                     };
@@ -661,6 +657,7 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
             case BinarySwitchTypeNode switchType:
                 ValidateBinarySwitchReferences(switchType, declaredFields, declaredFieldTypes);
+                ValidateExpressionReferences(fieldName, switchType.SelectorExpression, schemaName, declaredFields);
 
                 foreach (var switchCase in switchType.Cases)
                     ValidateTypeExpressionReferences(
@@ -681,8 +678,11 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
     )
     {
         if (
-            !declaredFields.Contains(switchType.Selector)
-            || !declaredFieldTypes.TryGetValue(switchType.Selector, out var selectorType)
+            !declaredFields.Contains(switchType.SelectorRoot)
+            && !(
+                switchType.SelectorExpression is not IdentifierNode
+                && switchType.SelectorRoot.Equals("parent", StringComparison.OrdinalIgnoreCase)
+            )
         )
             throw new QuerySyntaxException(
                 $"Switch selector '{switchType.Selector}' must reference a field declared before the switch field.",
@@ -690,6 +690,10 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                 DiagnosticCode.MQ4011_SwitchSelectorNotPreviousField
             );
 
+        var selectorType =
+            switchType.SelectorExpression is IdentifierNode
+                ? declaredFieldTypes.GetValueOrDefault(switchType.Selector)
+                : null;
         var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         for (var index = 0; index < switchType.Cases.Length; index++)
         {
@@ -718,107 +722,19 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
                     DiagnosticCode.MQ4013_InvalidSwitchCaseLabel
                 );
 
-            if (!switchCase.IsDefault && !IsSwitchCaseLabelCompatible(selectorType, switchCase.CaseValue!))
+            if (
+                !switchCase.IsDefault
+                && selectorType is not null
+                && selectorType != typeof(object)
+                && selectorType != typeof(void)
+                && !BinarySchemaScalarLiteral.IsCompatibleSwitchLabel(selectorType, switchCase.CaseValue!)
+            )
                 throw new QuerySyntaxException(
                     $"Switch case label '{switchCase.CaseValue}' is not compatible with selector '{switchType.Selector}'.",
                     GetSwitchCaseLabelSpan(switchCase),
                     DiagnosticCode.MQ4013_InvalidSwitchCaseLabel
                 );
         }
-    }
-
-    private static bool IsSwitchCaseLabelCompatible(Type? selectorType, Node label)
-    {
-        var targetType = selectorType is null ? null : Nullable.GetUnderlyingType(selectorType) ?? selectorType;
-        if (targetType == typeof(bool))
-            return label is BooleanNode;
-
-        if (targetType == typeof(string))
-            return label is StringNode or WordNode;
-
-        if (!IsNumericSwitchCaseLabel(label) || !TryGetNumericSwitchCaseValue(label, out var numeric))
-            return false;
-
-        if (targetType == typeof(float) || targetType == typeof(double) || targetType == typeof(decimal))
-            return true;
-
-        if (targetType == typeof(byte))
-            return IsIntegralSwitchValue(numeric, byte.MinValue, byte.MaxValue);
-        if (targetType == typeof(sbyte))
-            return IsIntegralSwitchValue(numeric, sbyte.MinValue, sbyte.MaxValue);
-        if (targetType == typeof(short))
-            return IsIntegralSwitchValue(numeric, short.MinValue, short.MaxValue);
-        if (targetType == typeof(ushort))
-            return IsIntegralSwitchValue(numeric, ushort.MinValue, ushort.MaxValue);
-        if (targetType == typeof(int))
-            return IsIntegralSwitchValue(numeric, int.MinValue, int.MaxValue);
-        if (targetType == typeof(uint))
-            return IsIntegralSwitchValue(numeric, uint.MinValue, uint.MaxValue);
-        if (targetType == typeof(long))
-            return IsIntegralSwitchValue(numeric, long.MinValue, long.MaxValue);
-        if (targetType == typeof(ulong))
-            return IsIntegralSwitchValue(numeric, ulong.MinValue, ulong.MaxValue);
-
-        return false;
-    }
-
-    private static bool IsNumericSwitchCaseLabel(Node node)
-    {
-        if (node is HyphenNode hyphen)
-            return IsNumericSwitchCaseLabel(hyphen.Left) && IsNumericSwitchCaseLabel(hyphen.Right);
-
-        return node is ConstantValueNode constant
-            && constant.ObjValue
-                is byte
-                    or sbyte
-                    or short
-                    or ushort
-                    or int
-                    or uint
-                    or long
-                    or ulong
-                    or float
-                    or double
-                    or decimal;
-    }
-
-    private static bool TryGetNumericSwitchCaseValue(Node node, out decimal value)
-    {
-        if (
-            node is HyphenNode hyphen
-            && TryGetNumericSwitchCaseValue(hyphen.Left, out var left)
-            && TryGetNumericSwitchCaseValue(hyphen.Right, out var right)
-        )
-        {
-            value = left - right;
-            return true;
-        }
-
-        if (
-            node is ConstantValueNode
-            {
-                ObjValue: byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal
-            } constant
-        )
-        {
-            try
-            {
-                value = Convert.ToDecimal(constant.ObjValue, CultureInfo.InvariantCulture);
-                return true;
-            }
-            catch (Exception) when (constant.ObjValue is float or double)
-            {
-                // NaN and infinity cannot be valid switch labels.
-            }
-        }
-
-        value = default;
-        return false;
-    }
-
-    private static bool IsIntegralSwitchValue(decimal value, decimal minimum, decimal maximum)
-    {
-        return decimal.Truncate(value) == value && value >= minimum && value <= maximum;
     }
 
     private static TextSpan GetSwitchSelectorSpan(BinarySwitchTypeNode switchType)
@@ -1022,7 +938,7 @@ public partial class SchemaDefinitionVisitor : NoOpExpressionVisitor
 
     private sealed class IdentifierCollector : NoOpExpressionVisitor
     {
-        public HashSet<string> Names { get; } = new(StringComparer.OrdinalIgnoreCase);
+        public HashSet<string> Names { get; } = new(StringComparer.Ordinal);
 
         public List<(string Name, Node Node)> References { get; } = [];
 

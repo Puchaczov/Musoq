@@ -19,7 +19,7 @@ Cte
   Query
     MultiStatement
       Project [a.City as City]
-        Join [LeftAntiSemi] [((1 = _sq_1._sq_1_greater_all_key) AND ((_sq_1._sq_1_corr_0 = a.Country) AND ((a.Population IS NULL OR _sq_1._sq_1_corr_1 IS NULL) OR (a.Population <= _sq_1._sq_1_corr_1))))]
+        Join [LeftAntiSemi] [((1 = _sq_1._sq_1_greater_all_key) AND ((_sq_1._sq_1_corr_0 = a.Country) AND ((a.Population IS NULL OR _sq_1._sq_1_corr_1 IS NULL) OR NOT (a.Population > _sq_1._sq_1_corr_1))))]
           SchemaScan [#A.entities() as a]
           CteRef [_sq_1 as _sq_1]
 */
@@ -34,7 +34,7 @@ PhysicalCte
   Query
     PhysicalMultiStatement
       PhysicalProject [a.City as City]
-        PhysicalHashJoin [LeftAntiSemi] [build: _sq_1._sq_1_greater_all_key, _sq_1._sq_1_corr_0] [probe: 1, a.Country] [group maximum] [residual: ((a.Population IS NULL OR _sq_1._sq_1_corr_1 IS NULL) OR (a.Population <= _sq_1._sq_1_corr_1))]
+        PhysicalHashJoin [LeftAntiSemi] [build: _sq_1._sq_1_greater_all_key, _sq_1._sq_1_corr_0] [probe: 1, a.Country] [group maximum] [residual: ((a.Population IS NULL OR _sq_1._sq_1_corr_1 IS NULL) OR NOT (a.Population > _sq_1._sq_1_corr_1))]
           PhysicalSchemaScan [#A.entities() as a]
           PhysicalCteRef [_sq_1 as _sq_1]
 */

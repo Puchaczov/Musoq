@@ -1,3 +1,5 @@
+using System.Linq;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Physical.Nodes;
 
 namespace Musoq.Evaluator.IR.Planning;
@@ -12,6 +14,14 @@ internal sealed partial class ParallelStrategyPlanner
         if (pipeline.SourceFilter != null)
             return ParallelPlanEligibility.Skipped(
                 "Source filter is present, so parallel single-key aggregate cannot preserve current aggregate filtering semantics."
+            );
+
+        if (pipeline.Aggregate.InitializeConstantGroup && pipeline.Aggregate.GroupKey is not Literal)
+            return ParallelPlanEligibility.Skipped("One query-wide group is initialized before accumulation.");
+
+        if (IrExpressionTraversal.SelfAndDescendants(pipeline.Aggregate.GroupKey).Any(key => key is SubqueryExpression))
+            return ParallelPlanEligibility.Skipped(
+                "The grouping subquery requires the enclosing query execution context."
             );
 
         var sourcePermission = sourcePermissions.Check(

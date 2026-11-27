@@ -7,7 +7,7 @@ select Name, Name rlike r'\AAlex\z' as IsExact, Name rlike r'^[A-Z]' as UsesRege
 /*
 MultiStatement
   Sort [ko3iko.Name]
-    Project [ko3iko.Name as Name, ko3iko.Name RLIKE '\AAlex\z' as IsExact, ko3iko.Name RLIKE '^[A-Z]' as UsesRegex]
+    Project [ko3iko.Name as Name, ko3iko.Name RLIKE '\\AAlex\\z' as IsExact, ko3iko.Name RLIKE '^[A-Z]' as UsesRegex]
       SchemaScan [#A.entities() as ko3iko]
 */
 
@@ -15,7 +15,7 @@ MultiStatement
 /*
 PhysicalMultiStatement
   PhysicalSort [ko3iko.Name]
-    PhysicalProject [ko3iko.Name as Name, ko3iko.Name RLIKE '\AAlex\z' as IsExact, ko3iko.Name RLIKE '^[A-Z]' as UsesRegex]
+    PhysicalProject [ko3iko.Name as Name, ko3iko.Name RLIKE '\\AAlex\\z' as IsExact, ko3iko.Name RLIKE '^[A-Z]' as UsesRegex]
       PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 

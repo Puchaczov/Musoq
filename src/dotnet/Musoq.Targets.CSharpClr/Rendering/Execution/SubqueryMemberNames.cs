@@ -12,11 +12,12 @@ internal sealed class SubqueryMemberNames : CSharpSyntaxRewriter
 {
     private readonly IReadOnlyDictionary<string, string> _names;
 
-    internal SubqueryMemberNames(string identifier, IReadOnlyList<MemberDeclarationSyntax> members)
+    internal SubqueryMemberNames(string identifier, IReadOnlyList<MemberDeclarationSyntax> members, ExecutionPlan plan)
     {
         var names = members
             .OfType<MethodDeclarationSyntax>()
             .Select(static method => method.Identifier.ValueText)
+            .Concat(plan.Shapes.OfType<ValuesRowShape>().Select(static values => values.GeneratedShape.TypeName))
             .Concat(
                 members
                     .OfType<ClassDeclarationSyntax>()

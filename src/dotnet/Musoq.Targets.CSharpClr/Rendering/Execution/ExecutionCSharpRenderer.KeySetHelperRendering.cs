@@ -39,27 +39,17 @@ public sealed partial class ExecutionCSharpRenderer
         var helperSets = new List<KeySetHelperSet>();
         var usedFunctionNames = new Dictionary<string, int>(StringComparer.Ordinal);
         var nodes = block.Nodes;
-        var pending = new List<ExecutionNode>();
+        var storedNodes = CollectStoredTableNodes(block);
 
         for (var index = 0; index < nodes.Count; index++)
         {
             var node = nodes[index];
-            if (node is ExecutionStoreTable store && TryCreateStoredTableBuild(nodes, index, pending, store, out _))
-            {
-                pending.Clear();
+            if (storedNodes.Contains(node))
                 continue;
-            }
-
-            if (IsInsidePendingStoredTableBuild(nodes, index, pending))
-            {
-                pending.Add(node);
-                continue;
-            }
 
             if (TryCreateKeySetBuildHelperCandidate(node, out var buildLoop, out var keySetAdd))
             {
                 buildLoopsBySetName.TryAdd(keySetAdd.Set.Name, (index, buildLoop, keySetAdd));
-                pending.Add(node);
                 continue;
             }
 
@@ -68,7 +58,6 @@ public sealed partial class ExecutionCSharpRenderer
                 || !buildLoopsBySetName.TryGetValue(keySetProbe.Set.Name, out var build)
             )
             {
-                pending.Add(node);
                 continue;
             }
 
@@ -85,7 +74,6 @@ public sealed partial class ExecutionCSharpRenderer
             var probeHelper = CreateKeySetProbeHelper(probeFunctionName, probeLoop, keySetProbe);
 
             helperSets.Add(new KeySetHelperSet(build.Index, index, buildHelper, probeHelper));
-            pending.Add(node);
         }
 
         return helperSets;

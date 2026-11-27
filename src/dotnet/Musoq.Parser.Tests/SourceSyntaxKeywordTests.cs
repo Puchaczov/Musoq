@@ -36,6 +36,17 @@ public sealed class SourceSyntaxKeywordTests
     }
 
     [TestMethod]
+    public void CteNameImmediatelyBeforeColumnList_ShouldHaveIdentifierRole()
+    {
+        const string sql = "with places(Place) as (select City from #s.rows()) select Place from places";
+        var result = Parser.ParseSyntax(sql);
+        Assert.IsTrue(result.Success);
+        var name = result.Tokens.First(token => token.Text == "places");
+        Assert.AreEqual(SyntaxTokenRole.Identifier, name.Role);
+        Assert.AreEqual(new TextSpan(5, 6), name.Span);
+    }
+
+    [TestMethod]
     public void NonRecursiveCteNamedRecursive_ShouldRemainAnIdentifier()
     {
         var result = Parser.ParseSyntax("with recursive as (select Name from #s.rows()) select Name from recursive");

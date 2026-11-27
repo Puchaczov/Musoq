@@ -22,9 +22,10 @@ internal sealed class ApplyPredicateAliasRewriter(Func<ColumnRef, ColumnRef?> re
         var right = Visit(node.Right);
         return ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right)
             ? node
-            : new BinaryOp(node.Kind, left, right, node.ReturnType)
+            : node with
             {
-                UsesSqlNullSemantics = node.UsesSqlNullSemantics,
+                Left = left,
+                Right = right,
             };
     }
 
@@ -85,13 +86,17 @@ internal sealed class ApplyPredicateAliasRewriter(Func<ColumnRef, ColumnRef?> re
         var elseExpression = node.ElseExpression == null ? null : Visit(node.ElseExpression);
         return !branchesChanged && ReferenceEquals(elseExpression, node.ElseExpression)
             ? node
-            : new CaseWhen(branches, elseExpression, node.ReturnType);
+            : node with
+            {
+                Branches = branches,
+                ElseExpression = elseExpression,
+            };
     }
 
     protected override IrExpression VisitCoalesce(Coalesce node)
     {
         var expressions = RewriteExpressions(node.Expressions, out var changed);
-        return changed ? new Coalesce(expressions, node.ReturnType) : node;
+        return changed ? node with { Expressions = expressions } : node;
     }
 
     protected override IrExpression VisitAggregateRef(AggregateRef node) => node;

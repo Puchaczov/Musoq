@@ -10,11 +10,17 @@ internal sealed record TextResultShape(Type ClrType, string? TypeName)
         new Dictionary<string, TextResultShape>();
     internal IReadOnlyList<TextResultShape> Alternatives { get; init; } = [];
     internal TextResultShape? Element { get; init; }
+    internal bool MayBeNull { get; init; }
+
+    internal IEnumerable<string> MemberNames =>
+        Alternatives.Count == 0
+            ? Members.Keys
+            : Alternatives.SelectMany(arm => arm.MemberNames).Distinct(StringComparer.Ordinal);
 
     internal TextResultShape? Member(string name)
     {
         if (Alternatives.Count == 0)
-            return Members.FirstOrDefault(pair => string.Equals(pair.Key, name, StringComparison.Ordinal)).Value;
+            return Members.GetValueOrDefault(name);
         var members = Alternatives.Select(arm => arm.Member(name)).OfType<TextResultShape>().ToArray();
         if (members.Length == 0)
             return null;
@@ -33,12 +39,17 @@ internal sealed record TextResultShape(Type ClrType, string? TypeName)
             )
         )
         {
-            if (arms[0].Element != null)
-                return arms[0] with { Element = Merge(arms.Select(arm => arm.Element!).ToArray()) };
-            return arms[0];
+            var common = arms[0] with { MayBeNull = arms.Any(arm => arm.MayBeNull) };
+            return common.Element == null
+                ? common
+                : common with
+                {
+                    Element = Merge(arms.Select(arm => arm.Element!).ToArray()),
+                };
         }
         return new(typeof(object), null)
         {
+            MayBeNull = arms.Any(arm => arm.MayBeNull),
             Alternatives = arms.SelectMany(arm => arm.Alternatives.Count > 0 ? arm.Alternatives : [arm]).ToArray(),
         };
     }
@@ -50,28 +61,20 @@ internal sealed class TextResultShapeBinding(SchemaRegistry registry)
     {
         if (!registry.TryGetSchema(name, out var registration) || registration?.Node is not TextSchemaNode schema)
             throw new InvalidOperationException($"'{name}' is not a registered text schema.");
-        var members = Fields(schema)
+        var members = InterpretationSchemaFields
+            .GetFields(schema, registry)
             .Where(field => !field.IsDiscard)
             .ToDictionary(field => field.Name, field => Field(schema.Name, field), StringComparer.Ordinal);
-        return new(typeof(object), $"Musoq.Generated.Interpreters.{name}") { Members = members };
-    }
-
-    private IEnumerable<TextFieldDefinitionNode> Fields(TextSchemaNode schema)
-    {
-        var fields = new Dictionary<string, TextFieldDefinitionNode>(StringComparer.OrdinalIgnoreCase);
-        if (
-            !string.IsNullOrEmpty(schema.Extends)
-            && registry.TryGetSchema(schema.Extends, out var parent)
-            && parent?.Node is TextSchemaNode baseSchema
-        )
-            foreach (var field in Fields(baseSchema))
-                fields[field.Name] = field;
-        foreach (var field in schema.Fields)
-            fields[field.Name] = field;
-        return fields.Values;
+        return new(typeof(object), InterpretationCSharpNames.Qualified(schema.Name)) { Members = members };
     }
 
     internal TextResultShape Field(string owner, TextFieldDefinitionNode field)
+    {
+        var shape = FieldValue(owner, field);
+        return (field.Modifiers & TextFieldModifier.Optional) != 0 ? shape with { MayBeNull = true } : shape;
+    }
+
+    private TextResultShape FieldValue(string owner, TextFieldDefinitionNode field)
     {
         if (field.FieldType == TextFieldType.Switch)
             return TextResultShape.Merge(field.SwitchCases.Select(arm => Field(owner, arm.Body)).ToArray());
@@ -86,7 +89,7 @@ internal sealed class TextResultShapeBinding(SchemaRegistry registry)
             };
         }
         if (field.CaptureGroups.Length > 0)
-            return new(typeof(object), $"Musoq.Generated.Interpreters.{owner}.CaptureResult_{field.Name}")
+            return new(typeof(object), registry.TextResultTypes(owner).Qualified(field))
             {
                 Members = field.CaptureGroups.ToDictionary(
                     name => name,

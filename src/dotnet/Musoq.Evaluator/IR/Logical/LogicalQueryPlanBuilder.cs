@@ -30,11 +30,7 @@ public sealed partial class LogicalPlanBuilder
         {
             groupKeys[i] = _converter.Convert(node.Fields[i].Expression);
             groupKeyNames[i] = node.Fields[i].FieldName;
-            groupKeyTypes[i] =
-                node.Fields[i].ReturnType
-                ?? throw new InvalidOperationException(
-                    $"GROUP BY field '{node.Fields[i].FieldName}' has no inferred return type."
-                );
+            groupKeyTypes[i] = groupKeys[i].ReturnType;
         }
 
         var source = _nodeStack.Pop();

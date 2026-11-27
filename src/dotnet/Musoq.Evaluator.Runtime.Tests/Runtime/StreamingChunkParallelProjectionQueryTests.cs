@@ -10,6 +10,7 @@ using Musoq.Plugins;
 using Musoq.Plugins.Attributes;
 using Musoq.Schema;
 using Musoq.Schema.DataSources;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests.Runtime;
 
@@ -28,7 +29,8 @@ public sealed class StreamingChunkParallelProjectionQueryTests
             maxDegreeOfParallelismOverride: 2,
             forceTableResultMaterialization: true
         );
-        using var probe = new ProjectionConcurrencyProbe();
+        using var watchdog = new TestWatchdog();
+        using var probe = new ProjectionConcurrencyProbe(watchdog);
         var rows = Enumerable.Range(0, 4_096).Select(value => new StreamingProjectionEntity(value)).ToArray();
         var rowSource = new StreamingProjectionRowSource(rows, chunkSize: 2_048);
         var schema = new GenericSchema<StreamingProjectionLibrary>(
@@ -62,7 +64,7 @@ public sealed class StreamingChunkParallelProjectionQueryTests
                 compilationOptions
             );
 
-            using var table = vm.Run(CancellationToken.None);
+            using var table = vm.Run(watchdog.Token);
 
             Assert.AreEqual(rows.Length, table.Count);
             CollectionAssert.AreEqual(
@@ -110,7 +112,7 @@ public sealed class StreamingChunkParallelProjectionQueryTests
         }
     }
 
-    public sealed class ProjectionConcurrencyProbe : IDisposable
+    public sealed class ProjectionConcurrencyProbe(TestWatchdog watchdog) : IDisposable
     {
         private readonly ManualResetEventSlim _twoCallsStarted = new(false);
         private int _currentCalls;
@@ -126,13 +128,19 @@ public sealed class StreamingChunkParallelProjectionQueryTests
             var current = Interlocked.Increment(ref _currentCalls);
             UpdateMax(current);
 
-            if (current >= 2)
-                _twoCallsStarted.Set();
-            else if (!_twoCallsStarted.Wait(TimeSpan.FromSeconds(5)))
-                throw new TimeoutException("Expected two chunk workers to run concurrently.");
+            try
+            {
+                if (current >= 2)
+                    _twoCallsStarted.Set();
+                else
+                    watchdog.Wait(_twoCallsStarted, "two projection workers to overlap");
 
-            Interlocked.Decrement(ref _currentCalls);
-            return value;
+                return value;
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _currentCalls);
+            }
         }
 
         public void Dispose() => _twoCallsStarted.Dispose();

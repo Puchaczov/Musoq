@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Musoq.Evaluator.IR.Expressions;
-using ColumnRefExtractor = Musoq.Evaluator.IR.Expressions.ColumnRefExtractor;
+using AliasRefExtractor = Musoq.Evaluator.IR.Expressions.AliasRefExtractor;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -93,12 +93,12 @@ internal sealed partial class PhysicalLoweringImplementation
         HashSet<string> rightAliases
     )
     {
-        var leftColumns = ColumnRefExtractor.Extract(predicate.Left);
-        var rightColumns = ColumnRefExtractor.Extract(predicate.Right);
-        var leftUsesLeft = ReferencesAliases(leftColumns, leftAliases);
-        var leftUsesRight = ReferencesAliases(leftColumns, rightAliases);
-        var rightUsesLeft = ReferencesAliases(rightColumns, leftAliases);
-        var rightUsesRight = ReferencesAliases(rightColumns, rightAliases);
+        var leftReferences = AliasRefExtractor.Extract(predicate.Left);
+        var rightReferences = AliasRefExtractor.Extract(predicate.Right);
+        var leftUsesLeft = leftAliases.Overlaps(leftReferences);
+        var leftUsesRight = rightAliases.Overlaps(leftReferences);
+        var rightUsesLeft = leftAliases.Overlaps(rightReferences);
+        var rightUsesRight = rightAliases.Overlaps(rightReferences);
 
         if (leftUsesLeft && !leftUsesRight && rightUsesRight && !rightUsesLeft)
             return LoweringAttempt<NormalizedAsOfJoinKey>.Built(
@@ -115,17 +115,6 @@ internal sealed partial class PhysicalLoweringImplementation
         return LoweringAttempt<NormalizedAsOfJoinKey>.Unsupported(
             "Execution IR ASOF join lowering requires each predicate to reference exactly one left-side and one right-side expression."
         );
-    }
-
-    private static bool ReferencesAliases(IReadOnlyList<ColumnRef> columns, HashSet<string> aliases)
-    {
-        foreach (var column in columns)
-        {
-            if (aliases.Contains(column.Alias))
-                return true;
-        }
-
-        return false;
     }
 
     private static BinaryOpKind SwapComparisonKind(BinaryOpKind kind)

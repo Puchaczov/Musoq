@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Musoq.Evaluator.Helpers;
 using Musoq.Evaluator.IR.Expressions;
 
 namespace Musoq.Targets.CSharpClr;
@@ -11,6 +12,12 @@ public sealed partial class ExecutionCSharpRenderer
     {
         if (binary.RequiresSqlNullPropagation())
             return this.RenderSqlNullComparison(binary, context);
+
+        if (binary.Kind == BinaryOpKind.FloatingMembershipEqual)
+            return ExecutionSyntaxFactory.CreateFloatingMembershipEquality(
+                RenderExpression(binary.Left, context),
+                RenderExpression(binary.Right, context)
+            );
 
         if (binary.IsShortCircuiting && binary.RequiresNullableBoolean())
         {
@@ -32,20 +39,61 @@ public sealed partial class ExecutionCSharpRenderer
             return temporal;
         }
 
+        var left = RenderExpression(binary.Left, context);
+        var right = RenderBinaryRightOperand(binary, context);
+        if (binary.Kind is BinaryOpKind.Divide or BinaryOpKind.Modulo)
+        {
+            var resultType = binary.ReturnType.RequireClrType();
+            var common = Nullable.GetUnderlyingType(resultType) ?? resultType;
+            if (common == typeof(uint) || common == typeof(ulong))
+            {
+                left = ConvertSignedOperand(left, binary.Left.ReturnType.RequireClrType(), common);
+                right = ConvertSignedOperand(right, binary.Right.ReturnType.RequireClrType(), common);
+            }
+        }
         var expression = SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(
-                GetBinaryExpressionKind(binary.Kind),
-                RenderExpression(binary.Left, context),
-                RenderBinaryRightOperand(binary, context)
-            )
+            SyntaxFactory.BinaryExpression(GetBinaryExpressionKind(binary.Kind), left, right)
         );
 
         return RequiresBinaryResultCast(binary) ? CastIfNeeded(expression, binary.ReturnType) : expression;
     }
 
+    private static ExpressionSyntax ConvertSignedOperand(ExpressionSyntax operand, Type source, Type common)
+    {
+        var underlying = Nullable.GetUnderlyingType(source);
+        if (
+            Type.GetTypeCode(underlying ?? source)
+            is not (TypeCode.SByte or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64)
+        )
+            return operand;
+        var type = CreateTypeSyntax(common);
+        var cast = SyntaxFactory.CastExpression(
+            underlying == null ? type : SyntaxFactory.NullableType(type),
+            SyntaxFactory.ParenthesizedExpression(operand)
+        );
+        return SyntaxFactory.CheckedExpression(SyntaxKind.UncheckedExpression, cast);
+    }
+
     private ExpressionSyntax RenderBinaryRightOperand(ExecutionBinary binary, ExecutionRenderContext context)
     {
         var rendered = RenderExpression(binary.Right, context);
+        if (binary.Kind is BinaryOpKind.LeftShift or BinaryOpKind.RightShift)
+        {
+            var countType = binary.Right.ReturnType.RequireClrType();
+            var underlying = Nullable.GetUnderlyingType(countType);
+            var valueType = underlying ?? countType;
+            if (valueType == typeof(uint) || valueType == typeof(long) || valueType == typeof(ulong))
+            {
+                // The native shift consumes only the low bits, including for counts above Int32.MaxValue.
+                var count = SyntaxFactory.CastExpression(
+                    CreateTypeSyntax(underlying == null ? typeof(int) : typeof(int?)),
+                    SyntaxFactory.ParenthesizedExpression(rendered)
+                );
+                return SyntaxFactory.CheckedExpression(SyntaxKind.UncheckedExpression, count);
+            }
+            return rendered;
+        }
+
         if (
             binary.Kind is not (BinaryOpKind.Divide or BinaryOpKind.Modulo)
             || !IsConstantNumericExpression(binary.Right)
@@ -213,14 +261,38 @@ public sealed partial class ExecutionCSharpRenderer
         return true;
     }
 
-    private ParenthesizedExpressionSyntax RenderEquality(ExecutionBinary binary, ExecutionRenderContext context) =>
-        SyntaxFactory.ParenthesizedExpression(
-            SyntaxFactory.BinaryExpression(
-                GetEqualitySyntaxKind(binary.Kind),
-                RenderExpression(binary.Left, context),
-                RenderExpression(binary.Right, context)
-            )
+    private ExpressionSyntax RenderEquality(ExecutionBinary binary, ExecutionRenderContext context)
+    {
+        var left = RenderExpression(binary.Left, context);
+        var right = RenderExpression(binary.Right, context);
+        var leftType = binary.Left.ReturnType.RequireClrType();
+        var rightType = binary.Right.ReturnType.RequireClrType();
+        if (leftType == typeof(DBNull) || rightType == typeof(DBNull))
+        {
+            var missing = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+            left = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, left, missing)
+            );
+            right = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, right, missing)
+            );
+        }
+        var floating = ComparisonOperandBinding.DecimalFloatingType(leftType, rightType);
+        if (floating is null)
+            return SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.BinaryExpression(GetEqualitySyntaxKind(binary.Kind), left, right)
+            );
+
+        var equal = SyntaxFactory.InvocationExpression(
+            SyntaxFactory.ParseExpression(
+                $"Operators.{nameof(Operators.SqlDecimalEquals)}<{CreateTypeSyntax(floating)}>"
+            ),
+            CreateArgumentList(left, right)
         );
+        return binary.Kind == BinaryOpKind.IsDistinctFrom
+            ? SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, equal)
+            : equal;
+    }
 
     private static bool IsNullSafeDistinctComparison(BinaryOpKind kind) =>
         kind is BinaryOpKind.IsDistinctFrom or BinaryOpKind.IsNotDistinctFrom;
@@ -273,10 +345,19 @@ public sealed partial class ExecutionCSharpRenderer
 
     private ExpressionSyntax RenderUnary(ExecutionUnary unary, ExecutionRenderContext context)
     {
+        if (unary.Kind == UnaryOpKind.NullIfNaN)
+            return CreateEvaluationHelperInvocation(
+                nameof(EvaluationHelper.NullIfNaN),
+                RenderExpression(unary.Operand, context)
+            );
+
         var expression = unary switch
         {
-            { Kind: UnaryOpKind.Not, Operand: ExecutionCollectionInCheck collectionInCheck } =>
-                RenderCollectionNotInCheck(collectionInCheck, context),
+            { Kind: UnaryOpKind.Not, Operand: ExecutionCollectionInCheck collectionInCheck }
+                when collectionInCheck.ReturnType.RequireClrType() == typeof(bool) => RenderCollectionNotInCheck(
+                collectionInCheck,
+                context
+            ),
             _ => SyntaxFactory.ParenthesizedExpression(
                 SyntaxFactory.PrefixUnaryExpression(
                     GetUnaryExpressionKind(unary.Kind),

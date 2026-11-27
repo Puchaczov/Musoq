@@ -1,4 +1,4 @@
-﻿using Musoq.Parser.Helpers;
+using Musoq.Parser.Helpers;
 
 namespace Musoq.Parser.Nodes;
 
@@ -31,6 +31,8 @@ public abstract class BinaryNode : Node
 
     public Node Right => _nodes[1];
 
+    protected string FormatInfix(string operation) => InfixExpressionText.Format(this, operation);
+
     public override Type ReturnType => _returnType ??= ComputeReturnType();
 
     protected static string CalculateId<T>(T node)
@@ -44,6 +46,11 @@ public abstract class BinaryNode : Node
     {
         var leftType = Left.ReturnType;
         var rightType = Right.ReturnType;
+        if (
+            Left is ScalarSubqueryNode && leftType == typeof(object)
+            || Right is ScalarSubqueryNode && rightType == typeof(object)
+        )
+            return typeof(void);
         var leftIsNullOrVoid = IsNullOrVoid(leftType);
         var rightIsNullOrVoid = IsNullOrVoid(rightType);
 
@@ -74,7 +81,11 @@ public abstract class BinaryNode : Node
         if (leftType == null || rightType == null)
             return typeof(object);
 
-        var returnType = NodeHelpers.GetReturnTypeMap(leftType, rightType);
+        // Shifts promote the value independently of the width or sign of the count.
+        var returnType = NodeHelpers.GetReturnTypeMap(
+            leftType,
+            this is LeftShiftNode or RightShiftNode ? leftType : rightType
+        );
 
         if (Left is NullNode || Right is NullNode || ShouldLiftNullableArithmetic(leftType, rightType, returnType))
             return MakeNullable(returnType);
@@ -115,7 +126,17 @@ public abstract class BinaryNode : Node
         if (this is HyphenNode && IsTemporalNullableOperation(leftType, rightType))
             return true;
 
-        return this is AddNode or HyphenNode or StarNode or FSlashNode or ModuloNode
+        return this
+                is AddNode
+                    or HyphenNode
+                    or StarNode
+                    or FSlashNode
+                    or ModuloNode
+                    or LeftShiftNode
+                    or RightShiftNode
+                    or BitwiseAndNode
+                    or BitwiseOrNode
+                    or BitwiseXorNode
             || IsAggregateAccess(Left)
             || IsAggregateAccess(Right);
     }

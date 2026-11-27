@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Tokens;
@@ -31,6 +32,11 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
     public override void Visit(AccessColumnNode node)
     {
         ArgumentNullException.ThrowIfNull(node);
+        if (node is SubqueryParameterNode)
+        {
+            Nodes.Push(node);
+            return;
+        }
         Nodes.Push(
             new AccessColumnNode(
                 NamingHelper.ToColumnName(node.Alias, node.Name),
@@ -64,6 +70,8 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
         if (node.IsAggregateMethod())
         {
             Nodes.Pop();
+            if (node.FilterExpression is not null)
+                Nodes.Pop();
 
             var wordNode = node.Arguments.Args.Length > 0 ? node.Arguments.Args[0] as WordNode : null;
             if (IsAggregateDeclarationMethod(node))
@@ -126,6 +134,19 @@ public abstract class RewriteFieldWithGroupMethodCallBase<TFieldNode, TInputFiel
     public override void Visit(WindowFunctionNode node)
     {
         Nodes.Push(node);
+    }
+
+    public override void Visit(RowPresenceNode node)
+    {
+        ArgumentNullException.ThrowIfNull(node);
+        if (fields.Any(field => ExtractOriginalExpression(field) == node.ToString()))
+        {
+            Nodes.Pop();
+            Nodes.Push(new AccessColumnNode(node.ToString(), string.Empty, node.ReturnType, node.Span));
+            return;
+        }
+
+        base.Visit(node);
     }
 
     public override void Visit(CaseNode node)

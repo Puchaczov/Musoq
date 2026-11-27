@@ -499,6 +499,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Arm : TextInterpreterBase<Arm>, ITextInterpreterStatus<Arm>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? Payload { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Payload" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -522,9 +524,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Payload field value.</summary>
-        public string? Payload { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Arm";
 
         public override Arm ParseAt(ReadOnlySpan<char> data, int offset)
@@ -544,10 +543,10 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new Arm();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Payload");
-                string _payload;
+                string _field7_Payload;
                 if ((uint)ParsePosition <= (uint)data.Length)
                 {
-                    _payload = data[ParsePosition..].ToString();
+                    _field7_Payload = data[ParsePosition..].ToString();
                     ParsePosition = data.Length;
                 }
                 else
@@ -559,10 +558,10 @@ namespace Musoq.Generated.Interpreters
                     }
 
                     var __musoqDelimitedFallback0 = __musoqReadResult1.Value!;
-                    _payload = __musoqDelimitedFallback0;
+                    _field7_Payload = __musoqDelimitedFallback0;
                 }
 
-                __parsedValue.Payload = _payload;
+                __parsedValue.Payload = _field7_Payload;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Arm>.Success(__parsedValue);
             }
@@ -579,6 +578,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Packet : TextInterpreterBase<Packet>, ITextInterpreterStatus<Packet>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public Arm? Variant { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Variant" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -602,9 +603,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Variant field value.</summary>
-        public Arm? Variant { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Packet";
 
         public override Packet ParseAt(ReadOnlySpan<char> data, int offset)
@@ -624,21 +622,21 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new Packet();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Variant");
-                Arm? _variant = default;
+                Arm? _field7_Variant = default;
                 {
-                    var _interp_variant_selected = new Arm();
-                    var __musoqReadResult0 = base.ParseNestedStatus(_interp_variant_selected, ref __musoqTextInput, "Variant");
+                    var _interp_field7_Variant_selected = new Arm();
+                    var __musoqReadResult0 = base.ParseNestedStatus(_interp_field7_Variant_selected, ref __musoqTextInput, "Variant");
                     if (!__musoqReadResult0.Succeeded)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                     }
 
-                    var _result_variant_selected = __musoqReadResult0.Value!;
-                    var _variant_selected = _result_variant_selected;
-                    _variant = _variant_selected;
+                    var _result_field7_Variant_selected = __musoqReadResult0.Value!;
+                    var _field7_Variant_selected = _result_field7_Variant_selected;
+                    _field7_Variant = _field7_Variant_selected;
                 }
 
-                __parsedValue.Variant = _variant;
+                __parsedValue.Variant = _field7_Variant;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Success(__parsedValue);
             }

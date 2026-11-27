@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Musoq.Evaluator.Helpers;
 using Musoq.Parser.Nodes;
 
 namespace Musoq.Evaluator.IR.Expressions;
@@ -7,16 +8,18 @@ public sealed partial class ExpressionConverter
 {
     private IrExpression ConvertCoalesce(CoalesceNode node)
     {
-        if (IsNullLiteral(node.Left))
-            return Convert(node.Right);
-
-        if (IsStaticallyNonNullableValueType(node.Left.ReturnType))
-            return Convert(node.Left);
+        if (CoalesceOperandFacts.KnownResult(node) is { } operand)
+            return Convert(operand);
 
         var expressions = new List<IrExpression>();
         CollectCoalesceExpressions(node, expressions);
 
-        return expressions.Count == 1 ? expressions[0] : new Coalesce([.. expressions], RequireReturnType(node));
+        return expressions.Count == 1
+            ? expressions[0]
+            : new Coalesce([.. expressions], RequireReturnType(node))
+            {
+                InterpretationTypeName = InterpretationPropertyBinding.GetIntendedTypeName(node),
+            };
     }
 
     private void CollectCoalesceExpressions(Node node, ICollection<IrExpression> expressions)
@@ -27,34 +30,13 @@ public sealed partial class ExpressionConverter
             return;
         }
 
-        if (IsNullLiteral(coalesce.Left))
+        if (CoalesceOperandFacts.KnownResult(coalesce) is { } operand)
         {
-            CollectCoalesceExpressions(coalesce.Right, expressions);
-            return;
-        }
-
-        if (IsStaticallyNonNullableValueType(coalesce.Left.ReturnType))
-        {
-            expressions.Add(Convert(coalesce.Left));
+            CollectCoalesceExpressions(operand, expressions);
             return;
         }
 
         CollectCoalesceExpressions(coalesce.Left, expressions);
         CollectCoalesceExpressions(coalesce.Right, expressions);
-    }
-
-    private static bool IsStaticallyNonNullableValueType(Type? type)
-    {
-        return type is { IsValueType: true } && Nullable.GetUnderlyingType(type) == null && !IsNullType(type);
-    }
-
-    private static bool IsNullLiteral(Node node)
-    {
-        return node is NullNode || IsNullType(node.ReturnType);
-    }
-
-    private static bool IsNullType(Type? type)
-    {
-        return type is NullNode.NullType;
     }
 }

@@ -1,6 +1,6 @@
 namespace Musoq.Parser.Nodes;
 
-public class HexIntegerNode : ConstantValueNode
+public class HexIntegerNode : NumericLiteralNode
 {
     public HexIntegerNode(string value)
         : this(value, default) { }
@@ -37,6 +37,8 @@ public class HexIntegerNode : ConstantValueNode
     {
         return ObjValue.ToString() ?? string.Empty;
     }
+
+    protected override NumericLiteralNode CreateCopy() => new HexIntegerNode(ObjValue, Span);
 
     public override void Accept(IExpressionVisitor visitor)
     {

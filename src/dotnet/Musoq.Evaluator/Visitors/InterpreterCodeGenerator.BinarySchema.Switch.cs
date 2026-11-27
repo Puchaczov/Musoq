@@ -12,7 +12,7 @@ public partial class InterpreterCodeGenerator
 
     private string GenerateBinarySwitchReadCode(string localVar, string fieldName, BinarySwitchTypeNode switchType)
     {
-        var className = GetOrRegisterSwitchClassName(fieldName, switchType);
+        var className = _registry.BinaryCompositions.Name(switchType);
         var builder = new StringBuilder();
         AppendBinarySwitchBody(builder, localVar, fieldName, switchType);
         builder.Append(GenerateBinarySwitchConstruction($"var {localVar}", localVar, className, switchType));
@@ -26,8 +26,14 @@ public partial class InterpreterCodeGenerator
         BinarySwitchTypeNode switchType
     )
     {
-        var selectorVar = GetLocalVarName(switchType.Selector);
-        var selectorType = GetSwitchSelectorType(switchType.Selector);
+        var selectorType = BinarySchemaExpressionTypes.ResolveSwitchSelector(switchType, _expressionFields, _registry);
+        var selectorVar = GenerateConditionExpression(switchType.SelectorExpression);
+        if (switchType.SelectorExpression is not IdentifierNode)
+        {
+            var captured = NextStatusName("__musoqSelector");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"var {captured} = {selectorVar};");
+            selectorVar = captured;
+        }
 
         builder.AppendLine(CultureInfo.InvariantCulture, $"string {SwitchCaseVariable(localVar)} = null;");
         foreach (var switchCase in switchType.Cases)
@@ -42,9 +48,9 @@ public partial class InterpreterCodeGenerator
             if (switchCase.IsDefault)
                 continue;
 
-            var caseLiteral = GenerateSwitchCaseLiteral(switchCase.CaseValue!, selectorType);
+            var matches = GenerateScalarLiteralEquality(selectorType, selectorVar, switchCase.CaseValue!);
             var keyword = isFirstCase ? "if" : "else if";
-            builder.AppendLine(CultureInfo.InvariantCulture, $"{keyword} ({selectorVar} == {caseLiteral})");
+            builder.AppendLine(CultureInfo.InvariantCulture, $"{keyword} ({matches})");
             AppendBinarySwitchBranch(builder, localVar, switchCase, fieldName);
             isFirstCase = false;
         }
@@ -72,7 +78,7 @@ public partial class InterpreterCodeGenerator
         builder.AppendLine("{");
         builder.AppendLine(
             StatusFailure(
-                $"global::Musoq.Schema.Interpreters.ParseFailure.ForText("
+                $"global::Musoq.Schema.Interpreters.ParseFailure.ForBytes("
                     + $"Musoq.Schema.Interpreters.ParseErrorCode.NoAlternativeMatched, SchemaName, "
                     + $"\"{EscapeString(fieldName)}\", ParsePosition, "
                     + $"\"No switch branch matched selector value \" + "
@@ -134,17 +140,6 @@ public partial class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private string GetOrRegisterSwitchClassName(string fieldName, BinarySwitchTypeNode switchType)
-    {
-        var registered = _switchSchemas.FirstOrDefault(item => ReferenceEquals(item.Switch, switchType));
-        if (registered.Switch != null)
-            return registered.ClassName;
-        var className = SwitchClassName(fieldName);
-        if (_switchSchemas.All(x => x.ClassName != className))
-            _switchSchemas.Add((className, switchType));
-        return className;
-    }
-
     private string GenerateSwitchNestedClass(string className, BinarySwitchTypeNode switchType)
     {
         var fieldName = className["Switch_".Length..];
@@ -179,11 +174,6 @@ public partial class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private static string SwitchClassName(string fieldName)
-    {
-        return $"Switch_{fieldName}";
-    }
-
     private static string SwitchCaseVariable(string localVar)
     {
         return $"{localVar}_case";
@@ -201,36 +191,5 @@ public partial class InterpreterCodeGenerator
         var type = branch.BranchType;
         var clrTypeName = GetBinaryValueClrTypeName(SwitchBranchFieldName(fieldName, branch.BranchAlias), type);
         return type is PrimitiveTypeNode or BitsTypeNode ? $"{clrTypeName}?" : clrTypeName;
-    }
-
-    private Type? GetSwitchSelectorType(string selector)
-    {
-        if (
-            !_registry.TryGetSchema(_currentSchemaName, out var registration)
-            || registration?.Node is not BinarySchemaNode schema
-        )
-            return null;
-
-        return GetAllFieldsIncludingInherited(schema)
-            .FirstOrDefault(field => string.Equals(field.Name, selector, StringComparison.OrdinalIgnoreCase))
-            ?.ReturnType;
-    }
-
-    private string GenerateSwitchCaseLiteral(Node caseValue, Type? selectorType)
-    {
-        var expression = GenerateConditionExpression(caseValue);
-        var targetType = selectorType is null ? null : Nullable.GetUnderlyingType(selectorType) ?? selectorType;
-
-        return targetType switch
-        {
-            { } type when type == typeof(float) || type == typeof(double) =>
-                $"({GetClrTypeNameForSelector(type)})({expression})",
-            _ => expression,
-        };
-    }
-
-    private static string GetClrTypeNameForSelector(Type type)
-    {
-        return type == typeof(float) ? "float" : "double";
     }
 }

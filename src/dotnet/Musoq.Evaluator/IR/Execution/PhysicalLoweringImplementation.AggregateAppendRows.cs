@@ -18,6 +18,8 @@ internal sealed partial class PhysicalLoweringImplementation
         nodes.AddRange(completion.Aggregate.LibraryNodes);
         nodes.Add(CreateTable(completion.ResultTable, completion.ResultShape));
         nodes.Add(completion.ContextCreation);
+        if (completion.InitializeGroup != null)
+            nodes.Add(completion.InitializeGroup);
         nodes.Add(completion.Accumulation);
         nodes.Add(
             new ExecutionEnsureTableCapacity(

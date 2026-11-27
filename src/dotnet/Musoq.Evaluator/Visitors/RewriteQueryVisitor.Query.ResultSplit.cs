@@ -83,6 +83,6 @@ public sealed partial class RewriteQueryVisitor
 
         context.SplitNodes.Add(resultQuery);
 
-        Nodes.Push(IntermediateSources.CreateStatements(context.SplitNodes.ToArray(), null));
+        Nodes.Push(IntermediateSources.CreateResultStatements(context.SplitNodes, _hasScalarRowNumber));
     }
 }

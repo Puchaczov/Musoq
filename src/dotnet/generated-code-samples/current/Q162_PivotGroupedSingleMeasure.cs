@@ -10,22 +10,22 @@ pivot #A.entities()
 // === Logical Plan ===
 /*
 MultiStatement
-  Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
+  Project [ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')]
     Aggregate [keys: City] [aggs: Sum(Money) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Jan')]
       SchemaScan [#A.entities() as ko3iko]
   Sort [ko3iko.City]
-    Project [ko3iko.City as City, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb') as Feb]
+    Project [ko3iko.City as City, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb') as Feb]
       CteRef [ko3ikoScore as ko3ikoScore]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan')]
+  PhysicalProject [ko3iko.City as ko3iko.City, AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'), AggRef(ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')) as ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan')]
     PhysicalSingleKeyAggregate [key: City (String)] [aggs: Sum(Money) filter (where Month = 'Feb'), Sum(Money) filter (where Month = 'Jan')]
       PhysicalSchemaScan [#A.entities() as ko3iko]
   PhysicalSort [ko3iko.City]
-    PhysicalProject [ko3iko.City as City, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb') as Feb]
+    PhysicalProject [ko3iko.City as City, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan') as Jan, ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb') as Feb]
       PhysicalCteRef [ko3ikoScore as ko3ikoScore]
 */
 
@@ -58,7 +58,7 @@ ExecutionPlan [compiled]
       TypedAggregateSet [Set(group.__agg1, ko3iko.Money) filter (month = 'Jan')]
     EnsureShapeCapacity [result <- groupsToFinalize.Count]
     ForEach [finalGroup in groupsToFinalize]
-      AppendShape [result <- ResultShape0(City: finalGroup.City, Jan: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Jan'), Feb: ko3iko.Sum(ko3iko.Money) filter (where Month = 'Feb'))]
+      AppendShape [result <- ResultShape0(City: finalGroup.City, Jan: ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Jan'), Feb: ko3iko.Sum(ko3iko.Money) filter (where ko3iko.Month = 'Feb'))]
     SortOwnedBuffer [result by City ASC, stable sequence __musoqSequence]
     ReturnDeferredTable [resultSorted: ResultShape0 from owned buffer result]
 */

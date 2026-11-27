@@ -27,7 +27,7 @@ public class ExtractAccessColumnFromQueryVisitor : CloneQueryVisitor
 
     public AccessColumnNode[] GetForAlias(string alias)
     {
-        return _accessColumns[alias].ToArray();
+        return _accessColumns.TryGetValue(alias, out var columns) ? columns.ToArray() : [];
     }
 
     public override void Visit(AccessColumnNode node)

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Musoq.Evaluator.Runtime;
 
@@ -10,6 +11,8 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
     private readonly ConcurrentDictionary<TKey, TValue> _values;
     private readonly Queue<TKey> _insertionOrder = new();
     private readonly int _maxSize;
+
+    internal Action<object>? EnterMutationGate { private get; init; }
 
     public BoundedRuntimeCache(int maxSize, IEqualityComparer<TKey>? comparer = null)
     {
@@ -44,7 +47,12 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
         if (_values.TryGetValue(key, out var existing) && isCurrent(existing))
             return existing;
 
-        lock (_gate)
+        if (EnterMutationGate is { } enter)
+            enter(_gate);
+        else
+            Monitor.Enter(_gate);
+
+        try
         {
             if (_values.TryGetValue(key, out existing) && isCurrent(existing))
                 return existing;
@@ -63,6 +71,10 @@ internal sealed class BoundedRuntimeCache<TKey, TValue>
             }
 
             return value;
+        }
+        finally
+        {
+            Monitor.Exit(_gate);
         }
     }
 

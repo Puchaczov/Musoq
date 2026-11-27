@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Evaluator.Tests.External.Contracts;
@@ -15,6 +14,8 @@ namespace Musoq.Evaluator.Tests.Runtime;
 [TestClass]
 public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
 {
+    public TestContext TestContext { get; set; } = null!;
+
     [TestMethod]
     public void UnresolvablePortableDescriptor_ShouldProduceMt1005WithRequirementContext()
     {
@@ -207,18 +208,15 @@ public sealed class CSharpClrReferenceDiscoveryDiagnosticsTests
         return path;
     }
 
-    private static void DeleteDirectory(string directoryPath)
+    private void DeleteDirectory(string directoryPath)
     {
-        for (var attempt = 0; attempt < 10 && Directory.Exists(directoryPath); attempt++)
+        try
         {
-            try
-            {
-                Directory.Delete(directoryPath, recursive: true);
-            }
-            catch (UnauthorizedAccessException) when (attempt < 9)
-            {
-                Thread.Sleep(20);
-            }
+            Directory.Delete(directoryPath, recursive: true);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            TestContext.WriteLine($"Metadata fixture cleanup retained '{directoryPath}': {exception.Message}");
         }
     }
 

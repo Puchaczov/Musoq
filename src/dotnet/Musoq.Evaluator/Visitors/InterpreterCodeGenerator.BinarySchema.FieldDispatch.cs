@@ -13,9 +13,6 @@ public partial class InterpreterCodeGenerator
         return GenerateBinaryValueRead(value, field.Name, field.TypeAnnotation) + $"{localVar} = {value};\n";
     }
 
-    private string GenerateFieldReadCode(FieldDefinitionNode field) =>
-        GenerateBinaryValueRead(GetLocalVarName(field.Name), field.Name, field.TypeAnnotation);
-
     private string GenerateBinaryValueRead(string localVar, string fieldName, TypeAnnotationNode type) =>
         type switch
         {

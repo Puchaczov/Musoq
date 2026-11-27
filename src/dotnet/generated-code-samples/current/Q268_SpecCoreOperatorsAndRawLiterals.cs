@@ -20,16 +20,16 @@ select R'C:\new\test' as RawPath, '\'' as Escaped,
 // === Logical Plan ===
 /*
 MultiStatement
-  Project ['C:\new\test' as RawPath, ''' as Escaped, (-1 * ko3iko.Population) as UnaryValue, (ko3iko.Population + 0) as ArithmeticValue, ((ko3iko.Id & 3) | (ko3iko.Id << 2)) as BitwiseValue, (ko3iko.Id >> 1) as ShiftedValue, 16 as HexValue, 10 as BinaryValue, 15 as OctalValue, 18,5 as DecimalValue, ((ko3iko.Population >= 1) AND (ko3iko.Population <= 2000000)) as InRange, CASE WHEN (ko3iko.Population > 0) THEN 'positive' ELSE 'zero' END as CaseValue, (NULL + ko3iko.Population) as NullPropagation, ko3iko.Population as NullFallback]
-    Filter [(Match('\d+', ko3iko.Name) = TRUE)]
+  Project ['C:\\new\\test' as RawPath, '\'' as Escaped, (-1 * ko3iko.Population) as UnaryValue, (ko3iko.Population + 0) as ArithmeticValue, ((ko3iko.Id & 3) | (ko3iko.Id << 2)) as BitwiseValue, (ko3iko.Id >> 1) as ShiftedValue, 16 as HexValue, 10 as BinaryValue, 15 as OctalValue, 18,5 as DecimalValue, ((ko3iko.Population >= 1) AND (ko3iko.Population <= 2000000)) as InRange, CASE WHEN (ko3iko.Population > 0) THEN 'positive' ELSE 'zero' END as CaseValue, (NULL + ko3iko.Population) as NullPropagation, ko3iko.Population as NullFallback]
+    Filter [(Match('\\d+', ko3iko.Name) = TRUE)]
       SchemaScan [#A.entities() as ko3iko]
 */
 
 // === Physical Plan ===
 /*
 PhysicalMultiStatement
-  PhysicalProject ['C:\new\test' as RawPath, ''' as Escaped, (-1 * ko3iko.Population) as UnaryValue, (ko3iko.Population + 0) as ArithmeticValue, ((ko3iko.Id & 3) | (ko3iko.Id << 2)) as BitwiseValue, (ko3iko.Id >> 1) as ShiftedValue, 16 as HexValue, 10 as BinaryValue, 15 as OctalValue, 18,5 as DecimalValue, ((ko3iko.Population >= 1) AND (ko3iko.Population <= 2000000)) as InRange, CASE WHEN (ko3iko.Population > 0) THEN 'positive' ELSE 'zero' END as CaseValue, (NULL + ko3iko.Population) as NullPropagation, ko3iko.Population as NullFallback]
-    PhysicalFilter [(Match('\d+', ko3iko.Name) = TRUE)]
+  PhysicalProject ['C:\\new\\test' as RawPath, '\'' as Escaped, (-1 * ko3iko.Population) as UnaryValue, (ko3iko.Population + 0) as ArithmeticValue, ((ko3iko.Id & 3) | (ko3iko.Id << 2)) as BitwiseValue, (ko3iko.Id >> 1) as ShiftedValue, 16 as HexValue, 10 as BinaryValue, 15 as OctalValue, 18,5 as DecimalValue, ((ko3iko.Population >= 1) AND (ko3iko.Population <= 2000000)) as InRange, CASE WHEN (ko3iko.Population > 0) THEN 'positive' ELSE 'zero' END as CaseValue, (NULL + ko3iko.Population) as NullPropagation, ko3iko.Population as NullFallback]
+    PhysicalFilter [(Match('\\d+', ko3iko.Name) = TRUE)]
       PhysicalSchemaScan [#A.entities() as ko3iko]
 */
 
@@ -151,7 +151,7 @@ namespace GeneratedSample_Q268_SpecCoreOperatorsAndRawLiterals
                 {
                     decimal population = ko3iko.Population;
                     int id = ko3iko.Id;
-                    return new ResultRow0("C:\\new\\test", "'", (-1 * population), (population + 0), ((id & 3) | (id << 2)), (id >> 1), 16L, 10L, 15L, 18.5m, ((population >= 1) && (population <= 2000000)), (population > 0) ? (string)"positive" : (string)"zero", (null + population), population);
+                    return new ResultRow0("C:\\new\\test", "'", (-1 * population), (population + 0), ((id & 3) | (id << 2)), (id >> 1), 16L, 10L, 15L, 18.5m, ((population >= 1) && (population <= 2000000)), (population > 0) ? (string)"positive" : (string)"zero", (decimal?)(null + population), population);
                 }
 
                 return null;

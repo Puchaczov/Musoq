@@ -21,5 +21,7 @@ public sealed record PhysicalValueTupleAggregateNode(
         )
     )
 {
+    public bool InitializeConstantGroup { get; init; }
+
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Input];
 }

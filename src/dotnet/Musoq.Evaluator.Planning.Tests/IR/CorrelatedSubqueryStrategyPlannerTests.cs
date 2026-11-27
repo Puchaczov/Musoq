@@ -58,6 +58,22 @@ public sealed class CorrelatedSubqueryStrategyPlannerTests
     }
 
     [TestMethod]
+    public void Normalize_CorrelatedScalarRowNumber_ShouldKeepThePositionInsideEachBinding()
+    {
+        var root = Parse(
+            """
+            select (select RowNumber() from #B.entities() b where b.Country = a.Country
+                    order by b.City skip 1 take 1) as S from #A.entities() a
+            """
+        );
+
+        var decision = new PreLogicalNormalizer().Normalize(root).CorrelatedSubqueryDecisions.Single();
+
+        Assert.AreEqual(CorrelatedSubqueryStrategyKind.Apply, decision.Strategy);
+        Assert.Contains("RowNumber()", decision.Reason);
+    }
+
+    [TestMethod]
     public void Plan_ScalarSubquery_ShouldSelectHashSingle()
     {
         var decision = Plan(

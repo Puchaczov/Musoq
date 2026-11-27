@@ -30,8 +30,19 @@ public partial class LibraryExecutionNativeGenericQueryTestsFixtures
         public string Label => "input";
     }
 
+    public sealed record PairInput(KeyValuePair<int, int> Pair, KeyValuePair<int, int>? OptionalPair);
+
     public sealed class GenericLibrary : LibraryBase
     {
+        [BindableMethod]
+        public int PairOnly<T>(KeyValuePair<T, T>? pair) => pair.HasValue ? 1 : 0;
+
+        [BindableMethod]
+        public int ChoosePair<T>(KeyValuePair<T, T>? pair) => PairOnly(pair);
+
+        [BindableMethod]
+        public int ChoosePair(object value) => -1;
+
         [BindableMethod]
         public int NativeLength<T>(IReadOnlyList<T> values) => values.Count;
 

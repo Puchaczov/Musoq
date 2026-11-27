@@ -273,6 +273,46 @@ public sealed class CorrelatedSubqueryFallbackTests : BasicEntityTestBase
     }
 
     [TestMethod]
+    public void OuterColumnBesideScalarCount_ShouldStayConstantForTheInnerGroup()
+    {
+        const string sql = """
+            select (select Count(*)+a.K from values { (K: 2) } b where b.K=a.K) as S
+            from values { (K: 1) } a
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1L]);
+    }
+
+    [TestMethod]
+    public void OuterColumnInsideScalarCase_ShouldResolveInTheEnclosingQuery()
+    {
+        const string sql = """
+            select (select case when a.K=1 then 7 else 9 end from values { (K: 1) } b where b.K=a.K) as S
+            from values { (K: 1) } a
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [7]);
+    }
+
+    [TestMethod]
+    public void ExistsOverJoinedRows_ShouldSkipTheUnusedFinalProjection()
+    {
+        const string sql = """
+            select case when exists (
+                select 1 / b.D from values { (K: 1) } a cross join values { (D: 0) } b
+            ) then 1 else 0 end as S from values { (K: 1) } v
+            """;
+        using var compiled = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1]);
+    }
+
+    [TestMethod]
     public void WindowArgumentFallback_ShouldKeepTheInnerAggregateOutsideTheWindowScope()
     {
         const string query =

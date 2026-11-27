@@ -240,6 +240,18 @@ public partial class TransformTree(BuildChain successor, ILoggerResolver loggerR
                 planningArtifacts = planningStage.Artifacts;
                 items.SemanticArtifacts = semanticArtifacts;
                 items.PlanningArtifacts = planningArtifacts;
+                if (
+                    PlannedInterpretationReaders.Generate(
+                        context.SchemaRegistry,
+                        context.CompilationOptions.InterpretationLimits,
+                        planningArtifacts.PhysicalPlan
+                    ) is
+                    { } plannedSource
+                )
+                {
+                    items.InterpreterSourceCode = plannedSource;
+                    context = context with { InterpreterSourceCode = plannedSource };
+                }
             }
 
             if (context.DiagnosticContext is { HasErrors: true } || context.StopAfterPlanning)

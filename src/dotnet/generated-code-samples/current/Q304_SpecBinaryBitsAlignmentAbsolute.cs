@@ -303,6 +303,10 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class PositionedFlags : BytesInterpreterBase<PositionedFlags>, IBytesInterpreterStatus<PositionedFlags>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Flags { get; set; }
+        public byte NextByte { get; set; }
+        public int Signature { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Flags", "NextByte", "Signature" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -340,13 +344,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Flags field value.</summary>
-        public byte Flags { get; set; }
-        /// <summary>Gets the NextByte field value.</summary>
-        public byte NextByte { get; set; }
-        /// <summary>Gets the Signature field value.</summary>
-        public int Signature { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "PositionedFlags";
 
         public override PositionedFlags InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<PositionedFlags>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -369,8 +366,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PositionedFlags>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _flags = (byte)ReadBits(data, 3);
-                __parsedValue.Flags = _flags;
+                var _field5_Flags = (byte)ReadBits(data, 3);
+                __parsedValue.Flags = _field5_Flags;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("_");
                 if (base.AlignWithStatus(8)is { } __musoqReadFailure2)
@@ -384,8 +381,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PositionedFlags>.Failed(__parsedValue, __musoqReadFailure3);
                 }
 
-                var _nextByte = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.NextByte = _nextByte;
+                var _field8_NextByte = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.NextByte = _field8_NextByte;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("Signature");
                 var __musoqOffset4 = 0;
@@ -399,8 +396,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<PositionedFlags>.Failed(__parsedValue, __musoqReadFailure6);
                 }
 
-                var _signature = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.Signature = _signature;
+                var _field9_Signature = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Signature = _field9_Signature;
                 base.RecordParsedFieldSlot(2);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<PositionedFlags>.Success(__parsedValue);
             }

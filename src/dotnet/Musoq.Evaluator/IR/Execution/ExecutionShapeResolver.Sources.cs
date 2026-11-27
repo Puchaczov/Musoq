@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.IR.Bindings;
+using Musoq.Evaluator.IR.Expressions;
 using Musoq.Evaluator.IR.Logical.Nodes;
 using Musoq.Evaluator.IR.Physical.Nodes;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Plugins;
 
 namespace Musoq.Evaluator.IR.Execution;
@@ -47,6 +49,19 @@ public sealed partial class ExecutionShapeResolver
         ArgumentNullException.ThrowIfNull(interpret);
         var entityType = ResolveInterpretEntityType(interpret);
         var columns = ResolveInterpretColumns(interpret);
+        if (interpret.FieldReader is { } reader)
+            columns = columns
+                .Select(column =>
+                    reader.Demand(column.Name) == BinaryFieldDemand.Length
+                        ? column with
+                        {
+                            Type = typeof(int?),
+                            SourceReadType = typeof(int?),
+                            IntendedTypeName = null,
+                        }
+                        : column
+                )
+                .ToArray();
         if (HasGeneratedInterpreterTypeName(interpret.SchemaName))
         {
             _schemaRegistry!.TryGetSchema(interpret.SchemaName, out var registration);
@@ -55,7 +70,7 @@ public sealed partial class ExecutionShapeResolver
                 columns,
                 interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
                     ? $"Musoq.Schema.Interpreters.PartialInterpretResult<{registration?.GeneratedTypeName}>"
-                    : registration?.GeneratedTypeName,
+                    : interpret.FieldReader?.TypeName ?? registration?.GeneratedTypeName,
                 column =>
                     column == "ParsedFields"
                     && interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse
@@ -66,9 +81,14 @@ public sealed partial class ExecutionShapeResolver
                             _schemaRegistry
                         )
             );
-            if (registration?.Node is not Musoq.Parser.Nodes.InterpretationSchema.TextSchemaNode)
+            var result =
+                registration?.Node is Musoq.Parser.Nodes.InterpretationSchema.TextSchemaNode
+                    ? new TextResultShapeBinding(_schemaRegistry).Schema(interpret.SchemaName)
+                    : _schemaRegistry.EmbeddedTextShapes?.Record(
+                        BinarySchemaGenericResolver.ParseReference(interpret.SchemaName)
+                    );
+            if (result == null)
                 return shape;
-            var result = new TextResultShapeBinding(_schemaRegistry).Schema(interpret.SchemaName);
             var partial = interpret.Kind is InterpretSourceKind.PartialInterpret or InterpretSourceKind.PartialParse;
             return shape with
             {
@@ -103,6 +123,30 @@ public sealed partial class ExecutionShapeResolver
             if (generatedTypeName?.EndsWith("[]", StringComparison.Ordinal) == true)
                 generatedTypeName = generatedTypeName[..^2];
 
+            if (
+                generatedTypeName is not null
+                && _schemaRegistry is not null
+                && TextSwitchPropertyResolver.Find(_schemaRegistry, generatedTypeName) is { } element
+            )
+            {
+                var source = CreateClrMemberSourceShape(
+                    property.Alias,
+                    property.OutputSchema.Columns,
+                    element.TypeName
+                );
+                var shape = new ExecutionInterpretationShape(element);
+                return source with
+                {
+                    ElementInterpretationShape = shape,
+                    Fields = source
+                        .Fields.Select(field =>
+                        {
+                            var member = shape.Member(field.Name);
+                            return field with { InterpretationShape = member, GeneratedTypeName = member?.TypeName };
+                        })
+                        .ToArray(),
+                };
+            }
             return CreateClrMemberSourceShape(
                 property.Alias,
                 property.OutputSchema.Columns,
@@ -122,6 +166,8 @@ public sealed partial class ExecutionShapeResolver
     public RowShape ResolveAccessMethodSourceShape(PhysicalAccessMethodSourceNode accessMethod)
     {
         ArgumentNullException.ThrowIfNull(accessMethod);
+        if (accessMethod.MethodCallExpression is SubqueryExpression { Kind: SubqueryResultKind.Rows })
+            return TableRowShape.FromSchema(accessMethod.Alias, accessMethod.OutputSchema);
         return ResolveEnumerableSourceShape(
             accessMethod.Alias,
             accessMethod.ResultType,
@@ -136,14 +182,14 @@ public sealed partial class ExecutionShapeResolver
     )
     {
         var elementType = ResolveEnumerableElementType(resultType);
-        var scalarShape = IsScalar(elementType) ? CreateEnumerableScalarSourceShape(alias, elementType, columns) : null;
-        if (scalarShape != null)
-            return scalarShape;
-
         if (IsScalar(elementType))
-            return CreateSourceShape(alias, typeof(PrimitiveTypeEntity<>).MakeGenericType(elementType), columns);
+            return CreateEnumerableScalarSourceShape(alias, elementType, columns)
+                ?? CreateSourceShape(alias, typeof(PrimitiveTypeEntity<>).MakeGenericType(elementType), columns);
 
-        return CreateSourceShape(alias, elementType, columns);
+        return CreateSourceShape(alias, elementType, columns) with
+        {
+            IsRecordEnumerable = true,
+        };
     }
 
     private static SourceEntityShape? CreateEnumerableScalarSourceShape(

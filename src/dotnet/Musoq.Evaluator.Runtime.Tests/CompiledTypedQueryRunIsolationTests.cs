@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema;
+using Musoq.Tests.Common;
 
 namespace Musoq.Evaluator.Tests;
 
@@ -45,8 +46,9 @@ public sealed class CompiledTypedQueryRunIsolationTests
     }
 
     [TestMethod]
-    public void Run_WhenEnumerationsOverlap_ShouldNotSerializeOneRunnable()
+    public async Task Run_WhenEnumerationsOverlap_ShouldNotSerializeOneRunnable()
     {
+        using var watchdog = new TestWatchdog();
         var runnable = new ObservedTypedRunnable();
         var query = new CompiledTypedQuery<string>(runnable);
         var firstRows = query.Run(
@@ -70,24 +72,30 @@ public sealed class CompiledTypedQueryRunIsolationTests
         Assert.IsTrue(firstEnumerator.MoveNext());
         Assert.AreEqual("first", firstEnumerator.Current);
 
-        var secondMaterialized = Array.Empty<string>();
-        var secondTask = Task.Factory.StartNew(
-            () => secondMaterialized = secondRows.ToArray(),
-            CancellationToken.None,
-            TaskCreationOptions.LongRunning,
-            TaskScheduler.Default
+        var secondTask = TestWatchdog.StartWorker(() => secondRows.ToArray());
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(
+                    runnable.SecondRunEntered,
+                    secondTask,
+                    "the second enumeration"
+                );
+                firstEnumerator.Dispose();
+                await watchdog.WaitAsync(secondTask, "the second result");
+                CollectionAssert.AreEqual(new[] { "second" }, await secondTask);
+            },
+            () =>
+            {
+                firstEnumerator.Dispose();
+                return secondTask;
+            }
         );
-        var secondEnteredBeforeFirstDisposed = runnable.WaitForRunCount(2, TimeSpan.FromSeconds(2));
-
-        firstEnumerator.Dispose();
-        Assert.IsTrue(secondTask.Wait(TimeSpan.FromSeconds(5)));
-        Assert.IsTrue(secondEnteredBeforeFirstDisposed);
-        CollectionAssert.AreEqual(new[] { "second" }, secondMaterialized);
     }
 
     private sealed class ObservedTypedRunnable : ITypedRunnable<string>, IParameterizedRunnable
     {
-        private readonly ManualResetEventSlim _secondRunEntered = new();
+        private readonly TaskCompletionSource _secondRunEntered = TestWatchdog.Signal();
         private QueryPhaseEventHandler? _phaseChanged;
         private DataSourceEventHandler? _dataSourceProgress;
         private int _runCount;
@@ -135,7 +143,7 @@ public sealed class CompiledTypedQueryRunIsolationTests
         {
             ArgumentNullException.ThrowIfNull(options);
             if (Interlocked.Increment(ref _runCount) == 2)
-                _secondRunEntered.Set();
+                _secondRunEntered.SetResult();
 
             options.PhaseChanged?.Invoke(this, new QueryPhaseEventArgs("typed", QueryPhase.Select));
             var value = options.TypedParameters.Contains("value")
@@ -157,10 +165,7 @@ public sealed class CompiledTypedQueryRunIsolationTests
             );
         }
 
-        public bool WaitForRunCount(int count, TimeSpan timeout)
-        {
-            return count <= Volatile.Read(ref _runCount) || _secondRunEntered.Wait(timeout);
-        }
+        internal Task SecondRunEntered => _secondRunEntered.Task;
     }
 
     private sealed class ThrowingSchemaProvider : ISchemaProvider

@@ -1,3 +1,4 @@
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Converter.Exceptions;
 using Musoq.Parser.Diagnostics;
@@ -39,6 +40,66 @@ public partial class BinarySpecificationRegressionTests
             [0, 0]
         );
         TableMaterializationTestHelper.AssertRowsInOrder(table, [expected]);
+    }
+
+    [TestMethod]
+    [DataRow("F", typeof(byte), (byte)42)]
+    [DataRow("(F = 42)", typeof(bool), true)]
+    public void RequiredScalarWithNullFallback_ShouldKeepItsValueAndType(string operand, Type type, object expected)
+    {
+        using var table = RunBinary($"binary Rec {{ F: byte, C: = {operand} ?? null }};", "r.C as V", [42]);
+        TableMaterializationTestHelper.AssertColumns(table, ("V", type));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [expected]);
+    }
+
+    [TestMethod]
+    [DataRow("A", ".V", "D ?? null")]
+    [DataRow("A", ".V", "null ?? D")]
+    [DataRow("A[1]", "[0].V", "D ?? null")]
+    [DataRow("A[1]", "[0].V", "null ?? D")]
+    public void ComputedRecordWithNullFallback_ShouldExposeItsDeclaredMember(
+        string type,
+        string member,
+        string expression
+    )
+    {
+        using var table = RunBinary(
+            $"binary A {{ V: byte }}; binary Rec {{ D: {type}, C: = {expression}, Z: = C{member} }};",
+            "r.Z as V",
+            [42]
+        );
+        TableMaterializationTestHelper.AssertColumns(table, ("V", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsInOrder(table, [(byte)42]);
+    }
+
+    [TestMethod]
+    [DataRow("A", ".V")]
+    [DataRow("A[1]", "[0].V")]
+    public void ComputedRecordFallback_ShouldUseTheFirstPresentRecord(string type, string member)
+    {
+        using var table = RunBinary(
+            $"binary A {{ V: byte }}; binary Rec {{ Flag: byte, D: {type} when Flag = 1, B: {type}, C: = D ?? B }};",
+            $"r.C{member} as V",
+            [1, 42, 255],
+            [0, 7]
+        );
+        TableMaterializationTestHelper.AssertColumns(table, ("V", typeof(byte)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [(byte)42], [(byte)7]);
+    }
+
+    [TestMethod]
+    [DataRow("A", ".V")]
+    [DataRow("A[1]", "[0].V")]
+    public void ImmediateMemberOfCaseResult_ShouldReadTheChosenRecordOrNull(string type, string path)
+    {
+        using var table = RunBinary(
+            $"binary A {{ V: byte }}; binary Rec {{ F: byte, D: {type}, Z: = (case when F=1 then D end){path} }};",
+            "r.Z as V",
+            [0, 42],
+            [1, 42]
+        );
+        TableMaterializationTestHelper.AssertColumns(table, ("V", typeof(byte?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null], [(byte)42]);
     }
 
     [TestMethod]

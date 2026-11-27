@@ -25,18 +25,13 @@ public sealed partial class RewriteQueryVisitor
                 )
                 : context.From;
         var refreshMethods = QueryRewriteUtilities.CreateRefreshMethods(context.UsedRefreshMethods ?? []);
-        var splitSelectFields = FieldProcessingHelper.SplitBetweenAggregateAndNonAggregate(
-            context.Select.Fields,
-            groupBy.Fields,
-            true
+        var (aggSelect, outSelect) = FieldProcessingHelper.CreateGroupedProjections(
+            context.Select,
+            groupBy,
+            context.OrderBy,
+            context.Window,
+            context.Qualify
         );
-        var aggSelect = new SelectNode(
-            QueryRewriteUtilities
-                .ConcatAggregateFieldsWithGroupByFields(splitSelectFields[0], groupBy.Fields)
-                .Reverse()
-                .ToArray()
-        );
-        var outSelect = new SelectNode(splitSelectFields[1], context.Select.IsDistinct);
 
         var scopeCreateTransformingTable = Scope.AddScope("Table");
         var scopeTransformedQuery = Scope.AddScope("Query");
@@ -181,6 +176,6 @@ public sealed partial class RewriteQueryVisitor
         context.SplitNodes.Add(new CreateTransformationTableNode(query.From.Alias, [], query.Select.Fields, false));
         context.SplitNodes.Add(query);
 
-        Nodes.Push(IntermediateSources.CreateStatements(context.SplitNodes.ToArray(), null));
+        Nodes.Push(IntermediateSources.CreateResultStatements(context.SplitNodes, _hasScalarRowNumber));
     }
 }

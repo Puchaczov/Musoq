@@ -103,6 +103,7 @@ internal static class SubqueryCorrelationUtilities
         switch (node)
         {
             case null:
+            case QueryNode:
                 return;
             case AccessColumnNode accessColumn:
                 columns.Add(
@@ -118,23 +119,9 @@ internal static class SubqueryCorrelationUtilities
             case DotNode { Root: IdentifierNode alias, Expression: IdentifierNode column }:
                 columns.Add(new AccessColumnNode(column.Name, alias.Name, node.ReturnType ?? typeof(void), node.Span));
                 return;
-            case DotNode dot:
-                CollectAccessColumns(dot.Root, columns);
-                CollectAccessColumns(dot.Expression, columns);
-                return;
-            case BinaryNode binary:
-                CollectAccessColumns(binary.Left, columns);
-                CollectAccessColumns(binary.Right, columns);
-                return;
-            case UnaryNode unary:
-                CollectAccessColumns(unary.Expression, columns);
-                return;
-            case IsNullNode isNull:
-                CollectAccessColumns(isNull.Expression, columns);
-                return;
-            case AccessMethodNode method:
-                foreach (var argument in method.Arguments.Args)
-                    CollectAccessColumns(argument, columns);
+            default:
+                foreach (var child in ParserNodeTraversalRegistry.EnumerateChildren(node))
+                    CollectAccessColumns(child, columns);
                 return;
         }
     }

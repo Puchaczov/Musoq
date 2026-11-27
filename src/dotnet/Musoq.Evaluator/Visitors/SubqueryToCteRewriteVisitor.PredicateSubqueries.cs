@@ -143,7 +143,7 @@ public partial class SubqueryToCteRewriteVisitor
     ) : CloneQueryVisitor, ISubqueryExpressionContextRewriter<PredicateSubqueryJoin>
     {
         private readonly List<PredicateSubqueryJoin> _joins = [];
-        private readonly Dictionary<string, PredicateSubqueryJoin> _preparedSubqueries = new();
+        private readonly Dictionary<string, Node> _preparedSubqueries = new();
 
         public IReadOnlyList<PredicateSubqueryJoin> Joins => _joins;
 
@@ -168,12 +168,12 @@ public partial class SubqueryToCteRewriteVisitor
 
         public override void Visit(InQueryNode node)
         {
-            Nodes.Push(PrepareSubquery(SubqueryInfo.CreateIn(node, false)).Replacement);
+            Nodes.Push(PrepareSubquery(SubqueryInfo.CreateIn(node, false)));
         }
 
         public override void Visit(ExistsQueryNode node)
         {
-            Nodes.Push(PrepareSubquery(SubqueryInfo.CreateExists(node, false)).Replacement);
+            Nodes.Push(PrepareSubquery(SubqueryInfo.CreateExists(node, false)));
         }
 
         public override void Visit(NotNode node)
@@ -181,11 +181,11 @@ public partial class SubqueryToCteRewriteVisitor
             switch (node.Expression)
             {
                 case InQueryNode inQuery:
-                    Nodes.Push(PrepareNotInSubquery(inQuery));
+                    Nodes.Push(PrepareSubquery(SubqueryInfo.CreateIn(inQuery, true)));
                     return;
 
                 case ExistsQueryNode existsQuery:
-                    Nodes.Push(PrepareSubquery(SubqueryInfo.CreateExists(existsQuery, true)).Replacement);
+                    Nodes.Push(PrepareSubquery(SubqueryInfo.CreateExists(existsQuery, true)));
                     return;
 
                 default:
@@ -218,16 +218,17 @@ public partial class SubqueryToCteRewriteVisitor
             );
         }
 
-        private PredicateSubqueryJoin PrepareSubquery(SubqueryInfo subqueryInfo)
+        private Node PrepareSubquery(SubqueryInfo subqueryInfo)
         {
             var key = CreatePreparedKey(subqueryInfo);
-            if (_preparedSubqueries.TryGetValue(key, out var rewrite))
-                return rewrite;
+            if (_preparedSubqueries.TryGetValue(key, out var value))
+                return value;
 
-            rewrite = owner.PreparePredicateApplySubquery(subqueryInfo, analysis, cteInnerExpressions);
-            _preparedSubqueries.Add(key, rewrite);
+            var rewrite = owner.PreparePredicateApplySubquery(subqueryInfo, analysis, cteInnerExpressions);
             _joins.Add(rewrite);
-            return rewrite;
+            value = owner.PreparePredicateValue(subqueryInfo, rewrite, cteInnerExpressions, _joins.Add);
+            _preparedSubqueries.Add(key, value);
+            return value;
         }
 
         private static string CreatePreparedKey(SubqueryInfo subqueryInfo) =>

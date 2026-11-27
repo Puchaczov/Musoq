@@ -8,6 +8,42 @@ namespace Musoq.Evaluator.Tests;
 public class BetweenTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void BetweenWithNumericBounds_ShouldCoerceTextAndKeepUnknownResults()
+    {
+        const string query = """
+            select v.S between 5 and 8 as M
+            from values { (S:'4'),(S:'7'),(S:'bad'),(S:null),(S:'7') } v
+            """;
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [false], [true], [null], [null], [true]);
+    }
+
+    [TestMethod]
+    public void BetweenWithDateLiterals_ShouldBindEachBoundToTheTemporalOperand()
+    {
+        const string query = """
+            param(t:datetime='2024-01-02')
+            select v.T between '2024-01-01' and '2024-01-03' as M from values { (T:$t) } v
+            """;
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { true });
+    }
+
+    [TestMethod]
+    public void BetweenWithNullOnlyLowerColumn_ShouldRetainADecisiveUpperBound()
+    {
+        const string query = "select v.X between v.N and 0 as M from values { (X:0,N:null),(X:2,N:null) } v";
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [null], [false]);
+    }
+
+    [TestMethod]
     public void Between_ValueInRange_ReturnsTrue()
     {
         TestMethodTemplate("5 between 1 and 10", true);

@@ -75,6 +75,8 @@ public sealed partial class ExecutionCSharpRenderer
         var receiver = RenderExpression(memberRead.Receiver, context);
         if (memberRead.IsNullSafe)
             return NullSafeMemberSyntax.Render(memberRead, receiver);
+        if (receiver is ConditionalAccessExpressionSyntax)
+            receiver = SyntaxFactory.ParenthesizedExpression(receiver);
         return SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             receiver,
@@ -142,14 +144,19 @@ public sealed partial class ExecutionCSharpRenderer
         ExpressionSyntax sourceValue;
         if (generatedNested.FieldIndex is { } fieldIndex)
         {
-            var rootTypeName =
-                generatedNested.ValueTypeName
-                ?? throw new InvalidOperationException("Indexed nested rows require a concrete root type.");
-            sourceValue = CreateNativeRowValueRead(typedRow, fieldIndex, SyntaxFactory.ParseTypeName(rootTypeName));
+            var rootType = generatedNested.ValueTypeName is { } generatedType
+                ? SyntaxFactory.ParseTypeName(generatedType)
+                : CreateTypeSyntax(
+                    generatedNested.PositionalRootType
+                        ?? throw new InvalidOperationException("Indexed nested rows require a concrete root type.")
+                );
+            sourceValue = CreateNativeRowValueRead(typedRow, fieldIndex, rootType);
         }
         else if (isNullSafe)
         {
-            var nullSafePath = generatedNested.FieldName.Replace(".", "?.", StringComparison.Ordinal);
+            var nullSafePath = InterpretationCSharpNames
+                .Reference(generatedNested.FieldName)
+                .Replace(".", "?.", StringComparison.Ordinal);
             sourceValue = SyntaxFactory.ParseExpression($"({typedRow})?.{nullSafePath}");
         }
         else
@@ -166,12 +173,13 @@ public sealed partial class ExecutionCSharpRenderer
             );
         }
 
+        var propertyPath = InterpretationCSharpNames.Reference(generatedNested.PropertyPath);
         var separator =
             generatedNested.PropertyPath.StartsWith("[", StringComparison.Ordinal)
             || generatedNested.PropertyPath.StartsWith(".", StringComparison.Ordinal)
                 ? string.Empty
                 : ".";
-        var value = SyntaxFactory.ParseExpression($"{sourceValue}{separator}{generatedNested.PropertyPath}");
+        var value = SyntaxFactory.ParseExpression($"{sourceValue}{separator}{propertyPath}");
 
         if (generatedNested.PropertyPath.IndexOf('[') >= 0)
         {
@@ -180,7 +188,7 @@ public sealed partial class ExecutionCSharpRenderer
         else if (isNullSafe)
         {
             value = SyntaxFactory.ParseExpression(
-                $"{sourceValue}?.{generatedNested.PropertyPath.Replace(".", "?.", StringComparison.Ordinal)}"
+                $"{sourceValue}?.{propertyPath.Replace(".", "?.", StringComparison.Ordinal)}"
             );
         }
 

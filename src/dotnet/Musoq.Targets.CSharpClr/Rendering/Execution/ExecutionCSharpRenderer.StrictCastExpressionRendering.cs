@@ -17,7 +17,16 @@ public sealed partial class ExecutionCSharpRenderer
             return CastExpressionIfNeeded(source, targetType, sourceType);
 
         if (sourceType == typeof(DBNull))
-            return CreateTypedNull(targetType);
+        {
+            if (strictCast.Expression is ExecutionLiteral { Value: null })
+                return CreateTypedNull(targetType);
+            return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.ParseExpression(
+                    $"global::{typeof(StrictCastRuntime).FullName}.{nameof(StrictCastRuntime.FromNull)}<{CreateTypeSyntax(targetType)}>"
+                ),
+                CreateArgumentList(source)
+            );
+        }
 
         var methodName = GetLibraryConversionMethodName(StrictCastLibraryConversionFacts.GetCastTargetType(targetType));
         var sourceValueType = Nullable.GetUnderlyingType(sourceType) ?? sourceType;

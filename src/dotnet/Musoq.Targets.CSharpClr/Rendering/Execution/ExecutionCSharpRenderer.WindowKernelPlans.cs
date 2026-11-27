@@ -15,13 +15,16 @@ public sealed partial class ExecutionCSharpRenderer
     {
         if (plan.Kernels.All(static kernel => kernel is ExecutionComputeRankingWindow))
         {
-            return RenderRankingWindowKernelPlan(plan.Kernels.Cast<ExecutionComputeRankingWindow>().ToArray());
+            return RenderRankingWindowKernelPlan(context, plan.Kernels.Cast<ExecutionComputeRankingWindow>().ToArray());
         }
 
         return RenderBlock(new ExecutionBlock(plan.Kernels), context).Statements;
     }
 
-    private List<StatementSyntax> RenderRankingWindowKernelPlan(IReadOnlyList<ExecutionComputeRankingWindow> rankings)
+    private List<StatementSyntax> RenderRankingWindowKernelPlan(
+        ExecutionRenderContext renderContext,
+        IReadOnlyList<ExecutionComputeRankingWindow> rankings
+    )
     {
         if (rankings.Count == 0)
             return [];
@@ -37,7 +40,7 @@ public sealed partial class ExecutionCSharpRenderer
         var extractionHelper = CreateRankingWindowKeyExtractionHelper(first, generatedRowTypeName: null);
 
         if (rankings.Count == 1 && CanUseFusedIntOrderRankingWindow(first))
-            return RenderComputeRankingWindow(first);
+            return RenderComputeRankingWindow(renderContext, first);
 
         if ((partitionKeys?.ShouldExtract ?? false) || orderKeys.ShouldExtract)
         {
@@ -56,7 +59,7 @@ public sealed partial class ExecutionCSharpRenderer
                         partitionKeys,
                         extractionHelper.PartitionBuilder,
                         indexVariableName,
-                        CreateRankingPartitionKeyExpression(partitionKeys, first.PartitionKey!)
+                        CreateRankingPartitionKeyExpression(renderContext, partitionKeys, first.PartitionKey!)
                     )
                 );
 
@@ -66,7 +69,7 @@ public sealed partial class ExecutionCSharpRenderer
                     CreateWindowKeyArrayAssignment(
                         orderKeys,
                         indexVariableName,
-                        CreateRankingOrderKeyExpression(orderKeys, first.OrderKeys)
+                        CreateRankingOrderKeyExpression(renderContext, orderKeys, first.OrderKeys)
                     )
                 );
             }

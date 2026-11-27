@@ -37,7 +37,7 @@ public static class RowChunking
             yield break;
         }
 
-        foreach (var chunk in CreateBufferedChunks(rows, chunkSize))
+        foreach (var chunk in CreateBufferedChunks(rows, chunkSize, chunkSize))
             yield return chunk;
     }
 
@@ -106,27 +106,34 @@ public static class RowChunking
         }
     }
 
-    private static IEnumerable<IReadOnlyList<T>> CreateBufferedChunks<T>(IEnumerable<T> rows, int chunkSize)
+    internal static IEnumerable<IReadOnlyList<T>> CreateBufferedChunks<T>(
+        IEnumerable<T> rows,
+        int chunkSize,
+        int initialSize
+    )
     {
-        var buffer = new T[chunkSize];
+        T[]? buffer = null;
         var count = 0;
 
         foreach (var row in rows)
         {
+            buffer ??= new T[initialSize];
+            if (count == buffer.Length)
+                Array.Resize(ref buffer, chunkSize);
             buffer[count++] = row;
-            if (count != buffer.Length)
+            if (count != chunkSize)
                 continue;
 
             yield return buffer;
-            buffer = new T[chunkSize];
+            buffer = null;
             count = 0;
         }
 
-        if (count == 0)
+        if (buffer is null)
             yield break;
 
-        var remainder = new T[count];
-        Array.Copy(buffer, remainder, count);
-        yield return remainder;
+        if (count != buffer.Length)
+            Array.Resize(ref buffer, count);
+        yield return buffer;
     }
 }

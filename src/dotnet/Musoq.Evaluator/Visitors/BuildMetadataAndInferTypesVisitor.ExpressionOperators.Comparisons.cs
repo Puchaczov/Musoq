@@ -9,7 +9,7 @@ public partial class BuildMetadataAndInferTypesVisitor
     {
         ArgumentNullException.ThrowIfNull(node);
         VisitBinaryOperatorWithTypeConversion(
-            (left, right) => new EqualityNode(left, right),
+            MaterializedInEqualityNode.GetRebindFactory(node),
             node,
             BinaryOperatorKind.Equality
         );

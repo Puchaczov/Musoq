@@ -47,32 +47,6 @@ public partial class SubqueryToCteRewriteVisitor
         };
     }
 
-    private Node ProjectExistsKey(Node node, string cteColumnName, List<CteInnerExpressionNode> cteInnerExpressions)
-    {
-        switch (node)
-        {
-            case QueryNode query:
-            {
-                var (rewrittenQuery, innerCtes) = RewriteNestedInSubqueries(query);
-                cteInnerExpressions.AddRange(innerCtes);
-                return ProjectExistsKey(rewrittenQuery, cteColumnName);
-            }
-
-            case SingleSetNode singleSet:
-                return new SingleSetNode(ProjectExistsKey(singleSet.Query, cteColumnName));
-
-            case SetOperatorNode setOperator:
-                return RecreateSetOperator(
-                    setOperator,
-                    ProjectExistsKey(setOperator.Left, cteColumnName, cteInnerExpressions),
-                    ProjectExistsKey(setOperator.Right, cteColumnName, cteInnerExpressions)
-                );
-
-            default:
-                return node;
-        }
-    }
-
     private static QueryNode ProjectExistsKey(QueryNode query, string cteColumnName)
     {
         return new QueryNode(

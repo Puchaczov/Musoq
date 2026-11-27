@@ -26,9 +26,9 @@ public partial class InterpreterCodeGenerator
                 _ => "object",
             },
             ByteArrayTypeNode => "byte[]",
-            StringTypeNode s => s.AsTextSchemaName ?? "string",
+            StringTypeNode s => s.AsTextSchemaName is { } name ? EscapeCSharpIdentifier(name) : "string",
             BitsTypeNode b => GetBitsClrTypeName(b),
-            SchemaReferenceTypeNode s => s.FullTypeName,
+            SchemaReferenceTypeNode s => InterpretationCSharpNames.Reference(s.FullTypeName),
             ArrayTypeNode a => $"{GetClrTypeName(a.ElementType)}[]",
             RepeatUntilTypeNode r => $"{GetClrTypeName(r.ElementType)}[]",
             BinarySwitchTypeNode => "System.Dynamic.ExpandoObject",
@@ -45,8 +45,7 @@ public partial class InterpreterCodeGenerator
     private string GetBinaryValueClrTypeName(string fieldName, TypeAnnotationNode type) =>
         type switch
         {
-            InlineSchemaTypeNode inline => GetOrRegisterInlineSchemaClassName(fieldName, inline, null),
-            BinarySwitchTypeNode choice => GetOrRegisterSwitchClassName(fieldName, choice),
+            InlineSchemaTypeNode or BinarySwitchTypeNode => _registry.BinaryCompositions.Name(type),
             ArrayTypeNode array => $"{GetBinaryValueClrTypeName(fieldName, array.ElementType)}[]",
             RepeatUntilTypeNode repeat => $"{GetBinaryValueClrTypeName(fieldName, repeat.ElementType)}[]",
             SubstreamTypeNode { Target: { } target } => GetBinaryValueClrTypeName(fieldName, target),
@@ -61,12 +60,17 @@ public partial class InterpreterCodeGenerator
             _ => "object",
         };
 
-    private string InferComputedFieldTypeName(Node expression, List<SchemaFieldNode>? contextFields = null) =>
-        BinarySchemaRecordAliases.Resolve(expression, contextFields ?? []) is { } record
+    private string InferComputedFieldTypeName(
+        Node expression,
+        IReadOnlyList<SchemaFieldNode>? contextFields = null,
+        Type? resolvedType = null
+    ) =>
+        resolvedType?.IsValueType != true
+        && BinarySchemaRecordAliases.Resolve(expression, contextFields ?? [], _registry) is { } record
             ? GetClrTypeNameForFieldDefinition(record)
             : MapClrTypeName(
                 BinarySchemaExpressionTypes.Unwrap(
-                    BinarySchemaExpressionTypes.Resolve(expression, contextFields ?? [], _registry)
+                    resolvedType ?? BinarySchemaExpressionTypes.Resolve(expression, contextFields ?? [], _registry)
                 )
             );
 

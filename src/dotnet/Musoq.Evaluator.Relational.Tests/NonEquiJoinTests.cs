@@ -10,6 +10,20 @@ namespace Musoq.Evaluator.Tests;
 public class NonEquiJoinTests : BasicEntityTestBase
 {
     [TestMethod]
+    public void IndexedStringRange_UsesOrdinalComparison()
+    {
+        const string query = """
+            with r as (select K from values { (K: 'Z') } s)
+            select 1 from values { (K: 'a') } a inner join r b on a.K > b.K
+            """;
+
+        using var compiled = CreateAndRunVirtualMachine(query, new Dictionary<string, IEnumerable<BasicEntity>>());
+        using var table = compiled.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertRowsUnordered(table, new object?[] { 1 });
+    }
+
+    [TestMethod]
     public void SimpleNonEquiJoinTest()
     {
         var query = (

@@ -63,31 +63,14 @@ internal sealed partial class PhysicalLoweringImplementation
 
     private static bool IsGroupKeyExpression(IrExpression expression, IrExpression groupKey, string groupKeyName)
     {
-        var expressionText = IrExpressionPrinter.Print(expression);
-        var groupKeyText = IrExpressionPrinter.Print(groupKey);
+        var expressionText = IrExpressionPrinter.PrintForBinding(expression);
+        var groupKeyText = IrExpressionPrinter.PrintForBinding(groupKey);
 
-        if (string.Equals(expressionText, groupKeyText, StringComparison.Ordinal))
-            return true;
-
-        var normalizedExpression = AggregateRefRewriter.NormalizeIdentifier(expressionText);
         if (
-            !string.IsNullOrWhiteSpace(normalizedExpression)
-            && (
-                string.Equals(
-                    normalizedExpression,
-                    AggregateRefRewriter.NormalizeIdentifier(groupKeyText),
-                    StringComparison.Ordinal
-                )
-                || string.Equals(
-                    normalizedExpression,
-                    AggregateRefRewriter.NormalizeIdentifier(groupKeyName),
-                    StringComparison.Ordinal
-                )
-            )
+            string.Equals(expressionText, groupKeyText, StringComparison.Ordinal)
+            || string.Equals(expressionText, groupKeyName, StringComparison.Ordinal)
         )
-        {
             return true;
-        }
 
         if (expression is not ColumnRef columnRef)
             return false;
@@ -118,8 +101,8 @@ internal sealed partial class PhysicalLoweringImplementation
         IReadOnlyList<AggregateBinding> bindings
     )
     {
-        var bindingsByIdentifier = new Dictionary<string, AggregateBinding>(StringComparer.OrdinalIgnoreCase);
-        var ambiguousKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var bindingsByIdentifier = new Dictionary<string, AggregateBinding>(StringComparer.Ordinal);
+        var ambiguousKeys = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var binding in bindings)
         {

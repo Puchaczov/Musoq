@@ -158,7 +158,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
         if (schemaName != null && SchemaRegistry != null)
         {
-            _binaryInterpretationAliases[node.Alias] = schemaName;
+            _interpretationSchemasByAlias[node.Alias] = schemaName;
             var interpretTable = interpretCall is PartialInterpretCallNode or PartialParseCallNode
                 ? CreatePartialInterpretTable(schemaName)
                 : CreateInterpretTable(schemaName);

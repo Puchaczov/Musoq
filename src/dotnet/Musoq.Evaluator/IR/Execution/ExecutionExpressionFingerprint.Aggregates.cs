@@ -302,6 +302,8 @@ internal static partial class ExecutionExpressionFingerprint
             GeneratedRowContextAccess generatedContext =>
                 $"generated-row-context:{generatedContext.TypeName}.{generatedContext.Index.ToString(CultureInfo.InvariantCulture)}",
             GeneratedRowTypeAccess generatedRow => $"generated-row:{generatedRow.TypeName}.{generatedRow.FieldName}",
+            GeneratedRowNestedAccess { FieldIndex: { } index } positionalNested =>
+                $"nested-positional:{index.ToString(CultureInfo.InvariantCulture)}:{positionalNested.ValueTypeName ?? positionalNested.PositionalRootType?.StableId}:{NormalizeFieldName(positionalNested.PropertyPath, alias, parallelAggregate)}",
             GeneratedRowNestedAccess generatedNested =>
                 $"generated-row-nested:{generatedNested.TypeName}.{generatedNested.FieldName}.{NormalizeFieldName(generatedNested.PropertyPath, alias, parallelAggregate)}",
             PositionalAccess positional =>

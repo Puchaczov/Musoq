@@ -5,4 +5,6 @@ public sealed record BinaryOp(BinaryOpKind Kind, IrExpression Left, IrExpression
 {
     /// <summary>Indicates SQL three-valued comparison semantics; synthetic comparisons leave it disabled.</summary>
     public bool UsesSqlNullSemantics { get; init; }
+
+    internal bool IsMaterializedMembershipEquality { get; init; }
 }

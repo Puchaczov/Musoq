@@ -22,9 +22,77 @@ internal sealed partial class PhysicalLoweringImplementation
                     new GeneratedFieldAccess(CreateGeneratedFieldName(column.Name, column.Index, usedFieldNames)),
                     sourceReadType: column.SourceReadType,
                     enumType: column.EnumType
-                ))
+                )
+                {
+                    GeneratedTypeName = InterpretationTypeNames.Executable(column.IntendedTypeName),
+                })
                 .ToArray()
         );
+    }
+
+    private static GeneratedRowShape BindStreamingSetFields(
+        GeneratedRowShape target,
+        IReadOnlyList<ExecutionRowValue> left,
+        IReadOnlyList<ExecutionRowValue> right
+    )
+    {
+        FieldBinding[]? fields = null;
+        for (var i = 0; i < target.Fields.Count; i++)
+        {
+            var field = target.Fields[i];
+            var shape = SelectSetInterpretationShape(
+                left[i].Value.InterpretationShape,
+                right[i].Value.InterpretationShape
+            );
+            var typeName =
+                field.GeneratedTypeName
+                ?? ExecutionGeneratedTypeName.For(left[i].Value)
+                ?? ExecutionGeneratedTypeName.For(right[i].Value);
+            if (ReferenceEquals(field.InterpretationShape, shape) && field.GeneratedTypeName == typeName)
+                continue;
+            fields ??= [.. target.Fields];
+            fields[i] = field with { InterpretationShape = shape, GeneratedTypeName = typeName };
+        }
+        return fields == null ? target : target with { Fields = fields };
+    }
+
+    private static ExecutionInterpretationShape? SelectSetInterpretationShape(
+        ExecutionInterpretationShape? left,
+        ExecutionInterpretationShape? right
+    ) => left is { Members.Count: > 0 } or { Alternatives.Count: > 0 } or { Element: not null } ? left : right ?? left;
+
+    private static GeneratedRowShape BindMaterializedSetFields(
+        GeneratedRowShape target,
+        GeneratedRowShape left,
+        GeneratedRowShape right
+    )
+    {
+        FieldBinding[]? fields = null;
+        var requiresTypedCarrier = false;
+        for (var i = 0; i < target.Fields.Count; i++)
+        {
+            var field = target.Fields[i];
+            var shape = SelectSetInterpretationShape(
+                left.Fields[i].InterpretationShape,
+                right.Fields[i].InterpretationShape
+            );
+            if (shape == null)
+                continue;
+
+            // Closed alternatives are read from the generated field holding their selected value.
+            requiresTypedCarrier |= shape.Alternatives.Count > 0;
+            if (ReferenceEquals(field.InterpretationShape, shape))
+                continue;
+            fields ??= [.. target.Fields];
+            fields[i] = field with { InterpretationShape = shape };
+        }
+
+        return target with
+        {
+            Fields = fields ?? target.Fields,
+            Contexts = [],
+            SupportsGeneratedFieldAccess = requiresTypedCarrier,
+        };
     }
 
     private static bool RequiresSetOperationResultShape(OutputSchema outputSchema, GeneratedRowShape leftShape)

@@ -362,10 +362,11 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Captured : TextInterpreterBase<Captured>, ITextInterpreterStatus<Captured>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public CaptureResult_Fields? Fields { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Fields" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
-        private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0 = new(@"(?<Level>[A-Z]+)\|(?<Number>[0-9]+)\|(?<Label>.*)", (global::Musoq.Schema.Interpreters.TextPatternModifiers)0, ["Level", "Number", "Label"]);
         private System.Collections.Generic.IReadOnlySet<string>? __completedFieldNames;
         public bool IsFieldComplete(string name) => __completedFieldNames?.Contains(name) ?? true;
         protected override void AttachPartialFieldNames(Captured value, System.Collections.Generic.IReadOnlySet<string> completedFields)
@@ -386,11 +387,9 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Fields capture result.</summary>
-        public CaptureResult_Fields? Fields { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Captured";
 
+        private static readonly global::Musoq.Schema.Interpreters.PreparedTextPattern __musoqPattern0 = new(@"(?<Level>[A-Z]+)\|(?<Number>[0-9]+)\|(?<Label>.*)", (global::Musoq.Schema.Interpreters.TextPatternModifiers)0, ["Level", "Number", "Label"]);
         public override Captured ParseAt(ReadOnlySpan<char> data, int offset)
         {
             var input = new global::Musoq.Schema.Interpreters.TextParseInput(data);
@@ -415,13 +414,13 @@ namespace Musoq.Generated.Interpreters
                 }
 
                 var __musoqMatch0 = __musoqReadResult1.Value!;
-                var _fields = new CaptureResult_Fields
+                var _field6_Fields = new CaptureResult_Fields
                 {
                     Level = GetPreparedCapture(__musoqPattern0, __musoqMatch0, 0),
                     Number = GetPreparedCapture(__musoqPattern0, __musoqMatch0, 1),
                     Label = GetPreparedCapture(__musoqPattern0, __musoqMatch0, 2)
                 };
-                __parsedValue.Fields = _fields;
+                __parsedValue.Fields = _field6_Fields;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Captured>.Success(__parsedValue);
             }

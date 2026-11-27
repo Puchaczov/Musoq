@@ -1,6 +1,6 @@
-using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Text;
+using Musoq.Evaluator.IR.Planning;
 using Musoq.Parser.Nodes.InterpretationSchema;
 
 namespace Musoq.Evaluator.Visitors;
@@ -12,100 +12,7 @@ namespace Musoq.Evaluator.Visitors;
 /// </summary>
 public partial class InterpreterCodeGenerator
 {
-    private static readonly FrozenSet<string> CSharpKeywords = new[]
-    {
-        "abstract",
-        "as",
-        "base",
-        "bool",
-        "break",
-        "byte",
-        "case",
-        "catch",
-        "char",
-        "checked",
-        "class",
-        "const",
-        "continue",
-        "decimal",
-        "default",
-        "delegate",
-        "do",
-        "double",
-        "else",
-        "enum",
-        "event",
-        "explicit",
-        "extern",
-        "false",
-        "finally",
-        "fixed",
-        "float",
-        "for",
-        "foreach",
-        "goto",
-        "if",
-        "implicit",
-        "in",
-        "int",
-        "interface",
-        "internal",
-        "is",
-        "lock",
-        "long",
-        "namespace",
-        "new",
-        "null",
-        "object",
-        "operator",
-        "out",
-        "override",
-        "params",
-        "private",
-        "protected",
-        "public",
-        "readonly",
-        "ref",
-        "return",
-        "sbyte",
-        "sealed",
-        "short",
-        "sizeof",
-        "stackalloc",
-        "static",
-        "string",
-        "struct",
-        "switch",
-        "this",
-        "throw",
-        "true",
-        "try",
-        "typeof",
-        "uint",
-        "ulong",
-        "unchecked",
-        "unsafe",
-        "ushort",
-        "using",
-        "virtual",
-        "void",
-        "volatile",
-        "while",
-    }.ToFrozenSet(StringComparer.Ordinal);
-
     private readonly Dictionary<string, string> _generatedCode = new(StringComparer.OrdinalIgnoreCase);
-
-    /// <summary>
-    ///     Tracks inline schema definitions that need nested class generation.
-    ///     Key is the field name prefix (e.g., "Header"), value is the inline schema node.
-    /// </summary>
-    private readonly List<(string ClassName, InlineSchemaTypeNode Schema, string? ParentFieldPrefix)> _inlineSchemas =
-        new();
-
-    /// <summary>
-    ///     Tracks binary switch fields that need a generated tagged-union class.
-    /// </summary>
-    private readonly List<(string ClassName, BinarySwitchTypeNode Switch)> _switchSchemas = new();
 
     private readonly SchemaRegistry _registry;
     private readonly int _maxRepeatIterations;
@@ -144,7 +51,9 @@ public partial class InterpreterCodeGenerator
     /// </summary>
     /// <param name="namespaceName">The namespace for the generated classes.</param>
     /// <returns>Complete C# source code containing all generated interpreter classes.</returns>
-    public string GenerateAll(string namespaceName = "Musoq.Generated.Interpreters")
+    public string GenerateAll(string namespaceName = "Musoq.Generated.Interpreters") => GenerateAll(namespaceName, []);
+
+    internal string GenerateAll(string namespaceName, IReadOnlyList<BinaryFieldReaderPlan> readers)
     {
         var intrinsicName = "__MusoqSchemaIntrinsics";
         while (_registry.TryGetSchema(intrinsicName, out _))
@@ -175,28 +84,27 @@ public partial class InterpreterCodeGenerator
         foreach (var registration in _registry.Schemas)
             if (registration.Node is BinarySchemaNode binarySchema)
             {
-                _inlineSchemas.Clear();
-                _switchSchemas.Clear();
                 var classCode = GenerateBinaryInterpreterClass(binarySchema);
                 _generatedCode[registration.Name] = classCode;
                 builder.AppendLine(Indent(classCode, 1));
                 builder.AppendLine();
 
-                var inlineIndex = 0;
-                var switchIndex = 0;
-                while (inlineIndex < _inlineSchemas.Count || switchIndex < _switchSchemas.Count)
+                foreach (var (_, type) in BinaryCompositionTypes.EnumerateFields(binarySchema.Fields))
                 {
-                    if (inlineIndex < _inlineSchemas.Count)
+                    var nestedCode = type switch
                     {
-                        var (inlineClassName, inlineSchema, _) = _inlineSchemas[inlineIndex++];
-                        builder.AppendLine(Indent(GenerateInlineSchemaNestedClass(inlineClassName, inlineSchema), 1));
-                    }
-                    else
-                    {
-                        var (switchClassName, switchType) = _switchSchemas[switchIndex++];
-                        builder.AppendLine(Indent(GenerateSwitchNestedClass(switchClassName, switchType), 1));
-                    }
-                    builder.AppendLine();
+                        InlineSchemaTypeNode inline => GenerateInlineSchemaNestedClass(
+                            _registry.BinaryCompositions.Name(inline),
+                            inline
+                        ),
+                        BinarySwitchTypeNode choice => GenerateSwitchNestedClass(
+                            _registry.BinaryCompositions.Name(choice),
+                            choice
+                        ),
+                        _ => null,
+                    };
+                    if (nestedCode != null)
+                        builder.AppendLine(Indent(nestedCode, 1)).AppendLine();
                 }
             }
             else if (registration.Node is TextSchemaNode textSchema)
@@ -207,6 +115,18 @@ public partial class InterpreterCodeGenerator
                 builder.AppendLine();
             }
 
+        foreach (var reader in readers)
+        {
+            if (
+                !_registry.TryGetSchema(reader.SchemaName, out var registration)
+                || registration?.Node is not BinarySchemaNode schema
+            )
+                throw new InvalidOperationException($"Cannot generate field reader for schema '{reader.SchemaName}'.");
+            builder.AppendLine($"    internal static class {reader.Container}");
+            builder.AppendLine("    {");
+            builder.AppendLine(Indent(GenerateBinaryInterpreterClass(schema, reader), 2));
+            builder.AppendLine("    }");
+        }
         if (_intrinsicCallCount > 0)
             builder.AppendLine(Indent(SchemaIntrinsicCodeEmitter.Emit(intrinsicName), 1));
         var concatenationCallbacks = _stringConcatenation.EmitCallbackClass();
@@ -221,13 +141,13 @@ public partial class InterpreterCodeGenerator
     {
         if (fieldName == "_")
             return $"_discard{_discardCounter++}";
-        return $"_{char.ToLowerInvariant(fieldName[0])}{fieldName.Substring(1)}";
+        return string.Create(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"_field{fieldName.Length}_{fieldName}"
+        );
     }
 
-    private static string EscapeCSharpIdentifier(string name)
-    {
-        return CSharpKeywords.Contains(name) ? $"@{name}" : name;
-    }
+    private static string EscapeCSharpIdentifier(string name) => InterpretationCSharpNames.Identifier(name);
 
     private static string Indent(string code, int levels)
     {

@@ -17,17 +17,8 @@ public sealed record AsOfEqualityKeyShape
     internal static AsOfEqualityKeyShape Select(IReadOnlyList<ExecutionAsOfEqualityKey> keys)
     {
         var parts = keys.Select(key =>
-            {
-                var left =
-                    Nullable.GetUnderlyingType(key.Left.ReturnType.ResolveClrType())
-                    ?? key.Left.ReturnType.ResolveClrType();
-                var right =
-                    Nullable.GetUnderlyingType(key.Right.ReturnType.ResolveClrType())
-                    ?? key.Right.ReturnType.ResolveClrType();
-                if (left != right)
-                    throw new InvalidOperationException("ASOF equality operands require the same concrete binding.");
-                return left;
-            })
+                AsOfKeyTypes.ValueType(key.Left.ReturnType.ResolveClrType(), key.Right.ReturnType.ResolveClrType())
+            )
             .ToArray();
         var keyType =
             parts.Length == 0 ? typeof(bool)

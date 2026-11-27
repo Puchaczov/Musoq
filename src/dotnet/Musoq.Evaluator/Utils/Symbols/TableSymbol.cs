@@ -285,7 +285,7 @@ public class TableSymbol : Symbol
             column.ReadModifiers,
             column.Stability
         );
-        return NullableInterpretationColumn.Preserve(converted, column is NullableInterpretationColumn);
+        return InterpretationColumn.Copy(converted, column);
     }
 
     private static Type ConvertToNullable(Type columnType)

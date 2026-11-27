@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Musoq.Evaluator.Helpers;
 
 namespace Musoq.Targets.CSharpClr;
 
@@ -49,22 +50,25 @@ public sealed partial class ExecutionCSharpRenderer
             var partName = name + "Part" + index;
             statements.Add(
                 CreateLocalDeclaration(
-                    SyntaxFactory.IdentifierName("var"),
+                    CreateTypeSyntax(keys[index].ReturnType),
                     partName,
                     RenderExpression(keys[index], context)
                 )
             );
             ExpressionSyntax part = CreateIdentifierName(partName);
-            if (CanBeNull(keys[index].ReturnType))
-                present = SyntaxFactory.BinaryExpression(
-                    SyntaxKind.LogicalAndExpression,
-                    present,
-                    SyntaxFactory.BinaryExpression(
+            var partType = shape.PartTypes[index].RequireClrType();
+            ExpressionSyntax? matches =
+                partType == typeof(double) || partType == typeof(float)
+                    ? CreateEvaluationHelperInvocation(nameof(EvaluationHelper.IsComparableJoinKey), part)
+                : CanBeNull(keys[index].ReturnType)
+                    ? SyntaxFactory.BinaryExpression(
                         SyntaxKind.NotEqualsExpression,
                         part,
                         SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
                     )
-                );
+                : null;
+            if (matches != null)
+                present = SyntaxFactory.BinaryExpression(SyntaxKind.LogicalAndExpression, present, matches);
             if (Nullable.GetUnderlyingType(keys[index].ReturnType.RequireClrType()) is not null)
                 part = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(

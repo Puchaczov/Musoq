@@ -5,9 +5,8 @@ namespace Musoq.Evaluator.IR.Planning;
 
 internal static class SetOperationEqualityTypes
 {
-    internal static Type? FindNanSensitiveType(IEnumerable<Type> types) =>
-        types.FirstOrDefault(static type =>
-            (Nullable.GetUnderlyingType(type) ?? type) == typeof(float)
-            || (Nullable.GetUnderlyingType(type) ?? type) == typeof(double)
-        );
+    internal static Type? FindNanSensitiveType(IEnumerable<Type> types) => types.FirstOrDefault(IsNanSensitive);
+
+    internal static bool IsNanSensitive(Type type) =>
+        Type.GetTypeCode(Nullable.GetUnderlyingType(type) ?? type) is TypeCode.Single or TypeCode.Double;
 }

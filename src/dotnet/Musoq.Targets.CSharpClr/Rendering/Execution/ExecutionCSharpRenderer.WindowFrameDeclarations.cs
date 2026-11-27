@@ -26,27 +26,24 @@ public sealed partial class ExecutionCSharpRenderer
                 + Environment.NewLine;
         }
 
-        var start = WindowRangeFrameSyntax.CreatePluginWindowFrameExpression(
-            plugin,
-            plugin.Frame.Start,
+        var partition = new WindowPartitionPositionSyntax(partitionIndices, partitionStart, partitionCount);
+        var start = WindowRangeFrameSyntax.CreateFrameExpression(
+            plugin.Frame,
             true,
-            orderKeys,
-            rangeKeys,
-            partitionIndices,
-            partitionStart,
-            partitionIndex,
-            partitionCount
+            plugin.OrderKeys,
+            orderKeys?.Variable.Name,
+            rangeKeys?.Name,
+            partition,
+            partitionIndex
         );
-        var endExpression = WindowRangeFrameSyntax.CreatePluginWindowFrameExpression(
-            plugin,
-            plugin.Frame.End,
+        var endExpression = WindowRangeFrameSyntax.CreateFrameExpression(
+            plugin.Frame,
             false,
-            orderKeys,
-            rangeKeys,
-            partitionIndices,
-            partitionStart,
-            partitionIndex,
-            partitionCount
+            plugin.OrderKeys,
+            orderKeys?.Variable.Name,
+            rangeKeys?.Name,
+            partition,
+            partitionIndex
         );
 
         return $"        var {frameStart} = {start.NormalizeWhitespace().ToFullString()};"

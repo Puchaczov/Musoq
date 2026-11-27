@@ -13,7 +13,7 @@ using Musoq.Schema.Exceptions;
 namespace Musoq.Evaluator;
 
 [DebuggerStepThrough]
-public class CompiledQuery : IDisposable, IQueryProgressSource
+public partial class CompiledQuery : IDisposable, IQueryProgressSource
 {
     private readonly object _runtimeGate = new();
     private readonly SemaphoreSlim _executionGate = new(1, 1);
@@ -208,7 +208,7 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
             QueryExecutionContext context;
             if (!admission.UseContext)
             {
-                _executionGate.Wait(token);
+                WaitForExecutionGate(token);
                 gateAcquired = true;
             }
 
@@ -432,7 +432,7 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
         {
             IProfiledRunnable profiledRunnable;
             QueryExecutionContext context;
-            _executionGate.Wait(token);
+            WaitForExecutionGate(token);
             gateAcquired = true;
             lock (_runtimeGate)
             {
@@ -513,9 +513,9 @@ public class CompiledQuery : IDisposable, IQueryProgressSource
             _disposed = true;
         }
 
-        _admissionsCompleted.Wait();
-        _activeRunsCompleted.Wait();
-        _resultLifetimesCompleted.Wait();
+        WaitForDrain(DrainStage.Admissions, _admissionsCompleted);
+        WaitForDrain(DrainStage.ActiveRuns, _activeRunsCompleted);
+        WaitForDrain(DrainStage.DeferredResults, _resultLifetimesCompleted);
         lock (_runtimeGate)
         {
             runnable = _runnable;

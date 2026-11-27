@@ -27,6 +27,8 @@ public sealed record WindowRegistration(
 
     internal bool SelectBoundedWinners { get; init; }
 
+    internal bool NumbersQualifiedRows { get; init; }
+
     internal bool ReuseBoundedPeers { get; init; }
 
     internal int? ValueCaptureGroup { get; init; }

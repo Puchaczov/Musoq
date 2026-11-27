@@ -14,7 +14,8 @@ namespace Musoq.Evaluator.Visitors;
 
 internal sealed class SemanticColumnPropertyBindingService(
     SourceBindingState sourceBinding,
-    ResultShapeState resultShape
+    ResultShapeState resultShape,
+    Action<AccessObjectArrayNode, ISchemaColumn>? registerArrayElement = null
 )
 {
     public SemanticIdentifierBinding ResolveIdentifier(
@@ -95,7 +96,7 @@ internal sealed class SemanticColumnPropertyBindingService(
         return new ExpandoObjectPropertyInfo(propertyName, type);
     }
 
-    public PropertyInfo? TryResolveTypedProperty(Type parentType, string propertyName, out Exception? error)
+    public static PropertyInfo? TryResolveTypedProperty(Type parentType, string propertyName, out Exception? error)
     {
         try
         {
@@ -195,14 +196,16 @@ internal sealed class SemanticColumnPropertyBindingService(
         return new DotNode(root, expressionNode, original.IsTheMostInner, string.Empty, expressionNode.ReturnType);
     }
 
-    private static AccessObjectArrayNode CreateColumnArrayAccess(
+    private AccessObjectArrayNode CreateColumnArrayAccess(
         AccessObjectArrayNode node,
         ISchemaColumn column,
         string? tableAlias
     )
     {
         var elementIntendedTypeName = GetArrayElementIntendedTypeName(column.IntendedTypeName);
-        return new AccessObjectArrayNode(node.Token, column.ColumnType, tableAlias, elementIntendedTypeName);
+        var result = new AccessObjectArrayNode(node.Token, column.ColumnType, tableAlias, elementIntendedTypeName);
+        registerArrayElement?.Invoke(result, column);
+        return result;
     }
 
     private bool TryResolveSingleColumnAlias(

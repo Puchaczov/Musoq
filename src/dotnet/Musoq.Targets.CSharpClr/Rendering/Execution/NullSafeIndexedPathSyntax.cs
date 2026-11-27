@@ -13,7 +13,9 @@ internal static class NullSafeIndexedPathSyntax
 
     internal static ExpressionSyntax Render(ExpressionSyntax receiver, string path)
     {
-        var members = path.TrimStart('.')
+        var members = InterpretationCSharpNames
+            .Reference(path)
+            .TrimStart('.')
             .Replace(".", "?.", StringComparison.Ordinal)
             .Replace("[", "?[", StringComparison.Ordinal);
         var separator = members.StartsWith("?[", StringComparison.Ordinal) ? string.Empty : "?.";
@@ -47,7 +49,7 @@ internal static class NullSafeIndexedPathSyntax
                 continue;
             }
 
-            var memberName = segment.Groups["member"].Value;
+            var memberName = EscapeIdentifier(segment.Groups["member"].Value);
             var access = isNullSafe || sawIndex ? "?." : ".";
             current = SyntaxFactory.ParseExpression($"({current}){access}{memberName}");
         }
@@ -63,7 +65,7 @@ internal static class NullSafeIndexedPathSyntax
         if (isNullSafe)
             return Render(receiver, path);
 
-        var normalized = path.TrimStart('.');
+        var normalized = InterpretationCSharpNames.Reference(path).TrimStart('.');
         var separator = path.StartsWith("[", StringComparison.Ordinal) ? string.Empty : ".";
         return SyntaxFactory.ParseExpression($"({receiver}){separator}{normalized}");
     }

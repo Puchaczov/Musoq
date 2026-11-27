@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -27,8 +28,18 @@ internal sealed class LoweringScope
     public string GeneratedTypePrefix { get; }
     internal IReadOnlyList<SubqueryCteBinding> SubqueryCtes { get; }
 
+    internal Dictionary<string, GeneratedRowShape> CreateCapturedCteShapes() =>
+        SubqueryCtes.ToDictionary(
+            static binding => binding.Name,
+            static binding => binding.Shape,
+            StringComparer.OrdinalIgnoreCase
+        );
+
     internal LoweringScope WithSubqueryCtes(IReadOnlyList<SubqueryCteBinding> bindings) =>
         new(Facts, Cte, DirectTable, GeneratedTypePrefix, bindings);
+
+    public LoweringScope WithParallelIntermediateSlots(ParallelIntermediateTableSlots slots) =>
+        Create(Cte with { ParallelIntermediateSlots = slots });
 
     public LoweringScope WithGeneratedTypePrefix(string prefix) => new(Facts, Cte, DirectTable, prefix, SubqueryCtes);
 

@@ -27,7 +27,12 @@ public sealed partial class AggregateRefRewriter
         if (ReferenceEquals(left, node.Left) && ReferenceEquals(right, node.Right) && returnType == node.ReturnType)
             return node;
 
-        return new BinaryOp(node.Kind, left, right, returnType) { UsesSqlNullSemantics = node.UsesSqlNullSemantics };
+        return node with
+        {
+            Left = left,
+            Right = right,
+            ReturnType = returnType,
+        };
     }
 
     private static Type GetBinaryReturnType(BinaryOp node, IrExpression left, IrExpression right)
@@ -167,7 +172,11 @@ public sealed partial class AggregateRefRewriter
         if (!branchesChanged && ReferenceEquals(elseExpression, node.ElseExpression))
             return node;
 
-        return new CaseWhen(branches, elseExpression, node.ReturnType);
+        return node with
+        {
+            Branches = branches,
+            ElseExpression = elseExpression,
+        };
     }
 
     protected override IrExpression VisitCoalesce(Coalesce node)
@@ -177,7 +186,10 @@ public sealed partial class AggregateRefRewriter
         if (!changed)
             return node;
 
-        return new Coalesce(expressions, node.ReturnType);
+        return node with
+        {
+            Expressions = expressions,
+        };
     }
 
     protected override IrExpression VisitAggregateRef(AggregateRef node) => node;

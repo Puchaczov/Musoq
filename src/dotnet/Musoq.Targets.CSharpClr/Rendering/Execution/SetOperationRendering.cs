@@ -406,16 +406,18 @@ public sealed partial class ExecutionCSharpRenderer
         string rowName,
         int fieldIndex,
         Type fieldType,
-        GeneratedRowShape? sourceShape
+        GeneratedRowShape? sourceShape,
+        TypeSyntax? generatedTargetType = null
     )
     {
+        var targetType = generatedTargetType ?? CreateTypeSyntax(fieldType);
         ExpressionSyntax read;
         if (sourceShape != null && fieldIndex >= 0 && fieldIndex < sourceShape.Fields.Count)
         {
             var sourceField = sourceShape.Fields[fieldIndex];
             if (sourceField.Type.RequireClrType() == typeof(DBNull) && fieldType != typeof(DBNull))
                 return SyntaxFactory.CastExpression(
-                    CreateTypeSyntax(fieldType),
+                    targetType,
                     SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)
                 );
             read = SyntaxFactory.MemberAccessExpression(
@@ -426,17 +428,29 @@ public sealed partial class ExecutionCSharpRenderer
         }
         else
         {
-            if (fieldType == typeof(object))
+            if (fieldType == typeof(object) && generatedTargetType == null)
                 throw new InvalidOperationException("Set-operation reads require a concrete field type.");
-            read = CreateNativeRowValueRead(
-                SyntaxFactory.IdentifierName(rowName),
-                fieldIndex,
-                CreateTypeSyntax(fieldType)
-            );
+            read = CreateNativeRowValueRead(SyntaxFactory.IdentifierName(rowName), fieldIndex, targetType);
         }
 
-        return fieldType == typeof(object) ? read : SyntaxFactory.CastExpression(CreateTypeSyntax(fieldType), read);
+        return fieldType == typeof(object) && generatedTargetType == null
+            ? read
+            : SyntaxFactory.CastExpression(targetType, read);
     }
+
+    private static ExpressionSyntax CreateSetOutputFieldRead(
+        string rowName,
+        int index,
+        FieldBinding field,
+        GeneratedRowShape? sourceShape
+    ) =>
+        CreateTypedSetFieldRead(
+            rowName,
+            index,
+            field.Type.RequireClrType(),
+            sourceShape,
+            field.GeneratedTypeName == null ? null : CreateGeneratedFieldTypeSyntax(field)
+        );
 
     private ExpressionSyntax CreateSetRowsRead(ExecutionVariable source, ExecutionRenderContext context)
     {
@@ -502,9 +516,7 @@ public sealed partial class ExecutionCSharpRenderer
         }
 
         var arguments = targetShape
-            .Fields.Select(
-                (field, index) => CreateTypedSetFieldRead(rowName, index, field.Type.RequireClrType(), sourceShape)
-            )
+            .Fields.Select((field, index) => CreateSetOutputFieldRead(rowName, index, field, sourceShape))
             .Cast<ExpressionSyntax>()
             .ToArray();
 

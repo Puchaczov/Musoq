@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using Musoq.Plugins;
+using Musoq.Evaluator.IR.Bindings;
 
 namespace Musoq.Evaluator.IR.Execution;
 
 internal sealed record ScalarSubqueryEmptyResultSpec(
-    string CteName,
-    string ValueColumnName,
-    AggregateKernelDescriptor Kernel
+    ProjectedField Projection,
+    IReadOnlyList<AggregateBinding> Bindings
 );
 
 internal sealed record ScalarSubqueryEmptyResultLowering(

@@ -23,6 +23,7 @@ public sealed record ExecutionSubquery : ExecutionExpression
     }
 
     public BinaryOpKind Comparison { get; init; } = BinaryOpKind.Equal;
+    internal ExecutionExpression? ComparisonBody { get; init; }
     public string Identifier { get; init; }
     public SubqueryResultKind Kind { get; init; }
     public ExecutionPlan Plan { get; init; }

@@ -312,7 +312,7 @@ namespace GeneratedSample_I02_ConfiguredTextRepeatLimit
                 }
 
                 Statement0Row0 fp = __storedTable0Rows[__storedTable0Index];
-                var statement1_rRows = EvaluationHelper.ConvertEnumerableOutputToChunks<Musoq.Generated.Interpreters.Item>(fp.p_Records);
+                var statement1_rRows = new global::Musoq.Evaluator.Helpers.RecordApplyRows<Musoq.Generated.Interpreters.Item>(fp.p_Records);
                 foreach (var rChunk in statement1_rRows)
                 {
                     for (int rIndex = 0, rIndexCount = rChunk.Count; rIndex < rIndexCount; ++rIndex)
@@ -476,6 +476,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Item : TextInterpreterBase<Item>, ITextInterpreterStatus<Item>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string? X { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "X" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -499,9 +501,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the X field value.</summary>
-        public string? X { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Item";
 
         public override Item ParseAt(ReadOnlySpan<char> data, int offset)
@@ -527,8 +526,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Item>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                 }
 
-                var _x = __musoqReadResult0.Value!;
-                __parsedValue.X = _x;
+                var _field1_X = __musoqReadResult0.Value!;
+                __parsedValue.X = _field1_X;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Item>.Success(__parsedValue);
             }
@@ -545,6 +544,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Packet : TextInterpreterBase<Packet>, ITextInterpreterStatus<Packet>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public Item[]? Records { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Records" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -568,9 +569,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Records field value.</summary>
-        public Item[]? Records { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Packet";
 
         public override Packet ParseAt(ReadOnlySpan<char> data, int offset)
@@ -590,34 +588,34 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new Packet();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Records");
-                var _list__records = new System.Collections.Generic.List<Item>();
-                var _interp_Item = new Item();
-                var _iteration__records = 0;
+                var _list__field7_Records = new System.Collections.Generic.List<Item>();
+                var _interp__field7_Records = new Item();
+                var _iteration__field7_Records = 0;
                 while (!IsAtEnd(data))
                 {
-                    if (base.CheckRepeatIterationStatus("Records", _iteration__records++, 10000)is { } __musoqReadFailure1)
+                    if (base.CheckRepeatIterationStatus("Records", _iteration__field7_Records++, 10000)is { } __musoqReadFailure1)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure1);
                     }
 
-                    var _startPos__records = ParsePosition;
-                    var __musoqReadResult0 = base.ParseNestedStatus(_interp_Item, ref __musoqTextInput, "Records");
+                    var _startPos__field7_Records = ParsePosition;
+                    var __musoqReadResult0 = base.ParseNestedStatus(_interp__field7_Records, ref __musoqTextInput, "Records");
                     if (!__musoqReadResult0.Succeeded)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadResult0.Failure!);
                     }
 
-                    var _item__records = __musoqReadResult0.Value!;
-                    if (base.CheckRepeatProgressStatus("Records", _startPos__records)is { } __musoqReadFailure2)
+                    var _item__field7_Records = __musoqReadResult0.Value!;
+                    if (base.CheckRepeatProgressStatus("Records", _startPos__field7_Records)is { } __musoqReadFailure2)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Failed(__parsedValue, __musoqReadFailure2);
                     }
 
-                    _list__records.Add(_item__records);
+                    _list__field7_Records.Add(_item__field7_Records);
                 }
 
-                var _records = _list__records.ToArray();
-                __parsedValue.Records = _records;
+                var _field7_Records = _list__field7_Records.ToArray();
+                __parsedValue.Records = _field7_Records;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Packet>.Success(__parsedValue);
             }

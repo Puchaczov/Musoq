@@ -5,6 +5,11 @@ namespace Musoq.Evaluator.IR.Expressions;
 
 public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
 {
+    private bool ForBinding { get; init; }
+
+    internal static string PrintForBinding(IrExpression expression) =>
+        new IrExpressionPrinter { ForBinding = true }.Visit(expression);
+
     protected override string VisitMemberAccess(MemberAccess node) => $"{Visit(node.Receiver)}.{node.MemberName}";
 
     public static string Print(IrExpression expression)
@@ -16,23 +21,6 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
     protected override string VisitColumnRef(ColumnRef node)
     {
         return string.IsNullOrEmpty(node.Alias) ? node.ColumnName : $"{node.Alias}.{node.ColumnName}";
-    }
-
-    protected override string VisitLiteral(Literal node)
-    {
-        if (!string.IsNullOrWhiteSpace(node.DisplayName))
-            return node.DisplayName;
-
-        if (node.Value is null)
-            return "NULL";
-
-        if (node.Value is string s)
-            return $"'{s}'";
-
-        if (node.Value is bool b)
-            return b ? "TRUE" : "FALSE";
-
-        return node.Value.ToString() ?? "NULL";
     }
 
     protected override string VisitScriptParameterRef(ScriptParameterRef node)
@@ -65,6 +53,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
         {
             UnaryOpKind.Not => $"NOT {operand}",
             UnaryOpKind.Negate => $"-{operand}",
+            UnaryOpKind.NullIfNaN => $"NullIfNaN({operand})",
             _ => $"?{operand}",
         };
     }
@@ -72,6 +61,8 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
     protected override string VisitMethodCall(MethodCall node)
     {
         var sb = new StringBuilder();
+        if (ForBinding && !string.IsNullOrEmpty(node.Alias))
+            sb.Append(node.Alias).Append('.');
         sb.Append(node.Method.Name);
         sb.Append('(');
         for (var i = 0; i < node.Arguments.Count; i++)
@@ -207,7 +198,7 @@ public sealed partial class IrExpressionPrinter : IrExpressionVisitor<string>
             BinaryOpKind.LeftShift => "<<",
             BinaryOpKind.RightShift => ">>",
             BinaryOpKind.SqlStringConcatenate => "||",
-            BinaryOpKind.StringConcatenate => "||",
+            BinaryOpKind.StringConcatenate => "+",
             _ => "?",
         };
     }

@@ -79,15 +79,16 @@ public partial class BuildMetadataAndInferTypesTraverseVisitor(IAwareExpressionV
             ident != null
             && node == theMostOuter
             && !Scope.ScopeSymbolTable.SymbolIsOfType<TableSymbol>(ident.Name)
-            && !Visitor.IsCurrentContextColumn(ident.Name)
+            && theMostOuter.Expression is IdentifierNode qualifiedColumn
+            && (
+                !Visitor.IsCurrentContextColumn(ident.Name)
+                || Visitor is BuildMetadataAndInferTypesVisitor binder
+                    && binder.IsSubqueryOuterColumn(ident.Name, qualifiedColumn.Name)
+            )
         )
         {
-            var column = theMostOuter.Expression as IdentifierNode;
-            if (column != null)
-            {
-                Visit(new AccessColumnNode(column.Name, ident.Name, ident.SpanOrEmpty()));
-                return;
-            }
+            Visit(new AccessColumnNode(qualifiedColumn.Name, ident.Name, ident.SpanOrEmpty()));
+            return;
         }
 
         var setTheMostInnerIdentifier = false;

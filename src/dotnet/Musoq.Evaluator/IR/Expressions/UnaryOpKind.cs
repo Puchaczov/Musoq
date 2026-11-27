@@ -4,4 +4,5 @@ public enum UnaryOpKind
 {
     Not,
     Negate,
+    NullIfNaN,
 }

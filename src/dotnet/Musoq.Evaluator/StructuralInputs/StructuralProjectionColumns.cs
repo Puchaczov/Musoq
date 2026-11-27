@@ -29,7 +29,7 @@ internal static class StructuralProjectionColumns
                 column.ReadModifiers,
                 column.Stability
             );
-        return NullableInterpretationColumn.Preserve(renamed, column is NullableInterpretationColumn);
+        return InterpretationColumn.Copy(renamed, column);
     }
 
     internal static StructuralTypeDescriptor? Describe(Node node) =>

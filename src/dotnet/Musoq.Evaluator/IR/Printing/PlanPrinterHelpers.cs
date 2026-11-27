@@ -118,6 +118,19 @@ internal static class PlanPrinterHelpers
             sb.Append(" NULLS LAST");
     }
 
+    internal static StringBuilder AppendInterpretSource(
+        StringBuilder sb,
+        string operation,
+        string schema,
+        IrExpression[] arguments,
+        string alias
+    )
+    {
+        sb.Append(operation).Append(" [").Append(FormatSchemaName(schema)).Append('(');
+        AppendExpressions(sb, arguments);
+        return sb.Append(") as ").Append(alias).Append(']');
+    }
+
     public static void AppendExpressions(StringBuilder sb, IrExpression[] expressions)
     {
         for (var i = 0; i < expressions.Length; i++)

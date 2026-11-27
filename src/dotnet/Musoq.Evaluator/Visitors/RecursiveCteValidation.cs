@@ -51,8 +51,8 @@ public partial class BuildMetadataAndInferTypesVisitor
             )
                 continue;
 
-            var anchorType = anchorFields[index].Expression.ReturnType ?? typeof(object);
-            var memberType = memberFields[index].Expression.ReturnType ?? typeof(object);
+            var anchorType = SqlPredicateNullability.ResultType(anchorFields[index].Expression) ?? typeof(object);
+            var memberType = SqlPredicateNullability.ResultType(memberFields[index].Expression) ?? typeof(object);
             if (anchorType == memberType)
                 continue;
 
@@ -107,7 +107,7 @@ public partial class BuildMetadataAndInferTypesVisitor
             updated[index] = new SchemaColumn(
                 columns[index].ColumnName,
                 columns[index].ColumnIndex,
-                anchorFields[index].Expression.ReturnType ?? columns[index].ColumnType
+                SqlPredicateNullability.ResultType(anchorFields[index].Expression) ?? columns[index].ColumnType
             );
         }
 

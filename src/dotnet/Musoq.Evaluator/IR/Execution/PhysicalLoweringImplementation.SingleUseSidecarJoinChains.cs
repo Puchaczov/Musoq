@@ -26,7 +26,7 @@ internal sealed partial class PhysicalLoweringImplementation
             return null;
         }
 
-        var lowerer = CreateSidecarJoinCteLowerer();
+        var lowerer = CreateSidecarJoinCteLowerer(scope);
         if (!lowerer.TryCreateSingleUseChainStages(multiStatement, indexes, out var stages))
             return null;
 
@@ -177,7 +177,7 @@ internal sealed partial class PhysicalLoweringImplementation
         var producerIndex = cte.Definitions.Length - 1;
         var producer = cte.Definitions[producerIndex];
         var classifications = ClassifyCteReferences(cte);
-        var lowerer = CreateSidecarJoinCteLowerer();
+        var lowerer = CreateSidecarJoinCteLowerer(scope);
         if (
             !CanFuseReadOnceCte(producer.Name, classifications)
             || !lowerer.TryCreateReadOnceCteStages(
@@ -240,7 +240,7 @@ internal sealed partial class PhysicalLoweringImplementation
         );
     }
 
-    private static SidecarJoinCteLowerer CreateSidecarJoinCteLowerer()
+    private static SidecarJoinCteLowerer CreateSidecarJoinCteLowerer(LoweringScope scope)
     {
         return new SidecarJoinCteLowerer(
             UnwrapSingleStatement,
@@ -248,7 +248,8 @@ internal sealed partial class PhysicalLoweringImplementation
             ClassifyMultiStatementCteReferences,
             CanFuseReadOnceCte,
             ResolveStatementCteName,
-            CreateMultiStatementIndexes,
+            (statement, indexes, shapes, prefix) =>
+                CreateMultiStatementIndexes(scope, statement, indexes, shapes, prefix),
             CreateCteTableName
         );
     }

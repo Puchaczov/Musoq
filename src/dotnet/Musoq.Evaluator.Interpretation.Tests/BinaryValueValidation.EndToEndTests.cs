@@ -33,6 +33,32 @@ public class BinaryValueValidationEndToEndTests : BinaryOrTextualEvaluatorTestBa
     }
 
     [TestMethod]
+    public void DiscardedConstant_ShouldValidateItsReadValue()
+    {
+        const string sql = """
+            binary Rec { _: byte const 1 };
+            select 7 as N from #test.files() f cross apply Interpret<Rec>(f.Content) r
+            """;
+
+        using var table = RunBinaryQuery(sql, [1]);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [7]);
+    }
+
+    [TestMethod]
+    [DataRow(new byte[] { 1, 42 }, (byte)42)]
+    [DataRow(new byte[] { 0, 42 }, null)]
+    public void DiscardedConstant_ShouldDetermineWhetherTheTrailerIsPresent(byte[] input, byte? expected)
+    {
+        const string sql = """
+            binary Rec { _: byte const 1, Tail: byte };
+            select r.Tail from #test.files() f outer apply TryInterpret<Rec>(f.Content) r
+            """;
+
+        using var table = RunBinaryQuery(sql, input);
+        TableMaterializationTestHelper.AssertRowsUnordered(table, [expected]);
+    }
+
+    [TestMethod]
     public void Query_PngSignatureMagic_WithValidSignature_ShouldParseHeader()
     {
         var query = (

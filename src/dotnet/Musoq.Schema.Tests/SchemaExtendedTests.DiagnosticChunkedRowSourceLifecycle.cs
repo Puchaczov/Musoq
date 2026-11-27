@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
 using Musoq.Schema.Diagnostics;
@@ -17,15 +15,20 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void DiagnosticChunkedRowSource_WhenChunksPropertyRead_ShouldNotStartProducer()
     {
-        var source = new StartTrackingDiagnosticChunkedSource(CreateSourceContext(SourceDiagnostics.None), "items");
+        var scheduler = new RecordingProducerScheduler();
+        var source = new StartTrackingDiagnosticChunkedSource(CreateSourceContext(SourceDiagnostics.None), "items")
+        {
+            ProducerScheduler = scheduler,
+        };
 
         var chunks = source.Chunks;
 
-        Assert.IsFalse(source.ProducerStarted.IsSet);
+        Assert.AreEqual(0, scheduler.QueuedCount);
 
         using var enumerator = chunks.GetEnumerator();
 
-        Assert.IsTrue(source.ProducerStarted.Wait(TimeSpan.FromSeconds(5)));
+        Assert.AreEqual(1, scheduler.QueuedCount);
+        scheduler.RunProducer();
         Assert.IsTrue(enumerator.MoveNext());
         Assert.AreEqual(1, enumerator.Current[0]);
         Assert.IsFalse(enumerator.MoveNext());
@@ -34,12 +37,6 @@ public partial class SchemaExtendedTests
     private sealed class StartTrackingDiagnosticChunkedSource(SourceExecutionContext context, string sourceName)
         : DiagnosticChunkedRowSource<int>(context, sourceName)
     {
-        public ManualResetEventSlim ProducerStarted { get; } = new();
-
-        protected override void CollectChunks(DiagnosticChunkWriter<int> writer)
-        {
-            ProducerStarted.Set();
-            writer.Write([1]);
-        }
+        protected override void CollectChunks(DiagnosticChunkWriter<int> writer) => writer.Write([1]);
     }
 }

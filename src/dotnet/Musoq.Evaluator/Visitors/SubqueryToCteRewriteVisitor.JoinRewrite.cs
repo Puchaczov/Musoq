@@ -19,14 +19,25 @@ public partial class SubqueryToCteRewriteVisitor
         foreach (var subqueryInfo in subqueries)
         {
             var join = PreparePredicateSubqueryJoin(subqueryInfo, cteInnerExpressions);
-            if (TryRewriteNullAwareNotIn(subqueryInfo, join, ref currentFrom, ref remainingExpr, cteInnerExpressions))
-                continue;
-
             if (subqueryInfo.RequiresLeftJoin)
             {
                 currentFrom = new Parser.JoinFromNode(currentFrom, join.CteRef, join.JoinExpression, JoinType.LeftMark);
                 if (remainingExpr != null)
-                    remainingExpr = ReplacePredicateSubqueryNode(remainingExpr, subqueryInfo, join.Replacement);
+                {
+                    var value = PreparePredicateValue(
+                        subqueryInfo,
+                        join,
+                        cteInnerExpressions,
+                        witness =>
+                            currentFrom = new Parser.JoinFromNode(
+                                currentFrom,
+                                witness.CteRef,
+                                witness.JoinExpression,
+                                JoinType.LeftMark
+                            )
+                    );
+                    remainingExpr = ReplacePredicateSubqueryNode(remainingExpr, subqueryInfo, value);
+                }
             }
             else if (subqueryInfo.IsNegated)
             {
@@ -36,6 +47,8 @@ public partial class SubqueryToCteRewriteVisitor
                     join.JoinExpression,
                     JoinType.LeftAntiSemi
                 );
+                if (join.Membership is not null)
+                    ApplyNotInNullGuards(join, ref currentFrom, ref remainingExpr, cteInnerExpressions);
             }
             else
             {
@@ -62,7 +75,10 @@ public partial class SubqueryToCteRewriteVisitor
 
         var diagnosticSpan = rewrite.DiagnosticNode.SpanOrEmpty();
         var cteColumnRef = new AccessColumnNode(rewrite.CteColumnName, cteName, diagnosticSpan);
-        Node joinExpression = new EqualityNode(rewrite.LeftSide, cteColumnRef).WithSpan(diagnosticSpan);
+        EqualityNode match = subqueryInfo.IsIn
+            ? new MaterializedInEqualityNode(rewrite.LeftSide, cteColumnRef)
+            : new EqualityNode(rewrite.LeftSide, cteColumnRef);
+        Node joinExpression = match.WithSpan(diagnosticSpan);
         if (rewrite.CorrelationJoinExpression != null)
         {
             if (
@@ -82,7 +98,7 @@ public partial class SubqueryToCteRewriteVisitor
             !subqueryInfo.IsNegated
         );
 
-        return new PredicateSubqueryJoin(cteRef, joinExpression, replacement);
+        return new PredicateSubqueryJoin(cteRef, joinExpression, replacement, subqueryInfo.IsIn ? rewrite : null);
     }
 
     private SubqueryJoinRewrite PrepareInSubquery(
@@ -175,7 +191,17 @@ public partial class SubqueryToCteRewriteVisitor
         }
         else
         {
-            cteBody = ProjectExistsKey(subqueryBody, cteColumnName, cteInnerExpressions);
+            var result = CreateUniqueSubqueryName();
+            cteInnerExpressions.Add(new CteInnerExpressionNode(subqueryBody, result));
+            cteBody = new QueryNode(
+                new SelectNode([new FieldNode(new IntegerNode(1), 0, cteColumnName)]),
+                new Parser.ExpressionFromNode(new Parser.InMemoryTableFromNode(result, result)),
+                null,
+                null,
+                null,
+                null,
+                null
+            );
         }
 
         return new SubqueryJoinRewrite(
@@ -195,5 +221,10 @@ public partial class SubqueryToCteRewriteVisitor
         Node DiagnosticNode
     );
 
-    private sealed record PredicateSubqueryJoin(InMemoryTableFromNode CteRef, Node JoinExpression, Node Replacement);
+    private sealed record PredicateSubqueryJoin(
+        InMemoryTableFromNode CteRef,
+        Node JoinExpression,
+        Node Replacement,
+        SubqueryJoinRewrite? Membership = null
+    );
 }

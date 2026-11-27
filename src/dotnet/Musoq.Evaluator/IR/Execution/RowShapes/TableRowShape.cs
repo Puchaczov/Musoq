@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Musoq.Evaluator.IR.Bindings;
 
 namespace Musoq.Evaluator.IR.Execution;
 
@@ -20,6 +22,31 @@ public sealed record TableRowShape : RowShape
         Contexts = contexts;
         GeneratedRowTypeName = generatedRowTypeName;
     }
+
+    internal static TableRowShape FromSchema(string alias, OutputSchema schema) =>
+        new TableRowShape(
+            alias,
+            schema
+                .Columns.Select(column =>
+                    new FieldBinding(
+                        column.Name,
+                        $"{alias}.{column.Name}",
+                        column.Index,
+                        column.Type,
+                        FieldNullability.Unknown,
+                        new PositionalAccess(column.Index, ExecutionClrBindingFactory.FromClr(column.Type)),
+                        sourceReadType: column.SourceReadType,
+                        enumType: column.EnumType
+                    ) with
+                    {
+                        Stability = column.Stability,
+                        GeneratedTypeName = string.IsNullOrEmpty(column.IntendedTypeName)
+                            ? null
+                            : column.IntendedTypeName,
+                    }
+                )
+                .ToArray()
+        );
 
     public string Alias { get; init; }
 

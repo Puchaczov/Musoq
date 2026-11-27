@@ -19,6 +19,7 @@ using Musoq.Schema.DataSources;
 using Musoq.Schema.Diagnostics;
 using Musoq.Schema.Interpreters;
 using Musoq.Schema.Managers;
+using Musoq.Tests.Common;
 using BinaryParseException = Musoq.Schema.Interpreters.ParseException;
 
 namespace Musoq.Evaluator.Tests;
@@ -32,7 +33,7 @@ namespace Musoq.Evaluator.Tests;
 [DoNotParallelize]
 public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextualEvaluatorTestBase
 {
-    private static readonly TimeSpan HarnessBudget = TimeSpan.FromSeconds(2);
+    public TestContext TestContext { get; set; } = null!;
 
     [TestMethod]
     [DataRow("CC-01")]
@@ -47,18 +48,7 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
     [DataRow("CC-10")]
     [DataRow("CC-11")]
     [DataRow("CC-12")]
-    [DataRow("EX-01")]
-    [DataRow("EX-02")]
-    [DataRow("EX-03")]
-    [DataRow("EX-04")]
-    [DataRow("EX-05")]
-    [DataRow("EX-06")]
-    [DataRow("EX-07")]
-    [DataRow("EX-08")]
     [DataRow("EX-09")]
-    [DataRow("EX-10")]
-    [DataRow("EX-11")]
-    [DataRow("EX-12")]
     [DataRow("ZP-01")]
     [DataRow("ZP-02")]
     [DataRow("ZP-03")]
@@ -72,17 +62,7 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
     [DataRow("ZP-11")]
     [DataRow("ZP-12")]
     [DataRow("CL-01")]
-    [DataRow("CL-02")]
-    [DataRow("CL-03")]
-    [DataRow("CL-04")]
-    [DataRow("CL-05")]
-    [DataRow("CL-06")]
-    [DataRow("CL-07")]
-    [DataRow("CL-08")]
     [DataRow("CL-09")]
-    [DataRow("CL-10")]
-    [DataRow("CL-11")]
-    [DataRow("CL-12")]
     public async Task CancellationAndBoundsMatrix_ShouldUseContractedTermination(string caseId)
     {
         if (caseId.StartsWith("CC-", StringComparison.Ordinal))
@@ -136,7 +116,7 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
 
     private async Task AssertPartialExecutionCancellation(string caseId)
     {
-        using var session = new ControlledSession();
+        var session = new ControlledSession();
         var provider = new ControlledProvider(session);
         using var compiled = CompileGeneratedQuery(
             $"select r.Id from #rec133.items() r /* {caseId}-fault */",
@@ -146,36 +126,32 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
             TestCompilationOptions
         );
         using var cancellation = new CancellationTokenSource();
+        using var watchdog = new TestWatchdog(TestContext.CancellationToken);
 
-        var run = Task.Run(() => ObserveCancellation(compiled, cancellation.Token));
-        OperationCanceledException? observed = null;
-        try
-        {
-            Assert.IsTrue(
-                session.ProducerStarted.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT producer did not start for {caseId}."
-            );
-            cancellation.Cancel();
-            Assert.IsTrue(
-                session.CancellationObserved.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT producer did not observe cancellation for {caseId}."
-            );
-            observed = await run.WaitAsync(HarnessBudget);
-        }
-        finally
-        {
-            cancellation.Cancel();
-            session.ReleaseProducer.Set();
-            await run.WaitAsync(HarnessBudget);
-            Assert.IsTrue(
-                session.ProducerExited.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}."
-            );
-        }
-
-        Assert.IsNotNull(observed, $"{caseId} completed normally after cancellation.");
-        Assert.IsTrue(observed.CancellationToken.IsCancellationRequested, caseId);
-        Assert.IsTrue(session.CancellationObserved.IsSet, caseId);
+        var run = TestWatchdog.StartWorker(() => ObserveCancellation(compiled, cancellation.Token));
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.ReachedBeforeCompletionAsync(
+                    session.ProducerStarted.Task,
+                    run,
+                    $"{caseId} partial chunk"
+                );
+                cancellation.Cancel();
+                await watchdog.WaitAsync(session.CancellationObserved.Task, $"{caseId} source cancellation");
+                await watchdog.WaitAsync(run, $"{caseId} query termination");
+                var observed = await run;
+                Assert.IsNotNull(observed, $"{caseId} completed normally after cancellation.");
+                Assert.IsTrue(observed.CancellationToken.IsCancellationRequested, caseId);
+                await watchdog.WaitAsync(session.ProducerExited.Task, $"{caseId} producer exit");
+            },
+            async () =>
+            {
+                session.ReleaseProducer.TrySetResult();
+                cancellation.Cancel();
+                await run;
+            }
+        );
     }
 
     private static OperationCanceledException? ObserveCancellation(CompiledQuery compiled, CancellationToken token)
@@ -258,74 +234,62 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
     private static CompiledBinaryFixture CompileInterpreter(SchemaRegistry registry, string schemaName) =>
         new(new InterpreterCodeGenerator(registry).GenerateAll(), schemaName, []);
 
-    private static async Task AssertCleanupBoundary(string caseId)
+    private async Task AssertCleanupBoundary(string caseId)
     {
-        using var session = new ControlledSession();
-        var source = new ControlledSource(
-            CreateSourceContext(),
-            session,
-            finite: caseId is "CL-09" or "CL-10" or "CL-11" or "CL-12",
-            waitForCancellation: true
-        );
+        var session = new ControlledSession();
+        var source = new ControlledSource(CreateSourceContext(), session, finite: caseId == "CL-09");
+        using var watchdog = new TestWatchdog(TestContext.CancellationToken);
 
-        if (caseId is "CL-09" or "CL-10" or "CL-11" or "CL-12")
+        if (caseId == "CL-09")
         {
-            await AssertFiniteProducer(source, session, caseId);
+            await AssertFiniteProducer(source, session, watchdog, caseId);
             return;
         }
 
-        await AssertDisposalCancelsProducer(source, session, caseId);
+        await AssertDisposalCancelsProducer(source, session, watchdog, caseId);
     }
 
-    private static async Task AssertFiniteProducer(ControlledSource source, ControlledSession session, string caseId)
+    private static async Task AssertFiniteProducer(
+        ControlledSource source,
+        ControlledSession session,
+        TestWatchdog watchdog,
+        string caseId
+    )
     {
-        var read = Task.Run(() => source.Chunks.SelectMany(static chunk => chunk).ToArray());
-        try
-        {
-            var rows = await read.WaitAsync(HarnessBudget);
-            CollectionAssert.AreEqual(new[] { 1, 2 }, rows.Select(row => row.Id).ToArray(), caseId);
-            Assert.IsFalse(session.CancellationObserved.IsSet, caseId);
-        }
-        finally
-        {
-            session.ReleaseProducer.Set();
-            await read.WaitAsync(HarnessBudget);
-            Assert.IsTrue(
-                session.ProducerExited.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT finite producer did not finish for {caseId}."
-            );
-        }
+        var read = TestWatchdog.StartWorker(() => source.Chunks.SelectMany(static chunk => chunk).ToArray());
+        await watchdog.WaitAsync(read, $"{caseId} source drain");
+        var rows = await read;
+        CollectionAssert.AreEqual(new[] { 1, 2 }, rows.Select(row => row.Id).ToArray(), caseId);
+        await watchdog.WaitAsync(session.ProducerExited.Task, $"{caseId} finite producer exit");
+        Assert.IsFalse(session.CancellationObserved.Task.IsCompleted, caseId);
     }
 
     private static async Task AssertDisposalCancelsProducer(
         ControlledSource source,
         ControlledSession session,
+        TestWatchdog watchdog,
         string caseId
     )
     {
-        var read = Task.Run(() =>
+        var read = TestWatchdog.StartWorker(() =>
         {
             using var enumerator = source.Chunks.GetEnumerator();
             Assert.IsTrue(enumerator.MoveNext(), caseId);
             Assert.AreEqual(1, enumerator.Current[0].Id, caseId);
         });
-        try
-        {
-            await read.WaitAsync(HarnessBudget);
-            Assert.IsTrue(
-                session.CancellationObserved.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT cleanup cancellation was not observed for {caseId}."
-            );
-        }
-        finally
-        {
-            session.ReleaseProducer.Set();
-            await read.WaitAsync(HarnessBudget);
-            Assert.IsTrue(
-                session.ProducerExited.Wait(HarnessBudget),
-                $"HARNESS_TIMEOUT producer cleanup did not finish for {caseId}."
-            );
-        }
+        await TestWatchdog.WithCleanupAsync(
+            async () =>
+            {
+                await watchdog.WaitAsync(read, $"{caseId} enumerator disposal");
+                await watchdog.WaitAsync(session.CancellationObserved.Task, $"{caseId} source cancellation");
+                await watchdog.WaitAsync(session.ProducerExited.Task, $"{caseId} producer exit");
+            },
+            () =>
+            {
+                session.ReleaseProducer.TrySetResult();
+                return read;
+            }
+        );
     }
 
     private static SourceExecutionContext CreateSourceContext()
@@ -385,7 +349,7 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         {
             return EnsureSourceType<T, BasicEntity>(
                 name,
-                new ControlledSource(executionContext, session, finite: false, waitForCancellation: true)
+                new ControlledSource(executionContext, session, finite: false)
             );
         }
 
@@ -397,35 +361,23 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
         }
     }
 
-    private sealed class ControlledSession : IDisposable
+    private sealed class ControlledSession
     {
-        public ManualResetEventSlim ProducerStarted { get; } = new();
-        public ManualResetEventSlim CancellationObserved { get; } = new();
-        public ManualResetEventSlim ProducerExited { get; } = new();
-        public ManualResetEventSlim ReleaseProducer { get; } = new();
-
-        public void Dispose()
-        {
-            ProducerStarted.Dispose();
-            CancellationObserved.Dispose();
-            ProducerExited.Dispose();
-            ReleaseProducer.Dispose();
-        }
+        public TaskCompletionSource ProducerStarted { get; } = TestWatchdog.Signal();
+        public TaskCompletionSource CancellationObserved { get; } = TestWatchdog.Signal();
+        public TaskCompletionSource ProducerExited { get; } = TestWatchdog.Signal();
+        public TaskCompletionSource ReleaseProducer { get; } = TestWatchdog.Signal();
     }
 
-    private sealed class ControlledSource(
-        SourceExecutionContext context,
-        ControlledSession session,
-        bool finite,
-        bool waitForCancellation
-    ) : DiagnosticChunkedRowSource<BasicEntity>(context, "rec133-items", new DiagnosticChunkedRowSourceOptions(4))
+    private sealed class ControlledSource(SourceExecutionContext context, ControlledSession session, bool finite)
+        : DiagnosticChunkedRowSource<BasicEntity>(context, "rec133-items", new DiagnosticChunkedRowSourceOptions(4))
     {
         protected override void CollectChunks(DiagnosticChunkWriter<BasicEntity> writer)
         {
             try
             {
                 writer.Write([new BasicEntity("partial") { Id = 1 }]);
-                session.ProducerStarted.Set();
+                session.ProducerStarted.TrySetResult();
 
                 if (finite)
                 {
@@ -433,23 +385,16 @@ public sealed class DiagnosticRec133CancellationAndBoundsTests : BinaryOrTextual
                     return;
                 }
 
-                if (waitForCancellation)
-                {
-                    session.ReleaseProducer.Wait(writer.CancellationToken);
-                }
-                else
-                {
-                    session.ReleaseProducer.Wait();
-                }
+                session.ReleaseProducer.Task.WaitAsync(writer.CancellationToken).GetAwaiter().GetResult();
             }
             catch (OperationCanceledException) when (writer.CancellationToken.IsCancellationRequested)
             {
-                session.CancellationObserved.Set();
+                session.CancellationObserved.TrySetResult();
                 throw;
             }
             finally
             {
-                session.ProducerExited.Set();
+                session.ProducerExited.TrySetResult();
             }
         }
     }

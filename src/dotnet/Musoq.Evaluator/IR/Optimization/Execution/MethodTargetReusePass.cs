@@ -408,36 +408,6 @@ internal sealed class MethodTargetReusePass : IExecutionIrOptimizationPass
                 };
         }
 
-        protected override ExecutionNode RewriteAsOfProbe(ExecutionAsOfProbe node)
-        {
-            if (_deferMethodTargetDeclarationsDepth == 0)
-                return base.RewriteAsOfProbe(node);
-
-            var candidates = RewriteExpression(node.Candidates);
-            var equalityKeys = RewriteAsOfEqualityKeys(node.EqualityKeys);
-            var probeKey = RewriteExpression(node.ProbeKey);
-            var candidateKey = RewriteExpression(node.CandidateKey);
-            var body = RewriteBlock(node.Body);
-            var noMatchBody = RewriteOptionalBlock(node.NoMatchBody);
-            return
-                ReferenceEquals(candidates, node.Candidates)
-                && ReferenceEquals(equalityKeys, node.EqualityKeys)
-                && ReferenceEquals(probeKey, node.ProbeKey)
-                && ReferenceEquals(candidateKey, node.CandidateKey)
-                && ReferenceEquals(body, node.Body)
-                && ReferenceEquals(noMatchBody, node.NoMatchBody)
-                ? node
-                : node with
-                {
-                    Candidates = candidates,
-                    EqualityKeys = equalityKeys,
-                    ProbeKey = probeKey,
-                    CandidateKey = candidateKey,
-                    Body = body,
-                    NoMatchBody = noMatchBody,
-                };
-        }
-
         protected override ExecutionNode RewriteRangeProbe(ExecutionRangeProbe node)
         {
             if (_deferMethodTargetDeclarationsDepth == 0)

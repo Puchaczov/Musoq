@@ -380,6 +380,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class StringRepeatPacket : BytesInterpreterBase<StringRepeatPacket>, IBytesInterpreterStatus<StringRepeatPacket>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public string[] Names { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Names" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -403,9 +405,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Names field value.</summary>
-        public string[] Names { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "StringRepeatPacket";
 
         public override StringRepeatPacket InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<StringRepeatPacket>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -423,12 +422,12 @@ namespace Musoq.Generated.Interpreters
                 __parsedValue = new StringRepeatPacket();
                 RecordParsedValue(__parsedValue);
                 SetCurrentField("Names");
-                var __names_list = new System.Collections.Generic.List<string>();
-                string __names_lastElem;
-                var __names_iteration = 0;
+                var __field5_Names_list = new System.Collections.Generic.List<string>();
+                string __field5_Names_lastElem;
+                var __field5_Names_iteration = 0;
                 do
                 {
-                    if (base.CheckRepeatIterationStatus("Names", __names_iteration++, 10000)is { } __musoqReadFailure1)
+                    if (base.CheckRepeatIterationStatus("Names", __field5_Names_iteration++, 10000)is { } __musoqReadFailure1)
                     {
                         return global::Musoq.Schema.Interpreters.ParseAttempt<StringRepeatPacket>.Failed(__parsedValue, __musoqReadFailure1);
                     }
@@ -440,13 +439,13 @@ namespace Musoq.Generated.Interpreters
                         return global::Musoq.Schema.Interpreters.ParseAttempt<StringRepeatPacket>.Failed(__parsedValue, __musoqReadFailure4);
                     }
 
-                    var __names_lastElem_value = ReadString(data, __musoqReadSize2, __musoqReadEncoding3);
-                    __names_lastElem = __names_lastElem_value;
-                    __names_list.Add(__names_lastElem);
+                    var __field5_Names_lastElem_value = ReadString(data, __musoqReadSize2, __musoqReadEncoding3);
+                    __field5_Names_lastElem = __field5_Names_lastElem_value;
+                    __field5_Names_list.Add(__field5_Names_lastElem);
                 }
-                while (((__names_lastElem == "END")) != true);
-                var _names = __names_list.ToArray();
-                __parsedValue.Names = _names;
+                while (((__field5_Names_lastElem == "END")) != true);
+                var _field5_Names = __field5_Names_list.ToArray();
+                __parsedValue.Names = _field5_Names;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<StringRepeatPacket>.Success(__parsedValue);
             }

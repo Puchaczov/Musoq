@@ -150,7 +150,7 @@ internal sealed class SubqueryBindingScope(SemanticAnalysisState state)
                 Musoq.Parser.Diagnostics.DiagnosticCode.MQ3049_InSubqueryMultipleColumns,
                 node.Span
             );
-        if (apply.Kind != SubqueryApplyKind.Exists && fields.Length != 1)
+        if (apply.Kind is not (SubqueryApplyKind.Exists or SubqueryApplyKind.Rows) && fields.Length != 1)
             throw SubqueryDiagnosticFactory.InvalidSubquery(
                 "subquery binding",
                 "Subquery must return exactly one column.",
@@ -171,11 +171,13 @@ internal sealed class SubqueryBindingScope(SemanticAnalysisState state)
         var type = apply.Kind switch
         {
             SubqueryApplyKind.Exists => typeof(bool),
+            SubqueryApplyKind.Rows => typeof(IEnumerable<Tables.Row>),
             SubqueryApplyKind.In or SubqueryApplyKind.Any or SubqueryApplyKind.All => typeof(bool?),
             _ => LiftScalarSubqueryType(fields[0].ReturnType ?? typeof(object)),
         };
         return new SubqueryApplyNode(query, apply.Kind, operand, type, Captures)
         {
+            BindingKey = apply.BindingKey,
             Comparison = apply.Comparison,
         }.CopySpansFrom(node);
     }

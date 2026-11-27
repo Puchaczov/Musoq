@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Musoq.Evaluator.Exceptions;
+using Musoq.Evaluator.IR;
 using Musoq.Parser;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
@@ -147,8 +148,8 @@ public partial class BuildMetadataAndInferTypesVisitor
         HashSet<string> rightAliases
     )
     {
-        var columnAliases = ExtractColumnAliases(inequality.Left);
-        columnAliases.UnionWith(ExtractColumnAliases(inequality.Right));
+        var columnAliases = ExtractSourceAliases(inequality.Left);
+        columnAliases.UnionWith(ExtractSourceAliases(inequality.Right));
 
         var referencesLeft = columnAliases.Overlaps(leftAliases);
         var referencesRight = columnAliases.Overlaps(rightAliases);
@@ -170,7 +171,7 @@ public partial class BuildMetadataAndInferTypesVisitor
         if (tieBreak == null)
             return;
 
-        var columnAliases = ExtractColumnAliases(tieBreak.Expression);
+        var columnAliases = ExtractSourceAliases(tieBreak.Expression);
         if (columnAliases.Count == 0)
             return;
 
@@ -184,7 +185,7 @@ public partial class BuildMetadataAndInferTypesVisitor
 
     private static HashSet<string> CollectFromNodeAliases(FromNode node)
     {
-        var aliases = new HashSet<string>();
+        var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         CollectFromNodeAliasesRecursive(node, aliases);
         return aliases;
     }
@@ -203,9 +204,9 @@ public partial class BuildMetadataAndInferTypesVisitor
         }
     }
 
-    private static HashSet<string> ExtractColumnAliases(Node node)
+    private static HashSet<string> ExtractSourceAliases(Node node)
     {
-        var aliases = new HashSet<string>();
+        var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var stack = new Stack<Node>();
         stack.Push(node);
 
@@ -218,6 +219,12 @@ public partial class BuildMetadataAndInferTypesVisitor
                 aliases.Add(col.Alias);
                 continue;
             }
+
+            if (
+                current is AccessMethodNode { Method: { } method, Alias.Length: > 0 } call
+                && SourceInjectionMethodFacts.FindInjectedSourceParameter(method) != null
+            )
+                aliases.Add(call.Alias);
 
             foreach (var child in ParserNodeChildTraversal.EnumerateChildren(current))
                 stack.Push(child);

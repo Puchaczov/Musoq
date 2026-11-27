@@ -113,7 +113,11 @@ internal static class GeneratedRowCarrierUsage
         IReadOnlyDictionary<string, IReadOnlySet<GeneratedRowContextConstructor>> constructorUsages
     )
     {
-        return read.AccessStrategy is PositionalAccess or NestedPositionalAccess or ContextAccess
+        return read.AccessStrategy
+                is PositionalAccess
+                    or NestedPositionalAccess
+                    or GeneratedRowNestedAccess { FieldIndex: not null }
+                    or ContextAccess
             || read.AccessStrategy is GeneratedRowContextAccess context
                 && !CanReadGeneratedContextStorage(context, constructorUsages);
     }

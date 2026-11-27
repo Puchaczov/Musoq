@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Musoq.Evaluator.Exceptions;
 using Musoq.Evaluator.Helpers;
+using Musoq.Evaluator.Visitors.Helpers.Subqueries;
 using Musoq.Parser.Diagnostics;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.From;
@@ -157,7 +158,7 @@ public static class QueryRewriteUtilities
             var current = stack.Pop();
             if (current is AccessMethodNode aggregate && aggregate.IsAggregateMethod())
                 continue;
-            if (current is AccessColumnNode)
+            if (current is AccessColumnNode and not SubqueryParameterNode)
                 return true;
 
             switch (current)

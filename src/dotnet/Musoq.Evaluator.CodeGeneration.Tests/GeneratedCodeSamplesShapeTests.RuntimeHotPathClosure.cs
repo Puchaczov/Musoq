@@ -159,7 +159,7 @@ public sealed partial class GeneratedCodeSamplesShapeTests
     }
 
     [TestMethod]
-    public void EnumerableResultSamples_WhenCheckedIn_ShouldUseExplicitResultChunkHelperName()
+    public void EnumerableResultSamples_WhenCheckedIn_ShouldTraverseTypedRecordApplyBatches()
     {
         var samples = ReadAllSamples();
 
@@ -170,7 +170,10 @@ public sealed partial class GeneratedCodeSamplesShapeTests
         );
         Assert.IsTrue(
             samples.Any(static sample =>
-                sample.Content.Contains("EvaluationHelper.ConvertEnumerableOutputToChunks", StringComparison.Ordinal)
+                sample.Content.Contains(
+                    "new global::Musoq.Evaluator.Helpers.RecordApplyRows<",
+                    StringComparison.Ordinal
+                )
             )
         );
     }

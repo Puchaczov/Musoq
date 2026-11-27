@@ -143,8 +143,11 @@ public partial class SubqueryToCteRewriteVisitor
     )
     {
         var valueExpression = query.Select.Fields[0].Expression;
-        if (RequiresResultMaterialization(query) && !RequiresUnsupportedCombinedScalarShape(query))
+        if (RequiresResultMaterialization(query))
         {
+            if (RequiresUnsupportedCombinedScalarShape(query))
+                ThrowUnsupportedCorrelatedScalarResultMaterialization(node);
+
             return RewriteMaterializedCorrelatedScalarSubquery(
                 query,
                 correlation,
@@ -154,9 +157,6 @@ public partial class SubqueryToCteRewriteVisitor
                 cteInnerExpressions
             );
         }
-
-        if (RequiresCorrelatedAggregateApply(query))
-            ThrowUnsupportedCorrelatedScalarResultMaterialization(node);
 
         var where = query.Where;
         if (where == null)

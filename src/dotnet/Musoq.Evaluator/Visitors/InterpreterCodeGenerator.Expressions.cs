@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Musoq.Evaluator.Helpers;
 using Musoq.Parser.Nodes;
 using Musoq.Parser.Nodes.InterpretationSchema;
 using Musoq.Schema.Interpreters;
@@ -94,7 +95,7 @@ public partial class InterpreterCodeGenerator
 
     private string GenerateConditionExpression(Node condition)
     {
-        if (_repeatExpressionBinding?.EmitReference(condition, GenerateArrayIndexExpression) is { } reference)
+        if (_repeatExpressionBinding?.EmitReference(condition, GenerateIndexValue) is { } reference)
             return reference;
         if (
             condition is BinaryNode comparison
@@ -144,27 +145,19 @@ public partial class InterpreterCodeGenerator
                 _expressionFields,
                 _registry,
                 GenerateConditionExpression,
-                MapClrTypeName
+                InferComputedFieldTypeName
             ),
-            IntegerNode intNode => Convert.ToString(intNode.ObjValue, System.Globalization.CultureInfo.InvariantCulture)
-                ?? "0",
-            BinaryIntegerNode binaryNode => Convert.ToString(
-                binaryNode.ObjValue,
-                System.Globalization.CultureInfo.InvariantCulture
-            ) ?? "0",
-            OctalIntegerNode octalNode => Convert.ToString(
-                octalNode.ObjValue,
-                System.Globalization.CultureInfo.InvariantCulture
-            ) ?? "0",
+            NumericLiteralNode integer
+                when integer is IntegerNode or HexIntegerNode or BinaryIntegerNode or OctalIntegerNode =>
+                FormatIntegerLiteral(integer),
             DecimalNode decNode => decNode.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + "m",
             BooleanNode booleanNode => booleanNode.Value ? "true" : "false",
             WordNode wordNode => $"\"{EscapeString(wordNode.Value)}\"",
             StringNode stringNode => $"\"{EscapeString(stringNode.Value)}\"",
             DotNode dotNode => GenerateDotExpression(dotNode),
-            ArrayIndexNode arrayIndex =>
-                $"{GenerateConditionExpression(arrayIndex.Array)}[{GenerateConditionExpression(arrayIndex.Index)}]",
-            AccessColumnNode acNode => GetLocalVarName(acNode.Name),
-            IdentifierNode idNode => GetLocalVarName(idNode.Name),
+            ArrayIndexNode arrayIndex => GenerateIndexedExpression(arrayIndex),
+            AccessColumnNode acNode => GenerateFieldReference(acNode.Name),
+            IdentifierNode idNode => GenerateFieldReference(idNode.Name),
             AccessMethodNode methodNode => GenerateMethodCallExpression(methodNode),
             StringConcatenationNode concatenation => _stringConcatenation.Emit(
                 concatenation,
@@ -175,18 +168,12 @@ public partial class InterpreterCodeGenerator
             StarNode star => GenerateArithmeticExpression(star, "*"),
             FSlashNode slash => GenerateArithmeticExpression(slash, "/"),
             ModuloNode mod => GenerateArithmeticExpression(mod, "%"),
-            HexIntegerNode hexNode => FormatHexLiteral(hexNode),
 
-            BitwiseAndNode bitwiseAnd =>
-                $"({GenerateConditionExpression(bitwiseAnd.Left)} & {GenerateConditionExpression(bitwiseAnd.Right)})",
-            BitwiseOrNode bitwiseOr =>
-                $"({GenerateConditionExpression(bitwiseOr.Left)} | {GenerateConditionExpression(bitwiseOr.Right)})",
-            BitwiseXorNode bitwiseXor =>
-                $"({GenerateConditionExpression(bitwiseXor.Left)} ^ {GenerateConditionExpression(bitwiseXor.Right)})",
-            LeftShiftNode leftShift =>
-                $"({GenerateConditionExpression(leftShift.Left)} << {GenerateConditionExpression(leftShift.Right)})",
-            RightShiftNode rightShift =>
-                $"({GenerateConditionExpression(rightShift.Left)} >> {GenerateConditionExpression(rightShift.Right)})",
+            BitwiseAndNode bitwiseAnd => GenerateArithmeticExpression(bitwiseAnd, "&"),
+            BitwiseOrNode bitwiseOr => GenerateArithmeticExpression(bitwiseOr, "|"),
+            BitwiseXorNode bitwiseXor => GenerateArithmeticExpression(bitwiseXor, "^"),
+            LeftShiftNode leftShift => GenerateArithmeticExpression(leftShift, "<<"),
+            RightShiftNode rightShift => GenerateArithmeticExpression(rightShift, ">>"),
             _ => condition.ToString() ?? "false",
         };
     }
@@ -240,11 +227,28 @@ public partial class InterpreterCodeGenerator
         var rightType = BinarySchemaExpressionTypes.Unwrap(
             BinarySchemaExpressionTypes.Resolve(node.Right, _expressionFields, _registry)
         );
+        if (operation is "==" or "!=")
+        {
+            if (rightType == typeof(char) && node.Left is ConstantValueNode { ObjValue: string { Length: 1 } })
+                (leftType, left) = (typeof(char), $"({left})[0]");
+            if (leftType == typeof(char) && node.Right is ConstantValueNode { ObjValue: string { Length: 1 } })
+                (rightType, right) = (typeof(char), $"({right})[0]");
+            // Signed 32-bit binary signatures may be written as their unsigned hexadecimal bit patterns.
+            if (IsInt32Signature(node.Left, rightType))
+                (leftType, left) = (typeof(int), $"unchecked((int)({left}))");
+            if (IsInt32Signature(node.Right, leftType))
+                (rightType, right) = (typeof(int), $"unchecked((int)({right}))");
+        }
         var nullable =
             BinarySchemaExpressionTypes.MayBeNull(node.Left, _expressionFields, _registry)
             || BinarySchemaExpressionTypes.MayBeNull(node.Right, _expressionFields, _registry);
         return BinarySchemaComparisonEmitter.Emit(new(leftType, rightType, left, right, operation, nullable));
     }
+
+    private static bool IsInt32Signature(Node literal, Type otherType) =>
+        otherType == typeof(int)
+        && literal is HexIntegerNode { ObjValue: long number }
+        && number is > int.MaxValue and <= uint.MaxValue;
 
     private string ComparisonOperand(Node expression, Node other)
     {
@@ -261,7 +265,7 @@ public partial class InterpreterCodeGenerator
     {
         var type = BinarySchemaExpressionTypes.Resolve(node, _expressionFields, _registry);
         var typeName =
-            MapClrTypeName(BinarySchemaExpressionTypes.Unwrap(type))
+            InferComputedFieldTypeName(node, _expressionFields, type)
             + (BinarySchemaExpressionTypes.IsNullable(type) ? "?" : string.Empty);
         var result = $"(({typeName})({GenerateConditionExpression(node.Else)}))";
         foreach (var pair in node.WhenThenPairs.Reverse())
@@ -297,13 +301,23 @@ public partial class InterpreterCodeGenerator
         return $"{methodName}({string.Join(", ", argExpressions)})";
     }
 
+    private string GenerateFieldReference(string name) =>
+        _parentContext?.ImplicitNames.Contains(name) == true
+            ? $"{_parentContext.StorageName}.{_parentContext.Member("parent." + name)}"
+            : GetLocalVarName(name);
+
     private string GenerateDotExpression(DotNode dotNode)
     {
-        var path = string.Join('.', BinarySchemaExpressionTypes.PathParts(dotNode));
-        if (_parentContext?.ExpressionReferences.Contains(dotNode) == true)
-            return $"__parentContext.{_parentContext.Member(path)}";
+        if (_parentContext?.BoundPaths.TryGetValue(dotNode, out var path) == true)
+            return $"{_parentContext.StorageName}.{_parentContext.Member(path)}";
         var root = GenerateConditionExpression(dotNode.Root);
-        var property = GetPropertyNameFromExpression(dotNode.Expression);
+        var memberName = GetPropertyNameFromExpression(dotNode.Expression);
+        var property = EscapeCSharpIdentifier(memberName);
+        if (
+            _registry.EmbeddedTextShapes?.Expression(dotNode.Root, _expressionFields) is
+            { Alternatives.Count: > 0 } choice
+        )
+            return GenerateTextSwitchMember(root, choice, memberName, dotNode.Root);
         var rootType = BinarySchemaExpressionTypes.Resolve(dotNode.Root, _expressionFields, _registry);
         if (
             !BinarySchemaExpressionTypes.Unwrap(rootType).IsValueType
@@ -313,38 +327,44 @@ public partial class InterpreterCodeGenerator
         return $"{root}.{property}";
     }
 
-    private string GenerateArrayIndexExpression(string listVar, Node indexExpr)
+    private static string GenerateTextSwitchMember(
+        string receiver,
+        TextResultShape choice,
+        string memberName,
+        Node source
+    )
     {
-        if (
-            indexExpr is HyphenNode
-            {
-                Left: IntegerNode { ObjValue: int and 0 },
-                Right: IntegerNode { ObjValue: int rightVal and > 0 }
-            }
-        )
-            return $"{listVar}[{listVar}.Count - {rightVal}]";
-
-        if (indexExpr is IntegerNode intIdx)
-        {
-            var idx = Convert.ToInt32(intIdx.ObjValue, System.Globalization.CultureInfo.InvariantCulture);
-            if (idx < 0)
-                return $"{listVar}[{listVar}.Count - {-idx}]";
-            return $"{listVar}[{idx}]";
-        }
-
-        var indexCode = GenerateConditionExpression(indexExpr);
-        return $"{listVar}[{indexCode}]";
+        var value = TextSwitchPropertyResolver.RequireMember(choice, source.ToString(), memberName);
+        var type = value.TypeName is { } name ? LocalInterpreterType(name) : MapClrTypeName(value.ClrType);
+        var property = EscapeCSharpIdentifier(memberName);
+        var cases = choice
+            .Alternatives.Where(arm => arm.TypeName != null && arm.Member(memberName) != null)
+            .Select(arm => $"{LocalInterpreterType(arm.TypeName!)} __arm => ({type})__arm.{property}")
+            .Distinct(StringComparer.Ordinal);
+        return $"(({receiver}) switch {{ {string.Join(", ", cases)}, _ => ({type})null! }})";
     }
 
-    private static string EscapeString(string value)
+    private static string LocalInterpreterType(string qualified) =>
+        qualified.Replace(TextResultTypeNames.NamespacePrefix, string.Empty, StringComparison.Ordinal);
+
+    private string GenerateIndexedExpression(ArrayIndexNode indexed)
     {
-        return value
-            .Replace("\\", "\\\\", StringComparison.Ordinal)
-            .Replace("\"", "\\\"", StringComparison.Ordinal)
-            .Replace("\n", "\\n", StringComparison.Ordinal)
-            .Replace("\r", "\\r", StringComparison.Ordinal)
-            .Replace("\t", "\\t", StringComparison.Ordinal);
+        var method =
+            BinarySchemaExpressionTypes.Resolve(indexed.Array, _expressionFields, _registry) == typeof(string)
+                ? nameof(SafeArrayAccess.GetStringCharacter)
+                : nameof(SafeArrayAccess.GetArrayElement);
+        return $"global::Musoq.Evaluator.Helpers.SafeArrayAccess.{method}({GenerateConditionExpression(indexed.Array)}, {GenerateIndexValue(indexed.Index)})";
     }
+
+    private string GenerateIndexValue(Node index)
+    {
+        var value = GenerateConditionExpression(index);
+        return BinarySchemaExpressionTypes.Resolve(index, _expressionFields, _registry) == typeof(int)
+            ? value
+            : $"checked((int)({value}))";
+    }
+
+    private static string EscapeString(string value) => InterpretationStringLiterals.EscapeCSharpString(value);
 
     private static string GetPropertyNameFromExpression(Node expression)
     {

@@ -7,6 +7,23 @@ namespace Musoq.Evaluator.Tests;
 [TestClass]
 public sealed class CaseCteNullabilityTests : BasicEntityTestBase
 {
+    [TestMethod]
+    [DataRow("s.S in ('a','c')")]
+    [DataRow("s.S='a'")]
+    [DataRow("s.S between 'a' and 'c'")]
+    [DataRow("case when s.G=1 then true else s.S='a' end")]
+    public void CteExportsTheNullableResultOfItsPredicate(string predicate)
+    {
+        var sql =
+            $"with q as (select s.G as G,{predicate} as P from values {{ (G:1,S:'a'),(G:2,S:null) }} s)"
+            + " select q.G,q.P from q";
+        using var query = CreateAndRunVirtualMachine(sql, CreateSingleSource());
+        using var result = query.Run(TestContext.CancellationToken);
+
+        TableMaterializationTestHelper.AssertColumns(result, ("G", typeof(int)), ("P", typeof(bool?)));
+        TableMaterializationTestHelper.AssertRowsUnordered(result, [1, true], [2, null]);
+    }
+
     private const string Inputs = """
         with Data as (
             select v.Name, v.Ddl

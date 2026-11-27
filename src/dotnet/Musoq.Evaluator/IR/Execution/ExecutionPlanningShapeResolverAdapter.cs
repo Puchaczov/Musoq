@@ -26,7 +26,7 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
         ToPlanningRowShape(ResolveExecutionSourceShape(scan));
 
     public PlanningRowShape ResolveCteRefShape(PhysicalCteRefNode cteRef) =>
-        ToPlanningRowShape(ResolveExecutionCteRefShape(cteRef));
+        ToPlanningRowShape(TableRowShape.FromSchema(cteRef.Alias, cteRef.OutputSchema));
 
     public PlanningRowShape ResolveInterpretSourceShape(PhysicalInterpretSourceNode interpret) =>
         ToPlanningRowShape(ResolveExecutionInterpretSourceShape(interpret));
@@ -38,28 +38,6 @@ internal sealed class ExecutionPlanningShapeResolverAdapter(ExecutionShapeResolv
         ToPlanningRowShape(ResolveExecutionAccessMethodSourceShape(accessMethod));
 
     private RowShape ResolveExecutionSourceShape(PhysicalSchemaScanNode scan) => resolver.ResolveSourceShape(scan);
-
-    private static RowShape ResolveExecutionCteRefShape(PhysicalCteRefNode cteRef) =>
-        new TableRowShape(
-            cteRef.Alias,
-            cteRef
-                .OutputSchema.Columns.Select(column =>
-                    new FieldBinding(
-                        column.Name,
-                        $"{cteRef.Alias}.{column.Name}",
-                        column.Index,
-                        column.Type,
-                        FieldNullability.Unknown,
-                        new PositionalAccess(column.Index, ExecutionClrBindingFactory.FromClr(column.Type)),
-                        sourceReadType: column.SourceReadType,
-                        enumType: column.EnumType
-                    ) with
-                    {
-                        Stability = column.Stability,
-                    }
-                )
-                .ToArray()
-        );
 
     private RowShape ResolveExecutionInterpretSourceShape(PhysicalInterpretSourceNode interpret) =>
         resolver.ResolveInterpretSourceShape(interpret);

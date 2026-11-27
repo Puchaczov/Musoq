@@ -21,5 +21,7 @@ public sealed record PhysicalSingleKeyAggregateNode(
         )
     )
 {
+    public bool InitializeConstantGroup { get; init; }
+
     public override IReadOnlyList<PhysicalNode> Children { get; } = [Input];
 }

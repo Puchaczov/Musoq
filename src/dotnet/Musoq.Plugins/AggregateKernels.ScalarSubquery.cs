@@ -66,3 +66,27 @@ public static class ScalarSubqueryAggregateKernel<T>
         target.HasValue = true;
     }
 }
+
+/// <summary>Preserves the nullable projection type of a scalar value-type subquery.</summary>
+public static class NullableScalarSubqueryAggregateKernel<T>
+    where T : struct
+{
+    /// <summary>Tracks cardinality and the first nullable value independently for each group.</summary>
+    public struct State
+    {
+        internal ScalarSubqueryAggregateKernel<T?>.State Inner;
+    }
+
+    /// <summary>Initializes independently owned kernel state.</summary>
+    public static void Reset(ref State state) => ScalarSubqueryAggregateKernel<T?>.Reset(ref state.Inner);
+
+    /// <summary>Accumulates one candidate row.</summary>
+    public static void Set(ref State state, T? value) => ScalarSubqueryAggregateKernel<T?>.Set(ref state.Inner, value);
+
+    /// <summary>Returns the scalar result with its original element type.</summary>
+    public static T? Get(in State state) => ScalarSubqueryAggregateKernel<T?>.Get(in state.Inner);
+
+    /// <summary>Combines independently accumulated rows.</summary>
+    public static void Merge(ref State target, in State source) =>
+        ScalarSubqueryAggregateKernel<T?>.Merge(ref target.Inner, in source.Inner);
+}

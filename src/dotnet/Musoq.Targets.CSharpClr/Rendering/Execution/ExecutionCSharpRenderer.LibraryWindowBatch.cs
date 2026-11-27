@@ -7,7 +7,11 @@ namespace Musoq.Targets.CSharpClr;
 
 public sealed partial class ExecutionCSharpRenderer
 {
-    private void AddLibraryWindowBatchValues(ExecutionWindowAggregateKernel kernel, List<StatementSyntax> statements)
+    private void AddLibraryWindowBatchValues(
+        ExecutionRenderContext renderContext,
+        ExecutionWindowAggregateKernel kernel,
+        List<StatementSyntax> statements
+    )
     {
         if (!kernel.Descriptor.CaptureArguments)
             return;
@@ -16,12 +20,12 @@ public sealed partial class ExecutionCSharpRenderer
         var items = CreateIndexedItemDeclarations(kernel.Item, kernel.Buffer, index, kernel.RowAccessMode);
         var filter = kernel.FilterPredicate is null
             ? null
-            : this.RenderBooleanCondition(kernel.FilterPredicate, CreateIsolatedRenderContext());
+            : this.RenderBooleanCondition(kernel.FilterPredicate, renderContext);
         statements.AddRange(
             LibraryWindowInputCaptureSyntax.Create(
                 kernel,
                 index,
-                expressions.Select(RenderExpression).ToArray(),
+                expressions.Select(windowInput => RenderExpression(windowInput, renderContext)).ToArray(),
                 items,
                 filter,
                 CreateBufferCountExpression(kernel.Buffer)
@@ -30,6 +34,7 @@ public sealed partial class ExecutionCSharpRenderer
     }
 
     private StatementSyntax CreateLibraryWindowBatchPartition(
+        ExecutionRenderContext renderContext,
         ExecutionWindowAggregateKernel kernel,
         string indices,
         string start,
@@ -38,6 +43,6 @@ public sealed partial class ExecutionCSharpRenderer
         LibraryWindowBatchSyntax.CreatePartition(
             kernel,
             new WindowPartitionPositionSyntax(indices, start, count),
-            CreateLibraryWindowFrameLoop(kernel, indices, start, count)
+            CreateLibraryWindowFrameLoop(renderContext, kernel, indices, start, count)
         );
 }

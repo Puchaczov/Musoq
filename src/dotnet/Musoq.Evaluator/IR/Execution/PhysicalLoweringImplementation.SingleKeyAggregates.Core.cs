@@ -11,7 +11,7 @@ internal sealed partial class PhysicalLoweringImplementation
     )
     {
         var groupKey = ExecutionExpressionConverter.Convert(pipeline.GroupKey, source.Lookup);
-        if (CanUseLeanDistinct(pipeline))
+        if (!pipeline.Aggregate.InitializeConstantGroup && CanUseLeanDistinct(pipeline))
         {
             return BuildLeanDistinctTable(
                 pipeline.Project.Fields,
@@ -74,28 +74,30 @@ internal sealed partial class PhysicalLoweringImplementation
 
         var aggregate = aggregateResources.Value;
         var aggregateBody = new ExecutionBlock([.. aggregate.SetNodes.Nodes, .. aggregate.ValueCapture.Nodes]);
-        var serialAggregateBody = new ExecutionBlock([
-            new ExecutionGetOrAddSingleKeyAggregateGroup(
-                rootGroup,
-                groups,
-                groupsToFinalize,
-                currentGroup,
-                groupKey,
-                pipeline.GroupKeyName,
-                pipeline.GroupKeyType,
-                nullGroup,
-                aggregate.Group.Plan
-            ),
-            .. aggregateBody.Nodes,
-        ]);
+        var getGroup = new ExecutionGetOrAddSingleKeyAggregateGroup(
+            rootGroup,
+            groups,
+            groupsToFinalize,
+            currentGroup,
+            groupKey,
+            pipeline.GroupKeyName,
+            pipeline.GroupKeyType,
+            nullGroup,
+            aggregate.Group.Plan
+        );
+        var initializeGroup = pipeline.Aggregate.InitializeConstantGroup;
+        var serialAggregateBody = initializeGroup
+            ? aggregateBody
+            : new ExecutionBlock([getGroup, .. aggregateBody.Nodes]);
         var accumulationBlock = CreateAggregateAccumulationBlock(
             pipeline.Source.Filter,
             source.Lookup,
             serialAggregateBody
         );
         var loop = source.CreateLoop(accumulationBlock);
-        ExecutionNode aggregateLoop =
-            TryCreateParallelSingleKeyAggregateLoop(
+        ExecutionNode aggregateLoop = initializeGroup
+            ? loop
+            : TryCreateParallelSingleKeyAggregateLoop(
                 pipeline,
                 source,
                 groupKey,
@@ -145,7 +147,8 @@ internal sealed partial class PhysicalLoweringImplementation
                 finalBlock.Value,
                 projection.PostOperations,
                 pipeline.Project.IsDistinct,
-                projection.FinalProjection
+                projection.FinalProjection,
+                initializeGroup ? getGroup : null
             )
         );
     }

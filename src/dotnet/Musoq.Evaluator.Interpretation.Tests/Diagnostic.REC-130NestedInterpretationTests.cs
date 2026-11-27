@@ -563,7 +563,7 @@ public sealed class REC130NestedInterpretationTests : BinaryOrTextualEvaluatorTe
                 "text Digits { Value: pattern '\\d+' }; binary Root { Prefix: byte, Value: string[2] ascii as Digits, Tail: byte }",
                 [0x07, 0x31, 0x32, 0xA5],
                 [0x07, 0x41, 0x21, 0xA5],
-                "Value",
+                "Value.Value",
                 "ISE0003",
                 3,
                 ["Prefix"],

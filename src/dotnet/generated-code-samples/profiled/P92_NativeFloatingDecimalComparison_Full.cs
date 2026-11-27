@@ -8,7 +8,7 @@ select Position, Floating from #schema.first() where Floating > Amount order by 
 MultiStatement
   Sort [ko3iko.Position]
     Project [ko3iko.Position as Position, ko3iko.Floating as Floating]
-      Filter [(ToDecimal(ko3iko.Floating) > ToDecimal(ko3iko.Amount))]
+      Filter [(ToComparisonDecimal(ko3iko.Floating) > ko3iko.Amount)]
         SchemaScan [#schema.first() as ko3iko]
 */
 
@@ -17,7 +17,7 @@ MultiStatement
 PhysicalMultiStatement
   PhysicalSort [ko3iko.Position]
     PhysicalProject [ko3iko.Position as Position, ko3iko.Floating as Floating]
-      PhysicalFilter [(ToDecimal(ko3iko.Floating) > ToDecimal(ko3iko.Amount))]
+      PhysicalFilter [(ToComparisonDecimal(ko3iko.Floating) > ko3iko.Amount)]
         PhysicalSchemaScan [#schema.first() as ko3iko]
 */
 
@@ -42,12 +42,11 @@ ExecutionPlan [compiled]
     PhaseBoundary [From]
     SourceScan [ko3iko: LibraryExecutionEntity] -> ko3ikoRows
     CreateRecordList [resultOrderRecords: ResultRow0WithSortKeys]
-    CreateObject [__resultOrderRecordsLibraryBase0: LibraryBase]
     PhaseBoundary [Where]
     PhaseBoundary [Select]
     ChunkedForEach [ko3iko in ko3ikoRows]
       Let [floating: double? = ko3iko.Floating]
-      If [(ToDecimal(floating) > ToDecimal(ko3iko.Amount))]
+      If [(ToComparisonDecimal(floating) > ko3iko.Amount)]
         AppendRecord [resultOrderRecords <- ResultRow0WithSortKeys(Position: ko3iko.Position, Floating: floating)]
     OrderRecordList [resultOrderRecords: ResultRow0WithSortKeys by Position ASC]
     TransferOwnedRows [resultOrderRecords -> result: ResultRow0WithSortKeys]
@@ -137,7 +136,6 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
                 var ko3ikoRowsSource = SourceInvocation<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>.Open(__ko3ikoSchema, "first", new SourceExecutionContext("ko3iko:1", sourceExecutionPlans["ko3iko:1"], token, __schemaColumns_compiled_ko3iko_0, sourceRuntimeSettingsBySourceContextId["ko3iko:1"], logger, OnDataSourceProgress) { WarningReporter = global::Musoq.Schema.Diagnostics.DataSourceWarningCollector.GetReporter(provider, sourceExecutionPlans["ko3iko:1"].Identity) }, global::Musoq.Schema.SourceArguments.Empty);
                 var ko3ikoRows = __musoqProgressContext != null ? QueryProgressRuntime.WrapChunks<Musoq.Evaluator.Tests.Schema.LibraryExecution.LibraryExecutionEntity>(ko3ikoRowsSource.Chunks, __musoqProgressContext, "ko3iko:1") : ko3ikoRowsSource.Chunks;
                 var resultOrderRecords = new List<ResultRow0WithSortKeys>();
-                var __resultOrderRecordsLibraryBase0 = new Musoq.Plugins.LibraryBase();
                 OnPhaseChanged("compiled", QueryPhase.Where);
                 OnPhaseChanged("compiled", QueryPhase.Select);
                 foreach (var ko3ikoChunk in ko3ikoRows)
@@ -156,7 +154,7 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
 
                                 var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 double? floating = ko3iko.Floating;
-                                if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                                if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
                                 }
@@ -177,7 +175,7 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
 
                                 var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
                                 double? floating = ko3iko.Floating;
-                                if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                                if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
                                 }
@@ -196,7 +194,7 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
 
                         var ko3iko = ko3ikoChunk[ko3ikoIndex];
                         double? floating = ko3iko.Floating;
-                        if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                        if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                         {
                             resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
                         }
@@ -235,14 +233,13 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
                     var __op16Handle = profileRecorder?.GetOperatorHandle("op16", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op17Handle = profileRecorder?.GetOperatorHandle("op17", "SourceScan") ?? OperatorProfileHandle.None;
                     var __op18Handle = profileRecorder?.GetOperatorHandle("op18", "CreateRecordList") ?? OperatorProfileHandle.None;
-                    var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "CreateObject") ?? OperatorProfileHandle.None;
+                    var __op19Handle = profileRecorder?.GetOperatorHandle("op19", "PhaseBoundary") ?? OperatorProfileHandle.None;
                     var __op20Handle = profileRecorder?.GetOperatorHandle("op20", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "PhaseBoundary") ?? OperatorProfileHandle.None;
-                    var __op22Handle = profileRecorder?.GetOperatorHandle("op22", "ChunkedForEach") ?? OperatorProfileHandle.None;
-                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "AppendRecord") ?? OperatorProfileHandle.None;
-                    var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "OrderRecordList") ?? OperatorProfileHandle.None;
-                    var __op27Handle = profileRecorder?.GetOperatorHandle("op27", "TransferOwnedRows") ?? OperatorProfileHandle.None;
-                    long __op25OutputRows = 0L;
+                    var __op21Handle = profileRecorder?.GetOperatorHandle("op21", "ChunkedForEach") ?? OperatorProfileHandle.None;
+                    var __op24Handle = profileRecorder?.GetOperatorHandle("op24", "AppendRecord") ?? OperatorProfileHandle.None;
+                    var __op25Handle = profileRecorder?.GetOperatorHandle("op25", "OrderRecordList") ?? OperatorProfileHandle.None;
+                    var __op26Handle = profileRecorder?.GetOperatorHandle("op26", "TransferOwnedRows") ?? OperatorProfileHandle.None;
+                    long __op24OutputRows = 0L;
                     var __op15Scope = profileRecorder?.BeginOperatorValue(__op15Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Begin);
                     __op15Scope.Dispose();
@@ -259,17 +256,14 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
                     var resultOrderRecords = new List<ResultRow0WithSortKeys>();
                     __op18Scope.Dispose();
                     var __op19Scope = profileRecorder?.BeginOperatorValue(__op19Handle) ?? OperatorProfileValueScope.None;
-                    var __resultOrderRecordsLibraryBase0 = new Musoq.Plugins.LibraryBase();
+                    OnPhaseChanged("compiled", QueryPhase.Where);
                     __op19Scope.Dispose();
                     var __op20Scope = profileRecorder?.BeginOperatorValue(__op20Handle) ?? OperatorProfileValueScope.None;
-                    OnPhaseChanged("compiled", QueryPhase.Where);
-                    __op20Scope.Dispose();
-                    var __op21Scope = profileRecorder?.BeginOperatorValue(__op21Handle) ?? OperatorProfileValueScope.None;
                     OnPhaseChanged("compiled", QueryPhase.Select);
-                    __op21Scope.Dispose();
-                    long __op22InputRows = 0L;
-                    long __op22OutputRows = 0L;
-                    var __op22Scope = profileRecorder?.BeginOperatorValue(__op22Handle) ?? OperatorProfileValueScope.None;
+                    __op20Scope.Dispose();
+                    long __op21InputRows = 0L;
+                    long __op21OutputRows = 0L;
+                    var __op21Scope = profileRecorder?.BeginOperatorValue(__op21Handle) ?? OperatorProfileValueScope.None;
                     try
                     {
                         foreach (var ko3ikoChunk in ko3ikoRows)
@@ -287,13 +281,13 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
                                         }
 
                                         var ko3iko = ko3ikoChunkViewArray[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                        __op22InputRows++;
-                                        __op22OutputRows++;
+                                        __op21InputRows++;
+                                        __op21OutputRows++;
                                         double? floating = ko3iko.Floating;
-                                        if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                                        if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                         {
                                             resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
-                                            __op25OutputRows += 1;
+                                            __op24OutputRows += 1;
                                         }
                                     }
 
@@ -311,13 +305,13 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
                                         }
 
                                         var ko3iko = ko3ikoChunkViewList[ko3ikoChunkViewOffset + ko3ikoIndex];
-                                        __op22InputRows++;
-                                        __op22OutputRows++;
+                                        __op21InputRows++;
+                                        __op21OutputRows++;
                                         double? floating = ko3iko.Floating;
-                                        if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                                        if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                         {
                                             resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
-                                            __op25OutputRows += 1;
+                                            __op24OutputRows += 1;
                                         }
                                     }
 
@@ -333,35 +327,35 @@ namespace GeneratedSample_P92_NativeFloatingDecimalComparison_Full
                                 }
 
                                 var ko3iko = ko3ikoChunk[ko3ikoIndex];
-                                __op22InputRows++;
-                                __op22OutputRows++;
+                                __op21InputRows++;
+                                __op21OutputRows++;
                                 double? floating = ko3iko.Floating;
-                                if (((Operators.SqlCompare<decimal?, decimal?>((decimal?)__resultOrderRecordsLibraryBase0.ToDecimal(floating), (decimal?)ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight)))) == true)
+                                if ((Operators.SqlCompare<decimal?, decimal?>((decimal?)Musoq.Evaluator.Operators.ToComparisonDecimal<double>(floating), ko3iko.Amount, (decimal? __sqlLeft, decimal? __sqlRight) => (__sqlLeft > __sqlRight))) == true)
                                 {
                                     resultOrderRecords.Add(new ResultRow0WithSortKeys(ko3iko.Position, floating, resultOrderRecords.Count));
-                                    __op25OutputRows += 1;
+                                    __op24OutputRows += 1;
                                 }
                             }
                         }
                     }
                     finally
                     {
-                        __op22Scope.AddInputRows(__op22InputRows);
-                        __op22Scope.AddOutputRows(__op22OutputRows);
-                        __op22Scope.Dispose();
+                        __op21Scope.AddInputRows(__op21InputRows);
+                        __op21Scope.AddOutputRows(__op21OutputRows);
+                        __op21Scope.Dispose();
                     }
 
+                    var __op25Scope = profileRecorder?.BeginOperatorValue(__op25Handle) ?? OperatorProfileValueScope.None;
+                    __op25Scope.AddInputRows(resultOrderRecords.Count);
+                    EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
+                    __op25Scope.AddOutputRows(resultOrderRecords.Count);
+                    __op25Scope.Dispose();
                     var __op26Scope = profileRecorder?.BeginOperatorValue(__op26Handle) ?? OperatorProfileValueScope.None;
                     __op26Scope.AddInputRows(resultOrderRecords.Count);
-                    EvaluationHelper.SortRecordsIfUnordered(resultOrderRecords, ResultRow0WithSortKeysComparer.Instance);
                     __op26Scope.AddOutputRows(resultOrderRecords.Count);
                     __op26Scope.Dispose();
-                    var __op27Scope = profileRecorder?.BeginOperatorValue(__op27Handle) ?? OperatorProfileValueScope.None;
-                    __op27Scope.AddInputRows(resultOrderRecords.Count);
-                    __op27Scope.AddOutputRows(resultOrderRecords.Count);
-                    __op27Scope.Dispose();
-                    if (__op25OutputRows > 0L)
-                        profileRecorder?.AddOperatorOutputRows(__op25Handle, __op25OutputRows);
+                    if (__op24OutputRows > 0L)
+                        profileRecorder?.AddOperatorOutputRows(__op24Handle, __op24OutputRows);
                     return resultOrderRecords;
                 }
                 finally

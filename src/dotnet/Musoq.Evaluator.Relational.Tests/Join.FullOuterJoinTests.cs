@@ -170,11 +170,13 @@ public partial class JoinFullOuterJoinTests : BasicEntityTestBase
     }
 
     [TestMethod]
-    public void FullOuterJoin_WithCompositeKeys_ShouldReturnHashJoinRows()
+    [DataRow(true)]
+    [DataRow(false)]
+    public void FullOuterJoin_WithCompositeKeys_ShouldIdentifyBothSides(bool useHashJoin)
     {
         const string query = (
             "\n"
-            + "select a.Id, b.Id\n"
+            + "select a.Id, b.Id, a.City as LeftCity, b.City as RightCity\n"
             + "from #A.entities() a\n"
             + "full outer join #B.entities() b on a.Id = b.Id and a.City = b.City"
         );
@@ -183,10 +185,25 @@ public partial class JoinFullOuterJoinTests : BasicEntityTestBase
             [new BasicEntity { Id = 1, City = "x" }, new BasicEntity { Id = 1, City = "right" }]
         );
 
-        var table = Run(query, sources);
+        using var table = Run(
+            query,
+            sources,
+            new CompilationOptions(useHashJoin: useHashJoin, useSortMergeJoin: false)
+        );
 
-        AssertFullOuterIdColumns(table);
-        AssertRows(table, (1, 1), (1, null), (null, 1));
+        TableMaterializationTestHelper.AssertColumns(
+            table,
+            ("Id", typeof(int?)),
+            ("Id", typeof(int?)),
+            ("LeftCity", typeof(string)),
+            ("RightCity", typeof(string))
+        );
+        TableMaterializationTestHelper.AssertRowsUnordered(
+            table,
+            [1, 1, "x", "x"],
+            [1, null, "left", null],
+            [null, 1, null, "right"]
+        );
     }
 
     [TestMethod]

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Musoq.Schema.DataSources;
 
@@ -11,32 +12,28 @@ public partial class SchemaExtendedTests
     [TestMethod]
     public void RowSourceBase_WhenChunksPropertyRead_ShouldNotStartProducer()
     {
-        var source = new StartTrackingChunkedSource();
+        var scheduler = new RecordingProducerScheduler();
+        var source = new StartTrackingChunkedSource { ProducerScheduler = scheduler };
 
         var chunks = source.Chunks;
 
-        Assert.IsFalse(source.ProducerStarted.IsSet);
+        Assert.AreEqual(0, scheduler.QueuedCount);
 
         using var enumerator = chunks.GetEnumerator();
 
-        Assert.IsTrue(source.ProducerStarted.Wait(TimeSpan.FromSeconds(5)));
+        Assert.AreEqual(1, scheduler.QueuedCount);
+        scheduler.RunProducer();
         Assert.IsTrue(enumerator.MoveNext());
         Assert.AreEqual(42, enumerator.Current[0]);
         Assert.IsFalse(enumerator.MoveNext());
     }
 
     [TestMethod]
-    public void RowSourceBase_WhenConsumerDisposesEarly_ShouldCancelProducer()
+    public Task RowSourceBase_WhenConsumerDisposesEarly_ShouldCancelProducer()
     {
-        var source = new WaitingChunkedSource();
-
-        using (var enumerator = source.Chunks.GetEnumerator())
-        {
-            Assert.IsTrue(enumerator.MoveNext());
-            Assert.AreEqual(1, enumerator.Current[0]);
-        }
-
-        Assert.IsTrue(source.ProducerCancelled.Wait(TimeSpan.FromSeconds(2)));
+        var producer = new ControlledChunkProducer(cooperates: true);
+        var source = new GatedChunkedSource(producer);
+        return producer.VerifyConsumerDisposalAsync(source.Chunks);
     }
 
     [TestMethod]
@@ -92,65 +89,21 @@ public partial class SchemaExtendedTests
     }
 
     [TestMethod]
-    public void RowSourceBase_WhenProducerIgnoresCancellation_ShouldNotHangConsumerDispose()
+    public Task RowSourceBase_WhenProducerIgnoresCancellation_ShouldNotHangConsumerDispose()
     {
-        var source = new NonCooperativeChunkedSource();
-
-        using var enumerator = source.Chunks.GetEnumerator();
-
-        Assert.IsTrue(enumerator.MoveNext());
-        Assert.AreEqual(1, enumerator.Current[0]);
-
-        // Dispose must return while the producer is deliberately ignoring
-        // cancellation. Releasing the producer only after disposal proves
-        // that cleanup was handed off instead of waiting on producer progress.
-        try
-        {
-            enumerator.Dispose();
-            Assert.IsFalse(source.ProducerExited.IsSet);
-        }
-        finally
-        {
-            source.ReleaseProducer.Set();
-        }
-
-        Assert.IsTrue(
-            source.ProducerExited.Wait(TimeSpan.FromSeconds(30)),
-            "The non-cooperative producer did not exit after it was released."
-        );
+        var producer = new ControlledChunkProducer(cooperates: false);
+        var source = new GatedChunkedSource(producer);
+        return producer.VerifyConsumerDisposalAsync(source.Chunks);
     }
 
     private sealed class StartTrackingChunkedSource : RowSourceBase<int>
     {
-        public ManualResetEventSlim ProducerStarted { get; } = new();
-
-        protected override void CollectChunks(IChunkWriter<int> writer)
-        {
-            ProducerStarted.Set();
-            writer.Write([42]);
-        }
+        protected override void CollectChunks(IChunkWriter<int> writer) => writer.Write([42]);
     }
 
-    private sealed class WaitingChunkedSource : RowSourceBase<int>
+    private sealed class GatedChunkedSource(ControlledChunkProducer producer) : RowSourceBase<int>
     {
-        public ManualResetEventSlim ProducerCancelled { get; } = new();
-
-        protected override void CollectChunks(IChunkWriter<int> writer)
-        {
-            var token = writer.CancellationToken;
-            writer.Write([1]);
-
-            try
-            {
-                using var wait = new ManualResetEventSlim();
-                wait.Wait(token);
-            }
-            catch (OperationCanceledException) when (token.IsCancellationRequested)
-            {
-                ProducerCancelled.Set();
-                throw;
-            }
-        }
+        protected override void CollectChunks(IChunkWriter<int> writer) => producer.PublishAndWait(writer);
     }
 
     private sealed class FailingChunkedSource : RowSourceBase<int>
@@ -190,25 +143,6 @@ public partial class SchemaExtendedTests
         protected override void CollectChunks(IChunkWriter<int> writer)
         {
             writer.Write(Rows);
-        }
-    }
-
-    private sealed class NonCooperativeChunkedSource : RowSourceBase<int>
-    {
-        public ManualResetEventSlim ReleaseProducer { get; } = new();
-        public ManualResetEventSlim ProducerExited { get; } = new();
-
-        protected override void CollectChunks(IChunkWriter<int> writer)
-        {
-            try
-            {
-                writer.Write([1]);
-                ReleaseProducer.Wait();
-            }
-            finally
-            {
-                ProducerExited.Set();
-            }
         }
     }
 }

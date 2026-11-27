@@ -300,6 +300,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Base : BytesInterpreterBase<Base>, IBytesInterpreterStatus<Base>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Id { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Id" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -323,9 +325,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Id field value.</summary>
-        public byte Id { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Base";
 
         public override Base InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Base>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -348,8 +347,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Base>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _id = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Id = _id;
+                var _field2_Id = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Id = _field2_Id;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Base>.Success(__parsedValue);
             }
@@ -367,6 +366,9 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Child : BytesInterpreterBase<Child>, IBytesInterpreterStatus<Child>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Id { get; set; }
+        public byte Version { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Id", "Version" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -397,11 +399,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Id field value.</summary>
-        public byte Id { get; set; }
-        /// <summary>Gets the Version field value.</summary>
-        public byte Version { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Child";
 
         public override Child InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Child>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -424,8 +421,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Child>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _id = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Id = _id;
+                var _field2_Id = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Id = _field2_Id;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Version");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure2)
@@ -433,8 +430,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Child>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _version = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Version = _version;
+                var _field7_Version = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Version = _field7_Version;
                 base.RecordParsedFieldSlot(1);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Child>.Success(__parsedValue);
             }
@@ -452,6 +449,10 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class Grandchild : BytesInterpreterBase<Grandchild>, IBytesInterpreterStatus<Grandchild>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public byte Id { get; set; }
+        public byte Version { get; set; }
+        public byte Flags { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Id", "Version", "Flags" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -489,13 +490,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Id field value.</summary>
-        public byte Id { get; set; }
-        /// <summary>Gets the Version field value.</summary>
-        public byte Version { get; set; }
-        /// <summary>Gets the Flags field value.</summary>
-        public byte Flags { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "Grandchild";
 
         public override Grandchild InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<Grandchild>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -518,8 +512,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Grandchild>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _id = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Id = _id;
+                var _field2_Id = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Id = _field2_Id;
                 base.RecordParsedFieldSlot(0);
                 SetCurrentField("Version");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure2)
@@ -527,8 +521,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Grandchild>.Failed(__parsedValue, __musoqReadFailure2);
                 }
 
-                var _version = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Version = _version;
+                var _field7_Version = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Version = _field7_Version;
                 base.RecordParsedFieldSlot(1);
                 SetCurrentField("Flags");
                 if (base.PrepareByteInputStatus(data, 1)is { } __musoqReadFailure3)
@@ -536,8 +530,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<Grandchild>.Failed(__parsedValue, __musoqReadFailure3);
                 }
 
-                var _flags = base.TakePreparedBytes(data, 1)[0];
-                __parsedValue.Flags = _flags;
+                var _field5_Flags = base.TakePreparedBytes(data, 1)[0];
+                __parsedValue.Flags = _field5_Flags;
                 base.RecordParsedFieldSlot(2);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<Grandchild>.Success(__parsedValue);
             }

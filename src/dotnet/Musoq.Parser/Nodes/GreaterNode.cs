@@ -18,8 +18,5 @@ public class GreaterNode : BinaryNode
         visitor.Visit(this);
     }
 
-    public override string ToString()
-    {
-        return $"{Left.ToString()} > {Right.ToString()}";
-    }
+    public override string ToString() => FormatInfix(">");
 }

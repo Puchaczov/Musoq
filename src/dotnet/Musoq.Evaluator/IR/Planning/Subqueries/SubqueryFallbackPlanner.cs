@@ -22,6 +22,7 @@ internal sealed class SubqueryFallbackPlanner(PlanningContext context) : IrExpre
         var optimized = new LogicalOptimizer(context.CompilationOptions.UseConstantFolding).Optimize(query);
         var nestedContext = context with
         {
+            IsSubquery = true,
             LogicalArtifacts = new LogicalPlanningArtifacts(
                 optimized.InitialPlan,
                 optimized.OptimizedPlan,

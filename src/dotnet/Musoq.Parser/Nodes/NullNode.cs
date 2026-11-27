@@ -29,6 +29,8 @@ public class NullNode : Node
 
     public override Type ReturnType { get; }
 
+    public string? IntendedTypeName { get; init; }
+
     public override string Id { get; }
 
     public override void Accept(IExpressionVisitor visitor)

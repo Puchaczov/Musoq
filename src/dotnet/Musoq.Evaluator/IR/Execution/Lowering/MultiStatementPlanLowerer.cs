@@ -14,6 +14,7 @@ internal interface IMultiStatementLoweringService
     bool CanBuildTableProducingMultiStatement(PhysicalMultiStatementNode statement);
 
     MultiStatementIndexes CreateMultiStatementIndexes(
+        LoweringScope scope,
         PhysicalMultiStatementNode statement,
         IReadOnlyDictionary<string, int>? existingCteIndexes = null,
         IReadOnlyDictionary<string, GeneratedRowShape>? existingCteShapesByName = null,
@@ -54,6 +55,7 @@ internal sealed class MultiStatementPlanLowerer(IMultiStatementLoweringService s
             context.ResultTableName,
             context.ResultShapeName,
             service.CreateMultiStatementIndexes(
+                context.Scope,
                 statement,
                 context.CteIndexes,
                 context.CteShapesByName,

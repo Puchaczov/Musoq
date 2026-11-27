@@ -506,6 +506,8 @@ namespace Musoq.Generated.Interpreters
     [global::System.Text.Json.Serialization.JsonConverter(typeof(global::Musoq.Plugins.JsonPayloadConverterFactory))]
     public sealed class SampleReading : BytesInterpreterBase<SampleReading>, IBytesInterpreterStatus<SampleReading>, IParserCompletionLayoutSource, global::Musoq.Plugins.IJsonPayload
     {
+        public int Score { get; set; }
+
         private static readonly global::Musoq.Schema.Interpreters.ParserCompletionLayout __musoqCompletionLayout = new(new string[] { "Score" });
         global::Musoq.Schema.Interpreters.ParserCompletionLayout global::Musoq.Schema.Interpreters.IParserCompletionLayoutSource.CompletionLayout => __musoqCompletionLayout;
 
@@ -529,9 +531,6 @@ namespace Musoq.Generated.Interpreters
             writer.WriteEndObject();
         }
 
-        /// <summary>Gets the Score field value.</summary>
-        public int Score { get; set; }
-        /// <inheritdoc/>
         public override string SchemaName => "SampleReading";
 
         public override SampleReading InterpretAt(ReadOnlySpan<byte> data, int offset) => ((global::Musoq.Schema.Interpreters.IBytesInterpreterStatus<SampleReading>)this).ReadAt(data, offset).GetValueOrThrow();
@@ -554,8 +553,8 @@ namespace Musoq.Generated.Interpreters
                     return global::Musoq.Schema.Interpreters.ParseAttempt<SampleReading>.Failed(__parsedValue, __musoqReadFailure1);
                 }
 
-                var _score = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
-                __parsedValue.Score = _score;
+                var _field5_Score = global::System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(base.TakePreparedBytes(data, 4));
+                __parsedValue.Score = _field5_Score;
                 base.RecordParsedFieldSlot(0);
                 return global::Musoq.Schema.Interpreters.ParseAttempt<SampleReading>.Success(__parsedValue);
             }

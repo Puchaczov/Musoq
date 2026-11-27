@@ -10,11 +10,18 @@ using Musoq.Evaluator.IR.Physical.Nodes;
 namespace Musoq.Evaluator.IR.Planning;
 
 /// <summary>Combines observations of private owned values before selecting stored representations.</summary>
-internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? bounds, CancellationToken cancellationToken)
+internal sealed partial class ByteBufferFlowPlanner(
+    BinarySchemaReadBounds? bounds,
+    SchemaRegistry? registry,
+    CancellationToken cancellationToken
+)
 {
     private readonly List<ByteBufferFlowValue> _values = [];
     private readonly Dictionary<PhysicalNode, FlowBoundary> _boundaries = new(ReferenceEqualityComparer.Instance);
     private bool _unresolved;
+    private readonly Dictionary<PhysicalInterpretSourceNode, Dictionary<string, ByteBufferFlowValue>> _parsedFields =
+        new(ReferenceEqualityComparer.Instance);
+    private int _nextReaderId;
 
     internal PhysicalNode Plan(PhysicalNode root)
     {
@@ -24,7 +31,7 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
         {
             if (value.Input is { } source && source.Identity >= value.Identity)
                 return root;
-            value.Input?.Require(ByteBufferDemandPreimage.For(value.Producer.BufferPlan!.Program!, value.Requirement));
+            value.Input?.Require(ByteBufferDemandPreimage.For(value.Producer!.BufferPlan!.Program!, value.Requirement));
         }
         return _unresolved || _values.All(value => value.Requirement.RequiresCompleteArray) ? root : Rewrite(root);
     }
@@ -115,7 +122,7 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
                     input.RequireComplete();
                 continue;
             }
-            Observe(expression, input);
+            Observe(expression, input, allowFieldLength: true);
         }
         var output = ByteBufferFlowBindings.Project(project.Fields, fields, input);
         if (project.IsDistinct)
@@ -132,7 +139,10 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
     {
         var left = Analyze(apply.Left, scope, correlated);
         var right = Analyze(apply.Right, scope, left);
-        return ByteBufferFlowBindings.Merge([left, right]);
+        var combined = ByteBufferFlowBindings.Merge([left, right]);
+        if (apply.ApplyPredicateMovementPlans.Count != 0)
+            combined.RequireComplete();
+        return combined;
     }
 
     private ByteBufferFlowBindings AnalyzeConservative(
@@ -147,7 +157,7 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
         return new ByteBufferFlowBindings();
     }
 
-    private void Observe(IrExpression expression, ByteBufferFlowBindings input)
+    private void Observe(IrExpression expression, ByteBufferFlowBindings input, bool allowFieldLength = false)
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (expression is CteTableRef or CteCollectionInput or SubqueryExpression)
@@ -159,6 +169,13 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
         {
             Require(column, input, ByteBufferRequirement.Complete);
             return;
+        }
+        if (expression is ColumnRef otherColumn && _parsedFields.Count > 0)
+        {
+            if (otherColumn.ReturnType == typeof(object))
+                input.RequireComplete();
+            else
+                input.ObserveFieldPath(otherColumn);
         }
         if (expression is MethodCall call)
         {
@@ -175,13 +192,20 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
                 && call.Arguments[0] is ColumnRef buffer
             )
             {
-                Require(
-                    buffer,
-                    input,
-                    consumer.Kind == ByteBufferCallableKind.Length
-                        ? ByteBufferRequirement.Length
-                        : ByteBufferRequirement.Prefix(consumer.ReadWidth)
-                );
+                if (
+                    allowFieldLength
+                    && consumer.Kind == ByteBufferCallableKind.Length
+                    && input.Resolve(buffer) is { } length
+                )
+                    length.ObserveLength();
+                else
+                    Require(
+                        buffer,
+                        input,
+                        consumer.Kind == ByteBufferCallableKind.Length
+                            ? ByteBufferRequirement.Length
+                            : ByteBufferRequirement.Prefix(consumer.ReadWidth)
+                    );
                 foreach (var argument in call.Arguments.Skip(1))
                     Observe(argument, input);
                 return;
@@ -190,7 +214,7 @@ internal sealed partial class ByteBufferFlowPlanner(BinarySchemaReadBounds? boun
                 input.RequireComplete();
         }
         foreach (var child in IrExpressionTraversal.Children(expression))
-            Observe(child, input);
+            Observe(child, input, allowFieldLength);
     }
 
     private static void Require(ColumnRef column, ByteBufferFlowBindings input, ByteBufferRequirement requirement)

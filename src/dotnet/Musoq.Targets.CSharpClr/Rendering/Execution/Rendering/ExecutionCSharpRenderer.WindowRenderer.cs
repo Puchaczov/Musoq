@@ -15,10 +15,10 @@ public sealed partial class ExecutionCSharpRenderer
                     plan,
                     renderContext
                 ),
-                ExecutionComputeRankingWindow ranking => renderer.RenderComputeRankingWindow(ranking),
-                ExecutionComputeOffsetWindow offset => renderer.RenderComputeOffsetWindow(offset),
-                ExecutionComputePluginWindow plugin => renderer.RenderComputePluginWindow(plugin),
-                ExecutionWindowAggregateKernel kernel => renderer.RenderWindowAggregateKernel(kernel),
+                ExecutionComputeRankingWindow ranking => renderer.RenderComputeRankingWindow(renderContext, ranking),
+                ExecutionComputeOffsetWindow offset => renderer.RenderComputeOffsetWindow(renderContext, offset),
+                ExecutionComputePluginWindow plugin => renderer.RenderComputePluginWindow(renderContext, plugin),
+                ExecutionWindowAggregateKernel kernel => renderer.RenderWindowAggregateKernel(renderContext, kernel),
                 _ => null!,
             };
 

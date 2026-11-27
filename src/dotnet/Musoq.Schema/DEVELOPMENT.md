@@ -57,6 +57,12 @@ Musoq.Schema/
 â””â”€â”€ DataSourcePhase.cs                 # Data source loading phase enum
 ```
 
+## Record-valued APPLY properties and methods
+
+A provider can return `ApplyRows.Stream(children)` from a method or table-valued property declared as `IEnumerable<Child>`. The runtime recognizes `IStreamingApplyEnumerable<Child>` on the returned value. Each child can be read by the query before the provider produces its next child. Early termination disposes the active enumerator. Use this opt-in when it is safe to interleave provider side effects and projection.
+
+Ordinary iterators retain their existing read-ahead of up to 4,096 records. Arrays and lists support indexed traversal with either declaration.
+
 ## Key Interfaces
 
 | Interface | Purpose |

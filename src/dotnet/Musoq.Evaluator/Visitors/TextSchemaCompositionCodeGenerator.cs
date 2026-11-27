@@ -20,7 +20,7 @@ public partial class InterpreterCodeGenerator
         var builder = new StringBuilder();
         builder.AppendLine(
             System.Globalization.CultureInfo.InvariantCulture,
-            $"var {interpreterVar} = new {schemaName}();"
+            $"var {interpreterVar} = new {EscapeCSharpIdentifier(schemaName)}();"
         );
         builder.Append(
             StatusRead(

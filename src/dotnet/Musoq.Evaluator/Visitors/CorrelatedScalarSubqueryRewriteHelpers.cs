@@ -5,7 +5,7 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class SubqueryToCteRewriteVisitor
 {
-    private static bool RequiresResultMaterialization(QueryNode query)
+    internal static bool RequiresResultMaterialization(QueryNode query)
     {
         return query.GroupBy != null
             || query.OrderBy != null
@@ -14,11 +14,6 @@ public partial class SubqueryToCteRewriteVisitor
             || query.Window != null
             || query.Qualify != null
             || query.Select.IsDistinct;
-    }
-
-    private static bool RequiresCorrelatedAggregateApply(QueryNode query)
-    {
-        return RequiresResultMaterialization(query);
     }
 
     private static bool RequiresUnsupportedCombinedScalarShape(QueryNode query)

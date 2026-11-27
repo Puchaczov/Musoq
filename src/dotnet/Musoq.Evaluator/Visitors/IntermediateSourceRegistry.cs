@@ -43,6 +43,13 @@ internal sealed class IntermediateSourceRegistry
 
     internal IntermediateSourceBinding Get(QueryNode query) => _intermediateSources[query];
 
+    internal MultiStatementNode CreateResultStatements(List<Node> statements, bool hasScalarRowNumber)
+    {
+        if (hasScalarRowNumber)
+            ResultRowNumberProjection.Split(statements, this);
+        return CreateStatements([.. statements], null);
+    }
+
     internal MultiStatementNode CreateStatements(Node[] nodes, Type? returnType)
     {
         var producers = ImmutableArray.CreateBuilder<IntermediateSourceProducer>();

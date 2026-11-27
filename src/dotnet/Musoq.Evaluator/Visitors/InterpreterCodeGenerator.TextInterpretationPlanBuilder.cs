@@ -7,6 +7,8 @@ namespace Musoq.Evaluator.Visitors;
 
 public partial class InterpreterCodeGenerator
 {
+    private TextResultTypeNames _textResultTypes = null!;
+
     /// <summary>
     ///     Builds an immutable bound plan for a text schema, resolving field ordering
     ///     and per-field property-shape decisions ahead of C# rendering.
@@ -18,6 +20,7 @@ public partial class InterpreterCodeGenerator
         ArgumentNullException.ThrowIfNull(schema);
 
         _discardCounter = 0;
+        _textResultTypes = _registry.TextResultTypes(schema);
 
         var allFields = GetAllTextSchemaFields(schema);
         var boundFields = new List<BoundTextField>(allFields.Count);
@@ -117,24 +120,24 @@ public partial class InterpreterCodeGenerator
         };
     }
 
-    private static string GetTextFieldPropertyClrType(TextFieldDefinitionNode field)
+    private string GetTextFieldPropertyClrType(TextFieldDefinitionNode field)
     {
         if (field.RepeatElement is { } element)
             return $"{GetTextFieldPropertyClrType(element).TrimEnd('?')}[]?";
 
         if (field is { FieldType: TextFieldType.Pattern, CaptureGroups.Length: > 0 })
-            return $"CaptureResult_{field.Name}?";
+            return $"{_textResultTypes.Name(field)}?";
 
         return field.FieldType switch
         {
-            TextFieldType.Repeat => $"{field.PrimaryValue ?? "object"}[]?",
+            TextFieldType.Repeat => $"{EscapeCSharpIdentifier(field.PrimaryValue!)}[]?",
             TextFieldType.Switch => GetTextSwitchResultClrType(field),
-            TextFieldType.SchemaReference => $"{field.PrimaryValue ?? "object"}?",
+            TextFieldType.SchemaReference => $"{EscapeCSharpIdentifier(field.PrimaryValue!)}?",
             _ => "string?",
         };
     }
 
-    private static string GetTextSwitchResultClrType(TextFieldDefinitionNode field)
+    private string GetTextSwitchResultClrType(TextFieldDefinitionNode field)
     {
         var types = field
             .SwitchCases.Select(arm => GetTextFieldPropertyClrType(arm.Body))
@@ -143,36 +146,6 @@ public partial class InterpreterCodeGenerator
         return types.Length == 1 ? types[0] : "object?";
     }
 
-    private List<TextFieldDefinitionNode> GetAllTextSchemaFields(TextSchemaNode textSchema)
-    {
-        var fields = new List<TextFieldDefinitionNode>();
-
-        if (
-            !string.IsNullOrWhiteSpace(textSchema.Extends)
-            && _registry.TryGetSchema(textSchema.Extends, out var registration)
-            && registration?.Node is TextSchemaNode parent
-        )
-        {
-            fields.AddRange(GetAllTextSchemaFields(parent));
-        }
-
-        foreach (var field in textSchema.Fields)
-        {
-            if (field.IsDiscard)
-            {
-                fields.Add(field);
-                continue;
-            }
-
-            var existingIndex = fields.FindIndex(existing =>
-                !existing.IsDiscard && string.Equals(existing.Name, field.Name, StringComparison.OrdinalIgnoreCase)
-            );
-            if (existingIndex >= 0)
-                fields[existingIndex] = field;
-            else
-                fields.Add(field);
-        }
-
-        return fields;
-    }
+    private List<TextFieldDefinitionNode> GetAllTextSchemaFields(TextSchemaNode schema) =>
+        InterpretationSchemaFields.GetFields(schema, _registry);
 }

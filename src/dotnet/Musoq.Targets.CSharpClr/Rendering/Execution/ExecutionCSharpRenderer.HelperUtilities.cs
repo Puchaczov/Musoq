@@ -20,6 +20,9 @@ public sealed partial class ExecutionCSharpRenderer
 
     private static TypeSyntax CreateAggregateRowsParameterType(ExecutionExpression sourceRows, TypeSyntax rowType)
     {
+        if (sourceRows is ExecutionRowStream { HasBaseRowElements: true })
+            return CreateEnumerableTypeSyntax(CreateTypeSyntax(typeof(Musoq.Evaluator.Tables.Row)));
+
         return ExecutionRowStreams.IsChunked(sourceRows)
             ? CreateEnumerableTypeSyntax(CreateReadOnlyListTypeSyntax(rowType))
             : CreateEnumerableTypeSyntax(rowType);

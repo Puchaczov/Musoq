@@ -18,8 +18,5 @@ public class AndNode : BinaryNode
         visitor.Visit(this);
     }
 
-    public override string ToString()
-    {
-        return $"{Left.ToString()} and {Right.ToString()}";
-    }
+    public override string ToString() => FormatInfix("and");
 }

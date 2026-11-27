@@ -4,6 +4,7 @@
         <Version>$(MusoqSchemaVersion)</Version>
     </PropertyGroup>
     <ItemGroup>
+        <InternalsVisibleTo Include="Musoq.Schema.Tests" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
     </ItemGroup>

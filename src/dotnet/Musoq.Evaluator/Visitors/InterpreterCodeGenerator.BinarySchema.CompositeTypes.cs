@@ -22,35 +22,6 @@ public partial class InterpreterCodeGenerator
         return builder.ToString();
     }
 
-    private string GenerateArrayReadCode(string localVar, string fieldName, ArrayTypeNode arrayType)
-    {
-        var builder = new StringBuilder();
-        var countVar = $"_{localVar}_count";
-        var elementTypeName = GetBinaryValueClrTypeName(fieldName, arrayType.ElementType);
-        var loopVar = $"_{localVar}_i";
-        var tempVar = $"_{localVar}_list";
-
-        builder.AppendLine(
-            System.Globalization.CultureInfo.InvariantCulture,
-            $"var {tempVar} = new System.Collections.Generic.List<{elementTypeName}>();"
-        );
-        builder.Append(StatusSizeDeclaration(countVar, arrayType.SizeExpression));
-        builder.AppendLine(
-            System.Globalization.CultureInfo.InvariantCulture,
-            $"for (int {loopVar} = 0; {loopVar} < {countVar}; {loopVar}++)"
-        );
-        builder.AppendLine("{");
-
-        var elementVar = $"_{localVar}_elem";
-        builder.Append(Indent(GenerateBinaryValueRead(elementVar, fieldName, arrayType.ElementType), 1));
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"    {tempVar}.Add({elementVar});");
-
-        builder.AppendLine("}");
-        builder.AppendLine(System.Globalization.CultureInfo.InvariantCulture, $"var {localVar} = {tempVar}.ToArray();");
-
-        return builder.ToString();
-    }
-
     private string GenerateAlignmentCode(AlignmentNode alignmentNode)
     {
         var bits = alignmentNode.AlignmentBits;

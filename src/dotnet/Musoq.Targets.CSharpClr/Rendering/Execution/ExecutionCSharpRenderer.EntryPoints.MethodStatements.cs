@@ -14,7 +14,10 @@ public sealed partial class ExecutionCSharpRenderer
         var nodes = block.Nodes;
         var valueTupleAggregateHelperIndex = 0;
         var singleKeyAggregateHelperIndex = 0;
-        var extractedStoredTableIndexes = new HashSet<int>();
+        var storedBuilds = CollectStoredTableBuilds(block, context).ToDictionary(static build => build.TableIndex);
+        var storedNodes = storedBuilds
+            .Values.SelectMany(static build => build.Nodes.Concat(build.EnclosingNodes))
+            .ToHashSet(ReferenceEqualityComparer.Instance);
         var hashJoinHelperSets = CollectHashJoinHelperSets(block)
             .Where(helperSet => CanUseHashJoinHelperSetInCurrentSink(helperSet, context))
             .ToArray();
@@ -51,6 +54,20 @@ public sealed partial class ExecutionCSharpRenderer
             if (node is ExecutionLet declaration && ExecutionLikeMatcherSyntaxFactory.IsStateDeclaration(declaration))
                 continue;
 
+            if (storedNodes.Contains(node))
+                continue;
+
+            if (node is ExecutionStoreTable store && storedBuilds.Remove(store.TableIndex, out var storedTableBuild))
+            {
+                FlushPendingMethodNodes(statements, pending, context);
+                statements.AddRange(
+                    RenderBlock(new ExecutionBlock(storedTableBuild.EnclosingNodes), context).Statements
+                );
+                statements.Add(CreateStoredTableBuildInvocation(storedTableBuild, context));
+                index += storedTableBuild.TrailingPhaseNodes.Count;
+                continue;
+            }
+
             if (hashBuildHelpersByIndex.TryGetValue(index, out var hashBuildHelper))
             {
                 FlushPendingMethodNodes(statements, pending, context);
@@ -76,12 +93,6 @@ public sealed partial class ExecutionCSharpRenderer
             {
                 FlushPendingMethodNodes(statements, pending, context);
                 statements.Add(CreateKeySetProbeInvocation(keySetProbeHelper, context));
-                continue;
-            }
-
-            if (node is not ExecutionStoreTable && IsInsidePendingStoredTableBuild(nodes, index, pending))
-            {
-                pending.Add(node);
                 continue;
             }
 
@@ -163,29 +174,6 @@ public sealed partial class ExecutionCSharpRenderer
             {
                 FlushPendingMethodNodes(statements, pending, context);
                 statements.Add(CreateSortedCopyInvocation(sortedCopyHelper));
-                continue;
-            }
-
-            if (
-                node is ExecutionStoreTable store
-                && extractedStoredTableIndexes.Add(store.TableIndex)
-                && TryCreateStoredTableBuild(nodes, index, pending, store, out var storedTableBuild)
-            )
-            {
-                if (storedTableBuild.EnclosingNodes.Count > 0)
-                {
-                    statements.AddRange(
-                        RenderBlock(new ExecutionBlock(storedTableBuild.EnclosingNodes), context).Statements
-                    );
-                }
-
-                storedTableBuild = storedTableBuild with
-                {
-                    Captures = CollectStoredTableBuildCaptures(storedTableBuild, context),
-                };
-                statements.Add(CreateStoredTableBuildInvocation(storedTableBuild, context));
-                pending.Clear();
-                index += storedTableBuild.TrailingPhaseNodes.Count;
                 continue;
             }
 
