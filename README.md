@@ -25,6 +25,12 @@ With Musoq, you can:
 - **Ask more involved questions.** Calculate running totals, correlate events over time, rank results, and traverse hierarchical relationships using SQL.
 - **Keep the investigation reusable.** Saved parameterized SQL that agent can inspect, refine, and run against new inputs.
 
+## Feedback
+
+I welcome bug reports, feature ideas, and feedback from people using Musoq. Please report bugs and documentation problems in [GitHub Issues](https://github.com/Puchaczov/Musoq/issues). In Discussions, share feature [ideas](https://github.com/Puchaczov/Musoq/discussions/categories/ideas) or ask questions in [Q&A](https://github.com/Puchaczov/Musoq/discussions/categories/q-a).
+
+I accept pull requests only from repository collaborators. See the [contribution guidelines](CONTRIBUTING.md) for what to include in a report.
+
 ## Keep the investigation in SQL
 
 Many repository and log investigations start with a text search. Musoq's Search provider covers common ripgrep-style tasks: finding matching files and lines, searching several patterns, extracting fields, and counting matches. I can then keep those findings in SQL to compare sets of files, group the results, or join them with other data.

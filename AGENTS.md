@@ -102,7 +102,7 @@ Classify changes by their effects rather than file extensions or directories. Mi
 
 Keep tests independent of developer machines and checkout locations. Use synthetic values for parser and in-memory tests and isolated temporary fixtures for filesystem tests; never depend on a developer checkout or another repository being present.
 
-## Commit & Pull Request Guidelines
+## Maintainer commit and pull request guidelines
 
 Use imperative Conventional-Commit-style subjects, optionally scoped: `feat(evaluator): ...`, `fix(parser): ...`, `test: ...`, or `chore(release): ...`. Keep commits focused. Pull requests should explain the behavior and affected modules, link the relevant issue when one exists, and report the exact build/test commands run; include screenshots only for user-facing visual changes. Keep release and package changes aligned with the [Publish workflow](.github/workflows/publish.yml) and [release scripts](scripts/release/).
 
