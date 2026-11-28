@@ -1,0 +1,20 @@
+{
+  "processId": 74356,
+  "capturedUtc": "2026-11-28T00:39:56.087586+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B08_ThetaJoin",
+  "sql": "select r.Id as Id, d.Id as Match\r\nfrom bench.rows() r\r\ninner join bench.lookup() d on r.Key \u003C d.Key\r\norder by r.Id, d.Id",
+  "inputCount": 1000
+}

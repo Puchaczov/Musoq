@@ -1,0 +1,20 @@
+{
+  "processId": 45816,
+  "capturedUtc": "2026-11-28T01:04:10.9865985+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B12_Quantified",
+  "sql": "select r.Id as Id, r.Id \u003E all (select d.Id\r\nfrom bench.lookup() d) as Larger\r\nfrom bench.rows() r\r\norder by r.Id",
+  "inputCount": 1000
+}

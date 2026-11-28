@@ -1,0 +1,20 @@
+{
+  "processId": 52444,
+  "capturedUtc": "2026-11-28T01:56:22.5263033+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B16_RowsFrame",
+  "sql": "select r.Id as Id, Sum(r.Amount) over (order by r.Id rows between 1 preceding and current row) as Total, FirstValue(r.Amount) over (order by r.Id rows between 1 preceding and current row) as First\r\nfrom bench.rows() r\r\norder by r.Id",
+  "inputCount": 1000
+}

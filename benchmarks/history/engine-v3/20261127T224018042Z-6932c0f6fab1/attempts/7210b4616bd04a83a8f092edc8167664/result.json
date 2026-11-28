@@ -1,0 +1,24 @@
+{
+  "caseId": "X01_SalesReporting-execution-Table-Medium",
+  "startedUtc": "2026-11-28T04:00:39.3046628+00:00",
+  "finishedUtc": "2026-11-28T04:02:14.8018194+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 264424.8602175245,
+  "medianNanoseconds": 264550.341796875,
+  "standardDeviationNanoseconds": 11750.860371440216,
+  "confidenceLowerNanoseconds": 260481.1772063916,
+  "confidenceUpperNanoseconds": 268368.5432286574,
+  "sampleCount": 102,
+  "allocatedBytesPerOperation": 700959,
+  "gen0Collections": 24,
+  "gen1Collections": 9,
+  "gen2Collections": 6,
+  "gcOperations": 2048,
+  "rawReports": [
+    "raw/7210b4616bd04a83a8f092edc8167664/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/7210b4616bd04a83a8f092edc8167664/measured-process-39848-485f8d3428aa41eca5045167f9a237d8.json",
+    "raw/7210b4616bd04a83a8f092edc8167664/measured-process-60684-f913ee1b383f44ddab7689c6eef927c9.json"
+  ],
+  "attemptId": "7210b4616bd04a83a8f092edc8167664"
+}

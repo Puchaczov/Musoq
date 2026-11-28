@@ -1,0 +1,24 @@
+{
+  "caseId": "B31_TextCaptures-execution-Table-Large",
+  "startedUtc": "2026-11-28T03:48:23.9948816+00:00",
+  "finishedUtc": "2026-11-28T03:49:25.8601896+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 71121723.96313365,
+  "medianNanoseconds": 70994742.85714285,
+  "standardDeviationNanoseconds": 1332486.6596281177,
+  "confidenceLowerNanoseconds": 70249167.05820107,
+  "confidenceUpperNanoseconds": 71994280.86806622,
+  "sampleCount": 31,
+  "allocatedBytesPerOperation": 116696369,
+  "gen0Collections": 4,
+  "gen1Collections": 2,
+  "gen2Collections": 0,
+  "gcOperations": 7,
+  "rawReports": [
+    "raw/011028aec7bf4253a31981b924dea2b2/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/011028aec7bf4253a31981b924dea2b2/measured-process-60712-59aad2a28dcd4c6a9799fcb21234a204.json",
+    "raw/011028aec7bf4253a31981b924dea2b2/measured-process-73828-4af8027b9d374bd596ec9673eed42834.json"
+  ],
+  "attemptId": "011028aec7bf4253a31981b924dea2b2"
+}

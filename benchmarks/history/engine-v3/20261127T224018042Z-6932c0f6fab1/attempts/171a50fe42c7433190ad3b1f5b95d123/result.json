@@ -1,0 +1,24 @@
+{
+  "caseId": "B08_AntiJoin-execution-Table-Small",
+  "startedUtc": "2026-11-28T00:16:04.6039127+00:00",
+  "finishedUtc": "2026-11-28T00:17:10.0965183+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 10850.246853298611,
+  "medianNanoseconds": 10329.264831542969,
+  "standardDeviationNanoseconds": 707.1038960289535,
+  "confidenceLowerNanoseconds": 10345.8429423581,
+  "confidenceUpperNanoseconds": 11354.650764239123,
+  "sampleCount": 27,
+  "allocatedBytesPerOperation": 18864,
+  "gen0Collections": 21,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 65536,
+  "rawReports": [
+    "raw/171a50fe42c7433190ad3b1f5b95d123/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/171a50fe42c7433190ad3b1f5b95d123/measured-process-46944-83395f6dc58143b694318e4b55ae63dc.json",
+    "raw/171a50fe42c7433190ad3b1f5b95d123/measured-process-52652-758c1b99664d466bba6e5d57bf6f1868.json"
+  ],
+  "attemptId": "171a50fe42c7433190ad3b1f5b95d123"
+}

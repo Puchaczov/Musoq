@@ -1,0 +1,24 @@
+{
+  "caseId": "B03_VolatileScalarControl-execution-Table-Small",
+  "startedUtc": "2026-11-27T23:38:45.1288718+00:00",
+  "finishedUtc": "2026-11-27T23:39:54.7812912+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 78296.23736213235,
+  "medianNanoseconds": 77987.85400390625,
+  "standardDeviationNanoseconds": 900.2726313730788,
+  "confidenceLowerNanoseconds": 77738.72870642095,
+  "confidenceUpperNanoseconds": 78853.74601784375,
+  "sampleCount": 34,
+  "allocatedBytesPerOperation": 60417,
+  "gen0Collections": 8,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 8192,
+  "rawReports": [
+    "raw/44e2f2893f894e4d99ff5d93b342737d/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/44e2f2893f894e4d99ff5d93b342737d/measured-process-2900-6cebd579ac8f41d1b2ff07b6a29d2921.json",
+    "raw/44e2f2893f894e4d99ff5d93b342737d/measured-process-70872-9cb6250532e240ce87d845846da2c7ec.json"
+  ],
+  "attemptId": "44e2f2893f894e4d99ff5d93b342737d"
+}

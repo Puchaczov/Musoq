@@ -1,0 +1,20 @@
+{
+  "processId": 50340,
+  "capturedUtc": "2026-11-28T03:39:37.7995638+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B30_Text1KiB",
+  "sql": "text Entry { Level: until \u0027|\u0027, Number: until \u0027|\u0027, Label: rest }; select r.Id as Id, p.Level as Level, p.Number::int as Number, Length(p.Label) as LabelLength from perf.rows() r cross apply Parse\u003CEntry\u003E(r.Text) p",
+  "inputCount": 10000
+}

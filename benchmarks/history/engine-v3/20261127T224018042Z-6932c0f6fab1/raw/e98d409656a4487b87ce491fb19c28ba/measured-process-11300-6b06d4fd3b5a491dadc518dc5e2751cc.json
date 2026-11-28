@@ -1,0 +1,20 @@
+{
+  "processId": 11300,
+  "capturedUtc": "2026-11-28T00:49:23.5409357+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B10_CorrelatedFallback",
+  "sql": "select r.Id as Id, (select d.Id\r\nfrom bench.lookup() d\r\nwhere d.Id \u003C= r.Id\r\norder by d.Id desc\r\ntake 1) as Match\r\nfrom bench.rows() r\r\norder by r.Id",
+  "inputCount": 1000
+}

@@ -1,0 +1,20 @@
+{
+  "processId": 60728,
+  "capturedUtc": "2026-11-28T01:14:03.9991409+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B13_OuterApply",
+  "sql": "select r.Id as Id, d.Id as Match\r\nfrom bench.rows() r\r\nouter apply (select e.Id, e.Key\r\nfrom bench.empty() e\r\nwhere e.Key = r.Key) d\r\norder by r.Id",
+  "inputCount": 10000
+}

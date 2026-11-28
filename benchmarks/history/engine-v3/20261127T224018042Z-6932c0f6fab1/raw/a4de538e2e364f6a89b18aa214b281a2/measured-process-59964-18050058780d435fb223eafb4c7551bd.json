@@ -1,0 +1,20 @@
+{
+  "processId": 59964,
+  "capturedUtc": "2026-11-27T23:19:23.6195062+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B02_Filter_Selectivity100",
+  "sql": "select r.Id as Id from perf.rows() r where r.Id % 100 \u003C 100",
+  "inputCount": 10000
+}

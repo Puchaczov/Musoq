@@ -1,0 +1,20 @@
+{
+  "processId": 34744,
+  "capturedUtc": "2026-11-28T03:10:19.9987809+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B27_Binary4KiB",
+  "sql": "binary LargePacket { Value: int le, Tail: byte[4092] }; select r.Id as Id, p.Value as Value, Length(p.Tail) as TailLength from perf.rows() r cross apply Interpret\u003CLargePacket\u003E(r.Payload) p",
+  "inputCount": 100000
+}

@@ -1,0 +1,24 @@
+{
+  "caseId": "B14_Skewed-execution-Table-Large",
+  "startedUtc": "2026-11-28T01:34:25.6491877+00:00",
+  "finishedUtc": "2026-11-28T01:35:38.0569548+00:00",
+  "status": "complete",
+  "error": null,
+  "meanNanoseconds": 649175.3047548492,
+  "medianNanoseconds": 648082.568359375,
+  "standardDeviationNanoseconds": 4863.002433933091,
+  "confidenceLowerNanoseconds": 645857.631777358,
+  "confidenceUpperNanoseconds": 652492.9777323403,
+  "sampleCount": 29,
+  "allocatedBytesPerOperation": 4344,
+  "gen0Collections": 0,
+  "gen1Collections": 0,
+  "gen2Collections": 0,
+  "gcOperations": 1024,
+  "rawReports": [
+    "raw/1483a2065fd640fe90eb47be1c8bdbec/Musoq.Benchmarks.QueryExecutionBenchmark-report-full.json",
+    "raw/1483a2065fd640fe90eb47be1c8bdbec/measured-process-50000-3d9a1f8f96eb4b55bee3ce25b42c17eb.json",
+    "raw/1483a2065fd640fe90eb47be1c8bdbec/measured-process-68808-f630e6fda56b4392a857f37aadda068b.json"
+  ],
+  "attemptId": "1483a2065fd640fe90eb47be1c8bdbec"
+}

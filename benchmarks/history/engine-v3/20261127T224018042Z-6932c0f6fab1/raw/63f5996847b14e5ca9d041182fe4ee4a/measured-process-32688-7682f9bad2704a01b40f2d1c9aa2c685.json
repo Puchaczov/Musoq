@@ -1,0 +1,20 @@
+{
+  "processId": 32688,
+  "capturedUtc": "2026-11-28T02:37:25.294087+00:00",
+  "runtime": ".NET 10.0.14",
+  "serverGc": true,
+  "effectiveProcessors": 24,
+  "engineInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "suiteInformationalVersion": "17.0.23\u002B6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+  "source": {
+    "commit": "6932c0f6fab1a9e8a6a3bc974894424df49f7a82",
+    "branch": "master",
+    "tags": [],
+    "dirty": false,
+    "ciBranch": null,
+    "detached": false
+  },
+  "scenarioId": "B22_Recursive",
+  "sql": "with recursive walk as (select r.Id as Id\r\nfrom bench.rows() r\r\nwhere r.Id = 0\r\nunion all select e.Id\r\nfrom walk w\r\ninner join bench.rows() e on e.Id = w.Id \u002B 1) select Id\r\nfrom walk\r\norder by Id",
+  "inputCount": 1000
+}
