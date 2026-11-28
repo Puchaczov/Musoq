@@ -156,18 +156,20 @@ See the [17.0.17](benchmarks/history/engine-v3/20261111T233043559Z-f182beae1eb5/
 [17.0.22](benchmarks/history/engine-v3/20261122T230407017Z-4cac61673c27/manifest.json), and
 [17.0.23](benchmarks/history/engine-v3/20261127T224018042Z-6932c0f6fab1/manifest.json) campaign records.
 
-![Execution time across four recorded Musoq versions for nine workflows, including collection pivoting, consolidation, and structured pipelines; lower is better](images/benchmarks/release-execution.svg)
+![Mean execution time and observed min–max ranges across four recorded Musoq versions for nine workflows](images/benchmarks/release-execution.svg)
 
 ![Managed allocations per query across the same four recorded Musoq versions and nine workflows; lower is better](images/benchmarks/release-allocations.svg)
 
 Queries are compiled before measurement; inputs are synthetic and in memory, and all result rows are consumed. Source I/O and compilation are excluded. Allocations are cumulative managed bytes per query, rather than peak process memory. Results depend on the query, provider, data distribution, and hardware.
 
+Timing whiskers show the minimum and maximum of the samples BenchmarkDotNet used to calculate each mean.
+
 <details>
 <summary>17.0.23 workload timings and input-size scaling</summary>
 
-![Mean execution time and managed allocations for six analytics queries over 100,000 input rows at Musoq 17.0.23](images/benchmarks/execution.svg)
+![Mean execution time with observed min–max ranges and managed allocations for six analytics queries over 100,000 input rows at Musoq 17.0.23](images/benchmarks/execution.svg)
 
-![Execution time at 1,000, 10,000, and 100,000 input rows for sales reporting, joins with windows, log analytics, and packet analytics at Musoq 17.0.23; both axes use logarithmic scales](images/benchmarks/scaling.svg)
+![Mean execution time and observed min–max ranges at 1,000, 10,000, and 100,000 input rows for four Musoq 17.0.23 workflows on logarithmic axes](images/benchmarks/scaling.svg)
 
 </details>
 

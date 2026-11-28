@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" role="img" aria-labelledby="title description">
 <title id="title">How execution time scales with input size</title>
-<desc id="description">Mean execution time at 1,000, 10,000 and 100,000 input rows. Both axes use logarithmic scales. Sales reporting: 1,000 rows = 0.021 ms, 10,000 rows = 0.264 ms, 100,000 rows = 4.249 ms. Join + windows: 1,000 rows = 0.185 ms, 10,000 rows = 2.713 ms, 100,000 rows = 27.502 ms. Log analytics: 1,000 rows = 0.075 ms, 10,000 rows = 0.847 ms, 100,000 rows = 11.760 ms. Packet analytics: 1,000 rows = 0.378 ms, 10,000 rows = 5.467 ms, 100,000 rows = 72.455 ms. </desc>
+<desc id="description">Mean execution time at 1,000, 10,000 and 100,000 input rows. Both axes use logarithmic scales. Timing whiskers show the observed minimum and maximum. Sales reporting averaged 0.021 ms at 1,000 rows (0.021–0.022 ms observed), 0.264 ms at 10,000 rows (0.243–0.295 ms observed), 4.249 ms at 100,000 rows (3.914–4.551 ms observed). Join + windows averaged 0.185 ms at 1,000 rows (0.180–0.189 ms observed), 2.713 ms at 10,000 rows (2.586–2.809 ms observed), 27.502 ms at 100,000 rows (26.588–28.720 ms observed). Log analytics averaged 0.075 ms at 1,000 rows (0.074–0.076 ms observed), 0.847 ms at 10,000 rows (0.826–0.870 ms observed), 11.760 ms at 100,000 rows (11.494–12.088 ms observed). Packet analytics averaged 0.378 ms at 1,000 rows (0.356–0.409 ms observed), 5.467 ms at 10,000 rows (5.246–5.755 ms observed), 72.455 ms at 100,000 rows (65.828–79.488 ms observed). </desc>
 <rect width="960" height="560" rx="16" fill="#ffffff"/>
 <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
 <text x="32.00" y="39.00" font-size="23" fill="#0f172a" text-anchor="start" font-weight="700">How execution time scales with input size</text>
 <text x="32.00" y="65.00" font-size="14" fill="#334155" text-anchor="start" font-weight="400">Musoq 17.0.23 | Synthetic in-memory inputs | Table results fully consumed</text>
-<text x="32.00" y="96.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Mean milliseconds | Lower is better | Both axes logarithmic; lines connect measured points</text>
+<text x="32.00" y="96.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">Mean milliseconds | Both axes logarithmic | Whiskers show observed min–max</text>
 <line x1="112.00" y1="438.00" x2="688.00" y2="438.00" stroke="#e2e8f0" stroke-width="1"/>
 <text x="96.00" y="442.00" font-size="12" fill="#334155" text-anchor="end" font-weight="400">0.01 ms</text>
 <line x1="112.00" y1="363.00" x2="688.00" y2="363.00" stroke="#e2e8f0" stroke-width="1"/>
@@ -24,30 +24,66 @@
 <text x="688.00" y="463.00" font-size="12" fill="#334155" text-anchor="middle" font-weight="400">100,000</text>
 <text x="400.00" y="487.00" font-size="12" fill="#334155" text-anchor="middle" font-weight="400">Input rows</text>
 <polyline points="112.00,413.38 400.00,331.33 688.00,240.88" fill="none" stroke="#0369a1" stroke-width="2.5"/>
-<circle cx="112.00" cy="413.38" r="4.5" fill="#0369a1"><title>Sales reporting: 1,000 rows, 0.021 ms</title></circle>
-<circle cx="400.00" cy="331.33" r="4.5" fill="#0369a1"><title>Sales reporting: 10,000 rows, 0.264 ms</title></circle>
-<circle cx="688.00" cy="240.88" r="4.5" fill="#0369a1"><title>Sales reporting: 100,000 rows, 4.249 ms</title></circle>
+<line x1="112.00" y1="413.88" x2="112.00" y2="412.86" stroke="#0369a1" stroke-width="1.5"/>
+<line x1="107.00" y1="413.88" x2="117.00" y2="413.88" stroke="#0369a1" stroke-width="1.5"/>
+<line x1="107.00" y1="412.86" x2="117.00" y2="412.86" stroke="#0369a1" stroke-width="1.5"/>
+<circle cx="112.00" cy="413.38" r="4.5" fill="#0369a1"><title>Sales reporting averaged 0.021 ms at 1,000 rows (0.021–0.022 ms observed)</title></circle>
+<line x1="400.00" y1="334.12" x2="400.00" y2="327.82" stroke="#0369a1" stroke-width="1.5"/>
+<line x1="395.00" y1="334.12" x2="405.00" y2="334.12" stroke="#0369a1" stroke-width="1.5"/>
+<line x1="395.00" y1="327.82" x2="405.00" y2="327.82" stroke="#0369a1" stroke-width="1.5"/>
+<circle cx="400.00" cy="331.33" r="4.5" fill="#0369a1"><title>Sales reporting averaged 0.264 ms at 10,000 rows (0.243–0.295 ms observed)</title></circle>
+<line x1="688.00" y1="243.56" x2="688.00" y2="238.64" stroke="#0369a1" stroke-width="1.5"/>
+<line x1="683.00" y1="243.56" x2="693.00" y2="243.56" stroke="#0369a1" stroke-width="1.5"/>
+<line x1="683.00" y1="238.64" x2="693.00" y2="238.64" stroke="#0369a1" stroke-width="1.5"/>
+<circle cx="688.00" cy="240.88" r="4.5" fill="#0369a1"><title>Sales reporting averaged 4.249 ms at 100,000 rows (3.914–4.551 ms observed)</title></circle>
 <line x1="734.00" y1="172.00" x2="754.00" y2="172.00" stroke="#0369a1" stroke-width="3"/>
 <text x="766.00" y="177.00" font-size="13" fill="#334155" text-anchor="start" font-weight="600">Sales reporting</text>
 <text x="766.00" y="197.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">4.25 ms at 100k</text>
 <polyline points="112.00,343.02 400.00,255.50 688.00,180.05" fill="none" stroke="#7c3aed" stroke-width="2.5"/>
-<circle cx="112.00" cy="343.02" r="4.5" fill="#7c3aed"><title>Join + windows: 1,000 rows, 0.185 ms</title></circle>
-<circle cx="400.00" cy="255.50" r="4.5" fill="#7c3aed"><title>Join + windows: 10,000 rows, 2.713 ms</title></circle>
-<circle cx="688.00" cy="180.05" r="4.5" fill="#7c3aed"><title>Join + windows: 100,000 rows, 27.502 ms</title></circle>
+<line x1="112.00" y1="343.77" x2="112.00" y2="342.33" stroke="#7c3aed" stroke-width="1.5"/>
+<line x1="107.00" y1="343.77" x2="117.00" y2="343.77" stroke="#7c3aed" stroke-width="1.5"/>
+<line x1="107.00" y1="342.33" x2="117.00" y2="342.33" stroke="#7c3aed" stroke-width="1.5"/>
+<circle cx="112.00" cy="343.02" r="4.5" fill="#7c3aed"><title>Join + windows averaged 0.185 ms at 1,000 rows (0.180–0.189 ms observed)</title></circle>
+<line x1="400.00" y1="257.05" x2="400.00" y2="254.36" stroke="#7c3aed" stroke-width="1.5"/>
+<line x1="395.00" y1="257.05" x2="405.00" y2="257.05" stroke="#7c3aed" stroke-width="1.5"/>
+<line x1="395.00" y1="254.36" x2="405.00" y2="254.36" stroke="#7c3aed" stroke-width="1.5"/>
+<circle cx="400.00" cy="255.50" r="4.5" fill="#7c3aed"><title>Join + windows averaged 2.713 ms at 10,000 rows (2.586–2.809 ms observed)</title></circle>
+<line x1="688.00" y1="181.15" x2="688.00" y2="178.64" stroke="#7c3aed" stroke-width="1.5"/>
+<line x1="683.00" y1="181.15" x2="693.00" y2="181.15" stroke="#7c3aed" stroke-width="1.5"/>
+<line x1="683.00" y1="178.64" x2="693.00" y2="178.64" stroke="#7c3aed" stroke-width="1.5"/>
+<circle cx="688.00" cy="180.05" r="4.5" fill="#7c3aed"><title>Join + windows averaged 27.502 ms at 100,000 rows (26.588–28.720 ms observed)</title></circle>
 <line x1="734.00" y1="239.00" x2="754.00" y2="239.00" stroke="#7c3aed" stroke-width="3"/>
 <text x="766.00" y="244.00" font-size="13" fill="#334155" text-anchor="start" font-weight="600">Join + windows</text>
 <text x="766.00" y="264.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">27.50 ms at 100k</text>
 <polyline points="112.00,372.37 400.00,293.42 688.00,207.72" fill="none" stroke="#047857" stroke-width="2.5"/>
-<circle cx="112.00" cy="372.37" r="4.5" fill="#047857"><title>Log analytics: 1,000 rows, 0.075 ms</title></circle>
-<circle cx="400.00" cy="293.42" r="4.5" fill="#047857"><title>Log analytics: 10,000 rows, 0.847 ms</title></circle>
-<circle cx="688.00" cy="207.72" r="4.5" fill="#047857"><title>Log analytics: 100,000 rows, 11.760 ms</title></circle>
+<line x1="112.00" y1="372.90" x2="112.00" y2="371.96" stroke="#047857" stroke-width="1.5"/>
+<line x1="107.00" y1="372.90" x2="117.00" y2="372.90" stroke="#047857" stroke-width="1.5"/>
+<line x1="107.00" y1="371.96" x2="117.00" y2="371.96" stroke="#047857" stroke-width="1.5"/>
+<circle cx="112.00" cy="372.37" r="4.5" fill="#047857"><title>Log analytics averaged 0.075 ms at 1,000 rows (0.074–0.076 ms observed)</title></circle>
+<line x1="400.00" y1="294.21" x2="400.00" y2="292.52" stroke="#047857" stroke-width="1.5"/>
+<line x1="395.00" y1="294.21" x2="405.00" y2="294.21" stroke="#047857" stroke-width="1.5"/>
+<line x1="395.00" y1="292.52" x2="405.00" y2="292.52" stroke="#047857" stroke-width="1.5"/>
+<circle cx="400.00" cy="293.42" r="4.5" fill="#047857"><title>Log analytics averaged 0.847 ms at 10,000 rows (0.826–0.870 ms observed)</title></circle>
+<line x1="688.00" y1="208.46" x2="688.00" y2="206.82" stroke="#047857" stroke-width="1.5"/>
+<line x1="683.00" y1="208.46" x2="693.00" y2="208.46" stroke="#047857" stroke-width="1.5"/>
+<line x1="683.00" y1="206.82" x2="693.00" y2="206.82" stroke="#047857" stroke-width="1.5"/>
+<circle cx="688.00" cy="207.72" r="4.5" fill="#047857"><title>Log analytics averaged 11.760 ms at 100,000 rows (11.494–12.088 ms observed)</title></circle>
 <line x1="734.00" y1="306.00" x2="754.00" y2="306.00" stroke="#047857" stroke-width="3"/>
 <text x="766.00" y="311.00" font-size="13" fill="#334155" text-anchor="start" font-weight="600">Log analytics</text>
 <text x="766.00" y="331.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">11.76 ms at 100k</text>
 <polyline points="112.00,319.66 400.00,232.67 688.00,148.50" fill="none" stroke="#be185d" stroke-width="2.5"/>
-<circle cx="112.00" cy="319.66" r="4.5" fill="#be185d"><title>Packet analytics: 1,000 rows, 0.378 ms</title></circle>
-<circle cx="400.00" cy="232.67" r="4.5" fill="#be185d"><title>Packet analytics: 10,000 rows, 5.467 ms</title></circle>
-<circle cx="688.00" cy="148.50" r="4.5" fill="#be185d"><title>Packet analytics: 100,000 rows, 72.455 ms</title></circle>
+<line x1="112.00" y1="321.61" x2="112.00" y2="317.10" stroke="#be185d" stroke-width="1.5"/>
+<line x1="107.00" y1="321.61" x2="117.00" y2="321.61" stroke="#be185d" stroke-width="1.5"/>
+<line x1="107.00" y1="317.10" x2="117.00" y2="317.10" stroke="#be185d" stroke-width="1.5"/>
+<circle cx="112.00" cy="319.66" r="4.5" fill="#be185d"><title>Packet analytics averaged 0.378 ms at 1,000 rows (0.356–0.409 ms observed)</title></circle>
+<line x1="400.00" y1="234.01" x2="400.00" y2="231.00" stroke="#be185d" stroke-width="1.5"/>
+<line x1="395.00" y1="234.01" x2="405.00" y2="234.01" stroke="#be185d" stroke-width="1.5"/>
+<line x1="395.00" y1="231.00" x2="405.00" y2="231.00" stroke="#be185d" stroke-width="1.5"/>
+<circle cx="400.00" cy="232.67" r="4.5" fill="#be185d"><title>Packet analytics averaged 5.467 ms at 10,000 rows (5.246–5.755 ms observed)</title></circle>
+<line x1="688.00" y1="151.62" x2="688.00" y2="145.48" stroke="#be185d" stroke-width="1.5"/>
+<line x1="683.00" y1="151.62" x2="693.00" y2="151.62" stroke="#be185d" stroke-width="1.5"/>
+<line x1="683.00" y1="145.48" x2="693.00" y2="145.48" stroke="#be185d" stroke-width="1.5"/>
+<circle cx="688.00" cy="148.50" r="4.5" fill="#be185d"><title>Packet analytics averaged 72.455 ms at 100,000 rows (65.828–79.488 ms observed)</title></circle>
 <line x1="734.00" y1="373.00" x2="754.00" y2="373.00" stroke="#be185d" stroke-width="3"/>
 <text x="766.00" y="378.00" font-size="13" fill="#334155" text-anchor="start" font-weight="600">Packet analytics</text>
 <text x="766.00" y="398.00" font-size="12" fill="#334155" text-anchor="start" font-weight="400">72.45 ms at 100k</text>

@@ -50,6 +50,27 @@ def read_json(path):
     return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
+def observed_time_range(campaign, case_id):
+    measurement = campaign["measurements"][case_id]
+    reports = [path for path in measurement["rawReports"] if path.endswith("-report-full.json")]
+    context = f"{campaign['directory']}, {case_id}"
+    if len(reports) != 1:
+        raise ValueError(f"Expected one full timing report for {context}")
+    benchmarks = read_json(campaign["directory"] / reports[0])["Benchmarks"]
+    if len(benchmarks) != 1:
+        raise ValueError(f"Expected one benchmark in the timing report for {context}")
+    statistics = benchmarks[0]["Statistics"]
+    lower, mean, upper = (statistics[key] for key in ("Min", "Mean", "Max"))
+    if (
+        statistics["N"] != measurement["sampleCount"]
+        or mean != measurement["meanNanoseconds"]
+        or not all(math.isfinite(value) for value in (lower, mean, upper))
+        or not 0 <= lower <= mean <= upper
+    ):
+        raise ValueError(f"Timing report does not match the retained measurement for {context}")
+    return lower, upper
+
+
 def text(x, y, value, *, size=14, fill="#334155", anchor="start", weight="400"):
     return (
         f'<text x="{x:.2f}" y="{y:.2f}" font-size="{size}" fill="{fill}" '
@@ -62,6 +83,14 @@ def line(x1, y1, x2, y2, color="#e2e8f0", width=1):
         f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" '
         f'stroke="{color}" stroke-width="{width}"/>'
     )
+
+
+def vertical_whisker(x, lower, upper, color):
+    return [
+        line(x, lower, x, upper, color, 1.5),
+        line(x - 5, lower, x + 5, lower, color, 1.5),
+        line(x - 5, upper, x + 5, upper, color, 1.5),
+    ]
 
 
 def frame(title, description, version, *, height=560, subtitle=None):
@@ -88,36 +117,38 @@ def finish(parts, provenance, *, height=560):
     return "\n".join(parts) + "\n"
 
 
-def execution_chart(cases, measurements, provenance):
+def execution_chart(campaign):
+    cases, measurements, provenance = campaign["cases"], campaign["measurements"], campaign["manifest"]["provenance"]
     rows = []
     for scenario, label, detail, color in WORKLOADS:
         case_id = f"{scenario}-execution-Table-Large"
         case, result = cases[case_id], measurements[case_id]
         assert case["inputCount"] == 100000 and case["inputUnit"] == "rows", case_id
-        rows.append((label, detail, color, result))
+        lower, upper = observed_time_range(campaign, case_id)
+        rows.append((label, detail, color, result, lower / 1e6, upper / 1e6))
     description = "Mean execution time and cumulative managed allocations per query for 100,000 input rows. "
-    description += " Whiskers show the recorded confidence interval. "
-    description += "; ".join(
-        f"{label}: {result['meanNanoseconds'] / 1e6:.2f} ms, {result['allocatedBytesPerOperation'] / 1048576:.2f} MiB allocated"
-        for label, _, _, result in rows
+    description += "Timing whiskers show the observed minimum and maximum. "
+    description += ". ".join(
+        f"{label} averaged {result['meanNanoseconds'] / 1e6:.2f} ms "
+        f"({lower:.2f}–{upper:.2f} ms observed), with {result['allocatedBytesPerOperation'] / 1048576:.2f} MiB allocated"
+        for label, _, _, result, lower, upper in rows
     )
     parts = frame("Analytics workloads at 100,000 rows", description, provenance["build"]["engineVersion"])
     parts.extend([
-        text(32, 96, "Mean execution time | Lower is better | Whiskers: recorded confidence intervals", size=12),
+        text(32, 96, "Mean execution time | Lower is better | Whiskers show observed min–max", size=12),
         text(912, 124, "Allocated / query", size=12, anchor="end"),
     ])
-    maximum = math.ceil(max(r[3]["confidenceUpperNanoseconds"] / 1e6 for r in rows) / 20) * 20
+    maximum = math.ceil(max(upper for _, _, _, _, _, upper in rows) / 20) * 20
     left, width = 300, 480
     scale = lambda value: left + value / maximum * width
     for index in range(5):
         tick = maximum * index / 4
         x = scale(tick)
         parts.extend([line(x, 135, x, 461), text(x, 482, f"{tick:g} ms", size=12, anchor="middle")])
-    for index, (label, detail, color, result) in enumerate(rows):
+    for index, (label, detail, color, result, lower, upper) in enumerate(rows):
         y = 151 + index * 53
         mean = result["meanNanoseconds"] / 1e6
-        lower = scale(result["confidenceLowerNanoseconds"] / 1e6)
-        upper = scale(result["confidenceUpperNanoseconds"] / 1e6)
+        lower, upper = scale(lower), scale(upper)
         parts.extend([
             text(32, y + 8, label, size=15, weight="600"),
             text(32, y + 26, detail, size=11),
@@ -125,14 +156,16 @@ def execution_chart(cases, measurements, provenance):
             line(lower, y + 11, upper, y + 11, "#0f172a", 1.5),
             line(lower, y + 6, lower, y + 16, "#0f172a", 1.5),
             line(upper, y + 6, upper, y + 16, "#0f172a", 1.5),
-            text(scale(mean) + 9, y + 16, f"{mean:.2f}", size=12, weight="600"),
+            text(upper + 9, y + 16, f"{mean:.2f}", size=12, weight="600"),
             text(912, y + 16, f"{result['allocatedBytesPerOperation'] / 1048576:.2f} MiB", anchor="end"),
         ])
     return finish(parts, provenance)
 
 
-def scaling_chart(cases, measurements, provenance):
+def scaling_chart(campaign):
+    cases, measurements, provenance = campaign["cases"], campaign["measurements"], campaign["manifest"]["provenance"]
     description = "Mean execution time at 1,000, 10,000 and 100,000 input rows. Both axes use logarithmic scales. "
+    description += "Timing whiskers show the observed minimum and maximum. "
     series = []
     for scenario, label, _, color in SCALING:
         points = []
@@ -141,13 +174,19 @@ def scaling_chart(cases, measurements, provenance):
             count = cases[case_id]["inputCount"]
             mean = measurements[case_id]["meanNanoseconds"] / 1e6
             assert count in (1000, 10000, 100000) and mean > 0, case_id
-            points.append((count, mean))
-        description += label + ": " + ", ".join(f"{count:,} rows = {mean:.3f} ms" for count, mean in points) + ". "
+            lower, upper = observed_time_range(campaign, case_id)
+            if lower == 0:
+                raise ValueError(f"Logarithmic scaling requires a positive observed minimum for {case_id}")
+            points.append((count, mean, lower / 1e6, upper / 1e6))
+        description += label + " averaged " + ", ".join(
+            f"{mean:.3f} ms at {count:,} rows ({lower:.3f}–{upper:.3f} ms observed)"
+            for count, mean, lower, upper in points
+        ) + ". "
         series.append((label, color, points))
     parts = frame("How execution time scales with input size", description, provenance["build"]["engineVersion"])
-    parts.append(text(32, 96, "Mean milliseconds | Lower is better | Both axes logarithmic; lines connect measured points", size=12))
-    minimum = math.floor(math.log10(min(point[1] for _, _, points in series for point in points)))
-    maximum = math.ceil(math.log10(max(point[1] for _, _, points in series for point in points)))
+    parts.append(text(32, 96, "Mean milliseconds | Both axes logarithmic | Whiskers show observed min–max", size=12))
+    minimum = math.floor(math.log10(min(lower for _, _, points in series for _, _, lower, _ in points)))
+    maximum = math.ceil(math.log10(max(upper for _, _, points in series for _, _, _, upper in points)))
     x = lambda count: 112 + (math.log10(count) - 3) * 288
     y = lambda mean: 438 - (math.log10(mean) - minimum) / (maximum - minimum) * 300
     for power in range(minimum, maximum + 1):
@@ -157,10 +196,15 @@ def scaling_chart(cases, measurements, provenance):
         parts.extend([line(x(count), 138, x(count), 438), text(x(count), 463, f"{count:,}", size=12, anchor="middle")])
     parts.append(text(400, 487, "Input rows", size=12, anchor="middle"))
     for index, (label, color, points) in enumerate(series):
-        coordinates = " ".join(f"{x(count):.2f},{y(mean):.2f}" for count, mean in points)
+        coordinates = " ".join(f"{x(count):.2f},{y(mean):.2f}" for count, mean, _, _ in points)
         parts.append(f'<polyline points="{coordinates}" fill="none" stroke="{color}" stroke-width="2.5"/>')
-        for count, mean in points:
-            parts.append(f'<circle cx="{x(count):.2f}" cy="{y(mean):.2f}" r="4.5" fill="{color}"><title>{escape(label)}: {count:,} rows, {mean:.3f} ms</title></circle>')
+        for count, mean, lower, upper in points:
+            parts.extend(vertical_whisker(x(count), y(lower), y(upper), color))
+            parts.append(
+                f'<circle cx="{x(count):.2f}" cy="{y(mean):.2f}" r="4.5" fill="{color}">'
+                f'<title>{escape(label)} averaged {mean:.3f} ms at {count:,} rows '
+                f'({lower:.3f}–{upper:.3f} ms observed)</title></circle>'
+            )
         legend_y = 177 + index * 67
         parts.extend([
             line(734, legend_y - 5, 754, legend_y - 5, color, 3),
@@ -178,6 +222,7 @@ def load_campaign(directory):
     if completion["completed"] != completion["expected"]:
         raise ValueError(f"Incomplete campaign: {directory}")
     return {
+        "directory": directory,
         "manifest": manifest,
         "cases": {case["id"]: case for case in manifest["cases"]},
         "measurements": {result["caseId"]: result for result in read_json(directory / "measurements.json")},
@@ -271,7 +316,8 @@ def release_panel(origin, workload, series, versions):
         text(left + 16, top + 25, label, size=15, weight="600"),
         text(left + 16, top + 43, detail, size=11),
     ]
-    maximum = max(values) * 1.2
+    ranges = series.get("ranges")
+    maximum = max(upper for _, upper in ranges) * 1.2 if ranges else max(values) * 1.2
     x = lambda index: left + 76 + index * 175 / (len(values) - 1)
     y = lambda value: top + 146 - value / maximum * 85
     for fraction in (0, 0.5, 1):
@@ -286,9 +332,14 @@ def release_panel(origin, workload, series, versions):
     points = " ".join(f"{x(index):.2f},{y(value):.2f}" for index, value in enumerate(values))
     parts.append(f'<polyline points="{points}" fill="none" stroke="{color}" stroke-width="2.5"/>')
     for index, (value, version) in enumerate(zip(values, versions)):
+        label_y = y(value) - 10
+        if ranges:
+            lower, upper = ranges[index]
+            parts.extend(vertical_whisker(x(index), y(lower), y(upper), color))
+            label_y = y(upper) - 8
         parts.extend([
             f'<circle cx="{x(index):.2f}" cy="{y(value):.2f}" r="4" fill="{color}"/>',
-            text(x(index), y(value) - 10, measurement_label(value, unit), size=11, anchor="middle", weight="600"),
+            text(x(index), label_y, measurement_label(value, unit), size=11, anchor="middle", weight="600"),
             text(x(index), top + 169, version.partition("-")[0], size=11, anchor="middle"),
         ])
         suffix = version.partition("-")[2]
@@ -314,19 +365,31 @@ def release_chart(campaigns, metric, comparisons):
     height = 194 + rows * (RELEASE_PANEL_HEIGHT + RELEASE_PANEL_GAP)
     versions = [campaign["manifest"]["provenance"]["build"]["engineVersion"] for campaign in campaigns]
     description = "100,000 synthetic input rows per query. Independent zero-based panel scales. Lower is better. "
+    timing = metric == "meanNanoseconds"
+    if timing:
+        description += "Timing whiskers show the observed minimum and maximum. "
     panels = []
     for index, workload in enumerate(TREND_WORKLOADS):
         case_id = f"{workload[0]}-execution-Table-Large"
         series = trend_values(comparisons, case_id, metric)
         values, unit = series["values"], series["unit"]
+        if timing:
+            divisor = 1e9 if unit == "s" else 1e6
+            series["ranges"] = [
+                (lower / divisor, upper / divisor)
+                for lower, upper in (observed_time_range(campaign, case_id) for campaign in campaigns)
+            ]
         description += workload[1] + ": "
         for position, (version, value) in enumerate(zip(versions, values)):
             description += f"{version} = {measurement_label(value, unit)}"
+            if timing:
+                lower, upper = series["ranges"][position]
+                description += f" ({measurement_label(lower, unit)} to {measurement_label(upper, unit)} observed)"
             if position > 0:
                 change = series["changes"][position]
                 change_label, _ = change_style(change)
                 description += f" ({change_label} vs preceding version)"
-            description += "; "
+            description += ". " if timing else "; "
         origin = (
             32 + index % RELEASE_COLUMNS * (RELEASE_PANEL_WIDTH + RELEASE_PANEL_GAP),
             112 + index // RELEASE_COLUMNS * (RELEASE_PANEL_HEIGHT + RELEASE_PANEL_GAP),
@@ -340,7 +403,7 @@ def release_chart(campaigns, metric, comparisons):
     if metric == "allocatedBytesPerOperation":
         parts.append(text(32, height - 71, "Cumulative managed allocations per query; this does not measure peak process memory.", size=12))
     else:
-        parts.append(text(32, height - 71, "Measured means; percentage changes are descriptive and do not establish statistical significance.", size=12))
+        parts.append(text(32, height - 71, "Dots show means | Whiskers show observed min–max | Percentages compare means", size=12))
     return finish(parts, provenance, height=height)
 
 
@@ -352,7 +415,7 @@ def main():
     parser.add_argument("--work-directory", type=Path, help="New evidence directory; defaults under .artifacts/benchmarks/readme-charts")
     args = parser.parse_args()
     campaign = load_campaign(args.run_directory)
-    manifest, cases, measurements = campaign["manifest"], campaign["cases"], campaign["measurements"]
+    measurements = campaign["measurements"]
     history = [load_campaign(directory) for directory in args.history_directories]
     validate_history(history)
     for case in [f"{scenario}-execution-Table-{size}" for scenario, *_ in WORKLOADS for size in ("Small", "Medium", "Large")]:
@@ -361,14 +424,16 @@ def main():
         history, [f"{scenario}-execution-Table-Large" for scenario, *_ in TREND_WORKLOADS],
         work_directory=args.work_directory,
     )
+    charts = {
+        "execution.svg": execution_chart(campaign),
+        "scaling.svg": scaling_chart(campaign),
+        "release-execution.svg": release_chart(history, "meanNanoseconds", comparisons),
+        "release-allocations.svg": release_chart(history, "allocatedBytesPerOperation", comparisons),
+    }
     args.output_directory.mkdir(parents=True, exist_ok=True)
-    for filename, render in [("execution.svg", execution_chart), ("scaling.svg", scaling_chart)]:
+    for filename, contents in charts.items():
         destination = args.output_directory / filename
-        destination.write_text(render(cases, measurements, manifest["provenance"]), encoding="utf-8", newline="\r\n")
-        print(destination)
-    for filename, metric in [("release-execution.svg", "meanNanoseconds"), ("release-allocations.svg", "allocatedBytesPerOperation")]:
-        destination = args.output_directory / filename
-        destination.write_text(release_chart(history, metric, comparisons), encoding="utf-8", newline="\r\n")
+        destination.write_text(contents, encoding="utf-8", newline="\r\n")
         print(destination)
 
 
